@@ -1,0 +1,121 @@
+/* Overall container styles */
+.quiz-container {
+    background-color: #f3f3f3;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    max-width: 500px;
+    margin: 0 auto;
+    margin-top: 20px;
+  }
+
+  .emoji{
+    font-size: 150px;
+  }
+  
+  /* Header styles */
+  h2 {
+    font: 1em sans-serif;
+    font-size: 34px;
+    font-weight: 600;
+    color: #0c0d0d;
+    margin-bottom: 10px;
+  }
+  
+  /* Math question styles */
+  .math-icon {
+    width: 100;
+    height: 100px;
+    margin-bottom: 0px;
+    margin-top: 15px;
+  }
+  
+  .math-question {
+    font: 1em sans-serif;
+    font-size: 50px;
+    font-weight: bold;
+    color: #007BFF;
+  }
+  
+  /* Answer input styles */
+  .answer-input {
+    font: 1em sans-serif;
+    width: 100px;
+    padding: 10px;
+    font-size: 50px;
+    margin: 0px 0px 0px 0px;
+    border: 2px solid #007BFF;
+    border-radius: 5px;
+  }
+  
+  /* Answer button styles */
+  .answer-button {
+    background-color: #007BFF;
+    color: #fff;
+    font-weight: 600;
+    font-size: 27px;
+    padding: 30px 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .answer-button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Feedback message styles */
+  .feedback {
+    font: 1em sans-serif;
+    font-size: 42px;
+    font-weight: bold;
+    margin-top: 50px;
+    margin-bottom: 50px;
+  }
+
+  .feedback-container {
+    margin-top: 10px;
+
+  }
+  
+  .correct {
+    color: #28a745;
+  }
+  
+  .incorrect {
+    color: #dc3545;
+  }
+  
+  /* Next button styles */
+  .correct .next-button {
+    background-color:#28a745;
+    color: #fff;
+    font-weight: 600;
+    font-size: 27px;
+    padding: 30px 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+  }
+
+  .incorrect .next-button {
+    background-color:#dc3545;
+    color: #fff;
+    font-weight: 600;
+    font-size: 27px;
+    padding: 30px 30px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 10px;
+  }
+  
+  .next-button:hover {
+    background-color: rgb(15, 98, 56);;
+  }
+  
