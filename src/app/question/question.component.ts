@@ -27,7 +27,7 @@ export class QuestionComponent implements OnInit {
   }
 
   generateQuestion() {
-    this.num1 = Math.floor(Math.random() * 10);
+    this.num1 = Math.floor(Math.random() * 10) + 10; //make sure the 1st value is always above 10 
     this.num2 = Math.floor(Math.random() * 10);
     this.answer = this.num1 + this.num2;
     this.isCorrect = false;
