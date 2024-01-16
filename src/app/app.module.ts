@@ -6,12 +6,14 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { QuestionComponent } from './question/question.component';
 import { ResultComponent } from './result/result.component';
+import { ProfileCreationComponent } from './profile-creation/profile-creation.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     QuestionComponent,
-    ResultComponent
+    ResultComponent,
+    ProfileCreationComponent
   ],
   imports: [
     BrowserModule,
