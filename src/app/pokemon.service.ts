@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class PokemonService {
-  private url = 'https://pokeapi.co/api/v2/pokemon?limit=100';
+  private url = 'https://pokeapi.co/api/v2/pokemon?limit=1000';
 
   constructor(private http: HttpClient) { }
 
