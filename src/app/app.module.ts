@@ -7,13 +7,15 @@ import { AppComponent } from './app.component';
 import { QuestionComponent } from './question/question.component';
 import { ResultComponent } from './result/result.component';
 import { ProfileCreationComponent } from './profile-creation/profile-creation.component';
+import { LoginComponent } from './login/login.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     QuestionComponent,
     ResultComponent,
-    ProfileCreationComponent
+    ProfileCreationComponent,
+    LoginComponent
   ],
   imports: [
     BrowserModule,
