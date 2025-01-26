@@ -1,1 +1,40 @@
-<p>login works!</p>
+<div class="login-container">
+  <h2>{{ isRegistering ? 'Register' : 'Login' }}</h2>
+  
+  <form (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="username">Username:</label>
+      <input 
+        type="text" 
+        id="username" 
+        [(ngModel)]="username" 
+        name="username" 
+        required 
+        minlength="3">
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <input 
+        type="password" 
+        id="password" 
+        [(ngModel)]="password" 
+        name="password" 
+        required 
+        minlength="6">
+    </div>
+
+    <div class="error-message" *ngIf="errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <button type="submit" class="submit-btn">
+      {{ isRegistering ? 'Register' : 'Login' }}
+    </button>
+
+    <button type="button" class="toggle-btn" (click)="toggleMode()">
+      {{ isRegistering ? 'Already have an account? Login' : 'Need an account? Register' }}
+    </button>
+  </form>
+</div>
+

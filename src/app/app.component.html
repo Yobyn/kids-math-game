@@ -1,1 +1,8 @@
+<header class="app-header" *ngIf="authService.isAuthenticated() | async">
+  <div class="user-info">
+    Welcome, {{ username }}!
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </div>
+</header>
+
 <router-outlet></router-outlet>

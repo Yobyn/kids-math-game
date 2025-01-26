@@ -1,20 +1,37 @@
-<div class="quiz-container">
-    <h2>Ik speel rekenen en leer</h2>
-    <img src="assets/math-icon.png" alt="Math Icon" class="math-icon">
-    <h2>Toevoeging</h2>
-    <p class="math-question">{{ num1 }} + {{ num2 }} = 
-    <input type="number" [(ngModel)]="userAnswer" class="answer-input"> </p>
-    <button (click)="checkAnswer()" class="answer-button">Bevestigen</button>
-    <div *ngIf="showResult" class="feedback-container">
-      <div *ngIf="isCorrect" class="feedback correct"> Top! &#x2705;  <br/> <span class="emoji">😄  <br/></span> 
-        <button (click)="generateQuestion()" class="next-button">Volgende vraag</button>
-      </div>
-      <div *ngIf="!isCorrect" class="feedback incorrect">  Sorry <br/>  <span class="emoji"> 😢 <br/> </span>
-        <button (click)="clearAnswer()" class="next-button">Weer proberen</button>
-      </div>
-      
-    </div>  
-   
-  </div>  
+<div class="question-container">
+  <div class="score-info">
+    <p>Question {{ questionsAnswered + 1 }} of 10</p>
+    <p>Score: {{ currentScore }}/{{ questionsAnswered }}</p>
+  </div>
 
-  <!-- <a routerLink="/result">See Result</a> -->
+  <div class="question">
+    <h2>
+      {{ currentQuestion.num1 }} {{ currentQuestion.operation }} {{ currentQuestion.num2 }} = ?
+    </h2>
+    
+    <div class="answer-input">
+      <input 
+        type="number" 
+        [(ngModel)]="userAnswer" 
+        (keyup.enter)="checkAnswer()"
+        placeholder="?"
+        [disabled]="feedback !== ''"
+        autofocus>
+      
+      <button 
+        (click)="checkAnswer()" 
+        [disabled]="userAnswer === '' || feedback !== ''">
+        Submit
+      </button>
+    </div>
+
+    <div class="feedback" *ngIf="feedback">
+      <p [class.correct]="feedback.includes('Correct')" 
+         [class.wrong]="feedback.includes('Wrong')">
+        {{ feedback }}
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- <a routerLink="/result">See Result</a> -->

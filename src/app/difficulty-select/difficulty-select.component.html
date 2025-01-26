@@ -1,0 +1,28 @@
+<div class="difficulty-container">
+  <div class="selection-section">
+    <h1>Select Your Grade</h1>
+    <div class="grade-cards">
+      <div class="grade-card" 
+           *ngFor="let grade of grades"
+           [class.selected]="selectedGrade === grade.level"
+           (click)="selectGrade(grade.level)">
+        <div class="grade-icon">{{ grade.icon }}</div>
+        <h2>{{ grade.name }}</h2>
+        <p>{{ grade.description }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="selection-section" [class.disabled]="!selectedGrade">
+    <h1>Select Difficulty Level</h1>
+    <div class="difficulty-cards">
+      <div class="difficulty-card" 
+           *ngFor="let difficulty of difficulties"
+           (click)="selectDifficulty(difficulty.level)">
+        <div class="difficulty-icon">{{ difficulty.icon }}</div>
+        <h2>{{ difficulty.name }}</h2>
+        <p>{{ difficulty.description }}</p>
+      </div>
+    </div>
+  </div>
+</div> 

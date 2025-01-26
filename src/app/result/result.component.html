@@ -1,1 +1,19 @@
-<p>result works!</p>
+<div class="result-container">
+  <h1>Quiz Complete!</h1>
+  
+  <div class="score-card">
+    <div class="score">
+      <h2>Your Score</h2>
+      <div class="score-number">{{ score }}/{{ total }}</div>
+      <div class="percentage">{{ percentage | number:'1.0-0' }}%</div>
+    </div>
+
+    <div class="message">
+      {{ message }}
+    </div>
+  </div>
+
+  <button class="play-again" (click)="playAgain()">
+    Play Again
+  </button>
+</div>
