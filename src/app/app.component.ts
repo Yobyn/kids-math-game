@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AuthService } from './auth.service';
+import { LanguageService } from './services/language.service';
 
 @Component({
   selector: 'app-root',
@@ -9,7 +10,10 @@ import { AuthService } from './auth.service';
 export class AppComponent implements OnInit {
   username: string = '';
 
-  constructor(public authService: AuthService) {}
+  constructor(
+    public authService: AuthService,
+    public languageService: LanguageService
+  ) {}
 
   ngOnInit() {
     this.authService.getCurrentUser().subscribe(username => {

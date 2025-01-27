@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
 @Component({
@@ -6,16 +6,7 @@ import { Router } from '@angular/router';
   templateUrl: './difficulty-select.component.html',
   styleUrls: ['./difficulty-select.component.css']
 })
-export class DifficultySelectComponent {
-  selectedGrade: number | null = null;
-  
-  grades = Array.from({ length: 10 }, (_, i) => ({
-    level: i + 1,
-    name: `Grade ${i + 1}`,
-    description: `Mathematics for Grade ${i + 1} students`,
-    icon: '📚'
-  }));
-
+export class DifficultySelectComponent implements OnInit {
   difficulties = [
     { 
       level: 'easy',
@@ -39,18 +30,15 @@ export class DifficultySelectComponent {
 
   constructor(private router: Router) {}
 
-  selectGrade(grade: number) {
-    this.selectedGrade = grade;
-    localStorage.setItem('grade', grade.toString());
+  ngOnInit() {
+    // Redirect to grade selection if no grade is selected
+    if (!localStorage.getItem('grade')) {
+      this.router.navigate(['/grade']);
+    }
   }
 
   selectDifficulty(level: string) {
-    if (this.selectedGrade === null) {
-      alert('Please select a grade first');
-      return;
-    }
     localStorage.setItem('difficulty', level);
-    localStorage.setItem('grade', this.selectedGrade.toString());
     this.router.navigate(['/questions']);
   }
 } 

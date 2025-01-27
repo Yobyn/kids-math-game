@@ -43,7 +43,7 @@ export class AuthService {
           localStorage.setItem(this.usernameKey, username);
           this.currentUserSubject.next(username);
           this.isAuthenticatedSubject.next(true);
-          this.router.navigate(['/difficulty']);
+          this.router.navigate(['/grade']);
         })
       );
   }
@@ -56,7 +56,7 @@ export class AuthService {
           localStorage.setItem(this.usernameKey, username);
           this.currentUserSubject.next(username);
           this.isAuthenticatedSubject.next(true);
-          this.router.navigate(['/difficulty']);
+          this.router.navigate(['/grade']);
         })
       );
   }
@@ -65,6 +65,7 @@ export class AuthService {
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.usernameKey);
     localStorage.removeItem('difficulty');
+    localStorage.removeItem('grade');
     this.currentUserSubject.next('');
     this.isAuthenticatedSubject.next(false);
     this.router.navigate(['/login']);

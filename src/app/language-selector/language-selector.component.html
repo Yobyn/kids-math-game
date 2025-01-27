@@ -1,0 +1,9 @@
+<div class="language-selector">
+  <button *ngFor="let lang of languages" 
+          (click)="switchLanguage(lang.code)"
+          [class.active]="(languageService.getCurrentLang() | async) === lang.code"
+          class="lang-btn">
+    <span class="flag">{{ lang.flag }}</span>
+    <span class="lang-name">{{ lang.name }}</span>
+  </button>
+</div> 

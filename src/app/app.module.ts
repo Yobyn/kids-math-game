@@ -10,6 +10,8 @@ import { ResultComponent } from './result/result.component';
 import { ProfileCreationComponent } from './profile-creation/profile-creation.component';
 import { LoginComponent } from './login/login.component';
 import { DifficultySelectComponent } from './difficulty-select/difficulty-select.component';
+import { GradeSelectComponent } from './grade-select/grade-select.component';
+import { LanguageSelectorComponent } from './language-selector/language-selector.component';
 
 @NgModule({
   declarations: [
@@ -18,7 +20,9 @@ import { DifficultySelectComponent } from './difficulty-select/difficulty-select
     ResultComponent,
     ProfileCreationComponent,
     LoginComponent,
-    DifficultySelectComponent
+    DifficultySelectComponent,
+    GradeSelectComponent,
+    LanguageSelectorComponent
   ],
   imports: [
     BrowserModule,

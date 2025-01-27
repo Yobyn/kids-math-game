@@ -5,10 +5,12 @@ import { ResultComponent } from './result/result.component';
 import { ProfileCreationComponent } from './profile-creation/profile-creation.component';
 import { LoginComponent } from './login/login.component';
 import { DifficultySelectComponent } from './difficulty-select/difficulty-select.component';
+import { GradeSelectComponent } from './grade-select/grade-select.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
+  { path: 'grade', component: GradeSelectComponent },
   { path: 'difficulty', component: DifficultySelectComponent },
   { path: 'profile', component: ProfileCreationComponent },
   { path: 'questions', component: QuestionComponent },

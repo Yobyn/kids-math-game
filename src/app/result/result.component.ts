@@ -43,6 +43,6 @@ export class ResultComponent implements OnInit {
     // Clear the stored grade and difficulty to force new selection
     localStorage.removeItem('grade');
     localStorage.removeItem('difficulty');
-    this.router.navigate(['/difficulty']);
+    this.router.navigate(['/grade']);
   }
 }

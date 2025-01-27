@@ -1,0 +1,12 @@
+<div class="grade-container">
+  <h1>Select Your Grade</h1>
+  <div class="grade-cards">
+    <div class="grade-card" 
+         *ngFor="let grade of grades"
+         (click)="selectGrade(grade.level)">
+      <div class="grade-icon">{{ grade.icon }}</div>
+      <h2>{{ grade.name }}</h2>
+      <p>{{ grade.description }}</p>
+    </div>
+  </div>
+</div> 

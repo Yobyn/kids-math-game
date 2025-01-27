@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { AuthService } from '../auth.service';
+import { LanguageService } from '../services/language.service';
 
 @Component({
   selector: 'app-login',
@@ -12,7 +13,10 @@ export class LoginComponent {
   errorMessage: string = '';
   isRegistering: boolean = false;
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    public languageService: LanguageService
+  ) {}
 
   onSubmit() {
     if (this.isRegistering) {
@@ -28,7 +32,7 @@ export class LoginComponent {
         this.errorMessage = '';
       },
       error: (error) => {
-        this.errorMessage = error.error.message || 'Login failed';
+        this.errorMessage = error.error.message || this.languageService.translate('login-failed');
       }
     });
   }
@@ -40,7 +44,7 @@ export class LoginComponent {
         this.isRegistering = false;
       },
       error: (error) => {
-        this.errorMessage = error.error.message || 'Registration failed';
+        this.errorMessage = error.error.message || this.languageService.translate('registration-failed');
       }
     });
   }

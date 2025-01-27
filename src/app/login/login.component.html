@@ -1,9 +1,9 @@
 <div class="login-container">
-  <h2>{{ isRegistering ? 'Register' : 'Login' }}</h2>
+  <h2>{{ languageService.translate(isRegistering ? 'register' : 'login') }}</h2>
   
   <form (ngSubmit)="onSubmit()">
     <div class="form-group">
-      <label for="username">Username:</label>
+      <label for="username">{{ languageService.translate('username') }}:</label>
       <input 
         type="text" 
         id="username" 
@@ -14,7 +14,7 @@
     </div>
 
     <div class="form-group">
-      <label for="password">Password:</label>
+      <label for="password">{{ languageService.translate('password') }}:</label>
       <input 
         type="password" 
         id="password" 
@@ -29,11 +29,11 @@
     </div>
 
     <button type="submit" class="submit-btn">
-      {{ isRegistering ? 'Register' : 'Login' }}
+      {{ languageService.translate(isRegistering ? 'register' : 'login') }}
     </button>
 
     <button type="button" class="toggle-btn" (click)="toggleMode()">
-      {{ isRegistering ? 'Already have an account? Login' : 'Need an account? Register' }}
+      {{ languageService.translate(isRegistering ? 'have-account' : 'need-account') }}
     </button>
   </form>
 </div>

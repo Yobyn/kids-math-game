@@ -1,4 +1,4 @@
-.difficulty-container {
+.grade-container {
   max-width: 1200px;
   margin: 2rem auto;
   padding: 2rem;
@@ -11,14 +11,14 @@ h1 {
   font-size: 2.5rem;
 }
 
-.difficulty-cards {
+.grade-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
   padding: 1rem;
 }
 
-.difficulty-card {
+.grade-card {
   background-color: white;
   border-radius: 12px;
   padding: 1.5rem;
@@ -28,12 +28,12 @@ h1 {
   border: 2px solid transparent;
 }
 
-.difficulty-card:hover {
+.grade-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-.difficulty-icon {
+.grade-icon {
   font-size: 2.5rem;
   margin-bottom: 1rem;
 }
@@ -50,13 +50,20 @@ p {
   font-size: 0.9rem;
 }
 
-/* Difficulty colors */
-.difficulty-card:nth-child(1) { border-top: 4px solid #28a745; }
-.difficulty-card:nth-child(2) { border-top: 4px solid #ffc107; }
-.difficulty-card:nth-child(3) { border-top: 4px solid #dc3545; }
+/* Grade colors - rainbow gradient */
+.grade-card:nth-child(1) { border-top: 4px solid #ff0000; }
+.grade-card:nth-child(2) { border-top: 4px solid #ff4500; }
+.grade-card:nth-child(3) { border-top: 4px solid #ffa500; }
+.grade-card:nth-child(4) { border-top: 4px solid #ffd700; }
+.grade-card:nth-child(5) { border-top: 4px solid #32cd32; }
+.grade-card:nth-child(6) { border-top: 4px solid #008000; }
+.grade-card:nth-child(7) { border-top: 4px solid #40e0d0; }
+.grade-card:nth-child(8) { border-top: 4px solid #0000ff; }
+.grade-card:nth-child(9) { border-top: 4px solid #4b0082; }
+.grade-card:nth-child(10) { border-top: 4px solid #800080; }
 
 @media (max-width: 768px) {
-  .difficulty-cards {
+  .grade-cards {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 
@@ -64,7 +71,7 @@ p {
     font-size: 2rem;
   }
 
-  .difficulty-icon {
+  .grade-icon {
     font-size: 2rem;
   }
 } 
