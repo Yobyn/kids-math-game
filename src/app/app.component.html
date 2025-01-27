@@ -1,9 +1,12 @@
-<app-language-selector></app-language-selector>
-
 <header class="app-header" *ngIf="authService.isAuthenticated() | async">
-  <div class="user-info">
-    Welcome, {{ username }}!
-    <button class="logout-btn" (click)="logout()">{{ languageService.translate('logout') }}</button>
+  <div class="header-content">
+    <div class="welcome-text">
+      {{ languageService.translate('welcome') }}, {{ username }}!
+    </div>
+    <div class="header-actions">
+      <app-language-selector></app-language-selector>
+      <button class="logout-btn" (click)="logout()">{{ languageService.translate('logout') }}</button>
+    </div>
   </div>
 </header>
 

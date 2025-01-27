@@ -1,34 +1,38 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { LanguageService } from '../services/language.service';
 
 @Component({
   selector: 'app-difficulty-select',
   templateUrl: './difficulty-select.component.html',
   styleUrls: ['./difficulty-select.component.css']
 })
-export class DifficultySelectComponent implements OnInit {
+export class DifficultySelectComponent {
   difficulties = [
     { 
       level: 'easy',
-      name: 'Level 1',
-      description: 'Basic operations with smaller numbers',
+      name: this.languageService.translate('level') + ' 1',
+      description: this.languageService.translate('easy-desc'),
       icon: '🌟'
     },
     {
       level: 'medium',
-      name: 'Level 2',
-      description: 'Intermediate operations with medium-sized numbers',
+      name: this.languageService.translate('level') + ' 2',
+      description: this.languageService.translate('medium-desc'),
       icon: '🌟🌟'
     },
     {
       level: 'hard',
-      name: 'Level 3',
-      description: 'Advanced operations with larger numbers',
+      name: this.languageService.translate('level') + ' 3',
+      description: this.languageService.translate('hard-desc'),
       icon: '🌟🌟🌟'
     }
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    public languageService: LanguageService
+  ) {}
 
   ngOnInit() {
     // Redirect to grade selection if no grade is selected

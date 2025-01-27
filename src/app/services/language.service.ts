@@ -1,10 +1,18 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
+type TranslationKeys = 'login' | 'register' | 'username' | 'password' | 'need-account' | 'have-account' | 
+  'login-failed' | 'registration-failed' | 'logout' | 'select-grade' | 'grade' | 'mathematics-for' | 
+  'students' | 'select-difficulty' | 'level' | 'easy-desc' | 'medium-desc' | 'hard-desc' | 'question' | 
+  'of' | 'score' | 'submit' | 'correct' | 'wrong' | 'quiz-complete' | 'your-score' | 'outstanding' | 
+  'great-job' | 'good-effort' | 'keep-practicing' | 'play-again' | 'welcome' | 'correct-answer';
+
+type TranslationSet = {
+  [K in TranslationKeys]: string;
+};
+
 type Translations = {
-  [key: string]: {
-    [key: string]: string;
-  };
+  [lang: string]: TranslationSet;
 };
 
 @Injectable({
@@ -25,6 +33,7 @@ export class LanguageService {
       'login-failed': 'Login failed',
       'registration-failed': 'Registration failed',
       'logout': 'Logout',
+      'welcome': 'Welcome',
       
       // Grade Selection
       'select-grade': 'Select Your Grade',
@@ -54,7 +63,8 @@ export class LanguageService {
       'great-job': 'Great job! Keep up the good work! 🎉',
       'good-effort': 'Good effort! Practice makes perfect! 💪',
       'keep-practicing': 'Keep practicing! You\'ll get better! 📚',
-      'play-again': 'Play Again'
+      'play-again': 'Play Again',
+      'correct-answer': 'The correct answer is'
     },
     nl: {
       // Login/Register
@@ -67,6 +77,7 @@ export class LanguageService {
       'login-failed': 'Inloggen mislukt',
       'registration-failed': 'Registratie mislukt',
       'logout': 'Uitloggen',
+      'welcome': 'Welkom',
       
       // Grade Selection
       'select-grade': 'Kies je klas',
@@ -96,7 +107,8 @@ export class LanguageService {
       'great-job': 'Heel goed gedaan! Ga zo door! 🎉',
       'good-effort': 'Goed geprobeerd! Oefening baart kunst! 💪',
       'keep-practicing': 'Blijf oefenen! Je wordt steeds beter! 📚',
-      'play-again': 'Opnieuw Spelen'
+      'play-again': 'Opnieuw Spelen',
+      'correct-answer': 'Het juiste antwoord is'
     }
   };
 
@@ -111,7 +123,7 @@ export class LanguageService {
     return this.currentLang.asObservable();
   }
 
-  translate(key: string): string {
+  translate(key: TranslationKeys): string {
     const currentLang = this.currentLang.value;
     return this.translations[currentLang][key] || key;
   }

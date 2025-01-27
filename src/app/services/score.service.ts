@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -12,31 +12,34 @@ export class ScoreService {
 
   constructor() {}
 
-  addScore(isCorrect: boolean) {
-    if (isCorrect) {
-      this.currentScore++;
-    }
+  incrementScore() {
+    this.currentScore++;
     this.questionsAnswered++;
     this.scoreSubject.next(this.currentScore);
     this.questionsSubject.next(this.questionsAnswered);
   }
 
-  getCurrentScore() {
+  incrementQuestionsAnswered() {
+    this.questionsAnswered++;
+    this.questionsSubject.next(this.questionsAnswered);
+  }
+
+  getCurrentScore(): Observable<number> {
     return this.scoreSubject.asObservable();
   }
 
-  getQuestionsAnswered() {
+  getQuestionsAnswered(): Observable<number> {
     return this.questionsSubject.asObservable();
   }
 
   resetScore() {
     this.currentScore = 0;
     this.questionsAnswered = 0;
-    this.scoreSubject.next(0);
-    this.questionsSubject.next(0);
+    this.scoreSubject.next(this.currentScore);
+    this.questionsSubject.next(this.questionsAnswered);
   }
 
-  isGameComplete() {
+  isGameComplete(): boolean {
     return this.questionsAnswered >= 10;
   }
 

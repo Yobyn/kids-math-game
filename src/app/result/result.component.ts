@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ScoreService } from '../services/score.service';
+import { LanguageService } from '../services/language.service';
 
 @Component({
   selector: 'app-result',
@@ -15,7 +16,8 @@ export class ResultComponent implements OnInit {
 
   constructor(
     private scoreService: ScoreService,
-    private router: Router
+    private router: Router,
+    public languageService: LanguageService
   ) {}
 
   ngOnInit() {
@@ -28,13 +30,13 @@ export class ResultComponent implements OnInit {
 
   private setMessage() {
     if (this.percentage >= 90) {
-      this.message = 'Outstanding! You\'re a math genius! 🌟';
+      this.message = this.languageService.translate('outstanding');
     } else if (this.percentage >= 70) {
-      this.message = 'Great job! Keep up the good work! 🎉';
+      this.message = this.languageService.translate('great-job');
     } else if (this.percentage >= 50) {
-      this.message = 'Good effort! Practice makes perfect! 💪';
+      this.message = this.languageService.translate('good-effort');
     } else {
-      this.message = 'Keep practicing! You\'ll get better! 📚';
+      this.message = this.languageService.translate('keep-practicing');
     }
   }
 

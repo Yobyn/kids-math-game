@@ -1,9 +1,9 @@
 <div class="result-container">
-  <h1>Quiz Complete!</h1>
+  <h1>{{ languageService.translate('quiz-complete') }}</h1>
   
   <div class="score-card">
     <div class="score">
-      <h2>Your Score</h2>
+      <h2>{{ languageService.translate('your-score') }}</h2>
       <div class="score-number">{{ score }}/{{ total }}</div>
       <div class="percentage">{{ percentage | number:'1.0-0' }}%</div>
     </div>
@@ -14,6 +14,6 @@
   </div>
 
   <button class="play-again" (click)="playAgain()">
-    Play Again
+    {{ languageService.translate('play-again') }}
   </button>
 </div>

@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { LanguageService } from '../services/language.service';
 
 @Component({
   selector: 'app-grade-select',
@@ -9,12 +10,15 @@ import { Router } from '@angular/router';
 export class GradeSelectComponent {
   grades = Array.from({ length: 10 }, (_, i) => ({
     level: i + 1,
-    name: `Grade ${i + 1}`,
-    description: `Mathematics for Grade ${i + 1} students`,
+    name: `${this.languageService.translate('grade')} ${i + 1}`,
+    description: `${this.languageService.translate('mathematics-for')} ${i + 1} ${this.languageService.translate('students')}`,
     icon: '📚'
   }));
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    public languageService: LanguageService
+  ) {}
 
   selectGrade(grade: number) {
     localStorage.setItem('grade', grade.toString());

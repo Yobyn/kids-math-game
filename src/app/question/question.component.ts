@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ScoreService } from '../services/score.service';
+import { LanguageService } from '../services/language.service';
 
 @Component({
   selector: 'app-question',
@@ -20,10 +21,12 @@ export class QuestionComponent implements OnInit {
   questionsAnswered = 0;
   difficulty: string;
   grade: number;
+  inputPlaceholder: string = '?';
 
   constructor(
     private scoreService: ScoreService,
-    private router: Router
+    private router: Router,
+    public languageService: LanguageService
   ) {
     this.difficulty = localStorage.getItem('difficulty') || 'medium';
     this.grade = Number(localStorage.getItem('grade')) || 1;
@@ -42,6 +45,16 @@ export class QuestionComponent implements OnInit {
     this.scoreService.getQuestionsAnswered().subscribe(questions => {
       this.questionsAnswered = questions;
     });
+  }
+
+  onInputFocus() {
+    this.inputPlaceholder = '';
+  }
+
+  onInputBlur() {
+    if (!this.userAnswer) {
+      this.inputPlaceholder = '?';
+    }
   }
 
   private getAvailableOperations(): string[] {
@@ -100,6 +113,7 @@ export class QuestionComponent implements OnInit {
 
     this.userAnswer = '';
     this.feedback = '';
+    this.inputPlaceholder = '?';
   }
 
   private getNumberRange(): number {
@@ -151,13 +165,23 @@ export class QuestionComponent implements OnInit {
         correctAnswer = 0;
     }
 
-    const isCorrect = Number(this.userAnswer) === correctAnswer;
-    this.feedback = isCorrect ? 'Correct! 🎉' : `Wrong! The correct answer was ${correctAnswer}`;
-    this.scoreService.addScore(isCorrect);
+    const userAnswerNum = parseFloat(this.userAnswer);
+    if (userAnswerNum === correctAnswer) {
+      this.feedback = this.languageService.translate('correct');
+      this.scoreService.incrementScore();
+    } else {
+      this.feedback = `${this.languageService.translate('wrong')}. ${this.languageService.translate('correct-answer')}: ${correctAnswer}`;
+      this.scoreService.incrementQuestionsAnswered();
+    }
 
-    // Wait a moment before next question
-    setTimeout(() => {
-      this.generateQuestion();
-    }, 1500);
+    if (this.scoreService.isGameComplete()) {
+      this.router.navigate(['/result']);
+    } else {
+      setTimeout(() => {
+        this.feedback = '';
+        this.userAnswer = '';
+        this.generateQuestion();
+      }, 1500);
+    }
   }
 }

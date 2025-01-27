@@ -1,7 +1,6 @@
 <div class="question-container">
   <div class="score-info">
-    <p>Question {{ questionsAnswered + 1 }} of 10</p>
-    <p>Score: {{ currentScore }}/{{ questionsAnswered }}</p>
+    <p>{{ languageService.translate('question') }} {{ questionsAnswered + 1 }} {{ languageService.translate('of') }} 10</p>
   </div>
 
   <div class="question">
@@ -14,14 +13,16 @@
         type="number" 
         [(ngModel)]="userAnswer" 
         (keyup.enter)="checkAnswer()"
-        placeholder="?"
+        (focus)="onInputFocus()"
+        (blur)="onInputBlur()"
+        [placeholder]="inputPlaceholder"
         [disabled]="feedback !== ''"
         autofocus>
       
       <button 
         (click)="checkAnswer()" 
         [disabled]="userAnswer === '' || feedback !== ''">
-        Submit
+        {{ languageService.translate('submit') }}
       </button>
     </div>
 
