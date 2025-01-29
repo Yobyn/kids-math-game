@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ScoreService } from '../services/score.service';
 import { LanguageService } from '../services/language.service';
@@ -9,6 +9,8 @@ import { LanguageService } from '../services/language.service';
   styleUrls: ['./question.component.css']
 })
 export class QuestionComponent implements OnInit {
+  @ViewChild('answerInput') answerInput!: ElementRef;
+  
   currentQuestion: { num1: number; num2: number; operation: string } = {
     num1: 0,
     num2: 0,
@@ -22,6 +24,8 @@ export class QuestionComponent implements OnInit {
   difficulty: string;
   grade: number;
   inputPlaceholder: string = '?';
+  isSecondAttempt: boolean = false;
+  showOkButton: boolean = false;
 
   constructor(
     private scoreService: ScoreService,
@@ -114,6 +118,7 @@ export class QuestionComponent implements OnInit {
     this.userAnswer = '';
     this.feedback = '';
     this.inputPlaceholder = '?';
+    this.showOkButton = false;
   }
 
   private getNumberRange(): number {
@@ -169,19 +174,48 @@ export class QuestionComponent implements OnInit {
     if (userAnswerNum === correctAnswer) {
       this.feedback = this.languageService.translate('correct');
       this.scoreService.incrementScore();
+      setTimeout(() => {
+        if (this.scoreService.isGameComplete()) {
+          this.router.navigate(['/result']);
+        } else {
+          this.feedback = '';
+          this.userAnswer = '';
+          this.isSecondAttempt = false;
+          this.showOkButton = false;
+          this.generateQuestion();
+          setTimeout(() => {
+            this.answerInput.nativeElement.focus();
+          }, 0);
+        }
+      }, 1000);
     } else {
-      this.feedback = `${this.languageService.translate('wrong')}. ${this.languageService.translate('correct-answer')}: ${correctAnswer}`;
-      this.scoreService.incrementQuestionsAnswered();
+      if (!this.isSecondAttempt) {
+        this.feedback = this.languageService.translate('try-again');
+        this.isSecondAttempt = true;
+        this.userAnswer = '';
+        setTimeout(() => {
+          this.answerInput.nativeElement.focus();
+        }, 0);
+      } else {
+        this.feedback = `${this.languageService.translate('wrong')}. ${this.languageService.translate('correct-answer')}: ${correctAnswer}`;
+        this.scoreService.incrementQuestionsAnswered();
+        this.showOkButton = true;
+      }
     }
+  }
 
+  moveToNextQuestion() {
     if (this.scoreService.isGameComplete()) {
       this.router.navigate(['/result']);
     } else {
+      this.feedback = '';
+      this.userAnswer = '';
+      this.isSecondAttempt = false;
+      this.showOkButton = false;
+      this.generateQuestion();
       setTimeout(() => {
-        this.feedback = '';
-        this.userAnswer = '';
-        this.generateQuestion();
-      }, 1500);
+        this.answerInput.nativeElement.focus();
+      }, 0);
     }
   }
 }

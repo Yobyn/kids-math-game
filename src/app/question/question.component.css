@@ -226,4 +226,21 @@ button:disabled {
     transform: translateY(0);
   }
 }
+
+.ok-button {
+  margin-top: 1rem;
+  padding: 0.5rem 2rem;
+  font-size: 1.2rem;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ok-button:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
   

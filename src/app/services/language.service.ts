@@ -5,7 +5,7 @@ type TranslationKeys = 'login' | 'register' | 'username' | 'password' | 'need-ac
   'login-failed' | 'registration-failed' | 'logout' | 'select-grade' | 'grade' | 'mathematics-for' | 
   'students' | 'select-difficulty' | 'level' | 'easy-desc' | 'medium-desc' | 'hard-desc' | 'question' | 
   'of' | 'score' | 'submit' | 'correct' | 'wrong' | 'quiz-complete' | 'your-score' | 'outstanding' | 
-  'great-job' | 'good-effort' | 'keep-practicing' | 'play-again' | 'welcome' | 'correct-answer';
+  'great-job' | 'good-effort' | 'keep-practicing' | 'play-again' | 'welcome' | 'correct-answer' | 'try-again' | 'ok';
 
 type TranslationSet = {
   [K in TranslationKeys]: string;
@@ -64,7 +64,9 @@ export class LanguageService {
       'good-effort': 'Good effort! Practice makes perfect! 💪',
       'keep-practicing': 'Keep practicing! You\'ll get better! 📚',
       'play-again': 'Play Again',
-      'correct-answer': 'The correct answer is'
+      'correct-answer': 'The correct answer is',
+      'try-again': 'Not quite right, try one more time! 💪',
+      'ok': 'OK'
     },
     nl: {
       // Login/Register
@@ -98,7 +100,7 @@ export class LanguageService {
       'score': 'Score',
       'submit': 'Controleer',
       'correct': 'Goed zo! 🎉',
-      'wrong': 'Jammer, probeer nog eens! 💪',
+      'wrong': 'Jammer! 💪',
       
       // Results
       'quiz-complete': 'Quiz Voltooid!',
@@ -108,7 +110,9 @@ export class LanguageService {
       'good-effort': 'Goed geprobeerd! Oefening baart kunst! 💪',
       'keep-practicing': 'Blijf oefenen! Je wordt steeds beter! 📚',
       'play-again': 'Opnieuw Spelen',
-      'correct-answer': 'Het juiste antwoord is'
+      'correct-answer': 'Het juiste antwoord is',
+      'try-again': 'Niet helemaal goed, probeer nog een keer! 💪',
+      'ok': 'OK'
     }
   };
 

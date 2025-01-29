@@ -10,18 +10,19 @@
     
     <div class="answer-input">
       <input 
+        #answerInput
         type="number" 
         [(ngModel)]="userAnswer" 
         (keyup.enter)="checkAnswer()"
         (focus)="onInputFocus()"
         (blur)="onInputBlur()"
         [placeholder]="inputPlaceholder"
-        [disabled]="feedback !== ''"
+        [disabled]="feedback !== '' && !isSecondAttempt"
         autofocus>
       
       <button 
         (click)="checkAnswer()" 
-        [disabled]="userAnswer === '' || feedback !== ''">
+        [disabled]="userAnswer === '' || (feedback !== '' && !isSecondAttempt)">
         {{ languageService.translate('submit') }}
       </button>
     </div>
@@ -31,6 +32,12 @@
          [class.wrong]="feedback.includes('Wrong')">
         {{ feedback }}
       </p>
+      <button 
+        *ngIf="showOkButton"
+        (click)="moveToNextQuestion()"
+        class="ok-button">
+        {{ languageService.translate('ok') }}
+      </button>
     </div>
   </div>
 </div>
