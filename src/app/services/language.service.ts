@@ -1,134 +1,160 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 
-type TranslationKeys = 'login' | 'register' | 'username' | 'password' | 'need-account' | 'have-account' | 
-  'login-failed' | 'registration-failed' | 'logout' | 'select-grade' | 'grade' | 'mathematics-for' | 
-  'students' | 'select-difficulty' | 'level' | 'easy-desc' | 'medium-desc' | 'hard-desc' | 'question' | 
-  'of' | 'score' | 'submit' | 'correct' | 'wrong' | 'quiz-complete' | 'your-score' | 'outstanding' | 
-  'great-job' | 'good-effort' | 'keep-practicing' | 'play-again' | 'welcome' | 'correct-answer' | 'try-again' | 'ok';
+export type TranslationKeys = 
+  | 'register'
+  | 'username'
+  | 'password'
+  | 'fill-all-fields'
+  | 'registration-failed'
+  | 'have-account'
+  | 'login'
+  | 'grade'
+  | 'difficulty'
+  | 'start'
+  | 'score'
+  | 'correct'
+  | 'incorrect'
+  | 'total'
+  | 'play-again'
+  | 'logout'
+  | 'need-account'
+  | 'login-failed'
+  | 'select-grade'
+  | 'mathematics-for'
+  | 'students'
+  | 'select-difficulty'
+  | 'level'
+  | 'easy-desc'
+  | 'medium-desc'
+  | 'hard-desc'
+  | 'question'
+  | 'of'
+  | 'submit'
+  | 'wrong'
+  | 'quiz-complete'
+  | 'your-score'
+  | 'outstanding'
+  | 'great-job'
+  | 'good-effort'
+  | 'keep-practicing'
+  | 'welcome'
+  | 'correct-answer'
+  | 'try-again'
+  | 'ok';
+
+export type Language = 'en' | 'nl';
 
 type TranslationSet = {
-  [K in TranslationKeys]: string;
-};
-
-type Translations = {
-  [lang: string]: TranslationSet;
+  [key in Language]: {
+    [key in TranslationKeys]: string;
+  };
 };
 
 @Injectable({
   providedIn: 'root'
 })
 export class LanguageService {
-  private currentLang = new BehaviorSubject<string>(localStorage.getItem('lang') || 'en');
-  
-  translations: Translations = {
+  private currentLanguage = new BehaviorSubject<Language>('en');
+
+  getCurrentLang(): string {
+    return this.currentLanguage.value;
+  }
+
+  private translations: TranslationSet = {
     en: {
-      // Login/Register
-      'login': 'Login',
       'register': 'Register',
       'username': 'Username',
       'password': 'Password',
-      'need-account': 'Need an account? Register',
-      'have-account': 'Already have an account? Login',
-      'login-failed': 'Login failed',
+      'fill-all-fields': 'Please fill in all fields',
       'registration-failed': 'Registration failed',
-      'logout': 'Logout',
-      'welcome': 'Welcome',
-      
-      // Grade Selection
-      'select-grade': 'Select Your Grade',
+      'have-account': 'Already have an account? Login',
+      'login': 'Login',
+      'need-account': 'Need an account? Register',
+      'login-failed': 'Login failed',
       'grade': 'Grade',
-      'mathematics-for': 'Mathematics for Grade',
+      'select-grade': 'Select Grade',
+      'mathematics-for': 'Mathematics for',
       'students': 'students',
-      
-      // Difficulty Selection
+      'difficulty': 'Select Difficulty',
       'select-difficulty': 'Select Difficulty Level',
       'level': 'Level',
-      'easy-desc': 'Basic operations with smaller numbers',
-      'medium-desc': 'Intermediate operations with medium-sized numbers',
-      'hard-desc': 'Advanced operations with larger numbers',
-      
-      // Questions
+      'easy-desc': 'Basic operations with small numbers',
+      'medium-desc': 'Mixed operations with larger numbers',
+      'hard-desc': 'Complex problems with multiple steps',
       'question': 'Question',
       'of': 'of',
       'score': 'Score',
       'submit': 'Submit',
-      'correct': 'Correct! 🎉',
-      'wrong': 'Wrong, try again! 💪',
-      
-      // Results
+      'correct': 'Correct',
+      'wrong': 'Wrong',
+      'incorrect': 'Incorrect',
+      'total': 'Total',
       'quiz-complete': 'Quiz Complete!',
       'your-score': 'Your Score',
-      'outstanding': 'Outstanding! You\'re a math genius! 🌟',
-      'great-job': 'Great job! Keep up the good work! 🎉',
-      'good-effort': 'Good effort! Practice makes perfect! 💪',
-      'keep-practicing': 'Keep practicing! You\'ll get better! 📚',
+      'outstanding': 'Outstanding!',
+      'great-job': 'Great job!',
+      'good-effort': 'Good effort!',
+      'keep-practicing': 'Keep practicing!',
       'play-again': 'Play Again',
+      'welcome': 'Welcome',
+      'logout': 'Logout',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! 💪',
-      'ok': 'OK'
+      'ok': 'OK',
+      'start': 'Start Game'
     },
     nl: {
-      // Login/Register
-      'login': 'Inloggen',
       'register': 'Registreren',
       'username': 'Gebruikersnaam',
       'password': 'Wachtwoord',
-      'need-account': 'Nog geen account? Registreer',
-      'have-account': 'Al een account? Log in',
-      'login-failed': 'Inloggen mislukt',
+      'fill-all-fields': 'Vul alle velden in',
       'registration-failed': 'Registratie mislukt',
-      'logout': 'Uitloggen',
-      'welcome': 'Welkom',
-      
-      // Grade Selection
-      'select-grade': 'Kies je klas',
+      'have-account': 'Heb je al een account? Log in',
+      'login': 'Inloggen',
+      'need-account': 'Nog geen account? Registreer',
+      'login-failed': 'Inloggen mislukt',
       'grade': 'Groep',
-      'mathematics-for': 'Wiskunde voor Groep',
+      'select-grade': 'Kies Groep',
+      'mathematics-for': 'Wiskunde voor',
       'students': 'leerlingen',
-      
-      // Difficulty Selection
+      'difficulty': 'Kies Moeilijkheidsgraad',
       'select-difficulty': 'Kies Moeilijkheidsgraad',
       'level': 'Niveau',
       'easy-desc': 'Basis bewerkingen met kleine getallen',
-      'medium-desc': 'Gemiddelde bewerkingen met middelgrote getallen',
-      'hard-desc': 'Gevorderde bewerkingen met grote getallen',
-      
-      // Questions
+      'medium-desc': 'Gemengde bewerkingen met grotere getallen',
+      'hard-desc': 'Complexe problemen met meerdere stappen',
       'question': 'Vraag',
       'of': 'van',
       'score': 'Score',
-      'submit': 'Controleer',
-      'correct': 'Goed zo! 🎉',
-      'wrong': 'Jammer! 💪',
-      
-      // Results
+      'submit': 'Verstuur',
+      'correct': 'Goed',
+      'wrong': 'Fout',
+      'incorrect': 'Onjuist',
+      'total': 'Totaal',
       'quiz-complete': 'Quiz Voltooid!',
       'your-score': 'Jouw Score',
-      'outstanding': 'Fantastisch! Je bent een rekenwonder! 🌟',
-      'great-job': 'Heel goed gedaan! Ga zo door! 🎉',
-      'good-effort': 'Goed geprobeerd! Oefening baart kunst! 💪',
-      'keep-practicing': 'Blijf oefenen! Je wordt steeds beter! 📚',
+      'outstanding': 'Uitstekend!',
+      'great-job': 'Goed gedaan!',
+      'good-effort': 'Goed geprobeerd!',
+      'keep-practicing': 'Blijf oefenen!',
       'play-again': 'Opnieuw Spelen',
+      'welcome': 'Welkom',
+      'logout': 'Uitloggen',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! 💪',
-      'ok': 'OK'
+      'ok': 'OK',
+      'start': 'Start Spel'
     }
   };
 
   constructor() {}
 
-  setLanguage(lang: string) {
-    localStorage.setItem('lang', lang);
-    this.currentLang.next(lang);
-  }
-
-  getCurrentLang() {
-    return this.currentLang.asObservable();
+  setLanguage(lang: Language) {
+    this.currentLanguage.next(lang);
   }
 
   translate(key: TranslationKeys): string {
-    const currentLang = this.currentLang.value;
-    return this.translations[currentLang][key] || key;
+    return this.translations[this.currentLanguage.value][key];
   }
 } 

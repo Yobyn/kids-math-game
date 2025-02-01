@@ -8,7 +8,7 @@ import { LanguageService } from './services/language.service';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
-  username: string = '';
+  username: string | null = null;
 
   constructor(
     public authService: AuthService,

@@ -1,20 +1,22 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { LoginComponent } from './login/login.component';
+import { RegisterComponent } from './register/register.component';
 import { QuestionComponent } from './question/question.component';
 import { ResultComponent } from './result/result.component';
-import { ProfileCreationComponent } from './profile-creation/profile-creation.component';
-import { LoginComponent } from './login/login.component';
-import { DifficultySelectComponent } from './difficulty-select/difficulty-select.component';
 import { GradeSelectComponent } from './grade-select/grade-select.component';
+import { DifficultySelectComponent } from './difficulty-select/difficulty-select.component';
+import { AuthGuard } from './auth.guard';
 
 const routes: Routes = [
-  { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
-  { path: 'grade', component: GradeSelectComponent },
-  { path: 'difficulty', component: DifficultySelectComponent },
-  { path: 'profile', component: ProfileCreationComponent },
-  { path: 'questions', component: QuestionComponent },
-  { path: 'result', component: ResultComponent },
+  { path: 'register', component: RegisterComponent },
+  { path: 'grade', component: GradeSelectComponent, canActivate: [AuthGuard] },
+  { path: 'difficulty', component: DifficultySelectComponent, canActivate: [AuthGuard] },
+  { path: 'questions', component: QuestionComponent, canActivate: [AuthGuard] },
+  { path: 'result', component: ResultComponent, canActivate: [AuthGuard] },
+  { path: '', redirectTo: '/grade', pathMatch: 'full' },
+  { path: '**', redirectTo: '/grade' }
 ];
 
 @NgModule({

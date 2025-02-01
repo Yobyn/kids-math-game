@@ -1,77 +1,59 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+
+interface AuthResponse {
+  token: string;
+  message?: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private apiUrl = 'http://localhost:3000/api/auth';
-  private tokenKey = 'auth_token';
-  private usernameKey = 'username';
-  private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
-  private currentUserSubject = new BehaviorSubject<string>(this.getStoredUsername());
+  private tokenSubject = new BehaviorSubject<string | null>(localStorage.getItem('token'));
+  private usernameSubject = new BehaviorSubject<string | null>(localStorage.getItem('username'));
 
-  constructor(
-    private http: HttpClient,
-    private router: Router
-  ) {}
+  constructor(private http: HttpClient) {}
 
-  private hasToken(): boolean {
-    return !!localStorage.getItem(this.tokenKey);
+  register(username: string, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, { username, password });
   }
 
-  private getStoredUsername(): string {
-    return localStorage.getItem(this.usernameKey) || '';
-  }
-
-  isAuthenticated(): Observable<boolean> {
-    return this.isAuthenticatedSubject.asObservable();
-  }
-
-  getCurrentUser(): Observable<string> {
-    return this.currentUserSubject.asObservable();
-  }
-
-  register(username: string, password: string) {
-    return this.http.post<{token: string}>(`${this.apiUrl}/register`, { username, password })
+  login(username: string, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password })
       .pipe(
         tap(response => {
-          localStorage.setItem(this.tokenKey, response.token);
-          localStorage.setItem(this.usernameKey, username);
-          this.currentUserSubject.next(username);
-          this.isAuthenticatedSubject.next(true);
-          this.router.navigate(['/grade']);
-        })
-      );
-  }
-
-  login(username: string, password: string) {
-    return this.http.post<{token: string}>(`${this.apiUrl}/login`, { username, password })
-      .pipe(
-        tap(response => {
-          localStorage.setItem(this.tokenKey, response.token);
-          localStorage.setItem(this.usernameKey, username);
-          this.currentUserSubject.next(username);
-          this.isAuthenticatedSubject.next(true);
-          this.router.navigate(['/grade']);
+          localStorage.setItem('token', response.token);
+          localStorage.setItem('username', username);
+          this.tokenSubject.next(response.token);
+          this.usernameSubject.next(username);
         })
       );
   }
 
   logout() {
-    localStorage.removeItem(this.tokenKey);
-    localStorage.removeItem(this.usernameKey);
-    localStorage.removeItem('difficulty');
-    localStorage.removeItem('grade');
-    this.currentUserSubject.next('');
-    this.isAuthenticatedSubject.next(false);
-    this.router.navigate(['/login']);
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    this.tokenSubject.next(null);
+    this.usernameSubject.next(null);
   }
 
   getToken(): string | null {
-    return localStorage.getItem(this.tokenKey);
+    return this.tokenSubject.value;
+  }
+
+  getUsername(): string | null {
+    return this.usernameSubject.value;
+  }
+
+  isLoggedIn(): boolean {
+    return !!this.getToken();
+  }
+
+  getCurrentUser(): Observable<string | null> {
+    return this.usernameSubject.asObservable();
   }
 }

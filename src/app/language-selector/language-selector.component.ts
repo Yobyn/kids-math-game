@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { LanguageService } from '../services/language.service';
+import { LanguageService, Language } from '../services/language.service';
 
 @Component({
   selector: 'app-language-selector',
@@ -14,7 +14,7 @@ export class LanguageSelectorComponent {
 
   constructor(public languageService: LanguageService) {}
 
-  switchLanguage(langCode: string) {
+  switchLanguage(langCode: Language) {
     this.languageService.setLanguage(langCode);
   }
 } 
