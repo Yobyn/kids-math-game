@@ -11,7 +11,6 @@ const secretKey = 'your-secret-key';
 
 // In-memory storage (replace with database in production)
 const users = [];
-const scores = new Map(); // userId -> ScoreHistory[]
 
 // Middleware
 app.use(cors());
@@ -56,7 +55,6 @@ app.post('/api/auth/register', async (req, res) => {
       password: hashedPassword
     };
     users.push(user);
-    scores.set(user.id, []); // Initialize empty score history for user
 
     // Create token
     const token = jwt.sign(
@@ -99,44 +97,6 @@ app.post('/api/auth/login', async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Error logging in', error: error.message });
   }
-});
-
-// Save score
-app.post('/api/scores', authenticateToken, (req, res) => {
-  const userId = req.user.id;
-  const scoreHistory = scores.get(userId) || [];
-  const newScore = {
-    ...req.body,
-    userId,
-    timestamp: new Date()
-  };
-  
-  scoreHistory.push(newScore);
-  scores.set(userId, scoreHistory);
-  
-  res.status(201).json({ message: 'Score saved successfully' });
-});
-
-// Get user's score history
-app.get('/api/scores', authenticateToken, (req, res) => {
-  const userId = req.user.id;
-  const userScores = scores.get(userId) || [];
-  res.json(userScores);
-});
-
-// Get user's score statistics
-app.get('/api/scores/stats', authenticateToken, (req, res) => {
-  const userId = req.user.id;
-  const userScores = scores.get(userId) || [];
-  
-  const stats = {
-    totalGames: userScores.length,
-    averageScore: userScores.reduce((acc, score) => acc + score.percentage, 0) / (userScores.length || 1),
-    bestScore: Math.max(...userScores.map(score => score.percentage), 0),
-    recentScores: userScores.slice(-5) // Last 5 scores
-  };
-  
-  res.json(stats);
 });
 
 app.listen(port, () => {

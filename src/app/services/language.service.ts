@@ -57,7 +57,7 @@ type TranslationSet = {
 export class LanguageService {
   private currentLanguage = new BehaviorSubject<Language>('en');
 
-  getCurrentLang(): string {
+  getCurrentLang(): Language {
     return this.currentLanguage.value;
   }
 
