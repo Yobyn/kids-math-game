@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 export type TranslationKeys = 
   | 'register'
@@ -57,8 +57,8 @@ type TranslationSet = {
 export class LanguageService {
   private currentLanguage = new BehaviorSubject<Language>('en');
 
-  getCurrentLang(): Language {
-    return this.currentLanguage.value;
+  getCurrentLang(): Observable<Language> {
+    return this.currentLanguage.asObservable();
   }
 
   private translations: TranslationSet = {

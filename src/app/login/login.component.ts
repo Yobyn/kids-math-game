@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
-import { AuthService } from '../auth.service';
+import { Router } from '@angular/router';
+import { AuthService } from '../services/auth.service';
 import { LanguageService } from '../services/language.service';
 
 @Component({
@@ -10,11 +11,12 @@ import { LanguageService } from '../services/language.service';
 export class LoginComponent {
   username: string = '';
   password: string = '';
-  errorMessage: string = '';
+  error: string = '';
   isRegistering: boolean = false;
 
   constructor(
     private authService: AuthService,
+    private router: Router,
     public languageService: LanguageService
   ) {}
 
@@ -27,12 +29,18 @@ export class LoginComponent {
   }
 
   login() {
+    if (!this.username || !this.password) {
+      this.error = this.languageService.translate('fill-all-fields');
+      return;
+    }
+
     this.authService.login(this.username, this.password).subscribe({
       next: () => {
-        this.errorMessage = '';
+        this.error = '';
+        this.router.navigate(['/grade']);
       },
       error: (error) => {
-        this.errorMessage = error.error.message || this.languageService.translate('login-failed');
+        this.error = error.error?.message || this.languageService.translate('login-failed');
       }
     });
   }
@@ -40,17 +48,17 @@ export class LoginComponent {
   register() {
     this.authService.register(this.username, this.password).subscribe({
       next: () => {
-        this.errorMessage = '';
+        this.error = '';
         this.isRegistering = false;
       },
       error: (error) => {
-        this.errorMessage = error.error.message || this.languageService.translate('registration-failed');
+        this.error = error.error.message || this.languageService.translate('registration-failed');
       }
     });
   }
 
   toggleMode() {
     this.isRegistering = !this.isRegistering;
-    this.errorMessage = '';
+    this.error = '';
   }
 }

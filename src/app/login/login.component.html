@@ -1,5 +1,5 @@
 <div class="login-container">
-  <h2>{{ languageService.translate(isRegistering ? 'register' : 'login') }}</h2>
+  <h2>{{ isRegistering ? languageService.translate('register') : languageService.translate('login') }}</h2>
   
   <form (ngSubmit)="onSubmit()">
     <div class="form-group">
@@ -24,17 +24,17 @@
         minlength="6">
     </div>
 
-    <div class="error-message" *ngIf="errorMessage">
-      {{ errorMessage }}
-    </div>
+    <div class="error-message" *ngIf="error">{{ error }}</div>
 
     <button type="submit" class="submit-btn">
-      {{ languageService.translate(isRegistering ? 'register' : 'login') }}
+      {{ isRegistering ? languageService.translate('register') : languageService.translate('login') }}
     </button>
 
     <button type="button" class="toggle-btn" (click)="toggleMode()">
-      {{ languageService.translate(isRegistering ? 'have-account' : 'need-account') }}
+      {{ isRegistering ? languageService.translate('have-account') : languageService.translate('need-account') }}
     </button>
+
+    <button (click)="forgotPassword()">{{ languageService.translate('forgot-password') }}</button>
   </form>
 </div>
 

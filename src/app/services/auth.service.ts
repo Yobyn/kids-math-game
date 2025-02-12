@@ -12,13 +12,14 @@ export interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
+  private apiUrl = 'http://localhost:3000/api/auth';
   private tokenSubject = new BehaviorSubject<string | null>(localStorage.getItem('token'));
   private usernameSubject = new BehaviorSubject<string | null>(localStorage.getItem('username'));
 
   constructor(private http: HttpClient) {}
 
   register(username: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('/api/auth/register', { username, password }).pipe(
+    return this.http.post<AuthResponse>(`${this.apiUrl}/register`, { username, password }).pipe(
       tap(response => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('username', username);
@@ -29,7 +30,7 @@ export class AuthService {
   }
 
   login(username: string, password: string): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>('/api/auth/login', { username, password }).pipe(
+    return this.http.post<AuthResponse>(`${this.apiUrl}/login`, { username, password }).pipe(
       tap(response => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('username', username);

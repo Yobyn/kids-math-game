@@ -26,6 +26,8 @@ export class QuestionComponent implements OnInit {
   inputPlaceholder: string = '?';
   isSecondAttempt: boolean = false;
   showOkButton: boolean = false;
+  wrongAttempts = 0;
+  correctAnswer = 0;
 
   constructor(
     private scoreService: ScoreService,
@@ -152,70 +154,64 @@ export class QuestionComponent implements OnInit {
   }
 
   checkAnswer() {
-    let correctAnswer: number;
-    switch (this.currentQuestion.operation) {
-      case '+':
-        correctAnswer = this.currentQuestion.num1 + this.currentQuestion.num2;
-        break;
-      case '-':
-        correctAnswer = this.currentQuestion.num1 - this.currentQuestion.num2;
-        break;
-      case '*':
-        correctAnswer = this.currentQuestion.num1 * this.currentQuestion.num2;
-        break;
-      case '/':
-        correctAnswer = this.currentQuestion.num1 / this.currentQuestion.num2;
-        break;
-      default:
-        correctAnswer = 0;
-    }
+    if (this.userAnswer === '') return;
 
-    const userAnswerNum = parseFloat(this.userAnswer);
-    if (userAnswerNum === correctAnswer) {
+    const answer = parseInt(this.userAnswer);
+    this.correctAnswer = this.calculateCorrectAnswer();
+    
+    // Clear input immediately after submission
+    this.userAnswer = '';
+
+    if (answer === this.correctAnswer) {
       this.feedback = this.languageService.translate('correct');
       this.scoreService.incrementScore();
+      this.wrongAttempts = 0;
+      // Automatically move to next question after a short delay
       setTimeout(() => {
-        if (this.scoreService.isGameComplete()) {
-          this.router.navigate(['/result']);
-        } else {
-          this.feedback = '';
-          this.userAnswer = '';
-          this.isSecondAttempt = false;
-          this.showOkButton = false;
-          this.generateQuestion();
-          setTimeout(() => {
-            this.answerInput.nativeElement.focus();
-          }, 0);
-        }
+        this.moveToNextQuestion();
       }, 1000);
     } else {
-      if (!this.isSecondAttempt) {
+      this.wrongAttempts++;
+      if (this.wrongAttempts >= 2) {
+        this.feedback = this.languageService.translate('wrong');
+        this.showOkButton = true;
+      } else {
         this.feedback = this.languageService.translate('try-again');
         this.isSecondAttempt = true;
-        this.userAnswer = '';
         setTimeout(() => {
           this.answerInput.nativeElement.focus();
-        }, 0);
-      } else {
-        this.feedback = `${this.languageService.translate('wrong')}. ${this.languageService.translate('correct-answer')}: ${correctAnswer}`;
-        this.scoreService.incrementQuestionsAnswered();
-        this.showOkButton = true;
+        });
       }
     }
   }
 
   moveToNextQuestion() {
-    if (this.scoreService.isGameComplete()) {
-      this.router.navigate(['/result']);
-    } else {
-      this.feedback = '';
-      this.userAnswer = '';
-      this.isSecondAttempt = false;
-      this.showOkButton = false;
+    // Only check for OK button when there are wrong attempts
+    if (this.wrongAttempts > 0 && !this.showOkButton && this.wrongAttempts < 2) return;
+    
+    this.feedback = '';
+    this.userAnswer = '';
+    this.isSecondAttempt = false;
+    this.showOkButton = false;
+    this.wrongAttempts = 0;
+    
+    if (!this.scoreService.isGameComplete()) {
       this.generateQuestion();
       setTimeout(() => {
         this.answerInput.nativeElement.focus();
-      }, 0);
+      });
+    } else {
+      this.router.navigate(['/result']);
+    }
+  }
+
+  private calculateCorrectAnswer(): number {
+    switch (this.currentQuestion.operation) {
+      case '+': return this.currentQuestion.num1 + this.currentQuestion.num2;
+      case '-': return this.currentQuestion.num1 - this.currentQuestion.num2;
+      case '*': return this.currentQuestion.num1 * this.currentQuestion.num2;
+      case '/': return this.currentQuestion.num1 / this.currentQuestion.num2;
+      default: return 0;
     }
   }
 }

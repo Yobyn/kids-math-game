@@ -7,7 +7,7 @@ import { LanguageService, Language } from '../services/language.service';
   styleUrls: ['./language-selector.component.css']
 })
 export class LanguageSelectorComponent {
-  languages = [
+  languages: { code: Language; name: string; flag: string; }[] = [
     { code: 'en', name: 'English', flag: '🇬🇧' },
     { code: 'nl', name: 'Nederlands', flag: '🇳🇱' }
   ];

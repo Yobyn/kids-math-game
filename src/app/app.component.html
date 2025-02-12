@@ -1,4 +1,4 @@
-<header class="app-header" *ngIf="authService.isAuthenticated() | async">
+<header class="app-header" *ngIf="authService.isLoggedIn()">
   <div class="header-content">
     <div class="welcome-text">
       {{ languageService.translate('welcome') }}, {{ username }}!

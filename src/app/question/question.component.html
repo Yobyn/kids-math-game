@@ -17,23 +17,25 @@
         (focus)="onInputFocus()"
         (blur)="onInputBlur()"
         [placeholder]="inputPlaceholder"
-        [disabled]="feedback !== '' && !isSecondAttempt"
+        [disabled]="(feedback !== '' && !isSecondAttempt) || wrongAttempts >= 2"
         autofocus>
       
       <button 
         (click)="checkAnswer()" 
-        [disabled]="userAnswer === '' || (feedback !== '' && !isSecondAttempt)">
+        [disabled]="userAnswer === '' || (feedback !== '' && !isSecondAttempt) || wrongAttempts >= 2">
         {{ languageService.translate('submit') }}
       </button>
     </div>
 
     <div class="feedback" *ngIf="feedback">
-      <p [class.correct]="feedback.includes('Correct')" 
-         [class.wrong]="feedback.includes('Wrong')">
+      <p [class.correct]="feedback.includes(languageService.translate('correct'))" 
+         [class.wrong]="feedback.includes(languageService.translate('wrong'))">
+        <span class="feedback-icon">{{ feedback.includes(languageService.translate('correct')) ? '✅' : '❌' }}</span>
         {{ feedback }}
+        <span *ngIf="wrongAttempts >= 2">{{ languageService.translate('correct-answer') }}: {{ correctAnswer }}</span>
       </p>
       <button 
-        *ngIf="showOkButton"
+        *ngIf="showOkButton || wrongAttempts >= 2"
         (click)="moveToNextQuestion()"
         class="ok-button">
         {{ languageService.translate('ok') }}
