@@ -11,6 +11,7 @@ import { LanguageService } from '../services/language.service';
 export class LoginComponent {
   username: string = '';
   password: string = '';
+  email: string = '';
   error: string = '';
   isRegistering: boolean = false;
 
@@ -60,5 +61,10 @@ export class LoginComponent {
   toggleMode() {
     this.isRegistering = !this.isRegistering;
     this.error = '';
+  }
+
+  forgotPassword() {
+    // TODO: Implement password reset logic
+    console.log('Password reset requested');
   }
 }

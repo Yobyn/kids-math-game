@@ -24,6 +24,16 @@
         minlength="6">
     </div>
 
+    <div class="form-group" *ngIf="isRegistering">
+      <label for="email">{{ languageService.translate('email') }}:</label>
+      <input 
+        type="email" 
+        id="email" 
+        [(ngModel)]="email" 
+        name="email" 
+        required>
+    </div>
+
     <div class="error-message" *ngIf="error">{{ error }}</div>
 
     <button type="submit" class="submit-btn">
