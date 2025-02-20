@@ -41,7 +41,9 @@ export type TranslationKeys =
   | 'welcome'
   | 'correct-answer'
   | 'try-again'
-  | 'ok';
+  | 'ok'
+  | 'email'
+  | 'forgot-password';
 
 export type Language = 'en' | 'nl';
 
@@ -102,7 +104,9 @@ export class LanguageService {
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! 💪',
       'ok': 'OK',
-      'start': 'Start Game'
+      'start': 'Start Game',
+      'email': 'Email',
+      'forgot-password': 'Forgot Password'
     },
     nl: {
       'register': 'Registreren',
@@ -144,7 +148,9 @@ export class LanguageService {
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! 💪',
       'ok': 'OK',
-      'start': 'Start Spel'
+      'start': 'Start Spel',
+      'email': 'E-mailadres',
+      'forgot-password': 'Wachtwoord vergeten'
     }
   };
 
@@ -157,4 +163,4 @@ export class LanguageService {
   translate(key: TranslationKeys): string {
     return this.translations[this.currentLanguage.value][key];
   }
-} 
+}

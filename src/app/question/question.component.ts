@@ -159,17 +159,23 @@ export class QuestionComponent implements OnInit {
     const answer = parseInt(this.userAnswer);
     this.correctAnswer = this.calculateCorrectAnswer();
     
+    // Store the answer before clearing
+    const wasCorrect = answer === this.correctAnswer;
+    
     // Clear input immediately after submission
     this.userAnswer = '';
 
-    if (answer === this.correctAnswer) {
+    if (wasCorrect) {
       this.feedback = this.languageService.translate('correct');
       this.scoreService.incrementScore();
       this.wrongAttempts = 0;
-      // Automatically move to next question after a short delay
-      setTimeout(() => {
-        this.moveToNextQuestion();
-      }, 1000);
+      
+      // Use requestAnimationFrame for smoother transition
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          this.moveToNextQuestion();
+        }, 800);
+      });
     } else {
       this.wrongAttempts++;
       if (this.wrongAttempts >= 2) {
@@ -178,8 +184,11 @@ export class QuestionComponent implements OnInit {
       } else {
         this.feedback = this.languageService.translate('try-again');
         this.isSecondAttempt = true;
-        setTimeout(() => {
-          this.answerInput.nativeElement.focus();
+        // Use requestAnimationFrame for smoother focus handling
+        requestAnimationFrame(() => {
+          if (this.answerInput) {
+            this.answerInput.nativeElement.focus();
+          }
         });
       }
     }
@@ -197,8 +206,11 @@ export class QuestionComponent implements OnInit {
     
     if (!this.scoreService.isGameComplete()) {
       this.generateQuestion();
-      setTimeout(() => {
-        this.answerInput.nativeElement.focus();
+      // Use requestAnimationFrame for smoother focus handling
+      requestAnimationFrame(() => {
+        if (this.answerInput) {
+          this.answerInput.nativeElement.focus();
+        }
       });
     } else {
       this.router.navigate(['/result']);
