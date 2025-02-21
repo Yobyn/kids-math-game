@@ -155,6 +155,13 @@ export class QuestionComponent implements OnInit {
 
   checkAnswer() {
     if (this.userAnswer === '') return;
+    
+    // If there's feedback and it's not a second attempt, or we've had 2 wrong attempts,
+    // move to next question instead
+    if ((this.feedback !== '' && !this.isSecondAttempt) || this.wrongAttempts >= 2) {
+      this.moveToNextQuestion();
+      return;
+    }
 
     const answer = parseInt(this.userAnswer);
     this.correctAnswer = this.calculateCorrectAnswer();
@@ -197,6 +204,11 @@ export class QuestionComponent implements OnInit {
   moveToNextQuestion() {
     // Only check for OK button when there are wrong attempts
     if (this.wrongAttempts > 0 && !this.showOkButton && this.wrongAttempts < 2) return;
+    
+    // Increment questions answered if we had 2 wrong attempts and it's not the last question
+    if (this.wrongAttempts >= 2 && this.questionsAnswered < 9) {
+      this.scoreService.incrementQuestionsAnswered();
+    }
     
     this.feedback = '';
     this.userAnswer = '';

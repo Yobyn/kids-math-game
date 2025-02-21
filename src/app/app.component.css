@@ -1,21 +1,22 @@
 .app-header {
-  background-color: #007bff;
-  color: white;
+  background-color: #f8f9fa;
   padding: 1rem;
-  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  position: relative;
+  z-index: 1000;
 }
 
 .header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .welcome-text {
   font-size: 1.1rem;
+  color: #333;
 }
 
 .header-actions {
@@ -25,19 +26,17 @@
 }
 
 .logout-btn {
-  background-color: transparent;
-  border: 1px solid white;
-  color: white;
   padding: 0.5rem 1rem;
+  background-color: #dc3545;
+  color: white;
+  border: none;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
+  transition: background-color 0.2s;
 }
 
 .logout-btn:hover {
-  background-color: white;
-  color: #007bff;
+  background-color: #c82333;
 }
 
 @media (max-width: 600px) {
