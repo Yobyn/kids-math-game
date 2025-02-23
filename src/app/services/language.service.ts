@@ -43,7 +43,12 @@ export type TranslationKeys =
   | 'try-again'
   | 'ok'
   | 'email'
-  | 'forgot-password';
+  | 'forgot-password'
+  | 'enter-email'
+  | 'password-reset-sent'
+  | 'password-reset-failed'
+  | 'reset-password'
+  | 'cancel';
 
 export type Language = 'en' | 'nl';
 
@@ -106,7 +111,12 @@ export class LanguageService {
       'ok': 'OK',
       'start': 'Start Game',
       'email': 'Email',
-      'forgot-password': 'Forgot Password'
+      'forgot-password': 'Forgot Password',
+      'enter-email': 'Please enter your email address',
+      'password-reset-sent': 'Password reset instructions have been sent to your email',
+      'password-reset-failed': 'Failed to send password reset email. Please try again.',
+      'reset-password': 'Reset Password',
+      'cancel': 'Cancel',
     },
     nl: {
       'register': 'Registreren',
@@ -150,7 +160,12 @@ export class LanguageService {
       'ok': 'OK',
       'start': 'Start Spel',
       'email': 'E-mailadres',
-      'forgot-password': 'Wachtwoord vergeten'
+      'forgot-password': 'Wachtwoord vergeten',
+      'enter-email': 'Voer uw e-mailadres in',
+      'password-reset-sent': 'Instructies voor het opnieuw instellen van uw wachtwoord zijn naar uw e-mail verzonden',
+      'password-reset-failed': 'Kon geen wachtwoord reset e-mail verzenden. Probeer het opnieuw.',
+      'reset-password': 'Wachtwoord opnieuw instellen',
+      'cancel': 'Annuleren',
     }
   };
 

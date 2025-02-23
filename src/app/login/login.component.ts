@@ -14,6 +14,7 @@ export class LoginComponent {
   email: string = '';
   error: string = '';
   isRegistering: boolean = false;
+  isForgotPassword: boolean = false;
 
   constructor(
     private authService: AuthService,
@@ -22,7 +23,9 @@ export class LoginComponent {
   ) {}
 
   onSubmit() {
-    if (this.isRegistering) {
+    if (this.isForgotPassword) {
+      this.handlePasswordReset();
+    } else if (this.isRegistering) {
       this.register();
     } else {
       this.login();
@@ -58,13 +61,40 @@ export class LoginComponent {
     });
   }
 
+  handlePasswordReset() {
+    if (!this.email) {
+      this.error = this.languageService.translate('enter-email');
+      return;
+    }
+
+    this.authService.resetPassword(this.email).subscribe({
+      next: () => {
+        this.error = '';
+        alert(this.languageService.translate('password-reset-sent'));
+        this.isForgotPassword = false;
+      },
+      error: (error) => {
+        this.error = error.error?.message || this.languageService.translate('password-reset-failed');
+      }
+    });
+  }
+
   toggleMode() {
-    this.isRegistering = !this.isRegistering;
+    if (this.isForgotPassword) {
+      this.isForgotPassword = false;
+    } else {
+      this.isRegistering = !this.isRegistering;
+    }
     this.error = '';
   }
 
   forgotPassword() {
-    // TODO: Implement password reset logic
-    console.log('Password reset requested');
+    this.isForgotPassword = true;
+    this.error = '';
+  }
+
+  cancelPasswordReset() {
+    this.isForgotPassword = false;
+    this.error = '';
   }
 }

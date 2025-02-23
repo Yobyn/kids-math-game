@@ -40,6 +40,10 @@ export class AuthService {
     );
   }
 
+  resetPassword(email: string): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/reset-password`, { email });
+  }
+
   logout(): void {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
@@ -58,4 +62,4 @@ export class AuthService {
   isLoggedIn(): boolean {
     return !!this.tokenSubject.value;
   }
-} 
+}

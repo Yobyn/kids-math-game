@@ -73,3 +73,53 @@ input:focus {
 .toggle-btn:hover {
   background-color: rgba(0, 123, 255, 0.1);
 }
+
+.forgot-password-btn {
+  background: none;
+  border: none;
+  color: #4a90e2;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s;
+  margin-top: 1rem;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.forgot-password-btn:hover {
+  color: #357abd;
+}
+
+.forgot-password-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
+  border-radius: 4px;
+}
+
+.cancel-btn {
+  background: none;
+  border: none;
+  color: #dc3545;
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  cursor: pointer;
+  text-decoration: underline;
+  transition: color 0.2s;
+  margin-top: 1rem;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+.cancel-btn:hover {
+  color: #c82333;
+}
+
+.cancel-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.3);
+  border-radius: 4px;
+}

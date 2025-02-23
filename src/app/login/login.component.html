@@ -1,50 +1,69 @@
 <div class="login-container">
-  <h2>{{ isRegistering ? languageService.translate('register') : languageService.translate('login') }}</h2>
+  <h2>{{ isForgotPassword ? (languageService.translate('forgot-password')) : (isRegistering ? languageService.translate('register') : languageService.translate('login')) }}</h2>
   
   <form (ngSubmit)="onSubmit()">
-    <div class="form-group">
-      <label for="username">{{ languageService.translate('username') }}:</label>
+    <div class="form-group" *ngIf="!isForgotPassword">
       <input 
         type="text" 
-        id="username" 
         [(ngModel)]="username" 
         name="username" 
-        required 
-        minlength="3">
-    </div>
-
-    <div class="form-group">
-      <label for="password">{{ languageService.translate('password') }}:</label>
-      <input 
-        type="password" 
-        id="password" 
-        [(ngModel)]="password" 
-        name="password" 
-        required 
-        minlength="6">
-    </div>
-
-    <div class="form-group" *ngIf="isRegistering">
-      <label for="email">{{ languageService.translate('email') }}:</label>
-      <input 
-        type="email" 
-        id="email" 
-        [(ngModel)]="email" 
-        name="email" 
+        placeholder="{{ languageService.translate('username') }}"
         required>
     </div>
 
-    <div class="error-message" *ngIf="error">{{ error }}</div>
+    <div class="form-group" *ngIf="!isForgotPassword">
+      <input 
+        type="password" 
+        [(ngModel)]="password" 
+        name="password" 
+        placeholder="{{ languageService.translate('password') }}"
+        required>
+    </div>
 
-    <button type="submit" class="submit-btn">
-      {{ isRegistering ? languageService.translate('register') : languageService.translate('login') }}
+    <div class="form-group" *ngIf="isRegistering || isForgotPassword">
+      <input 
+        type="email" 
+        [(ngModel)]="email" 
+        name="email" 
+        placeholder="{{ languageService.translate('email') }}"
+        required>
+    </div>
+
+    <div *ngIf="error" class="error-message">
+      {{ error }}
+    </div>
+
+    <button 
+      type="submit" 
+      class="submit-btn">
+      {{ isForgotPassword ? 
+          languageService.translate('reset-password') : 
+          (isRegistering ? languageService.translate('register') : languageService.translate('login')) 
+      }}
     </button>
 
-    <button type="button" class="toggle-btn" (click)="toggleMode()">
+    <button 
+      type="button"
+      class="toggle-btn" 
+      (click)="toggleMode()"
+      *ngIf="!isForgotPassword">
       {{ isRegistering ? languageService.translate('have-account') : languageService.translate('need-account') }}
     </button>
 
-    <button (click)="forgotPassword()">{{ languageService.translate('forgot-password') }}</button>
+    <button 
+      type="button"
+      class="forgot-password-btn" 
+      (click)="forgotPassword()"
+      *ngIf="!isForgotPassword && !isRegistering">
+      {{ languageService.translate('forgot-password') }}
+    </button>
+
+    <button 
+      type="button"
+      class="cancel-btn" 
+      (click)="cancelPasswordReset()"
+      *ngIf="isForgotPassword">
+      {{ languageService.translate('cancel') }}
+    </button>
   </form>
 </div>
-
