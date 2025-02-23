@@ -238,4 +238,8 @@ export class QuestionComponent implements OnInit {
       default: return 0;
     }
   }
+
+  returnToGrade() {
+    this.router.navigate(['/grade']);
+  }
 }
