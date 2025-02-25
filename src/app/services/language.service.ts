@@ -48,7 +48,13 @@ export type TranslationKeys =
   | 'password-reset-sent'
   | 'password-reset-failed'
   | 'reset-password'
-  | 'cancel';
+  | 'cancel'
+  | 'invalid-form'
+  | 'username-requirements'
+  | 'password-requirements'
+  | 'email-requirements'
+  | 'enter-valid-email'
+  | 'registration-success';
 
 export type Language = 'en' | 'nl';
 
@@ -117,6 +123,12 @@ export class LanguageService {
       'password-reset-failed': 'Failed to send password reset email. Please try again.',
       'reset-password': 'Reset Password',
       'cancel': 'Cancel',
+      'invalid-form': 'Please fix the errors in the form',
+      'username-requirements': 'Username must be at least 3 characters',
+      'password-requirements': 'Password must be at least 6 characters',
+      'email-requirements': 'Please enter a valid email address',
+      'enter-valid-email': 'Please enter a valid email address',
+      'registration-success': 'Registration successful! You can now log in.',
     },
     nl: {
       'register': 'Registreren',
@@ -166,6 +178,12 @@ export class LanguageService {
       'password-reset-failed': 'Kon geen wachtwoord reset e-mail verzenden. Probeer het opnieuw.',
       'reset-password': 'Wachtwoord opnieuw instellen',
       'cancel': 'Annuleren',
+      'invalid-form': 'Corrigeer de fouten in het formulier',
+      'username-requirements': 'Gebruikersnaam moet minimaal 3 tekens bevatten',
+      'password-requirements': 'Wachtwoord moet minimaal 6 tekens bevatten',
+      'email-requirements': 'Voer een geldig e-mailadres in',
+      'enter-valid-email': 'Voer een geldig e-mailadres in',
+      'registration-success': 'Registratie succesvol! Je kunt nu inloggen.',
     }
   };
 

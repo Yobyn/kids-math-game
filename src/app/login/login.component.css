@@ -2,79 +2,99 @@
   max-width: 400px;
   margin: 2rem auto;
   padding: 2rem;
+  background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background-color: white;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
-h2 {
+.login-container h2 {
   text-align: center;
   color: #333;
   margin-bottom: 2rem;
+  font-size: 1.8rem;
 }
 
 .form-group {
   margin-bottom: 1.5rem;
-}
-
-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #666;
+  position: relative;
 }
 
 input {
   width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 12px;
+  border: 2px solid #e0e0e0;
+  border-radius: 6px;
   font-size: 1rem;
+  transition: all 0.3s ease;
+  outline: none;
 }
 
 input:focus {
-  outline: none;
-  border-color: #007bff;
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: #4a90e2;
+  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+}
+
+input.invalid {
+  border-color: #dc3545;
+  background-color: #fff8f8;
+}
+
+.validation-message {
+  color: #dc3545;
+  font-size: 0.8rem;
+  margin-top: 0.5rem;
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: slideDown 0.3s forwards;
+}
+
+.error-message, .success-message {
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(-10px);
+  animation: slideDown 0.3s forwards;
 }
 
 .error-message {
+  background-color: #fff8f8;
   color: #dc3545;
-  margin-bottom: 1rem;
-  text-align: center;
+  border: 1px solid #dc3545;
+}
+
+.success-message {
+  background-color: #f8fff8;
+  color: #28a745;
+  border: 1px solid #28a745;
 }
 
 .submit-btn {
   width: 100%;
-  padding: 0.75rem;
-  background-color: #007bff;
+  padding: 12px;
+  background-color: #4a90e2;
   color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 1rem;
   cursor: pointer;
-  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+  min-height: 48px;
 }
 
-.submit-btn:hover {
-  background-color: #0056b3;
+.submit-btn:hover:not(:disabled) {
+  background-color: #357abd;
 }
 
-.toggle-btn {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: transparent;
-  color: #007bff;
-  border: 1px solid #007bff;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
+.submit-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
-.toggle-btn:hover {
-  background-color: rgba(0, 123, 255, 0.1);
-}
-
-.forgot-password-btn {
+.toggle-btn, .forgot-password-btn {
   background: none;
   border: none;
   color: #4a90e2;
@@ -82,21 +102,22 @@ input:focus {
   padding: 8px 16px;
   cursor: pointer;
   text-decoration: underline;
-  transition: color 0.2s;
+  transition: all 0.3s ease;
   margin-top: 1rem;
   display: block;
   width: 100%;
   text-align: center;
 }
 
-.forgot-password-btn:hover {
+.toggle-btn:hover:not(:disabled),
+.forgot-password-btn:hover:not(:disabled) {
   color: #357abd;
 }
 
-.forgot-password-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
-  border-radius: 4px;
+.toggle-btn:disabled,
+.forgot-password-btn:disabled {
+  color: #cccccc;
+  cursor: not-allowed;
 }
 
 .cancel-btn {
@@ -107,19 +128,56 @@ input:focus {
   padding: 8px 16px;
   cursor: pointer;
   text-decoration: underline;
-  transition: color 0.2s;
+  transition: all 0.3s ease;
   margin-top: 1rem;
   display: block;
   width: 100%;
   text-align: center;
 }
 
-.cancel-btn:hover {
+.cancel-btn:hover:not(:disabled) {
   color: #c82333;
 }
 
-.cancel-btn:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.3);
-  border-radius: 4px;
+.cancel-btn:disabled {
+  color: #cccccc;
+  cursor: not-allowed;
+}
+
+.loader {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes slideDown {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
