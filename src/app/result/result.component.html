@@ -4,8 +4,20 @@
   <div class="score-card">
     <div class="score">
       <h2>{{ languageService.translate('your-score') }}</h2>
-      <div class="score-number">{{ score }}/{{ total }}</div>
-      <div class="percentage">{{ percentage | number:'1.0-0' }}%</div>
+      <div class="score-details">
+        <div class="score-item">
+          <div class="score-label">{{ languageService.translate('correct') }}:</div>
+          <div class="score-value">{{ correctAnswers }}/{{ total }}</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">{{ languageService.translate('percentage') }}:</div>
+          <div class="score-value percentage">{{ percentage | number:'1.0-0' }}%</div>
+        </div>
+        <div class="score-item">
+          <div class="score-label">{{ languageService.translate('total-score') }}:</div>
+          <div class="score-value">{{ score }}</div>
+        </div>
+      </div>
     </div>
 
     <div class="message">

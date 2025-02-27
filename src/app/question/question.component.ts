@@ -2,14 +2,33 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ScoreService } from '../services/score.service';
 import { LanguageService } from '../services/language.service';
+import { trigger, state, style, animate, transition } from '@angular/animations';
 
 @Component({
   selector: 'app-question',
   templateUrl: './question.component.html',
-  styleUrls: ['./question.component.css']
+  styleUrls: ['./question.component.css'],
+  animations: [
+    trigger('feedbackAnimation', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-20px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [
+        animate('200ms ease-in', style({ opacity: 0, transform: 'translateY(-20px)' }))
+      ])
+    ]),
+    trigger('buttonAnimation', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'scale(0.8)' }),
+        animate('200ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
+      ])
+    ])
+  ]
 })
 export class QuestionComponent implements OnInit {
   @ViewChild('answerInput') answerInput!: ElementRef;
+  @ViewChild('nextButton') nextButton!: ElementRef;
   
   currentQuestion: { num1: number; num2: number; operation: string } = {
     num1: 0,
@@ -28,6 +47,8 @@ export class QuestionComponent implements OnInit {
   showOkButton: boolean = false;
   wrongAttempts = 0;
   correctAnswer = 0;
+  showShakeAnimation: boolean = false;
+  streakCount: number = 0;
 
   constructor(
     private scoreService: ScoreService,
@@ -154,89 +175,113 @@ export class QuestionComponent implements OnInit {
   }
 
   checkAnswer() {
-    if (this.userAnswer === '') return;
-    
-    // If there's feedback and it's not a second attempt, or we've had 2 wrong attempts,
-    // move to next question instead
-    if ((this.feedback !== '' && !this.isSecondAttempt) || this.wrongAttempts >= 2) {
-      this.moveToNextQuestion();
+    if (this.userAnswer === null || this.userAnswer === undefined || this.userAnswer === '') {
+      this.showShakeAnimation = true;
+      setTimeout(() => this.showShakeAnimation = false, 500);
       return;
     }
 
-    const answer = parseInt(this.userAnswer);
-    this.correctAnswer = this.calculateCorrectAnswer();
-    
-    // Store the answer before clearing
-    const wasCorrect = answer === this.correctAnswer;
-    
-    // Clear input immediately after submission
-    this.userAnswer = '';
+    const answer = Number(this.userAnswer);
+    let isCorrect = false;
 
-    if (wasCorrect) {
-      this.feedback = this.languageService.translate('correct');
-      this.scoreService.incrementScore();
-      this.wrongAttempts = 0;
-      
-      // Use requestAnimationFrame for smoother transition
-      requestAnimationFrame(() => {
-        setTimeout(() => {
-          this.moveToNextQuestion();
-        }, 800);
-      });
+    switch (this.currentQuestion.operation) {
+      case '+':
+        isCorrect = answer === this.currentQuestion.num1 + this.currentQuestion.num2;
+        this.correctAnswer = this.currentQuestion.num1 + this.currentQuestion.num2;
+        break;
+      case '-':
+        isCorrect = answer === this.currentQuestion.num1 - this.currentQuestion.num2;
+        this.correctAnswer = this.currentQuestion.num1 - this.currentQuestion.num2;
+        break;
+      case '*':
+        isCorrect = answer === this.currentQuestion.num1 * this.currentQuestion.num2;
+        this.correctAnswer = this.currentQuestion.num1 * this.currentQuestion.num2;
+        break;
+      case '/':
+        isCorrect = answer === this.currentQuestion.num1 / this.currentQuestion.num2;
+        this.correctAnswer = this.currentQuestion.num1 / this.currentQuestion.num2;
+        break;
+    }
+
+    if (isCorrect) {
+      this.handleCorrectAnswer();
     } else {
-      this.wrongAttempts++;
-      if (this.wrongAttempts >= 2) {
-        this.feedback = this.languageService.translate('wrong');
-        this.showOkButton = true;
-      } else {
-        this.feedback = this.languageService.translate('try-again');
-        this.isSecondAttempt = true;
-        // Use requestAnimationFrame for smoother focus handling
-        requestAnimationFrame(() => {
-          if (this.answerInput) {
-            this.answerInput.nativeElement.focus();
-          }
-        });
-      }
+      this.handleWrongAnswer();
     }
   }
 
-  moveToNextQuestion() {
-    // Only check for OK button when there are wrong attempts
-    if (this.wrongAttempts > 0 && !this.showOkButton && this.wrongAttempts < 2) return;
-    
-    // Increment questions answered if we had 2 wrong attempts and it's not the last question
-    if (this.wrongAttempts >= 2 && this.questionsAnswered < 9) {
-      this.scoreService.incrementQuestionsAnswered();
+  private handleCorrectAnswer() {
+    this.streakCount++;
+    const bonusPoints = this.calculateBonusPoints();
+    this.feedback = this.languageService.translate('correct');
+    if (bonusPoints > 1) {
+      this.feedback += ` +${bonusPoints} ${this.languageService.translate('bonus-points')}!`;
     }
+    this.scoreService.incrementCorrectAnswers();
+    this.scoreService.incrementScore(bonusPoints);
+    this.showOkButton = true;
+    this.playSuccessSound();
+    // Set focus on the next button after it appears
+    setTimeout(() => {
+      if (this.nextButton) {
+        this.nextButton.nativeElement.focus();
+      }
+    }, 0);
+  }
+
+  private handleWrongAnswer() {
+    this.streakCount = 0;
+    this.wrongAttempts++;
+    this.feedback = this.languageService.translate('wrong');
     
+    if (this.wrongAttempts === 1) {
+      this.feedback += '. ' + this.languageService.translate('try-again');
+      this.isSecondAttempt = true;
+      this.userAnswer = '';
+      setTimeout(() => this.answerInput.nativeElement.focus(), 100);
+    } else {
+      this.showOkButton = true;
+      // Use the service to increment questions answered
+      this.scoreService.incrementQuestionsAnswered();
+      if (this.scoreService.isGameComplete()) {
+        setTimeout(() => this.router.navigate(['/result']), 1500);
+      }
+      // Set focus on the next button after it appears
+      setTimeout(() => {
+        if (this.nextButton) {
+          this.nextButton.nativeElement.focus();
+        }
+      }, 0);
+    }
+    this.playErrorSound();
+  }
+
+  private calculateBonusPoints(): number {
+    if (this.streakCount >= 5) return 3;
+    if (this.streakCount >= 3) return 2;
+    return 1;
+  }
+
+  private playSuccessSound() {
+    const audio = new Audio('assets/sounds/success.mp3');
+    audio.volume = 0.5;
+    audio.play().catch(() => {}); // Ignore errors if sound can't play
+  }
+
+  private playErrorSound() {
+    const audio = new Audio('assets/sounds/error.mp3');
+    audio.volume = 0.3;
+    audio.play().catch(() => {}); // Ignore errors if sound can't play
+  }
+
+  moveToNextQuestion() {
     this.feedback = '';
     this.userAnswer = '';
     this.isSecondAttempt = false;
     this.showOkButton = false;
     this.wrongAttempts = 0;
-    
-    if (!this.scoreService.isGameComplete()) {
-      this.generateQuestion();
-      // Use requestAnimationFrame for smoother focus handling
-      requestAnimationFrame(() => {
-        if (this.answerInput) {
-          this.answerInput.nativeElement.focus();
-        }
-      });
-    } else {
-      this.router.navigate(['/result']);
-    }
-  }
-
-  private calculateCorrectAnswer(): number {
-    switch (this.currentQuestion.operation) {
-      case '+': return this.currentQuestion.num1 + this.currentQuestion.num2;
-      case '-': return this.currentQuestion.num1 - this.currentQuestion.num2;
-      case '*': return this.currentQuestion.num1 * this.currentQuestion.num2;
-      case '/': return this.currentQuestion.num1 / this.currentQuestion.num2;
-      default: return 0;
-    }
+    this.generateQuestion();
+    setTimeout(() => this.answerInput.nativeElement.focus(), 100);
   }
 
   returnToGrade() {

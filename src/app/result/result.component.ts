@@ -11,6 +11,7 @@ import { LanguageService } from '../services/language.service';
 export class ResultComponent implements OnInit {
   score = 0;
   total = 0;
+  correctAnswers = 0;
   percentage = 0;
   message = '';
 
@@ -24,6 +25,7 @@ export class ResultComponent implements OnInit {
     const finalScore = this.scoreService.getFinalScore();
     this.score = finalScore.score;
     this.total = finalScore.total;
+    this.correctAnswers = finalScore.correctAnswers;
     this.percentage = finalScore.percentage;
     this.setMessage();
   }

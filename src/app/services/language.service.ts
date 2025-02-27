@@ -54,9 +54,16 @@ export type TranslationKeys =
   | 'password-requirements'
   | 'email-requirements'
   | 'enter-valid-email'
-  | 'registration-success';
+  | 'registration-success'
+  | 'streak'
+  | 'bonus-points'
+  | 'check'
+  | 'next'
+  | 'back'
+  | 'percentage'
+  | 'total-score';
 
-export type Language = 'en' | 'nl';
+export type Language = 'en' | 'nl' | 'es';
 
 type TranslationSet = {
   [key in Language]: {
@@ -113,7 +120,7 @@ export class LanguageService {
       'welcome': 'Welcome',
       'logout': 'Logout',
       'correct-answer': 'The correct answer is',
-      'try-again': 'Not quite right, try one more time! 💪',
+      'try-again': 'Not quite right, try one more time! ',
       'ok': 'OK',
       'start': 'Start Game',
       'email': 'Email',
@@ -129,6 +136,13 @@ export class LanguageService {
       'email-requirements': 'Please enter a valid email address',
       'enter-valid-email': 'Please enter a valid email address',
       'registration-success': 'Registration successful! You can now log in.',
+      'streak': 'Streak',
+      'bonus-points': 'bonus points',
+      'check': 'Check Answer',
+      'next': 'Next Question',
+      'back': 'Back to Grade Selection',
+      'percentage': 'Accuracy',
+      'total-score': 'Total Score with Bonus',
     },
     nl: {
       'register': 'Registreren',
@@ -168,7 +182,7 @@ export class LanguageService {
       'welcome': 'Welkom',
       'logout': 'Uitloggen',
       'correct-answer': 'Het juiste antwoord is',
-      'try-again': 'Niet helemaal goed, probeer nog een keer! 💪',
+      'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'ok': 'OK',
       'start': 'Start Spel',
       'email': 'E-mailadres',
@@ -184,6 +198,75 @@ export class LanguageService {
       'email-requirements': 'Voer een geldig e-mailadres in',
       'enter-valid-email': 'Voer een geldig e-mailadres in',
       'registration-success': 'Registratie succesvol! Je kunt nu inloggen.',
+      'streak': 'Streak',
+      'bonus-points': 'bonus punten',
+      'check': 'Controleer antwoord',
+      'next': 'Volgende vraag',
+      'back': 'Terug naar groep selectie',
+      'percentage': 'Nauwkeurigheid',
+      'total-score': 'Totale score met bonus',
+    },
+    es: {
+      'register': 'Registro',
+      'username': 'Nombre de usuario',
+      'password': 'Contraseña',
+      'fill-all-fields': 'Por favor, rellene todos los campos',
+      'registration-failed': 'Registro fallido',
+      'have-account': '¿Ya tienes una cuenta? Inicia sesión',
+      'login': 'Iniciar sesión',
+      'need-account': '¿Necesitas una cuenta? Regístrate',
+      'login-failed': 'Inicio de sesión fallido',
+      'grade': 'Grado',
+      'select-grade': 'Seleccione Grado',
+      'mathematics-for': 'Matemáticas para',
+      'students': 'estudiantes',
+      'difficulty': 'Seleccione Dificultad',
+      'select-difficulty': 'Seleccione Nivel de Dificultad',
+      'level': 'Nivel',
+      'easy-desc': 'Operaciones básicas con números pequeños',
+      'medium-desc': 'Operaciones mixtas con números más grandes',
+      'hard-desc': 'Problemas complejos con varios pasos',
+      'question': 'Pregunta',
+      'of': 'de',
+      'score': 'Puntuación',
+      'submit': 'Enviar',
+      'correct': 'Correcto',
+      'wrong': 'Incorrecto',
+      'incorrect': 'Incorrecto',
+      'total': 'Total',
+      'quiz-complete': '¡Quiz completo!',
+      'your-score': 'Tu puntuación',
+      'outstanding': '¡Excelente!',
+      'great-job': '¡Buen trabajo!',
+      'good-effort': '¡Buen esfuerzo!',
+      'keep-practicing': '¡Sigue practicando!',
+      'play-again': 'Jugar de nuevo',
+      'welcome': 'Bienvenido',
+      'logout': 'Cerrar sesión',
+      'correct-answer': 'La respuesta correcta es',
+      'try-again': 'No es correcto, inténtalo de nuevo ',
+      'ok': 'OK',
+      'start': 'Comenzar juego',
+      'email': 'Correo electrónico',
+      'forgot-password': '¿Olvidaste tu contraseña?',
+      'enter-email': 'Por favor, ingresa tu dirección de correo electrónico',
+      'password-reset-sent': 'Se han enviado instrucciones para restablecer tu contraseña a tu correo electrónico',
+      'password-reset-failed': 'No se pudo enviar el correo electrónico de restablecimiento de contraseña. Por favor, inténtalo de nuevo.',
+      'reset-password': 'Restablecer contraseña',
+      'cancel': 'Cancelar',
+      'invalid-form': 'Por favor, corrige los errores en el formulario',
+      'username-requirements': 'El nombre de usuario debe tener al menos 3 caracteres',
+      'password-requirements': 'La contraseña debe tener al menos 6 caracteres',
+      'email-requirements': 'Por favor, ingresa una dirección de correo electrónico válida',
+      'enter-valid-email': 'Por favor, ingresa una dirección de correo electrónico válida',
+      'registration-success': 'Registro exitoso! Ahora puedes iniciar sesión.',
+      'streak': 'Racha',
+      'bonus-points': 'puntos extra',
+      'check': 'Comprobar',
+      'next': 'Siguiente',
+      'back': 'Volver a Selección de Grado',
+      'percentage': 'Precisión',
+      'total-score': 'Puntuación total con bonus',
     }
   };
 

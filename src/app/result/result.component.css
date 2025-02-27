@@ -26,26 +26,51 @@ h1 {
 
 h2 {
   color: #666;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.score-number {
-  font-size: 3rem;
+.score-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.score-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #f0f0f0;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.score-label {
+  font-size: 1.1rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.score-value {
+  font-size: 1.3rem;
   font-weight: bold;
   color: #007bff;
-  margin-bottom: 0.5rem;
 }
 
-.percentage {
-  font-size: 1.5rem;
+.score-value.percentage {
   color: #28a745;
-  margin-bottom: 1rem;
 }
 
 .message {
   font-size: 1.2rem;
   color: #666;
   line-height: 1.5;
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #e9f7ef;
+  border-radius: 6px;
+  border-left: 4px solid #28a745;
 }
 
 .play-again {

@@ -1,53 +1,60 @@
 <div class="question-container">
-  <div class="score-info">
-    <p>{{ languageService.translate('question') }} {{ questionsAnswered + 1 }} {{ languageService.translate('of') }} 10</p>
+  <div class="score-display">
+    <div class="score">{{ languageService.translate('score') }}: {{ currentScore }}</div>
+    <div class="streak" *ngIf="streakCount > 2">
+      <span class="streak-text">{{ languageService.translate('streak') }}: {{ streakCount }}</span>
+      <span class="streak-fire">🔥</span>
+    </div>
+    <div class="question-counter">
+      {{ languageService.translate('question') }} {{ questionsAnswered + 1 }} {{ languageService.translate('of') }} 10
+    </div>
   </div>
 
-  <div class="question">
-    <h2>
-      {{ currentQuestion.num1 }} {{ currentQuestion.operation }} {{ currentQuestion.num2 }} = ?
-    </h2>
-    
-    <div class="answer-input">
-      <input 
-        #answerInput
-        type="number" 
-        [(ngModel)]="userAnswer" 
-        (keyup.enter)="checkAnswer()"
-        (focus)="onInputFocus()"
-        (blur)="onInputBlur()"
-        [placeholder]="inputPlaceholder"
-        [disabled]="(feedback !== '' && !isSecondAttempt) || wrongAttempts >= 2"
-        autofocus>
-      
-      <button 
-        (click)="checkAnswer()" 
-        [disabled]="userAnswer === '' || (feedback !== '' && !isSecondAttempt) || wrongAttempts >= 2">
-        {{ languageService.translate('submit') }}
-      </button>
+  <div class="question-box" [class.shake]="showShakeAnimation">
+    <div class="math-problem">
+      <span class="number">{{ currentQuestion.num1 }}</span>
+      <span class="operation">{{ currentQuestion.operation }}</span>
+      <span class="number">{{ currentQuestion.num2 }}</span>
+      <span class="equals">=</span>
+      <input #answerInput
+             type="number"
+             [(ngModel)]="userAnswer"
+             [placeholder]="inputPlaceholder"
+             (focus)="onInputFocus()"
+             (blur)="onInputBlur()"
+             [class.correct]="feedback === languageService.translate('correct')"
+             [class.incorrect]="feedback === languageService.translate('wrong')"
+             (keyup.enter)="showOkButton ? moveToNextQuestion() : checkAnswer()"
+             [disabled]="showOkButton">
     </div>
 
-    <div class="feedback" *ngIf="feedback">
-      <p [class.correct]="feedback.includes(languageService.translate('correct'))" 
-         [class.wrong]="feedback.includes(languageService.translate('wrong'))">
-        <span class="feedback-icon">{{ feedback.includes(languageService.translate('correct')) ? '✅' : '❌' }}</span>
+    <div class="feedback-container" [@feedbackAnimation]="feedback !== ''">
+      <div class="feedback" [class.correct]="feedback === languageService.translate('correct')"
+                           [class.incorrect]="feedback === languageService.translate('wrong')">
         {{ feedback }}
-        <span *ngIf="wrongAttempts >= 2">{{ languageService.translate('correct-answer') }}: {{ correctAnswer }}</span>
-      </p>
-      <button 
-        *ngIf="showOkButton || wrongAttempts >= 2"
-        (click)="moveToNextQuestion()"
-        class="ok-button">
-        {{ languageService.translate('ok') }}
+      </div>
+    </div>
+
+    <div class="button-container">
+      <button *ngIf="!showOkButton" 
+              class="check-button" 
+              (click)="checkAnswer()"
+              [@buttonAnimation]>
+        {{ languageService.translate('check') }}
+      </button>
+      <button *ngIf="showOkButton" 
+              class="next-button" 
+              #nextButton
+              (click)="moveToNextQuestion()"
+              [@buttonAnimation]>
+        {{ languageService.translate('next') }}
       </button>
     </div>
   </div>
 
-  <div class="navigation-buttons">
+  <div class="navigation">
     <button class="back-button" (click)="returnToGrade()">
-      {{ languageService.translate('select-grade') }}
+      {{ languageService.translate('back') }}
     </button>
   </div>
 </div>
-
-<!-- <a routerLink="/result">See Result</a> -->

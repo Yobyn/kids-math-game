@@ -7,16 +7,23 @@ import { BehaviorSubject, Observable } from 'rxjs';
 export class ScoreService {
   private currentScore = 0;
   private questionsAnswered = 0;
+  private correctAnswers = 0;
   private scoreSubject = new BehaviorSubject<number>(0);
   private questionsSubject = new BehaviorSubject<number>(0);
+  private correctAnswersSubject = new BehaviorSubject<number>(0);
 
   constructor() {}
 
-  incrementScore() {
-    this.currentScore++;
+  incrementScore(points: number = 1) {
+    this.currentScore += points;
     this.questionsAnswered++;
     this.scoreSubject.next(this.currentScore);
     this.questionsSubject.next(this.questionsAnswered);
+  }
+
+  incrementCorrectAnswers() {
+    this.correctAnswers++;
+    this.correctAnswersSubject.next(this.correctAnswers);
   }
 
   incrementQuestionsAnswered() {
@@ -32,11 +39,17 @@ export class ScoreService {
     return this.questionsSubject.asObservable();
   }
 
+  getCorrectAnswers(): Observable<number> {
+    return this.correctAnswersSubject.asObservable();
+  }
+
   resetScore() {
     this.currentScore = 0;
     this.questionsAnswered = 0;
+    this.correctAnswers = 0;
     this.scoreSubject.next(this.currentScore);
     this.questionsSubject.next(this.questionsAnswered);
+    this.correctAnswersSubject.next(this.correctAnswers);
   }
 
   isGameComplete(): boolean {
@@ -47,7 +60,8 @@ export class ScoreService {
     return {
       score: this.currentScore,
       total: this.questionsAnswered,
-      percentage: (this.currentScore / this.questionsAnswered) * 100
+      correctAnswers: this.correctAnswers,
+      percentage: (this.correctAnswers / this.questionsAnswered) * 100
     };
   }
-} 
+}
