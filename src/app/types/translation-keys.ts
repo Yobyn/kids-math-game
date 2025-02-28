@@ -37,4 +37,6 @@ export type TranslationKeys =
   | 'hard-desc'
   | 'of'
   | 'percentage'
-  | 'total-score';
+  | 'total-score'
+  | 'welcome'
+  | 'lets-learn';

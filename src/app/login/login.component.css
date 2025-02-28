@@ -154,6 +154,13 @@ input.invalid {
   animation: spin 1s linear infinite;
 }
 
+.language-selector-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

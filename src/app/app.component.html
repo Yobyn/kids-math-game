@@ -1,11 +1,18 @@
 <header class="app-header" *ngIf="username">
   <div class="header-content">
-    <div class="welcome-text">
-      {{ languageService.translate('welcome') }}, {{ username }}!
+    <div class="welcome-message">
+      <div class="welcome-icon">🧮</div>
+      <div class="welcome-text">
+        <span class="welcome-greeting">{{ languageService.translate('welcome') }}, {{ username }}!</span>
+        <span class="welcome-subtitle">{{ languageService.translate('lets-learn') }}</span>
+      </div>
     </div>
     <div class="header-actions">
       <app-language-selector></app-language-selector>
-      <button class="logout-btn" (click)="logout()">{{ languageService.translate('logout') }}</button>
+      <button class="logout-btn" (click)="logout()">
+        <span class="logout-icon">👋</span>
+        <span>{{ languageService.translate('logout') }}</span>
+      </button>
     </div>
   </div>
 </header>

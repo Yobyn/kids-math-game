@@ -61,7 +61,8 @@ export type TranslationKeys =
   | 'next'
   | 'back'
   | 'percentage'
-  | 'total-score';
+  | 'total-score'
+  | 'lets-learn';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -143,6 +144,7 @@ export class LanguageService {
       'back': 'Back to Grade Selection',
       'percentage': 'Accuracy',
       'total-score': 'Total Score with Bonus',
+      'lets-learn': 'Let\'s learn some math!',
     },
     nl: {
       'register': 'Registreren',
@@ -205,6 +207,7 @@ export class LanguageService {
       'back': 'Terug naar groep selectie',
       'percentage': 'Nauwkeurigheid',
       'total-score': 'Totale score met bonus',
+      'lets-learn': 'Laten we wat wiskunde leren!',
     },
     es: {
       'register': 'Registro',
@@ -267,6 +270,7 @@ export class LanguageService {
       'back': 'Volver a Selección de Grado',
       'percentage': 'Precisión',
       'total-score': 'Puntuación total con bonus',
+      'lets-learn': '¡Aprendamos matemáticas!',
     }
   };
 

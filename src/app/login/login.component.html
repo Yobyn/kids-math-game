@@ -1,4 +1,8 @@
 <div class="login-container">
+  <div class="language-selector-container">
+    <app-language-selector></app-language-selector>
+  </div>
+  
   <h2>{{ isForgotPassword ? (languageService.translate('forgot-password')) : (isRegistering ? languageService.translate('register') : languageService.translate('login')) }}</h2>
   
   <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
