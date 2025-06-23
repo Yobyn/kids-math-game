@@ -1,4 +1,4 @@
-# Kids Math Game
+ # Kids Math Game
 
 An interactive math game designed to help children practice and improve their math skills in a fun, engaging way. The application features adaptive difficulty levels, profile customization, and progress tracking.
 
