@@ -25,7 +25,20 @@
              [class.correct]="feedback === languageService.translate('correct')"
              [class.incorrect]="feedback === languageService.translate('wrong')"
              (keyup.enter)="showOkButton ? moveToNextQuestion() : checkAnswer()"
+             [readonly]="useKeypad"
              [disabled]="showOkButton">
+    </div>
+
+    <div class="keypad" *ngIf="useKeypad" role="group" aria-label="Number pad">
+      <button type="button"
+              class="key"
+              *ngFor="let key of keypadKeys"
+              [class.key-action]="key === 'del' || key === '-'"
+              [disabled]="showOkButton"
+              [attr.aria-label]="key === 'del' ? 'delete' : key"
+              (click)="onKeypadPress(key)">
+        {{ key === 'del' ? '⌫' : key }}
+      </button>
     </div>
 
     <div class="feedback-container" [@feedbackAnimation]="feedback !== ''">
