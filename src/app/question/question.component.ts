@@ -49,6 +49,8 @@ export class QuestionComponent implements OnInit {
   correctAnswer = 0;
   showShakeAnimation: boolean = false;
   streakCount: number = 0;
+  useKeypad: boolean = false;
+  keypadKeys: string[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '0', 'del'];
 
   constructor(
     private scoreService: ScoreService,
@@ -60,6 +62,7 @@ export class QuestionComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.useKeypad = this.isTouchDevice();
     if (!localStorage.getItem('difficulty') || !localStorage.getItem('grade')) {
       this.router.navigate(['/difficulty']);
       return;
@@ -72,6 +75,36 @@ export class QuestionComponent implements OnInit {
     this.scoreService.getQuestionsAnswered().subscribe(questions => {
       this.questionsAnswered = questions;
     });
+  }
+
+  private isTouchDevice(): boolean {
+    return typeof window !== 'undefined' &&
+      (('ontouchstart' in window) ||
+        (!!window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
+  }
+
+  onKeypadPress(key: string) {
+    if (this.showOkButton) {
+      return;
+    }
+    this.vibrate(10);
+    const current = this.userAnswer == null ? '' : String(this.userAnswer);
+    if (key === 'del') {
+      this.userAnswer = current.slice(0, -1);
+    } else if (key === '-') {
+      // Toggle the minus sign instead of allowing it anywhere in the answer
+      this.userAnswer = current.startsWith('-') ? current.slice(1) : '-' + current;
+    } else if (current.replace('-', '').length < 6) {
+      this.userAnswer = current + key;
+    }
+    this.inputPlaceholder = this.userAnswer ? '' : '?';
+  }
+
+  private vibrate(pattern: number | number[]) {
+    const nav = navigator as Navigator & { vibrate?: (p: number | number[]) => boolean };
+    if (typeof nav.vibrate === 'function') {
+      nav.vibrate(pattern);
+    }
   }
 
   onInputFocus() {
@@ -220,6 +253,7 @@ export class QuestionComponent implements OnInit {
     this.scoreService.incrementCorrectAnswers();
     this.scoreService.incrementScore(bonusPoints);
     this.showOkButton = true;
+    this.vibrate([0, 30, 40, 30]);
     this.playSuccessSound();
     // Set focus on the next button after it appears
     setTimeout(() => {
@@ -233,12 +267,15 @@ export class QuestionComponent implements OnInit {
     this.streakCount = 0;
     this.wrongAttempts++;
     this.feedback = this.languageService.translate('wrong');
+    this.vibrate(120);
     
     if (this.wrongAttempts === 1) {
       this.feedback += '. ' + this.languageService.translate('try-again');
       this.isSecondAttempt = true;
       this.userAnswer = '';
-      setTimeout(() => this.answerInput.nativeElement.focus(), 100);
+      if (!this.useKeypad) {
+        setTimeout(() => this.answerInput.nativeElement.focus(), 100);
+      }
     } else {
       this.showOkButton = true;
       // Use the service to increment questions answered
@@ -281,7 +318,9 @@ export class QuestionComponent implements OnInit {
     this.showOkButton = false;
     this.wrongAttempts = 0;
     this.generateQuestion();
-    setTimeout(() => this.answerInput.nativeElement.focus(), 100);
+    if (!this.useKeypad) {
+      setTimeout(() => this.answerInput.nativeElement.focus(), 100);
+    }
   }
 
   returnToGrade() {
