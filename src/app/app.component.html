@@ -9,6 +9,14 @@
     </div>
     <div class="header-actions">
       <app-language-selector></app-language-selector>
+      <button class="sound-btn"
+              type="button"
+              (click)="toggleSound()"
+              [attr.aria-pressed]="soundEnabled"
+              [attr.aria-label]="languageService.translate(soundEnabled ? 'sound-on' : 'sound-off')"
+              [title]="languageService.translate(soundEnabled ? 'sound-on' : 'sound-off')">
+        <span class="sound-icon">{{ soundEnabled ? '🔊' : '🔇' }}</span>
+      </button>
       <button class="logout-btn" (click)="logout()">
         <span class="logout-icon">👋</span>
         <span>{{ languageService.translate('logout') }}</span>

@@ -62,7 +62,9 @@ export type TranslationKeys =
   | 'back'
   | 'percentage'
   | 'total-score'
-  | 'lets-learn';
+  | 'lets-learn'
+  | 'sound-on'
+  | 'sound-off';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -120,6 +122,8 @@ export class LanguageService {
       'play-again': 'Play Again',
       'welcome': 'Welcome',
       'logout': 'Logout',
+      'sound-on': 'Sound on',
+      'sound-off': 'Sound off',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'ok': 'OK',
@@ -183,6 +187,8 @@ export class LanguageService {
       'play-again': 'Opnieuw Spelen',
       'welcome': 'Welkom',
       'logout': 'Uitloggen',
+      'sound-on': 'Geluid aan',
+      'sound-off': 'Geluid uit',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'ok': 'OK',
@@ -246,6 +252,8 @@ export class LanguageService {
       'play-again': 'Jugar de nuevo',
       'welcome': 'Bienvenido',
       'logout': 'Cerrar sesión',
+      'sound-on': 'Sonido activado',
+      'sound-off': 'Sonido desactivado',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'ok': 'OK',

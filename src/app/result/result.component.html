@@ -1,6 +1,13 @@
 <div class="result-container">
   <h1>{{ languageService.translate('quiz-complete') }}</h1>
   
+  <div class="stars" [attr.aria-label]="starsEarned + ' of 3 stars'">
+    <span class="star"
+          *ngFor="let star of [1, 2, 3]"
+          [class.earned]="star <= starsShown"
+          aria-hidden="true">★</span>
+  </div>
+
   <div class="score-card">
     <div class="score">
       <h2>{{ languageService.translate('your-score') }}</h2>
@@ -11,7 +18,7 @@
         </div>
         <div class="score-item">
           <div class="score-label">{{ languageService.translate('percentage') }}:</div>
-          <div class="score-value percentage">{{ percentage | number:'1.0-0' }}%</div>
+          <div class="score-value percentage">{{ displayPercentage | number:'1.0-0' }}%</div>
         </div>
         <div class="score-item">
           <div class="score-label">{{ languageService.translate('total-score') }}:</div>

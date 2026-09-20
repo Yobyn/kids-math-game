@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ScoreService } from '../services/score.service';
 import { LanguageService } from '../services/language.service';
+import { SoundService } from '../services/sound.service';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
 @Component({
@@ -55,7 +56,8 @@ export class QuestionComponent implements OnInit {
   constructor(
     private scoreService: ScoreService,
     private router: Router,
-    public languageService: LanguageService
+    public languageService: LanguageService,
+    private soundService: SoundService
   ) {
     this.difficulty = localStorage.getItem('difficulty') || 'medium';
     this.grade = Number(localStorage.getItem('grade')) || 1;
@@ -101,10 +103,7 @@ export class QuestionComponent implements OnInit {
   }
 
   private vibrate(pattern: number | number[]) {
-    const nav = navigator as Navigator & { vibrate?: (p: number | number[]) => boolean };
-    if (typeof nav.vibrate === 'function') {
-      nav.vibrate(pattern);
-    }
+    this.soundService.vibrate(pattern);
   }
 
   onInputFocus() {
@@ -300,15 +299,11 @@ export class QuestionComponent implements OnInit {
   }
 
   private playSuccessSound() {
-    const audio = new Audio('assets/sounds/success.mp3');
-    audio.volume = 0.5;
-    audio.play().catch(() => {}); // Ignore errors if sound can't play
+    this.soundService.playSuccess();
   }
 
   private playErrorSound() {
-    const audio = new Audio('assets/sounds/error.mp3');
-    audio.volume = 0.3;
-    audio.play().catch(() => {}); // Ignore errors if sound can't play
+    this.soundService.playError();
   }
 
   moveToNextQuestion() {
