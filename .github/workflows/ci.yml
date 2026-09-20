@@ -4,11 +4,22 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
+
+# Least privilege: nothing here needs write access to the repository
+permissions:
+  contents: read
+
+# A newer push to the same branch supersedes the run in flight
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-and-test:
     name: Build and test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     env:
       # Angular 12 ships webpack 4, whose hashing breaks on OpenSSL 3
@@ -16,9 +27,11 @@ jobs:
       CHROME_BIN: /usr/bin/google-chrome
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out the repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
@@ -30,4 +43,22 @@ jobs:
         run: npm run build
 
       - name: Unit tests
-        run: npm run test:ci
+        run: npm run test:ci -- --code-coverage
+
+      # Kept even when the tests fail — that is when the report is worth reading
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Upload production build
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+          if-no-files-found: error
