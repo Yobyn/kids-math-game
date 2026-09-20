@@ -41,6 +41,8 @@ export type TranslationKeys =
   | 'welcome'
   | 'correct-answer'
   | 'try-again'
+  | 'answer-is'
+  | 'good-try'
   | 'ok'
   | 'email'
   | 'forgot-password'
@@ -126,6 +128,8 @@ export class LanguageService {
       'sound-off': 'Sound off',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
+      'answer-is': 'The answer is',
+      'good-try': "Good try — you'll get the next one!",
       'ok': 'OK',
       'start': 'Start Game',
       'email': 'Email',
@@ -191,6 +195,8 @@ export class LanguageService {
       'sound-off': 'Geluid uit',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
+      'answer-is': 'Het antwoord is',
+      'good-try': 'Goed geprobeerd — de volgende lukt je!',
       'ok': 'OK',
       'start': 'Start Spel',
       'email': 'E-mailadres',
@@ -256,6 +262,8 @@ export class LanguageService {
       'sound-off': 'Sonido desactivado',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
+      'answer-is': 'La respuesta es',
+      'good-try': '¡Buen intento, la próxima te saldrá!',
       'ok': 'OK',
       'start': 'Comenzar juego',
       'email': 'Correo electrónico',

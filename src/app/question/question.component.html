@@ -22,8 +22,8 @@
              [placeholder]="inputPlaceholder"
              (focus)="onInputFocus()"
              (blur)="onInputBlur()"
-             [class.correct]="feedback === languageService.translate('correct')"
-             [class.incorrect]="feedback === languageService.translate('wrong')"
+             [class.correct]="answerWasCorrect === true"
+             [class.incorrect]="answerWasCorrect === false"
              (keyup.enter)="showOkButton ? moveToNextQuestion() : checkAnswer()"
              [readonly]="useKeypad"
              [disabled]="showOkButton">
@@ -42,8 +42,10 @@
     </div>
 
     <div class="feedback-container" [@feedbackAnimation]="feedback !== ''">
-      <div class="feedback" [class.correct]="feedback === languageService.translate('correct')"
-                           [class.incorrect]="feedback === languageService.translate('wrong')">
+      <div class="feedback" [class.correct]="answerWasCorrect === true"
+                           [class.incorrect]="answerWasCorrect === false"
+                           role="status"
+                           aria-live="polite">
         {{ feedback }}
       </div>
     </div>
