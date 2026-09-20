@@ -21,6 +21,8 @@ export type TranslationKeys =
   | 'total'
   | 'play-again'
   | 'logout'
+  | 'sound-on'
+  | 'sound-off'
   | 'streak'
   | 'bonus-points'
   | 'check'
