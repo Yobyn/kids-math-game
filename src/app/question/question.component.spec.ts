@@ -47,6 +47,64 @@ describe('QuestionComponent', () => {
     }
   });
 
+  describe('wrong-answer feedback', () => {
+    beforeEach(() => {
+      component.currentQuestion = { num1: 7, num2: 5, operation: '+' };
+      component.wrongAttempts = 0;
+      component.feedback = '';
+      component.showOkButton = false;
+      component.answerWasCorrect = null;
+    });
+
+    it('invites a second try without passing judgement on the first miss', () => {
+      component.userAnswer = '11';
+      component.checkAnswer();
+
+      expect(component.feedback).toBe(component.languageService.translate('try-again'));
+      expect(component.feedback).not.toContain(component.languageService.translate('wrong'));
+      expect(component.showOkButton).toBe(false);
+    });
+
+    it('shows the correct answer once the attempts run out', () => {
+      component.userAnswer = '11';
+      component.checkAnswer();
+      component.userAnswer = '13';
+      component.checkAnswer();
+
+      expect(component.feedback).toContain('12');
+      expect(component.feedback).toContain(component.languageService.translate('answer-is'));
+      expect(component.showOkButton).toBe(true);
+    });
+
+    it('ends on encouragement rather than a verdict', () => {
+      component.userAnswer = '11';
+      component.checkAnswer();
+      component.userAnswer = '13';
+      component.checkAnswer();
+
+      expect(component.feedback).toContain(component.languageService.translate('good-try'));
+      expect(component.feedback).not.toContain(component.languageService.translate('wrong'));
+    });
+
+    it('marks the answer wrong for styling without relying on translated text', () => {
+      component.userAnswer = '11';
+      component.checkAnswer();
+      expect(component.answerWasCorrect).toBe(false);
+
+      component.moveToNextQuestion();
+      expect(component.answerWasCorrect).toBeNull();
+    });
+
+    it('marks a correct answer and keeps the streak going', () => {
+      component.userAnswer = '12';
+      component.checkAnswer();
+
+      expect(component.answerWasCorrect).toBe(true);
+      expect(component.feedback).toContain(component.languageService.translate('correct'));
+      expect(component.streakCount).toBe(1);
+    });
+  });
+
   describe('touch keypad', () => {
     beforeEach(() => {
       component.userAnswer = '';

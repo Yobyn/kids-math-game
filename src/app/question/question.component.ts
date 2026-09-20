@@ -49,6 +49,7 @@ export class QuestionComponent implements OnInit {
   wrongAttempts = 0;
   correctAnswer = 0;
   showShakeAnimation: boolean = false;
+  answerWasCorrect: boolean | null = null;
   streakCount: number = 0;
   useKeypad: boolean = false;
   keypadKeys: string[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '0', 'del'];
@@ -243,6 +244,7 @@ export class QuestionComponent implements OnInit {
   }
 
   private handleCorrectAnswer() {
+    this.answerWasCorrect = true;
     this.streakCount++;
     const bonusPoints = this.calculateBonusPoints();
     this.feedback = this.languageService.translate('correct');
@@ -263,19 +265,24 @@ export class QuestionComponent implements OnInit {
   }
 
   private handleWrongAnswer() {
+    this.answerWasCorrect = false;
     this.streakCount = 0;
     this.wrongAttempts++;
-    this.feedback = this.languageService.translate('wrong');
     this.vibrate(120);
-    
+
     if (this.wrongAttempts === 1) {
-      this.feedback += '. ' + this.languageService.translate('try-again');
+      // No verdict on the first miss — an invitation to try again teaches more
+      this.feedback = this.languageService.translate('try-again');
       this.isSecondAttempt = true;
       this.userAnswer = '';
       if (!this.useKeypad) {
         setTimeout(() => this.answerInput.nativeElement.focus(), 100);
       }
     } else {
+      // Out of attempts: show the answer itself. A child who only hears "wrong"
+      // learns nothing from the question they just spent two tries on.
+      this.feedback = `${this.languageService.translate('answer-is')} ${this.correctAnswer}. ` +
+        this.languageService.translate('good-try');
       this.showOkButton = true;
       // Use the service to increment questions answered
       this.scoreService.incrementQuestionsAnswered();
@@ -308,6 +315,7 @@ export class QuestionComponent implements OnInit {
 
   moveToNextQuestion() {
     this.feedback = '';
+    this.answerWasCorrect = null;
     this.userAnswer = '';
     this.isSecondAttempt = false;
     this.showOkButton = false;
