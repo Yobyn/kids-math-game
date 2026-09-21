@@ -1,5 +1,6 @@
 .app-header {
-  background: linear-gradient(135deg, #6ab7ff 0%, #56ccf2 100%);
+  background: linear-gradient(135deg, rgba(58, 96, 200, 0.92) 0%, rgba(126, 58, 194, 0.92) 100%);
+  backdrop-filter: blur(6px);
   padding: 0.8rem;
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
   position: relative;

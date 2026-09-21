@@ -5,3 +5,11 @@ app-root > *:not(app-particles) {
   position: relative;
   z-index: 1;
 }
+
+/* The particle backdrop is dark, so the page behind it must be too —
+   otherwise a white flash shows through before the canvas paints. */
+html,
+body {
+  margin: 0;
+  background: #0b0a18;
+}

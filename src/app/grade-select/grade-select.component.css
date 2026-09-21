@@ -3,6 +3,7 @@
   margin: 2rem auto;
   padding: 2rem;
   text-align: center;
+  background: transparent;
 }
 
 h1 {
@@ -97,4 +98,10 @@ p {
 
 .grade-card:active {
   transform: scale(0.98);
+}
+
+/* Titles now sit on the dark particle backdrop rather than a pale page */
+.grade-container h1 {
+  color: #f1f0ff;
+  text-shadow: 0 2px 12px rgba(10, 8, 30, 0.6);
 }

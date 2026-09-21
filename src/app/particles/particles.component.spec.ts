@@ -14,49 +14,66 @@ describe('ParticlesComponent', () => {
     component = fixture.componentInstance;
   });
 
+  afterEach(() => fixture.destroy());
+
   it('should create', () => {
     fixture.detectChanges();
     expect(component).toBeTruthy();
   });
 
-  it('renders a particle for every generated entry', () => {
+  it('fills the field and animates on a normal device', () => {
     fixture.detectChanges();
-    const rendered = fixture.nativeElement.querySelectorAll('.particle');
-    expect(rendered.length).toBe(component.particles.length);
-    expect(component.particles.length).toBeGreaterThan(0);
+
+    expect(component.particles.length).toBeGreaterThan(500);
+    expect(component.animating).toBe(true);
   });
 
-  it('keeps every particle on screen and slow enough not to distract', () => {
-    fixture.detectChanges();
-    component.particles.forEach(particle => {
-      expect(particle.left).toBeGreaterThanOrEqual(0);
-      expect(particle.left).toBeLessThanOrEqual(100);
-      expect(particle.size).toBeGreaterThanOrEqual(14);
-      expect(particle.size).toBeLessThanOrEqual(36);
-      expect(particle.duration).toBeGreaterThanOrEqual(18);
-      expect(['drift-left', 'drift-straight', 'drift-right']).toContain(particle.drift);
-    });
-  });
-
-  it('staggers the start times so they do not rise as one block', () => {
-    fixture.detectChanges();
-    const delays = new Set(component.particles.map(particle => particle.delay));
-    expect(delays.size).toBeGreaterThan(1);
-  });
-
-  it('renders nothing when the device asks for reduced motion', () => {
+  it('draws a still frame under reduced motion rather than nothing', () => {
     spyOn(window, 'matchMedia').and.returnValue({ matches: true } as MediaQueryList);
 
-    const reduced = TestBed.createComponent(ParticlesComponent);
-    reduced.detectChanges();
+    const still = TestBed.createComponent(ParticlesComponent);
+    still.detectChanges();
 
-    expect(reduced.componentInstance.particles.length).toBe(0);
-    expect(reduced.nativeElement.querySelectorAll('.particle').length).toBe(0);
+    expect(still.componentInstance.particles.length).toBeGreaterThan(0);
+    expect(still.componentInstance.animating).toBe(false);
+    still.destroy();
   });
 
-  it('never swallows taps meant for the game', () => {
+  it('sizes the canvas to the window', () => {
     fixture.detectChanges();
-    const layer = fixture.nativeElement.querySelector('.particles');
-    expect(getComputedStyle(layer).pointerEvents).toBe('none');
+    const canvas: HTMLCanvasElement = fixture.nativeElement.querySelector('canvas');
+
+    expect(canvas.width).toBeGreaterThan(0);
+    expect(canvas.height).toBeGreaterThan(0);
+  });
+
+  it('moves the field on when advanced', () => {
+    fixture.detectChanges();
+    const before = component.particles[0];
+    const angleBefore = before.angle;
+
+    component.advance(1);
+
+    expect(component.particles[0].angle).not.toBe(angleBefore);
+  });
+
+  it('never swallows a tap meant for the game', () => {
+    fixture.detectChanges();
+    expect(getComputedStyle(fixture.nativeElement).pointerEvents).toBe('none');
+  });
+
+  it('hides the canvas from screen readers', () => {
+    fixture.detectChanges();
+    const canvas = fixture.nativeElement.querySelector('canvas');
+    expect(canvas.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('stops animating once destroyed', () => {
+    fixture.detectChanges();
+    expect(component.animating).toBe(true);
+
+    fixture.destroy();
+
+    expect(component.animating).toBe(false);
   });
 });

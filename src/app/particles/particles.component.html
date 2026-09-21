@@ -1,11 +1,1 @@
-<div class="particles" aria-hidden="true">
-  <span class="particle"
-        *ngFor="let particle of particles"
-        [style.left.%]="particle.left"
-        [style.font-size.px]="particle.size"
-        [style.animation-duration.s]="particle.duration"
-        [style.animation-delay.s]="-particle.delay"
-        [ngClass]="particle.drift">
-    {{ particle.symbol }}
-  </span>
-</div>
+<canvas #canvas class="particle-canvas" aria-hidden="true"></canvas>
