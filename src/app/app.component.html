@@ -1,11 +1,11 @@
 <app-particles></app-particles>
 
-<header class="app-header" *ngIf="username">
+<header class="app-header" *ngIf="username || isGuest">
   <div class="header-content">
     <div class="welcome-message">
       <div class="welcome-icon">🧮</div>
       <div class="welcome-text">
-        <span class="welcome-greeting">{{ languageService.translate('welcome') }}, {{ username }}!</span>
+        <span class="welcome-greeting">{{ languageService.translate('welcome') }}, {{ username || languageService.translate('guest-player') }}!</span>
         <span class="welcome-subtitle">{{ languageService.translate('lets-learn') }}</span>
       </div>
     </div>
@@ -19,9 +19,13 @@
               [title]="languageService.translate(soundEnabled ? 'sound-on' : 'sound-off')">
         <span class="sound-icon">{{ soundEnabled ? '🔊' : '🔇' }}</span>
       </button>
-      <button class="logout-btn" (click)="logout()">
+      <button class="logout-btn" *ngIf="username" (click)="logout()">
         <span class="logout-icon">👋</span>
         <span>{{ languageService.translate('logout') }}</span>
+      </button>
+      <button class="logout-btn" *ngIf="!username" (click)="signIn()">
+        <span class="logout-icon">🔑</span>
+        <span>{{ languageService.translate('sign-in') }}</span>
       </button>
     </div>
   </div>

@@ -3,8 +3,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { FormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
+import { Router } from '@angular/router';
 
 import { LoginComponent } from './login.component';
+import { AuthService } from '../services/auth.service';
 
 describe('LoginComponent', () => {
   let component: LoginComponent;
@@ -105,5 +107,57 @@ describe('LoginComponent theme', () => {
 
     expect(dim).toBeTruthy();
     expect(contrast(dim, style.backgroundColor)).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('LoginComponent guest play', () => {
+  let component: LoginComponent;
+  let fixture: ComponentFixture<LoginComponent>;
+  let auth: AuthService;
+  let router: Router;
+
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [FormsModule, RouterTestingModule, HttpClientTestingModule],
+      declarations: [LoginComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(LoginComponent);
+    component = fixture.componentInstance;
+    auth = TestBed.inject(AuthService);
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    fixture.detectChanges();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('offers a way in without an account', () => {
+    const button = fixture.nativeElement.querySelector('.guest-btn');
+
+    expect(button).toBeTruthy();
+    expect(button.textContent.trim()).toBe('Play without an account');
+  });
+
+  it('takes a guest straight to picking a grade', () => {
+    fixture.nativeElement.querySelector('.guest-btn').click();
+
+    expect(auth.isGuest()).toBe(true);
+    expect(router.navigate).toHaveBeenCalledWith(['/grade']);
+  });
+
+  it('gives the guest button a thumb-sized target', () => {
+    const button = fixture.nativeElement.querySelector('.guest-btn');
+
+    expect(parseFloat(getComputedStyle(button).minHeight)).toBeGreaterThanOrEqual(44);
+  });
+
+  it('hides the guest route while resetting a password', () => {
+    component.forgotPassword();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.guest-btn')).toBeNull();
   });
 });

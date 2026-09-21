@@ -12,7 +12,8 @@ export class AuthGuard {
   ) {}
 
   canActivate(): boolean {
-    if (this.authService.isLoggedIn()) {
+    // A guest can play; an account is only needed to keep what they earn.
+    if (this.authService.canPlay()) {
       return true;
     }
 

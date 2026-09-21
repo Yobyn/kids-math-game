@@ -245,11 +245,14 @@ export class QuestionComponent implements OnInit {
           [this.currentQuestion.num1, this.currentQuestion.num2] = 
           [this.currentQuestion.num2, this.currentQuestion.num1];
         }
-        // For grade 1-2, ensure sum doesn't exceed range
+        // For grade 1-2, keep the sum inside the range. Draw the first number
+        // with room to spare, then a second that fits in what is left: re-rolling
+        // only num2 could never converge once num1 had taken the whole range,
+        // which froze the tab mid-round for the youngest players.
         if (this.grade <= 2 && this.currentQuestion.operation === '+') {
-          while (this.currentQuestion.num1 + this.currentQuestion.num2 > range) {
-            this.currentQuestion.num2 = Math.floor(Math.random() * range) + 1;
-          }
+          this.currentQuestion.num1 = Math.floor(Math.random() * (range - 1)) + 1;
+          this.currentQuestion.num2 =
+            Math.floor(Math.random() * (range - this.currentQuestion.num1)) + 1;
         }
         break;
       case '*':
