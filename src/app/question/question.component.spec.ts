@@ -434,3 +434,63 @@ describe('QuestionComponent', () => {
     });
   });
 });
+
+describe('QuestionComponent sums for the youngest players', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  /** Grade 1-2 are only ever asked to add, so every question is the sum path. */
+  function build(grade: string, difficulty: string) {
+    localStorage.clear();
+    localStorage.setItem('grade', grade);
+    localStorage.setItem('difficulty', difficulty);
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
+      declarations: [QuestionComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  const ranges: { [key: string]: number } = { easy: 5, medium: 10, hard: 10 };
+
+  ['1', '2'].forEach(grade => {
+    ['easy', 'medium', 'hard'].forEach(difficulty => {
+      it(`keeps grade ${grade} ${difficulty} sums inside the range`, () => {
+        build(grade, difficulty);
+        const limit = ranges[difficulty];
+
+        for (let i = 0; i < 200; i++) {
+          component.generateQuestion();
+          if (component.currentQuestion.moneyPrompt) {
+            continue;
+          }
+          const { num1, num2 } = component.currentQuestion;
+          expect(num1).toBeGreaterThanOrEqual(1);
+          expect(num2).toBeGreaterThanOrEqual(1);
+          expect(num1 + num2).toBeLessThanOrEqual(limit);
+        }
+      });
+    });
+  });
+
+  it('still finishes when the first number lands at the top of the range', () => {
+    build('1', 'easy');
+    // The old code re-rolled only the second number, so a first number that
+    // had already used the whole range could never be brought back under it —
+    // the loop spun forever and the tab froze. Pinning random high reproduces it.
+    spyOn(Math, 'random').and.returnValue(0.9999);
+
+    component.generateQuestion();
+
+    expect(component.currentQuestion.num1 + component.currentQuestion.num2)
+      .toBeLessThanOrEqual(5);
+  });
+});
