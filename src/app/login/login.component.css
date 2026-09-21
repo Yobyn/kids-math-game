@@ -188,3 +188,43 @@ input.invalid {
     transform: translateY(0);
   }
 }
+
+/* Particle-vector theme. Glow sits on the card edge and on focus rings —
+   never behind text, which halates for readers with astigmatism. */
+.login-container {
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  box-shadow: var(--glow), 0 12px 32px rgba(6, 4, 20, 0.55);
+  color: var(--text);
+}
+
+.login-container h2 {
+  color: var(--text);
+}
+
+.login-container input {
+  background: var(--surface-input);
+  border-color: var(--edge);
+  color: var(--text);
+}
+
+.login-container input::placeholder {
+  color: var(--text-dim);
+}
+
+.login-container input:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(56, 128, 255, 0.35);
+}
+
+.login-container button[type="submit"] {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
+  border: none;
+  color: #ffffff;
+}
+
+.login-container .toggle-link,
+.login-container .forgot-link,
+.login-container a {
+  color: var(--text-dim);
+}
