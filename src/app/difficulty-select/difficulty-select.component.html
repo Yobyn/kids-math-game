@@ -1,12 +1,17 @@
 <div class="difficulty-container">
   <h1>{{ languageService.translate('select-difficulty') }}</h1>
   <div class="difficulty-cards">
-    <div class="difficulty-card" 
+    <div class="difficulty-card"
          *ngFor="let difficulty of difficulties"
-         (click)="selectDifficulty(difficulty.level)">
+         role="button"
+         tabindex="0"
+         [attr.aria-label]="difficulty.name"
+         (click)="selectDifficulty(difficulty.level)"
+         (keydown.enter)="selectDifficulty(difficulty.level)"
+         (keydown.space)="selectDifficulty(difficulty.level)">
       <div class="difficulty-icon">{{ difficulty.icon }}</div>
       <h2>{{ difficulty.name }}</h2>
       <p>{{ difficulty.description }}</p>
     </div>
   </div>
-</div> 
+</div>

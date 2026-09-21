@@ -75,3 +75,26 @@ p {
     font-size: 2rem;
   }
 } 
+/* Children have an adult-sized contact patch with less motor control, so these
+   cards are kept well above the 48px adult minimum and never shrink below it. */
+.grade-card {
+  min-height: 96px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.grade-card:focus-visible {
+  outline: 3px solid #0984e3;
+  outline-offset: 3px;
+}
+
+/* Fallback for browsers without :focus-visible */
+.grade-card:focus {
+  outline: 3px solid #0984e3;
+  outline-offset: 3px;
+}
+
+.grade-card:active {
+  transform: scale(0.98);
+}
