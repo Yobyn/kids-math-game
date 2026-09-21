@@ -6,8 +6,17 @@
       <span class="streak-fire">🔥</span>
     </div>
     <div class="question-counter">
-      {{ languageService.translate('question') }} {{ questionsAnswered + 1 }} {{ languageService.translate('of') }} 10
+      {{ languageService.translate('question') }} {{ questionsAnswered + 1 }} {{ languageService.translate('of') }} {{ totalQuestions }}
     </div>
+  </div>
+
+  <div class="progress-track"
+       role="progressbar"
+       [attr.aria-valuenow]="questionsAnswered"
+       aria-valuemin="0"
+       [attr.aria-valuemax]="totalQuestions"
+       [attr.aria-label]="languageService.translate('question') + ' ' + (questionsAnswered + 1) + ' ' + languageService.translate('of') + ' ' + totalQuestions">
+    <div class="progress-fill" [style.width.%]="progressPercent"></div>
   </div>
 
   <div class="question-box" [class.shake]="showShakeAnimation">
