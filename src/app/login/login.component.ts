@@ -124,6 +124,15 @@ export class LoginComponent {
     });
   }
 
+  /**
+   * Straight into a round with no account. Progress is kept locally only;
+   * an account is what makes it survive a new device or a cleared browser.
+   */
+  playAsGuest() {
+    this.authService.playAsGuest();
+    this.router.navigate(['/grade']);
+  }
+
   toggleMode() {
     if (this.isForgotPassword) {
       this.isForgotPassword = false;

@@ -94,7 +94,7 @@ input.invalid {
   cursor: not-allowed;
 }
 
-.toggle-btn, .forgot-password-btn {
+.toggle-btn, .forgot-password-btn, .cancel-btn {
   background: none;
   border: none;
   color: #4a90e2;
@@ -115,33 +115,18 @@ input.invalid {
 }
 
 .toggle-btn:disabled,
-.forgot-password-btn:disabled {
+.forgot-password-btn:disabled,
+.cancel-btn:disabled {
   color: #cccccc;
   cursor: not-allowed;
 }
 
 .cancel-btn {
-  background: none;
-  border: none;
   color: #dc3545;
-  font-size: 0.9rem;
-  padding: 8px 16px;
-  cursor: pointer;
-  text-decoration: underline;
-  transition: all 0.3s ease;
-  margin-top: 1rem;
-  display: block;
-  width: 100%;
-  text-align: center;
 }
 
 .cancel-btn:hover:not(:disabled) {
   color: #c82333;
-}
-
-.cancel-btn:disabled {
-  color: #cccccc;
-  cursor: not-allowed;
 }
 
 .loader {
@@ -223,8 +208,35 @@ input.invalid {
   color: #ffffff;
 }
 
-.login-container .toggle-link,
-.login-container .forgot-link,
+.login-container .toggle-btn,
+.login-container .forgot-password-btn,
 .login-container a {
   color: var(--text-dim);
+}
+
+/* Playing without an account is the first thing a child should be able to
+   do, so it is a real button with a full touch target — not a text link
+   tucked under the form. */
+.guest-btn {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 1rem;
+  padding: 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  border-radius: 6px;
+  background: transparent;
+  border: 2px solid var(--accent-magenta);
+  color: var(--text);
+  transition: all 0.3s ease;
+}
+
+.guest-btn:hover:not(:disabled) {
+  background: rgba(214, 51, 235, 0.18);
+}
+
+.guest-btn:disabled {
+  border-color: var(--edge);
+  color: var(--text-dim);
+  cursor: not-allowed;
 }

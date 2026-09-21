@@ -70,7 +70,10 @@ export type TranslationKeys =
   | 'total-score'
   | 'lets-learn'
   | 'sound-on'
-  | 'sound-off';
+  | 'sound-off'
+  | 'play-as-guest'
+  | 'guest-player'
+  | 'sign-in';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -143,6 +146,9 @@ export class LanguageService {
       'logout': 'Logout',
       'sound-on': 'Sound on',
       'sound-off': 'Sound off',
+      'play-as-guest': 'Play without an account',
+      'guest-player': 'Player',
+      'sign-in': 'Sign in',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -214,6 +220,9 @@ export class LanguageService {
       'logout': 'Uitloggen',
       'sound-on': 'Geluid aan',
       'sound-off': 'Geluid uit',
+      'play-as-guest': 'Spelen zonder account',
+      'guest-player': 'Speler',
+      'sign-in': 'Inloggen',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -285,6 +294,9 @@ export class LanguageService {
       'logout': 'Cerrar sesión',
       'sound-on': 'Sonido activado',
       'sound-off': 'Sonido desactivado',
+      'play-as-guest': 'Jugar sin cuenta',
+      'guest-player': 'Jugador',
+      'sign-in': 'Iniciar sesión',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',

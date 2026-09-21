@@ -69,6 +69,15 @@
       <span *ngIf="isLoading" class="loader"></span>
     </button>
 
+    <button
+      type="button"
+      class="guest-btn"
+      (click)="playAsGuest()"
+      [disabled]="isLoading"
+      *ngIf="!isForgotPassword">
+      {{ languageService.translate('play-as-guest') }}
+    </button>
+
     <button 
       type="button"
       class="toggle-btn" 

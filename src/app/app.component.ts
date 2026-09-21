@@ -11,6 +11,7 @@ import { SoundService } from './services/sound.service';
 })
 export class AppComponent implements OnInit {
   username: string | null = null;
+  isGuest = false;
   soundEnabled = true;
 
   constructor(
@@ -24,6 +25,9 @@ export class AppComponent implements OnInit {
     this.authService.getCurrentUser().subscribe(username => {
       this.username = username;
     });
+    this.authService.isGuest$().subscribe(isGuest => {
+      this.isGuest = isGuest;
+    });
     this.soundService.isEnabled().subscribe(enabled => {
       this.soundEnabled = enabled;
     });
@@ -35,6 +39,14 @@ export class AppComponent implements OnInit {
 
   logout() {
     this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+
+  /**
+   * A guest keeps their guest flag on the way to the login screen: if they
+   * change their mind they can still step back into the round they were in.
+   */
+  signIn() {
     this.router.navigate(['/login']);
   }
 }

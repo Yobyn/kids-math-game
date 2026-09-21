@@ -4,6 +4,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
 import { SoundService } from './services/sound.service';
+import { AuthService } from './services/auth.service';
 
 describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -26,6 +27,22 @@ describe('AppComponent', () => {
 
   it('should create the app', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows no header before a child has chosen how to play', () => {
+    expect(fixture.nativeElement.querySelector('.app-header')).toBeNull();
+  });
+
+  it('gives a guest the same header controls, minus a logout', () => {
+    TestBed.inject(AuthService).playAsGuest();
+    fixture.detectChanges();
+
+    const header = fixture.nativeElement.querySelector('.app-header');
+    expect(header).toBeTruthy();
+    expect(header.textContent).toContain('Player');
+    expect(header.querySelector('.sound-btn')).toBeTruthy();
+    expect(header.textContent).toContain('Sign in');
+    expect(header.textContent).not.toContain('Logout');
   });
 
   it('starts with sound enabled', () => {

@@ -83,9 +83,14 @@ a backend that currently keeps its users in memory (see Code health).
   not sensible ones for the grade.
 
 ### Keeping a child coming back
-- **Login is mandatory.** `AuthGuard` blocks `/grade`, `/difficulty`,
-  `/questions` and `/result`, so a child cannot try the game at all without an
-  account. See Product direction: play first, account later.
+- **Guest play is in, the reason to sign up is not.** A child can now take
+  "Play without an account" on the login screen and play a full round;
+  `AuthGuard` lets a guest through, and score history and missed facts are kept
+  in `localStorage` as before. What is missing is the other half: nothing yet
+  offers an account at the moment there is something worth keeping (the result
+  screen is the natural place), and signing up does not carry a guest's local
+  progress into the new account — it is simply left behind. Until it does, a
+  child who signs up loses their personal best. See Product direction.
 - **No levels.** Rounds produce a score and stars; nothing accumulates into a
   level, so there is no ladder to climb and nothing for rewards to hang off.
 - **No avatar, no wardrobe, no events.** None of the reward system exists yet.
