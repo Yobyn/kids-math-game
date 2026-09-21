@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ScoreService } from '../services/score.service';
 import { LanguageService } from '../services/language.service';
+import { ProgressService } from '../services/progress.service';
 
 @Component({
   selector: 'app-result',
@@ -18,11 +19,15 @@ export class ResultComponent implements OnInit, OnDestroy {
   starsShown = 0;
   displayPercentage = 0;
   private timers: number[] = [];
+  previousBest: number | null = null;
+  isPersonalBest = false;
+  roundsPlayed = 0;
 
   constructor(
     private scoreService: ScoreService,
     private router: Router,
-    public languageService: LanguageService
+    public languageService: LanguageService,
+    private progressService: ProgressService
   ) {}
 
   ngOnInit() {
@@ -32,6 +37,19 @@ export class ResultComponent implements OnInit, OnDestroy {
     this.correctAnswers = finalScore.correctAnswers;
     this.percentage = finalScore.percentage;
     this.setMessage();
+
+    // Read the old best before recording, so this round can be compared to it
+    this.previousBest = this.progressService.getBestPercentage();
+    this.isPersonalBest = this.previousBest !== null && this.percentage > this.previousBest;
+    this.progressService.record({
+      correctAnswers: this.correctAnswers,
+      total: this.total,
+      percentage: this.percentage,
+      score: this.score,
+      grade: Number(localStorage.getItem('grade')) || 1
+    });
+    this.roundsPlayed = this.progressService.getRoundsPlayed();
+
     this.starsEarned = this.getStarsEarned();
     this.celebrate();
   }

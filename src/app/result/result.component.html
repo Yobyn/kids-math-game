@@ -30,6 +30,13 @@
     <div class="message">
       {{ message }}
     </div>
+
+    <div class="personal-best" *ngIf="isPersonalBest">
+      🎉 {{ languageService.translate('new-best') }}
+    </div>
+    <div class="personal-best quiet" *ngIf="!isPersonalBest && previousBest !== null">
+      {{ languageService.translate('your-best') }}: {{ previousBest | number:'1.0-0' }}%
+    </div>
   </div>
 
   <button class="play-again" (click)="playAgain()">
