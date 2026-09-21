@@ -47,6 +47,43 @@ describe('QuestionComponent', () => {
     }
   });
 
+  describe('progress through the quiz', () => {
+    it('starts empty', () => {
+      component.questionsAnswered = 0;
+      expect(component.progressPercent).toBe(0);
+    });
+
+    it('tracks the questions answered so far', () => {
+      component.questionsAnswered = 3;
+      expect(component.progressPercent).toBe(30);
+    });
+
+    it('is full on the last answer, never beyond', () => {
+      component.questionsAnswered = 10;
+      expect(component.progressPercent).toBe(100);
+
+      component.questionsAnswered = 12;
+      expect(component.progressPercent).toBe(100);
+    });
+
+    it('never goes negative', () => {
+      component.questionsAnswered = -1;
+      expect(component.progressPercent).toBe(0);
+    });
+
+    it('renders the fill and announces position to assistive tech', () => {
+      component.questionsAnswered = 4;
+      fixture.detectChanges();
+
+      const track = fixture.nativeElement.querySelector('.progress-track');
+      const fill = fixture.nativeElement.querySelector('.progress-fill');
+
+      expect(track.getAttribute('aria-valuenow')).toBe('4');
+      expect(track.getAttribute('aria-valuemax')).toBe('10');
+      expect(fill.style.width).toBe('40%');
+    });
+  });
+
   describe('wrong-answer feedback', () => {
     beforeEach(() => {
       component.currentQuestion = { num1: 7, num2: 5, operation: '+' };

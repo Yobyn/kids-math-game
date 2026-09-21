@@ -5,6 +5,9 @@ import { LanguageService } from '../services/language.service';
 import { SoundService } from '../services/sound.service';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
+/** The quiz is ten questions long; ScoreService.isGameComplete() agrees. */
+const TOTAL_QUESTIONS = 10;
+
 @Component({
   selector: 'app-question',
   templateUrl: './question.component.html',
@@ -50,6 +53,7 @@ export class QuestionComponent implements OnInit {
   correctAnswer = 0;
   showShakeAnimation: boolean = false;
   answerWasCorrect: boolean | null = null;
+  readonly totalQuestions = TOTAL_QUESTIONS;
   streakCount: number = 0;
   useKeypad: boolean = false;
   keypadKeys: string[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '0', 'del'];
@@ -78,6 +82,12 @@ export class QuestionComponent implements OnInit {
     this.scoreService.getQuestionsAnswered().subscribe(questions => {
       this.questionsAnswered = questions;
     });
+  }
+
+  /** How far through the ten questions the child is, as a percentage. */
+  get progressPercent(): number {
+    const answered = Math.min(Math.max(this.questionsAnswered, 0), TOTAL_QUESTIONS);
+    return (answered / TOTAL_QUESTIONS) * 100;
   }
 
   private isTouchDevice(): boolean {
