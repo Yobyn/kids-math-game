@@ -4,6 +4,7 @@ import { ScoreService } from '../services/score.service';
 import { LanguageService } from '../services/language.service';
 import { SoundService } from '../services/sound.service';
 import { ProgressService } from '../services/progress.service';
+import { FieldPulseService } from '../services/field-pulse.service';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
 /** The quiz is ten questions long; ScoreService.isGameComplete() agrees. */
@@ -73,7 +74,8 @@ export class QuestionComponent implements OnInit {
     private router: Router,
     public languageService: LanguageService,
     private soundService: SoundService,
-    private progressService: ProgressService
+    private progressService: ProgressService,
+    private fieldPulse: FieldPulseService
   ) {
     this.difficulty = localStorage.getItem('difficulty') || 'medium';
     this.grade = Number(localStorage.getItem('grade')) || 1;
@@ -346,6 +348,8 @@ export class QuestionComponent implements OnInit {
     this.scoreService.incrementCorrectAnswers();
     this.scoreService.incrementScore(bonusPoints);
     this.showOkButton = true;
+    // A streak is worth more of a surge than a single right answer
+    this.fieldPulse.pulse(this.streakCount >= 3 ? 0.85 : 0.5);
     this.vibrate([0, 30, 40, 30]);
     this.playSuccessSound();
     // Set focus on the next button after it appears

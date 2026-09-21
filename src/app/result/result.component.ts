@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ScoreService } from '../services/score.service';
 import { LanguageService } from '../services/language.service';
 import { ProgressService } from '../services/progress.service';
+import { FieldPulseService } from '../services/field-pulse.service';
 
 @Component({
   selector: 'app-result',
@@ -27,7 +28,8 @@ export class ResultComponent implements OnInit, OnDestroy {
     private scoreService: ScoreService,
     private router: Router,
     public languageService: LanguageService,
-    private progressService: ProgressService
+    private progressService: ProgressService,
+    private fieldPulse: FieldPulseService
   ) {}
 
   ngOnInit() {
@@ -51,6 +53,7 @@ export class ResultComponent implements OnInit, OnDestroy {
     this.roundsPlayed = this.progressService.getRoundsPlayed();
 
     this.starsEarned = this.getStarsEarned();
+    this.fieldPulse.pulse(1);
     this.celebrate();
   }
 

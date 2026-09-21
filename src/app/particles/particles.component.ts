@@ -1,9 +1,12 @@
 import {
   AfterViewInit, Component, ElementRef, NgZone, OnDestroy, ViewChild
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import {
-  createField, edgeFade, FieldParticle, particleColour, stepParticle
+  addEnergy, createField, decayEnergy, edgeFade, FieldParticle, particleColour,
+  pulsedAlpha, pulsedSize, stepParticle
 } from './particle-field';
+import { FieldPulseService } from '../services/field-pulse.service';
 
 /** Dense enough to read as a cloud, light enough for an old school tablet. */
 const PARTICLE_COUNT = 900;
@@ -33,8 +36,12 @@ export class ParticlesComponent implements AfterViewInit, OnDestroy {
   private frame = 0;
   private lastFrameAt = 0;
   private resizeListener = () => this.resize();
+  private pulseSubscription?: Subscription;
 
-  constructor(private zone: NgZone) {}
+  /** 0 when idle; rises on a pulse and decays away within about half a second. */
+  energy = 0;
+
+  constructor(private zone: NgZone, private pulseService: FieldPulseService) {}
 
   ngAfterViewInit() {
     const canvas = this.canvasRef?.nativeElement;
@@ -49,9 +56,14 @@ export class ParticlesComponent implements AfterViewInit, OnDestroy {
     window.addEventListener('resize', this.resizeListener);
 
     if (still) {
+      // No surges under reduced motion: a still frame stays still.
       this.draw();
       return;
     }
+
+    this.pulseSubscription = this.pulseService.pulses$.subscribe(strength => {
+      this.energy = addEnergy(this.energy, strength);
+    });
 
     this.animating = true;
     // Outside Angular: sixty change-detection passes a second would be absurd
@@ -66,6 +78,7 @@ export class ParticlesComponent implements AfterViewInit, OnDestroy {
     this.animating = false;
     cancelAnimationFrame(this.frame);
     window.removeEventListener('resize', this.resizeListener);
+    this.pulseSubscription?.unsubscribe();
   }
 
   /** Steps the field and redraws. Exposed so tests can drive it by hand. */
@@ -96,9 +109,9 @@ export class ParticlesComponent implements AfterViewInit, OnDestroy {
       const y = centreY + Math.sin(particle.angle) * distance;
 
       context.globalAlpha = edgeFade(particle.radius);
-      context.fillStyle = particleColour(particle);
+      context.fillStyle = particleColour({ ...particle, alpha: pulsedAlpha(particle, this.energy) });
       context.beginPath();
-      context.arc(x, y, particle.size, 0, Math.PI * 2);
+      context.arc(x, y, pulsedSize(particle, this.energy), 0, Math.PI * 2);
       context.fill();
     });
 
@@ -113,6 +126,7 @@ export class ParticlesComponent implements AfterViewInit, OnDestroy {
     const seconds = Math.min((timestamp - this.lastFrameAt) / 1000, 0.1);
     this.lastFrameAt = timestamp;
 
+    this.energy = decayEnergy(this.energy, seconds);
     this.advance(seconds);
     this.draw();
     this.frame = requestAnimationFrame(next => this.tick(next));

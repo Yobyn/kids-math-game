@@ -1,6 +1,7 @@
 import {
-  angleToHueMix, createField, createParticle, edgeFade, particleColour,
-  RING_FADE, RING_INNER, RING_OUTER, stepParticle
+  addEnergy, angleToHueMix, createField, createParticle, decayEnergy, edgeFade,
+  particleColour, pulsedAlpha, pulsedSize, RING_FADE, RING_INNER, RING_OUTER,
+  stepParticle
 } from './particle-field';
 
 describe('particle field', () => {
@@ -82,6 +83,41 @@ describe('particle field', () => {
 
       expect(same.angle).toBe(particle.angle);
       expect(same.radius).toBe(particle.radius);
+    });
+  });
+
+  describe('a surge answering the child', () => {
+    it('is spent within about half a second', () => {
+      // Celebratory motion belongs in a 300-500ms window; longer reads as the
+      // theme changing rather than the game answering.
+      expect(decayEnergy(1, 0.16)).toBeCloseTo(0.5, 2);
+      expect(decayEnergy(1, 0.48)).toBeLessThan(0.15);
+      expect(decayEnergy(1, 0.8)).toBe(0);
+    });
+
+    it('never decays below nothing', () => {
+      expect(decayEnergy(0, 1)).toBe(0);
+      expect(decayEnergy(-1, 1)).toBe(0);
+    });
+
+    it('stacks surges without ever exceeding full', () => {
+      expect(addEnergy(0, 0.5)).toBe(0.5);
+      expect(addEnergy(0.6, 0.6)).toBe(1);
+      expect(addEnergy(0.4, -1)).toBe(0.4);
+    });
+
+    it('swells and brightens the particles while it lasts', () => {
+      const particle = { ...createParticle(0.8), size: 1, alpha: 0.5 };
+
+      expect(pulsedSize(particle, 0)).toBe(1);
+      expect(pulsedSize(particle, 1)).toBeGreaterThan(2);
+      expect(pulsedAlpha(particle, 0)).toBe(0.5);
+      expect(pulsedAlpha(particle, 1)).toBeGreaterThan(0.5);
+    });
+
+    it('never drives alpha past opaque', () => {
+      const particle = { ...createParticle(0.8), alpha: 0.95 };
+      expect(pulsedAlpha(particle, 1)).toBeLessThanOrEqual(1);
     });
   });
 
