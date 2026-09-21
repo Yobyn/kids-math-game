@@ -17,6 +17,8 @@ Last surveyed: 2026-09-21 (money mode added the same day)
 - A wrong answer shows the correct one with effort-focused encouragement.
 - Money questions (whole euros): totals from grade 2, change from grade 4,
   following the usual teaching order — counting before change-making.
+- English, Dutch and Spanish, chosen in the header and remembered between
+  visits.
 - Rounds are remembered (last 20, in `localStorage`), and the result screen
   shows a personal best — beaten, or quietly displayed when it was not.
 - A question missed twice comes back two questions later in the same round,
@@ -56,9 +58,10 @@ Last surveyed: 2026-09-21 (money mode added the same day)
 - **No safe-area padding** for notched devices on the login and result screens.
 
 ### Reach
-- **Spanish is written but unreachable.** A full `es` translation set exists in
-  `language.service.ts`, while the selector only offers English and Dutch.
-- **No language persistence** — the choice resets to English on reload.
+- **Three languages, all reachable and remembered** (English, Dutch, Spanish).
+- **Only the UI is translated.** Names, encouragement and money wording are
+  translated; nothing adapts currency or number formatting per locale, and
+  there is no right-to-left support if a language ever needs it.
 
 ### Code health
 - **Backend stores users in memory** (`server/server.js`) — every restart drops
