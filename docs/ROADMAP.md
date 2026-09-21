@@ -17,6 +17,8 @@ Last surveyed: 2026-09-21 (money mode added the same day)
 - A wrong answer shows the correct one with effort-focused encouragement.
 - Money questions (whole euros): totals from grade 2, change from grade 4,
   following the usual teaching order — counting before change-making.
+- Rounds are remembered (last 20, in `localStorage`), and the result screen
+  shows a personal best — beaten, or quietly displayed when it was not.
 - Progress bar through the round; result screen with up to three stars and a
   counted-up percentage.
 - Sound and haptics switch in the header, remembered between sessions.
@@ -38,8 +40,9 @@ Last surveyed: 2026-09-21 (money mode added the same day)
   not sensible ones for the grade.
 
 ### Keeping a child coming back
-- **Nothing persists between rounds.** `ScoreService` is in memory only: no
-  history, no best score, no streak across days, no sense of getting better.
+- **History is stored but barely used.** `ProgressService` keeps the last 20
+  rounds; only the best percentage is shown. Nothing plots improvement over
+  time, and nothing distinguishes grades or question types.
 - **No badges or milestones** beyond the three stars of a single round.
 - **No parent or teacher view** — no way to see what a child struggles with.
 

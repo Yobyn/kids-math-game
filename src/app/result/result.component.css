@@ -121,3 +121,21 @@ h2 {
     transition: none;
   }
 }
+
+/* Personal best — measured against the child's own past rounds, never others */
+.personal-best {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #b7791f;
+  background: #fffaf0;
+}
+
+.personal-best.quiet {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #636e72;
+  background: #f5f6fa;
+}
