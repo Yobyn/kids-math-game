@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { ScoreService } from '../services/score.service';
 import { LanguageService } from '../services/language.service';
 import { SoundService } from '../services/sound.service';
+import { ProgressService } from '../services/progress.service';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
 /** The quiz is ten questions long; ScoreService.isGameComplete() agrees. */
@@ -71,7 +72,8 @@ export class QuestionComponent implements OnInit {
     private scoreService: ScoreService,
     private router: Router,
     public languageService: LanguageService,
-    private soundService: SoundService
+    private soundService: SoundService,
+    private progressService: ProgressService
   ) {
     this.difficulty = localStorage.getItem('difficulty') || 'medium';
     this.grade = Number(localStorage.getItem('grade')) || 1;
@@ -84,6 +86,7 @@ export class QuestionComponent implements OnInit {
       return;
     }
     this.scoreService.resetScore();
+    this.seedMissedFromLastRound();
     this.generateQuestion();
     this.scoreService.getCurrentScore().subscribe(score => {
       this.currentScore = score;
@@ -146,6 +149,16 @@ export class QuestionComponent implements OnInit {
     } else {
       return ['+', '-', '*', '/'];
     }
+  }
+
+  /**
+   * Facts missed in an earlier round come back near the start of this one —
+   * but never as the very first question, which would open on a failure.
+   */
+  private seedMissedFromLastRound() {
+    this.progressService.takeMissedFacts(2).forEach((fact, index) => {
+      this.missed.push({ question: { ...fact }, dueAfter: index + 1 });
+    });
   }
 
   /**
@@ -367,6 +380,9 @@ export class QuestionComponent implements OnInit {
           dueAfter: this.questionsAnswered + REPLAY_GAP
         });
       }
+      // Kept for the next round too, whether or not this was already a replay:
+      // a fact missed twice in one round is exactly the one to revisit later.
+      this.progressService.recordMissed({ ...this.currentQuestion });
 
       // Out of attempts: show the answer itself. A child who only hears "wrong"
       // learns nothing from the question they just spent two tries on.

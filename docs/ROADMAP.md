@@ -24,7 +24,8 @@ Last surveyed: 2026-09-21 (money mode added the same day)
 - Rounds are remembered (last 20, in `localStorage`), and the result screen
   shows a personal best — beaten, or quietly displayed when it was not.
 - A question missed twice comes back two questions later in the same round,
-  once, the way a flashcard goes back a few cards from the front.
+  once, the way a flashcard goes back a few cards from the front — and is
+  kept for the next round, where it returns near the start (never first).
 - Progress bar through the round; result screen with up to three stars and a
   counted-up percentage.
 - Sound and haptics switch in the header, remembered between sessions.
@@ -40,9 +41,10 @@ Last surveyed: 2026-09-21 (money mode added the same day)
   rest of the teaching gaps are closed.
 - **No adaptive difficulty.** Grade and difficulty are picked once and never
   respond to how the child is actually doing.
-- **Missed facts do not survive the round.** A question missed twice returns
-  once, within the same round. Nothing carries across rounds or days, which is
-  where the spacing effect actually lives — that needs the stored history.
+- **Spacing is one session deep.** Missed facts carry to the *next* round, but
+  the interval is "next time you play", whether that is a minute or a month.
+  Expanding intervals (a day, then three, then a week) would need timestamps
+  on each fact and a scheduler to match.
 - **Division can produce awkward questions** — it guarantees whole answers but
   not sensible ones for the grade.
 
