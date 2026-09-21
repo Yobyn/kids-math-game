@@ -19,6 +19,8 @@ Last surveyed: 2026-09-21 (money mode added the same day)
   following the usual teaching order — counting before change-making.
 - English, Dutch and Spanish, chosen in the header and remembered between
   visits.
+- Installs to a home screen (manifest, maskable icons, standalone display) and
+  keeps working offline through a versioned service worker.
 - Rounds are remembered (last 20, in `localStorage`), and the result screen
   shows a personal best — beaten, or quietly displayed when it was not.
 - A question missed twice comes back two questions later in the same round,
@@ -52,8 +54,12 @@ Last surveyed: 2026-09-21 (money mode added the same day)
 - **No parent or teacher view** — no way to see what a child struggles with.
 
 ### Platform
-- **Not installable.** No `manifest.webmanifest`, no service worker, so it
-  cannot go on a home screen or work on a bad connection.
+- **Installable, but the update prompt is missing.** The service worker takes
+  over immediately on activation (`skipWaiting` + `clients.claim`); a child
+  mid-round when a deploy lands gets the new shell on their next navigation
+  with no warning. A "refresh for the new version" prompt is the usual fix.
+- **Offline is shell-only.** The app works offline because everything it needs
+  is static, but login needs the backend, so an offline child cannot sign in.
 - **No landscape or large-tablet layout.** Portrait-tuned only.
 - **No safe-area padding** for notched devices on the login and result screens.
 
