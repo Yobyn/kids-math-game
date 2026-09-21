@@ -146,3 +146,14 @@ h2 {
   color: #f1f0ff;
   text-shadow: 0 2px 12px rgba(10, 8, 30, 0.6);
 }
+
+/* Same rule: light face, themed edge. */
+.score-card {
+  border: 1px solid var(--edge);
+}
+
+.result-container .play-again {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
+  border: none;
+  color: #ffffff;
+}

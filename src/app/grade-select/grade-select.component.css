@@ -105,3 +105,14 @@ p {
   color: #f1f0ff;
   text-shadow: 0 2px 12px rgba(10, 8, 30, 0.6);
 }
+
+/* Card faces stay light — they carry the words a child reads. The theme is
+   on the edge and the focus ring. */
+.grade-card {
+  border: 1px solid var(--edge);
+  box-shadow: 0 10px 28px rgba(6, 4, 20, 0.45);
+}
+
+.grade-card:hover {
+  box-shadow: var(--glow), 0 14px 32px rgba(6, 4, 20, 0.5);
+}
