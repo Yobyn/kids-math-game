@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ParticlesComponent } from './particles.component';
+import { FieldPulseService } from '../services/field-pulse.service';
 
 describe('ParticlesComponent', () => {
   let fixture: ComponentFixture<ParticlesComponent>;
@@ -66,6 +67,46 @@ describe('ParticlesComponent', () => {
     fixture.detectChanges();
     const canvas = fixture.nativeElement.querySelector('canvas');
     expect(canvas.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('surges when the game reports something worth noticing', () => {
+    fixture.detectChanges();
+    expect(component.energy).toBe(0);
+
+    TestBed.inject(FieldPulseService).pulse(0.5);
+
+    expect(component.energy).toBe(0.5);
+  });
+
+  it('lets the surge fade rather than holding it', () => {
+    fixture.detectChanges();
+    TestBed.inject(FieldPulseService).pulse(1);
+
+    component.energy = 1;
+    // One frame at 160ms should halve it
+    component['tick'](performance.now() + 160);
+
+    expect(component.energy).toBeLessThan(1);
+  });
+
+  it('ignores surges under reduced motion', () => {
+    spyOn(window, 'matchMedia').and.returnValue({ matches: true } as MediaQueryList);
+    const still = TestBed.createComponent(ParticlesComponent);
+    still.detectChanges();
+
+    TestBed.inject(FieldPulseService).pulse(1);
+
+    expect(still.componentInstance.energy).toBe(0);
+    still.destroy();
+  });
+
+  it('stops listening for surges once destroyed', () => {
+    fixture.detectChanges();
+    fixture.destroy();
+
+    TestBed.inject(FieldPulseService).pulse(1);
+
+    expect(component.energy).toBe(0);
   });
 
   it('stops animating once destroyed', () => {

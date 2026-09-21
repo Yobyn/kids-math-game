@@ -19,6 +19,13 @@ export interface FieldParticle {
   hueMix: number;
 }
 
+/**
+ * A surge halves every 160ms, so it is spent inside ~450ms — the window
+ * celebratory motion is meant to live in. Longer reads as the theme changing
+ * rather than the game answering.
+ */
+export const PULSE_HALF_LIFE = 0.16;
+
 export const RING_INNER = 0.62;
 export const RING_OUTER = 1.0;
 /** Past this the particle has left the ring and is recycled inward. */
@@ -86,4 +93,30 @@ export function edgeFade(radius: number): number {
     return 1;
   }
   return Math.max(0, 1 - (radius - RING_OUTER) / (RING_FADE - RING_OUTER));
+}
+
+
+/** Decays a surge toward zero. Pure, so the timing is testable without a clock. */
+export function decayEnergy(energy: number, seconds: number): number {
+  if (energy <= 0 || seconds < 0) {
+    return Math.max(energy, 0);
+  }
+  const decayed = energy * Math.pow(0.5, seconds / PULSE_HALF_LIFE);
+  // Below a twentieth the swell is imperceptible (a 7% size change); snapping
+  // to zero there keeps the surge inside its window instead of trailing off.
+  return decayed < 0.05 ? 0 : decayed;
+}
+
+/** Adds a surge to whatever is already running, never past full. */
+export function addEnergy(energy: number, strength: number): number {
+  return Math.min(1, Math.max(0, energy) + Math.max(0, strength));
+}
+
+/** Particles swell and brighten with the surge, and push outward a little. */
+export function pulsedSize(particle: FieldParticle, energy: number): number {
+  return particle.size * (1 + energy * 1.4);
+}
+
+export function pulsedAlpha(particle: FieldParticle, energy: number): number {
+  return Math.min(1, particle.alpha * (1 + energy * 0.9));
 }
