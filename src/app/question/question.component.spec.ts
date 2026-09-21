@@ -47,6 +47,48 @@ describe('QuestionComponent', () => {
     }
   });
 
+  describe('facts carried over from an earlier round', () => {
+    it('asks a fact missed last round, but not as the opening question', () => {
+      localStorage.setItem('missedFacts', JSON.stringify([{ num1: 8, num2: 6, operation: '+' }]));
+
+      const fresh = TestBed.createComponent(QuestionComponent);
+      fresh.detectChanges();
+      const c = fresh.componentInstance;
+
+      // First question of the round is a new one
+      expect(c.isReplay).toBe(false);
+
+      c.questionsAnswered = 1;
+      c.generateQuestion();
+
+      expect(c.isReplay).toBe(true);
+      expect(c.currentQuestion.num1).toBe(8);
+      expect(c.currentQuestion.num2).toBe(6);
+    });
+
+    it('clears a carried fact from storage once it is asked', () => {
+      localStorage.setItem('missedFacts', JSON.stringify([{ num1: 8, num2: 6, operation: '+' }]));
+
+      const fresh = TestBed.createComponent(QuestionComponent);
+      fresh.detectChanges();
+
+      expect(JSON.parse(localStorage.getItem('missedFacts') as string)).toEqual([]);
+    });
+
+    it('stores a fact the child could not get, for the next round', () => {
+      component.currentQuestion = { num1: 9, num2: 4, operation: '+' };
+      component.wrongAttempts = 0;
+      component.isReplay = false;
+      component.userAnswer = '11';
+      component.checkAnswer();
+      component.userAnswer = '11';
+      component.checkAnswer();
+
+      const stored = JSON.parse(localStorage.getItem('missedFacts') as string);
+      expect(stored[0]).toEqual(jasmine.objectContaining({ num1: 9, num2: 4 }));
+    });
+  });
+
   describe('coming back to a missed question', () => {
     const missTwice = () => {
       const wrong = String(component.currentQuestion.num1 + component.currentQuestion.num2 + 7);
