@@ -34,7 +34,7 @@ export class QuestionComponent implements OnInit {
   @ViewChild('answerInput') answerInput!: ElementRef;
   @ViewChild('nextButton') nextButton!: ElementRef;
   
-  currentQuestion: { num1: number; num2: number; operation: string } = {
+  currentQuestion: { num1: number; num2: number; operation: string; moneyPrompt?: string } = {
     num1: 0,
     num2: 0,
     operation: '+'
@@ -139,9 +139,56 @@ export class QuestionComponent implements OnInit {
     }
   }
 
+  /**
+   * Money is taught in stages: counting totals well before working out change,
+   * which children generally reach around nine or ten. So grades 2-3 only ever
+   * get totals, and change questions start at grade 4.
+   */
+  private shouldAskAboutMoney(): boolean {
+    return this.grade >= 2 && Math.random() < 0.25;
+  }
+
+  private generateMoneyQuestion() {
+    // Whole euros only — decimals come after this age group has the idea
+    const cap = Math.max(5, Math.min(this.getNumberRange(), 20));
+    const askForChange = this.grade >= 4;
+
+    if (askForChange) {
+      const price = Math.floor(Math.random() * (cap - 1)) + 1;
+      const paid = price + Math.floor(Math.random() * (cap - price)) + 1;
+      this.currentQuestion.operation = '-';
+      this.currentQuestion.num1 = paid;
+      this.currentQuestion.num2 = price;
+      this.currentQuestion.moneyPrompt = this.languageService
+        .translate('money-change')
+        .replace('{price}', String(price))
+        .replace('{paid}', String(paid));
+    } else {
+      const first = Math.floor(Math.random() * cap) + 1;
+      const second = Math.floor(Math.random() * cap) + 1;
+      this.currentQuestion.operation = '+';
+      this.currentQuestion.num1 = first;
+      this.currentQuestion.num2 = second;
+      this.currentQuestion.moneyPrompt = this.languageService
+        .translate('money-total')
+        .replace('{first}', String(first))
+        .replace('{second}', String(second));
+    }
+  }
+
   generateQuestion() {
     if (this.scoreService.isGameComplete()) {
       this.router.navigate(['/result']);
+      return;
+    }
+
+    this.currentQuestion.moneyPrompt = undefined;
+    if (this.shouldAskAboutMoney()) {
+      this.generateMoneyQuestion();
+      this.userAnswer = '';
+      this.feedback = '';
+      this.inputPlaceholder = '?';
+      this.showOkButton = false;
       return;
     }
 

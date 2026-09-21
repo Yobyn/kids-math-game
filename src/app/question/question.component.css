@@ -366,3 +366,24 @@ input[type="number"].incorrect {
     transition: none;
   }
 }
+
+/* Money questions read as a sentence, so they need room to breathe */
+.money-prompt {
+  margin: 0 0 1.25rem;
+  font-size: 1.15rem;
+  line-height: 1.5;
+  color: #2c3e50;
+  text-align: center;
+}
+
+.math-problem .currency {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #0984e3;
+}
+
+@media (max-width: 480px) {
+  .money-prompt {
+    font-size: 1rem;
+  }
+}
