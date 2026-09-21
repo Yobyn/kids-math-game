@@ -339,12 +339,16 @@ input[type="number"].incorrect {
 }
 
 /* Progress through the ten questions — seeing the bar fill is what keeps a
-   child going; "Question 3 of 10" alone is a number they have to decode. */
+   child going; "Question 3 of 10" alone is a number they have to decode.
+   Matches the question card's width so it reads as part of the same block
+   rather than a sliver poking out from behind it. */
 .progress-track {
   width: 100%;
-  max-width: 420px;
+  /* .question-box is max-width 600px plus its 2rem padding on each side, and
+     is not border-box, so the bar has to add that padding back to line up. */
+  max-width: calc(600px + 4rem);
   height: 12px;
-  margin: 0.75rem auto 0;
+  margin: 1rem auto 1.25rem;
   background: rgba(223, 230, 233, 0.9);
   border-radius: 999px;
   overflow: hidden;
