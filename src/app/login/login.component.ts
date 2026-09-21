@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { LanguageService } from '../services/language.service';
 
@@ -8,7 +8,7 @@ import { LanguageService } from '../services/language.service';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.css']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   username: string = '';
   password: string = '';
   email: string = '';
@@ -26,8 +26,16 @@ export class LoginComponent {
   constructor(
     private authService: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
     public languageService: LanguageService
   ) {}
+
+  ngOnInit() {
+    // The result screen's offer sends a guest here to sign up, not to sign in
+    if (this.route.snapshot.queryParamMap.get('create')) {
+      this.isRegistering = true;
+    }
+  }
 
   validateForm(): boolean {
     this.usernameValid = !this.isForgotPassword && this.username.length >= 3;

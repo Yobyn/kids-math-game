@@ -157,3 +157,57 @@ h2 {
   border: none;
   color: #ffffff;
 }
+
+/* The offer to keep progress. Deliberately quiet: it sits under Play Again,
+   uses the dim text colour rather than an accent, and carries no badge or
+   animation — a child finishing a round should meet their score, not a pitch. */
+.keep-offer {
+  max-width: 500px;
+  margin: 2rem auto 0;
+  padding: 1.25rem;
+  border: 1px solid var(--edge);
+  border-radius: 12px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.keep-offer-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+  color: var(--text);
+}
+
+.keep-offer-body {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-dim);
+}
+
+.keep-offer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.keep-offer-actions button {
+  flex: 1 1 10rem;
+  min-height: 48px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.keep-offer-create {
+  border: 2px solid var(--accent-blue);
+  background: transparent;
+  color: var(--text);
+}
+
+.keep-offer-dismiss {
+  border: 1px solid var(--edge);
+  background: transparent;
+  color: var(--text-dim);
+}

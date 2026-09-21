@@ -23,33 +23,63 @@ const MAX_MISSED = 12;
 /** Enough to show improvement over time without growing without bound. */
 const MAX_ROUNDS = 20;
 
+/** Who a stored round belongs to while nobody has signed in. */
+export const GUEST_OWNER = 'guest';
+
+/** The owner an account's progress is filed under. */
+export function accountOwner(username: string): string {
+  return `user:${username}`;
+}
+
+export function factSignature(fact: MissedFact): string {
+  return `${fact.num1}${fact.operation}${fact.num2}`;
+}
+
+/**
+ * Newest first, capped, with nothing dropped that both sides did not already
+ * agree on — a child who signs up should not watch rounds disappear.
+ */
+export function mergeHistory(existing: RoundResult[], incoming: RoundResult[]): RoundResult[] {
+  return [...existing, ...incoming]
+    .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
+    .slice(0, MAX_ROUNDS);
+}
+
+/** The account's own facts come first; a guest's fill whatever room is left. */
+export function mergeMissed(existing: MissedFact[], incoming: MissedFact[]): MissedFact[] {
+  const seen = new Set<string>();
+  return [...existing, ...incoming]
+    .filter(fact => {
+      const signature = factSignature(fact);
+      if (seen.has(signature)) {
+        return false;
+      }
+      seen.add(signature);
+      return true;
+    })
+    .slice(0, MAX_MISSED);
+}
+
 /**
  * Remembers how past rounds went, so a child can see their own improvement.
  * Deliberately personal-best rather than streak-based: missing a day should
  * never cost a child anything they earned.
+ *
+ * Progress is filed per owner — a guest, or a named account — so two children
+ * sharing one tablet do not end up sharing one history.
  */
 @Injectable({
   providedIn: 'root'
 })
 export class ProgressService {
   getHistory(): RoundResult[] {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      const parsed = stored ? JSON.parse(stored) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      // A corrupt or unreadable store should never block a game
-      return [];
-    }
+    return this.readHistory(this.currentOwner());
   }
 
   record(result: Omit<RoundResult, 'date'>): void {
-    const history = [{ ...result, date: new Date().toISOString() }, ...this.getHistory()];
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(history.slice(0, MAX_ROUNDS)));
-    } catch {
-      // Private browsing and full storage are not worth failing a round over
-    }
+    const owner = this.currentOwner();
+    const history = [{ ...result, date: new Date().toISOString() }, ...this.readHistory(owner)];
+    this.writeHistory(owner, history.slice(0, MAX_ROUNDS));
   }
 
   /** The best percentage so far, or null when this is the first round. */
@@ -71,34 +101,133 @@ export class ProgressService {
    * spacing effect actually lives.
    */
   getMissedFacts(): MissedFact[] {
-    try {
-      const stored = localStorage.getItem(MISSED_KEY);
-      const parsed = stored ? JSON.parse(stored) : [];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
+    return this.readMissed(this.currentOwner());
   }
 
   recordMissed(fact: MissedFact): void {
-    const signature = (f: MissedFact) => `${f.num1}${f.operation}${f.num2}`;
-    const existing = this.getMissedFacts().filter(f => signature(f) !== signature(fact));
-    this.writeMissed([fact, ...existing].slice(0, MAX_MISSED));
+    const existing = this.getMissedFacts().filter(f => factSignature(f) !== factSignature(fact));
+    this.writeMissed(this.currentOwner(), [fact, ...existing].slice(0, MAX_MISSED));
   }
 
   /** Hands back up to `limit` facts and forgets them — they are being asked now. */
   takeMissedFacts(limit: number): MissedFact[] {
-    const all = this.getMissedFacts();
+    const owner = this.currentOwner();
+    const all = this.readMissed(owner);
     const taken = all.slice(0, limit);
-    this.writeMissed(all.slice(limit));
+    this.writeMissed(owner, all.slice(limit));
     return taken;
   }
 
-  private writeMissed(facts: MissedFact[]): void {
+  /** True when a guest has anything an account would be worth keeping for. */
+  hasGuestProgress(): boolean {
+    return this.readHistory(GUEST_OWNER).length > 0;
+  }
+
+  /**
+   * Moves what a guest earned into the account they have just created or
+   * signed into. Signup is the one moment both identities are known, so the
+   * move happens once, in a batch, and the guest's copy is then cleared —
+   * leaving it behind would hand the next guest on this device someone
+   * else's history.
+   */
+  adoptGuestProgress(username: string): void {
+    const owner = accountOwner(username);
+    const guestHistory = this.readHistory(GUEST_OWNER);
+    const guestMissed = this.readMissed(GUEST_OWNER);
+
+    if (!guestHistory.length && !guestMissed.length) {
+      return;
+    }
+
+    this.writeHistory(owner, mergeHistory(this.readHistory(owner), guestHistory));
+    this.writeMissed(owner, mergeMissed(this.readMissed(owner), guestMissed));
+    this.remove(this.key(STORAGE_KEY, GUEST_OWNER));
+    this.remove(this.key(MISSED_KEY, GUEST_OWNER));
+  }
+
+  private currentOwner(): string {
     try {
-      localStorage.setItem(MISSED_KEY, JSON.stringify(facts));
+      const username = localStorage.getItem('username');
+      return username ? accountOwner(username) : GUEST_OWNER;
     } catch {
-      // Storage being unavailable must never break a round
+      return GUEST_OWNER;
+    }
+  }
+
+  private key(base: string, owner: string): string {
+    return `${base}:${owner}`;
+  }
+
+  private readHistory(owner: string): RoundResult[] {
+    const parsed = this.readList(STORAGE_KEY, owner);
+    return parsed.filter(entry => entry && typeof entry === 'object') as RoundResult[];
+  }
+
+  private readMissed(owner: string): MissedFact[] {
+    const parsed = this.readList(MISSED_KEY, owner);
+    return parsed.filter(entry => entry && typeof entry === 'object') as MissedFact[];
+  }
+
+  /**
+   * Reads an owner's list, adopting anything left under the old unowned key.
+   * Rounds played before progress was filed per owner belong to whoever is
+   * playing when the game next looks — in practice the guest who earned them.
+   */
+  private readList(base: string, owner: string): any[] {
+    const owned = this.parse(this.item(this.key(base, owner)));
+    if (owned.length) {
+      return owned;
+    }
+
+    const legacy = this.parse(this.item(base));
+    if (legacy.length) {
+      this.write(this.key(base, owner), legacy);
+      this.remove(base);
+      return legacy;
+    }
+
+    return [];
+  }
+
+  private parse(raw: string | null): any[] {
+    try {
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      // A corrupt or unreadable store should never block a game
+      return [];
+    }
+  }
+
+  private item(key: string): string | null {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  }
+
+  private writeHistory(owner: string, history: RoundResult[]): void {
+    this.write(this.key(STORAGE_KEY, owner), history);
+  }
+
+  private writeMissed(owner: string, facts: MissedFact[]): void {
+    this.write(this.key(MISSED_KEY, owner), facts);
+  }
+
+  private write(key: string, value: any[]): void {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // Private browsing and full storage are not worth failing a round over
+    }
+  }
+
+  private remove(key: string): void {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // Nothing to clean up if storage is unavailable
     }
   }
 }

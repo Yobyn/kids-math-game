@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { ProgressService } from './progress.service';
 
 export interface AuthResponse {
   token: string;
@@ -27,13 +28,14 @@ export class AuthService {
   private usernameSubject = new BehaviorSubject<string | null>(localStorage.getItem('username'));
   private guestSubject = new BehaviorSubject<boolean>(readGuestFlag());
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private progressService: ProgressService) {}
 
   register(username: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, { username, password }).pipe(
       tap(response => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('username', username);
+        this.claimGuestProgress(username);
         this.tokenSubject.next(response.token);
         this.usernameSubject.next(username);
         this.endGuest();
@@ -46,6 +48,7 @@ export class AuthService {
       tap(response => {
         localStorage.setItem('token', response.token);
         localStorage.setItem('username', username);
+        this.claimGuestProgress(username);
         this.tokenSubject.next(response.token);
         this.usernameSubject.next(username);
         this.endGuest();
@@ -77,6 +80,16 @@ export class AuthService {
 
   isGuest$(): Observable<boolean> {
     return this.guestSubject.asObservable();
+  }
+
+  /**
+   * A guest who signs up keeps what they earned. A returning account does not:
+   * whatever the last guest on this device left behind is not theirs to take.
+   */
+  private claimGuestProgress(username: string): void {
+    if (this.isGuest()) {
+      this.progressService.adoptGuestProgress(username);
+    }
   }
 
   /** Called when a guest signs up or signs in — they are not a guest any more. */

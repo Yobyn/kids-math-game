@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { FormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
-import { Router } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 
 import { LoginComponent } from './login.component';
 import { AuthService } from '../services/auth.service';
@@ -159,5 +159,39 @@ describe('LoginComponent guest play', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('.guest-btn')).toBeNull();
+  });
+});
+
+describe('LoginComponent arriving from the offer to keep progress', () => {
+  function build(queryParams: { [key: string]: string }) {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [FormsModule, RouterTestingModule, HttpClientTestingModule],
+      declarations: [LoginComponent],
+      providers: [{
+        provide: ActivatedRoute,
+        useValue: { snapshot: { queryParamMap: convertToParamMap(queryParams) } }
+      }],
+      schemas: [NO_ERRORS_SCHEMA]
+    });
+    const fixture = TestBed.createComponent(LoginComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  beforeEach(() => localStorage.clear());
+  afterEach(() => localStorage.clear());
+
+  it('opens ready to sign up when sent here to create an account', () => {
+    const fixture = build({ create: '1' });
+
+    expect(fixture.componentInstance.isRegistering).toBe(true);
+    expect(fixture.nativeElement.querySelector('h2').textContent.trim()).toBe('Register');
+  });
+
+  it('opens on sign-in as usual otherwise', () => {
+    const fixture = build({});
+
+    expect(fixture.componentInstance.isRegistering).toBe(false);
   });
 });

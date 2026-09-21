@@ -83,14 +83,16 @@ a backend that currently keeps its users in memory (see Code health).
   not sensible ones for the grade.
 
 ### Keeping a child coming back
-- **Guest play is in, the reason to sign up is not.** A child can now take
-  "Play without an account" on the login screen and play a full round;
-  `AuthGuard` lets a guest through, and score history and missed facts are kept
-  in `localStorage` as before. What is missing is the other half: nothing yet
-  offers an account at the moment there is something worth keeping (the result
-  screen is the natural place), and signing up does not carry a guest's local
-  progress into the new account — it is simply left behind. Until it does, a
-  child who signs up loses their personal best. See Product direction.
+- **Guest play is done end to end.** A child takes "Play without an account"
+  on the login screen, plays full rounds, and after three of them the result
+  screen offers an account below the celebration — once, and not again if it
+  is waved away. Signing up moves their rounds and missed facts into the
+  account and empties the guest slot. Progress is now filed per player
+  (`roundHistory:guest`, `roundHistory:user:<name>`), so two children on one
+  tablet no longer share a history. What remains is server-side: the account
+  keeps its progress in `localStorage` like a guest's, so it still does not
+  follow a child to another device — the thing the offer implies. That needs
+  a progress API and a backend that survives a restart (see Code health).
 - **No levels.** Rounds produce a score and stars; nothing accumulates into a
   level, so there is no ladder to climb and nothing for rewards to hang off.
 - **No avatar, no wardrobe, no events.** None of the reward system exists yet.
