@@ -71,6 +71,18 @@ describe('QuestionComponent', () => {
       expect(component.progressPercent).toBe(0);
     });
 
+    it('sits clear of the question card rather than behind it', () => {
+      fixture.detectChanges();
+
+      const track = fixture.nativeElement.querySelector('.progress-track').getBoundingClientRect();
+      const card = fixture.nativeElement.querySelector('.question-box').getBoundingClientRect();
+
+      // A visible gap between the bar and the card it belongs to
+      expect(card.top - track.bottom).toBeGreaterThan(8);
+      // and the same width, so it does not read as a stray sliver
+      expect(Math.abs(track.width - card.width)).toBeLessThanOrEqual(1);
+    });
+
     it('renders the fill and announces position to assistive tech', () => {
       component.questionsAnswered = 4;
       fixture.detectChanges();
