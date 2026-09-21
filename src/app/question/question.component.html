@@ -20,11 +20,14 @@
   </div>
 
   <div class="question-box" [class.shake]="showShakeAnimation">
+    <p class="money-prompt" *ngIf="currentQuestion.moneyPrompt">{{ currentQuestion.moneyPrompt }}</p>
+
     <div class="math-problem">
-      <span class="number">{{ currentQuestion.num1 }}</span>
-      <span class="operation">{{ currentQuestion.operation }}</span>
-      <span class="number">{{ currentQuestion.num2 }}</span>
-      <span class="equals">=</span>
+      <span class="number" *ngIf="!currentQuestion.moneyPrompt">{{ currentQuestion.num1 }}</span>
+      <span class="operation" *ngIf="!currentQuestion.moneyPrompt">{{ currentQuestion.operation }}</span>
+      <span class="number" *ngIf="!currentQuestion.moneyPrompt">{{ currentQuestion.num2 }}</span>
+      <span class="equals" *ngIf="!currentQuestion.moneyPrompt">=</span>
+      <span class="currency" *ngIf="currentQuestion.moneyPrompt">€</span>
       <input #answerInput
              type="number"
              [(ngModel)]="userAnswer"

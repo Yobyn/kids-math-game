@@ -43,6 +43,8 @@ export type TranslationKeys =
   | 'try-again'
   | 'answer-is'
   | 'good-try'
+  | 'money-total'
+  | 'money-change'
   | 'ok'
   | 'email'
   | 'forgot-password'
@@ -130,6 +132,8 @@ export class LanguageService {
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
       'good-try': "Good try — you'll get the next one!",
+      'money-total': 'You buy a toy for €{first} and a book for €{second}. How much altogether?',
+      'money-change': 'A toy costs €{price}. You pay with €{paid}. How much change do you get?',
       'ok': 'OK',
       'start': 'Start Game',
       'email': 'Email',
@@ -197,6 +201,8 @@ export class LanguageService {
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
       'good-try': 'Goed geprobeerd — de volgende lukt je!',
+      'money-total': 'Je koopt speelgoed voor €{first} en een boek voor €{second}. Hoeveel is dat samen?',
+      'money-change': 'Speelgoed kost €{price}. Je betaalt met €{paid}. Hoeveel krijg je terug?',
       'ok': 'OK',
       'start': 'Start Spel',
       'email': 'E-mailadres',
@@ -264,6 +270,8 @@ export class LanguageService {
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',
       'good-try': '¡Buen intento, la próxima te saldrá!',
+      'money-total': 'Compras un juguete por €{first} y un libro por €{second}. ¿Cuánto es en total?',
+      'money-change': 'Un juguete cuesta €{price}. Pagas con €{paid}. ¿Cuánto cambio recibes?',
       'ok': 'OK',
       'start': 'Comenzar juego',
       'email': 'Correo electrónico',

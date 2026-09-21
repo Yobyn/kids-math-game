@@ -3,7 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-21
+Last surveyed: 2026-09-21 (money mode added the same day)
 
 ## What works today
 
@@ -15,6 +15,8 @@ Last surveyed: 2026-09-21
 - Touch number pad on phones and tablets, so the OS keyboard never covers the
   question. Haptics on key press and on answers.
 - A wrong answer shows the correct one with effort-focused encouragement.
+- Money questions (whole euros): totals from grade 2, change from grade 4,
+  following the usual teaching order — counting before change-making.
 - Progress bar through the round; result screen with up to three stars and a
   counted-up percentage.
 - Sound and haptics switch in the header, remembered between sessions.
@@ -25,8 +27,9 @@ Last surveyed: 2026-09-21
 ## Outstanding — roughly in the order a real product would need them
 
 ### Content and teaching
-- **Money mode** (counting change, adding prices). Asked for by the owner;
-  euros fit the existing nl/es wording.
+- **Money mode is a first pass only.** Whole euros, one shape of question per
+  band, no coins to count and no decimal amounts — worth extending once the
+  rest of the teaching gaps are closed.
 - **No adaptive difficulty.** Grade and difficulty are picked once and never
   respond to how the child is actually doing.
 - **No practice of what was missed.** A wrong answer is shown once and never

@@ -47,6 +47,79 @@ describe('QuestionComponent', () => {
     }
   });
 
+  describe('money questions', () => {
+    const generateMoney = (grade: number) => {
+      component.grade = grade;
+      spyOn(Math, 'random').and.returnValue(0.1); // under the 0.25 money threshold
+      component.generateQuestion();
+    };
+
+    it('never asks a grade 1 child about money', () => {
+      component.grade = 1;
+      spyOn(Math, 'random').and.returnValue(0.1);
+      for (let i = 0; i < 10; i++) {
+        component.generateQuestion();
+        expect(component.currentQuestion.moneyPrompt).toBeUndefined();
+      }
+    });
+
+    it('asks younger children for a total, never for change', () => {
+      generateMoney(2);
+
+      expect(component.currentQuestion.moneyPrompt).toContain('€');
+      expect(component.currentQuestion.operation).toBe('+');
+    });
+
+    it('asks older children to work out change', () => {
+      generateMoney(5);
+
+      expect(component.currentQuestion.moneyPrompt).toContain('€');
+      expect(component.currentQuestion.operation).toBe('-');
+    });
+
+    it('never asks for change larger than what was paid', () => {
+      component.grade = 5;
+      for (let i = 0; i < 30; i++) {
+        (component as any).generateMoneyQuestion();
+        expect(component.currentQuestion.num1).toBeGreaterThan(component.currentQuestion.num2);
+      }
+    });
+
+    it('keeps the amounts whole euros', () => {
+      component.grade = 4;
+      for (let i = 0; i < 30; i++) {
+        (component as any).generateMoneyQuestion();
+        expect(Number.isInteger(component.currentQuestion.num1)).toBe(true);
+        expect(Number.isInteger(component.currentQuestion.num2)).toBe(true);
+      }
+    });
+
+    it('fills every placeholder in the sentence', () => {
+      generateMoney(5);
+
+      expect(component.currentQuestion.moneyPrompt).not.toContain('{');
+    });
+
+    it('marks the right answer correct through the normal check', () => {
+      generateMoney(5);
+      const expected = component.currentQuestion.num1 - component.currentQuestion.num2;
+
+      component.userAnswer = String(expected);
+      component.checkAnswer();
+
+      expect(component.answerWasCorrect).toBe(true);
+    });
+
+    it('shows the sentence instead of the bare sum', () => {
+      generateMoney(2);
+      fixture.detectChanges();
+
+      expect(fixture.nativeElement.querySelector('.money-prompt')).toBeTruthy();
+      expect(fixture.nativeElement.querySelectorAll('.math-problem .number').length).toBe(0);
+      expect(fixture.nativeElement.querySelector('.currency').textContent).toContain('€');
+    });
+  });
+
   describe('progress through the quiz', () => {
     it('starts empty', () => {
       component.questionsAnswered = 0;
