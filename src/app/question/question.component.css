@@ -4,7 +4,9 @@
   align-items: center;
   padding: 2rem;
   min-height: 100vh;
-  background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);
+  /* Transparent so the particle backdrop shows through; the cards below
+     stay light, which is what keeps the sums readable. */
+  background: transparent;
 }
 
 .score-display {
@@ -386,4 +388,13 @@ input[type="number"].incorrect {
   .money-prompt {
     font-size: 1rem;
   }
+}
+
+/* The score bar reads against the dark backdrop now */
+.score-display {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.progress-track {
+  background: rgba(255, 255, 255, 0.22);
 }
