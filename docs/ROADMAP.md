@@ -33,6 +33,40 @@ Last surveyed: 2026-09-21 (money mode added the same day)
   respects `prefers-reduced-motion`.
 - 52 unit tests, run on every PR by GitHub Actions alongside the build.
 
+## Product direction (Yobyn, 2026-09-21)
+
+Bigger than single roadmap items — these shape several of them, so read this
+before planning work under "Keeping a child coming back".
+
+**Play first, account later.** A child should be able to open the game and
+play a full round without logging in. An account is only needed to *keep*
+things: progress, levels and unlocked rewards. That inverts today's flow,
+where `AuthGuard` sends everyone to a login screen before they can do
+anything. A guest's progress should be held locally and, when they sign up,
+carried into the account rather than thrown away.
+
+**Levels, not just scores.** Rounds earn progress toward levels. Every level
+unlocks a reward, so there is always a next thing close enough to want.
+
+**An avatar you dress up.** The reward at each level is clothing or an item
+for a character the child owns. That is the spine of the reward system: the
+avatar is where a child sees their own history.
+
+**Special events unlock special items.** Seasonal or one-off events grant
+clothes and items obtainable no other way, which is what makes them worth
+coming back for.
+
+Sequencing note: guest play comes first — it is the gate everything else sits
+behind, and it is the one that decides whether a child ever reaches the
+rewards at all. Levels next, since the avatar is meaningless without them.
+Events last, as they need levels, an avatar wardrobe and a notion of time.
+
+Two cautions worth carrying into the design. Rewards are motivating when they
+are earned and specific, and become noise when they are constant — a reward
+at every level only works if the levels themselves take real practice. And an
+avatar means per-child data: guest state in `localStorage`, account state on
+a backend that currently keeps its users in memory (see Code health).
+
 ## Outstanding — roughly in the order a real product would need them
 
 ### Content and teaching
@@ -49,6 +83,12 @@ Last surveyed: 2026-09-21 (money mode added the same day)
   not sensible ones for the grade.
 
 ### Keeping a child coming back
+- **Login is mandatory.** `AuthGuard` blocks `/grade`, `/difficulty`,
+  `/questions` and `/result`, so a child cannot try the game at all without an
+  account. See Product direction: play first, account later.
+- **No levels.** Rounds produce a score and stars; nothing accumulates into a
+  level, so there is no ladder to climb and nothing for rewards to hang off.
+- **No avatar, no wardrobe, no events.** None of the reward system exists yet.
 - **History is stored but barely used.** `ProgressService` keeps the last 20
   rounds; only the best percentage is shown. Nothing plots improvement over
   time, and nothing distinguishes grades or question types.
