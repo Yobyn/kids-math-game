@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AuthService } from './auth.service';
+import { ProgressService } from './progress.service';
 
 describe('AuthService guest play', () => {
   let http: HttpTestingController;
@@ -97,5 +98,57 @@ describe('AuthService guest play', () => {
     service.playAsGuest();
 
     expect(service.isGuest()).toBe(true);
+  });
+});
+
+describe('AuthService carrying guest progress', () => {
+  let http: HttpTestingController;
+  let service: AuthService;
+  let progress: ProgressService;
+
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ imports: [HttpClientTestingModule] });
+    http = TestBed.inject(HttpTestingController);
+    service = TestBed.inject(AuthService);
+    progress = TestBed.inject(ProgressService);
+  });
+
+  afterEach(() => localStorage.clear());
+
+  function signUp(username: string) {
+    service.register(username, 'secret123').subscribe();
+    http.expectOne('http://localhost:3000/api/auth/register').flush({ token: 'tok' });
+  }
+
+  it('carries what a guest earned into their new account', () => {
+    service.playAsGuest();
+    progress.record({ correctAnswers: 9, total: 10, percentage: 90, score: 21, grade: 2 });
+
+    signUp('ada');
+
+    expect(progress.getRoundsPlayed()).toBe(1);
+    expect(progress.getBestPercentage()).toBe(90);
+  });
+
+  it('does not hand a returning account the last guest’s rounds', () => {
+    progress.record({ correctAnswers: 3, total: 10, percentage: 30, score: 5, grade: 1 });
+    // No playAsGuest() — this is someone signing in on a device a guest used
+    service.login('ada', 'secret123').subscribe();
+    http.expectOne('http://localhost:3000/api/auth/login').flush({ token: 'tok' });
+
+    expect(progress.getRoundsPlayed()).toBe(0);
+    expect(progress.hasGuestProgress()).toBe(true);
+  });
+
+  it('leaves the guest slot empty after a signup so the next child starts clean', () => {
+    service.playAsGuest();
+    progress.record({ correctAnswers: 9, total: 10, percentage: 90, score: 21, grade: 2 });
+
+    signUp('ada');
+    service.logout();
+
+    expect(progress.getRoundsPlayed()).toBe(0);
   });
 });

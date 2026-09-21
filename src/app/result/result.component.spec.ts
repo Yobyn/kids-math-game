@@ -1,9 +1,12 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ResultComponent } from './result.component';
 import { ScoreService } from '../services/score.service';
 import { ProgressService } from '../services/progress.service';
+import { AuthService } from '../services/auth.service';
+import { Router } from '@angular/router';
 
 describe('ResultComponent', () => {
   let fixture: ComponentFixture<ResultComponent>;
@@ -24,7 +27,7 @@ describe('ResultComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [RouterTestingModule],
+      imports: [RouterTestingModule, HttpClientTestingModule],
       declarations: [ResultComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -112,5 +115,150 @@ describe('ResultComponent', () => {
     renderWith(100);
     fixture.destroy();
     expect(component['timers'].length).toBe(0);
+  });
+});
+
+describe('ResultComponent offering an account', () => {
+  let fixture: ComponentFixture<ResultComponent>;
+  let component: ResultComponent;
+  let scoreService: ScoreService;
+  let progress: ProgressService;
+  let auth: AuthService;
+  let router: Router;
+
+  /** Rounds already behind this child, before the one just finished. */
+  function withRoundsPlayed(count: number) {
+    for (let i = 0; i < count; i++) {
+      progress.record({ correctAnswers: 8, total: 10, percentage: 80, score: 18, grade: 2 });
+    }
+  }
+
+  function render() {
+    spyOn(scoreService, 'getFinalScore').and.returnValue({
+      score: 20, total: 10, correctAnswers: 9, percentage: 90
+    });
+    fixture = TestBed.createComponent(ResultComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+
+    scoreService = TestBed.inject(ScoreService);
+    progress = TestBed.inject(ProgressService);
+    auth = TestBed.inject(AuthService);
+    router = TestBed.inject(Router);
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('says nothing on a guest’s first round — there is nothing to lose yet', () => {
+    auth.playAsGuest();
+    render();
+
+    expect(component.showKeepOffer).toBe(false);
+    expect(fixture.nativeElement.querySelector('.keep-offer')).toBeNull();
+  });
+
+  it('offers once a guest has built up something worth keeping', () => {
+    auth.playAsGuest();
+    withRoundsPlayed(2);
+    render();
+
+    expect(component.showKeepOffer).toBe(true);
+    expect(fixture.nativeElement.querySelector('.keep-offer')).toBeTruthy();
+  });
+
+  it('promises only what the game can actually do today', () => {
+    auth.playAsGuest();
+    withRoundsPlayed(2);
+    render();
+
+    const body = fixture.nativeElement.querySelector('.keep-offer-body').textContent;
+    // Account progress still lives in localStorage, so it does NOT follow a
+    // child to another device. The copy must not imply that it does.
+    expect(body).not.toMatch(/another device|somewhere else|anywhere/i);
+    expect(body).toContain('your own name');
+  });
+
+  it('never offers to a child who already has an account', () => {
+    localStorage.setItem('username', 'ada');
+    withRoundsPlayed(9);
+    render();
+
+    expect(component.showKeepOffer).toBe(false);
+  });
+
+  it('keeps the offer below Play Again, so the score lands first', () => {
+    auth.playAsGuest();
+    withRoundsPlayed(2);
+    render();
+
+    const container = fixture.nativeElement.querySelector('.result-container');
+    const children = Array.from(container.children) as Element[];
+
+    expect(children.indexOf(container.querySelector('.keep-offer')))
+      .toBeGreaterThan(children.indexOf(container.querySelector('.play-again')));
+  });
+
+  it('does not cover the celebration with a dialog', () => {
+    auth.playAsGuest();
+    withRoundsPlayed(2);
+    render();
+
+    const offer = fixture.nativeElement.querySelector('.keep-offer');
+    expect(offer.getAttribute('role')).toBe('note');
+    expect(getComputedStyle(offer).position).not.toBe('fixed');
+  });
+
+  it('takes a child who accepts straight to signing up, not signing in', () => {
+    auth.playAsGuest();
+    withRoundsPlayed(2);
+    render();
+    spyOn(router, 'navigate');
+
+    fixture.nativeElement.querySelector('.keep-offer-create').click();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/login'], { queryParams: { create: 1 } });
+  });
+
+  it('stops asking once a child has said no', () => {
+    auth.playAsGuest();
+    withRoundsPlayed(2);
+    render();
+
+    fixture.nativeElement.querySelector('.keep-offer-dismiss').click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.keep-offer')).toBeNull();
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    });
+    spyOn(TestBed.inject(ScoreService), 'getFinalScore').and.returnValue({
+      score: 20, total: 10, correctAnswers: 9, percentage: 90
+    });
+    const again = TestBed.createComponent(ResultComponent);
+    again.detectChanges();
+
+    expect(again.componentInstance.showKeepOffer).toBe(false);
+  });
+
+  it('still renders the score when storage refuses to remember the answer', () => {
+    auth.playAsGuest();
+    withRoundsPlayed(2);
+    render();
+    spyOn(localStorage, 'setItem').and.throwError('QuotaExceededError');
+
+    expect(() => component.dismissKeepOffer()).not.toThrow();
+    expect(component.showKeepOffer).toBe(false);
   });
 });

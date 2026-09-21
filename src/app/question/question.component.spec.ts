@@ -118,7 +118,7 @@ describe('QuestionComponent', () => {
       const fresh = TestBed.createComponent(QuestionComponent);
       fresh.detectChanges();
 
-      expect(JSON.parse(localStorage.getItem('missedFacts') as string)).toEqual([]);
+      expect(JSON.parse(localStorage.getItem('missedFacts:guest') as string)).toEqual([]);
     });
 
     it('stores a fact the child could not get, for the next round', () => {
@@ -130,7 +130,7 @@ describe('QuestionComponent', () => {
       component.userAnswer = '11';
       component.checkAnswer();
 
-      const stored = JSON.parse(localStorage.getItem('missedFacts') as string);
+      const stored = JSON.parse(localStorage.getItem('missedFacts:guest') as string);
       expect(stored[0]).toEqual(jasmine.objectContaining({ num1: 9, num2: 4 }));
     });
   });

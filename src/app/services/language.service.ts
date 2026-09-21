@@ -73,7 +73,11 @@ export type TranslationKeys =
   | 'sound-off'
   | 'play-as-guest'
   | 'guest-player'
-  | 'sign-in';
+  | 'sign-in'
+  | 'keep-progress-title'
+  | 'keep-progress-body'
+  | 'create-account'
+  | 'not-now';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -149,6 +153,10 @@ export class LanguageService {
       'play-as-guest': 'Play without an account',
       'guest-player': 'Player',
       'sign-in': 'Sign in',
+      'keep-progress-title': 'Want to keep your scores?',
+      'keep-progress-body': 'Right now they are saved on this device. An account keeps them under your own name.',
+      'create-account': 'Create an account',
+      'not-now': 'Not now',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -223,6 +231,10 @@ export class LanguageService {
       'play-as-guest': 'Spelen zonder account',
       'guest-player': 'Speler',
       'sign-in': 'Inloggen',
+      'keep-progress-title': 'Wil je je scores bewaren?',
+      'keep-progress-body': 'Nu staan ze op dit apparaat. Met een account blijven ze onder je eigen naam bewaard.',
+      'create-account': 'Account aanmaken',
+      'not-now': 'Niet nu',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -297,6 +309,10 @@ export class LanguageService {
       'play-as-guest': 'Jugar sin cuenta',
       'guest-player': 'Jugador',
       'sign-in': 'Iniciar sesión',
+      'keep-progress-title': '¿Quieres guardar tus puntuaciones?',
+      'keep-progress-body': 'Ahora se guardan en este dispositivo. Con una cuenta se conservan a tu propio nombre.',
+      'create-account': 'Crear una cuenta',
+      'not-now': 'Ahora no',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',

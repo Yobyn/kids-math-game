@@ -1,4 +1,4 @@
-import { ProgressService } from './progress.service';
+import { ProgressService, mergeHistory, mergeMissed } from './progress.service';
 
 describe('ProgressService', () => {
   let service: ProgressService;
@@ -129,5 +129,150 @@ describe('ProgressService', () => {
     localStorage.setItem('roundHistory', '{"nope":true}');
 
     expect(service.getHistory()).toEqual([]);
+  });
+});
+
+describe('ProgressService per player', () => {
+  let service: ProgressService;
+
+  const round = (percentage: number, date: string) => ({
+    date, percentage, correctAnswers: 9, total: 10, score: 20, grade: 2
+  });
+
+  beforeEach(() => {
+    localStorage.clear();
+    service = new ProgressService();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('files a guest round under the guest, not under a shared key', () => {
+    service.record({ correctAnswers: 9, total: 10, percentage: 90, score: 20, grade: 2 });
+
+    expect(localStorage.getItem('roundHistory:guest')).toBeTruthy();
+    expect(localStorage.getItem('roundHistory')).toBeNull();
+  });
+
+  it('keeps two children on one tablet apart', () => {
+    localStorage.setItem('username', 'ada');
+    service.record({ correctAnswers: 10, total: 10, percentage: 100, score: 25, grade: 3 });
+
+    localStorage.setItem('username', 'linus');
+    expect(service.getHistory()).toEqual([]);
+    expect(service.getBestPercentage()).toBeNull();
+
+    localStorage.setItem('username', 'ada');
+    expect(service.getRoundsPlayed()).toBe(1);
+    expect(service.getBestPercentage()).toBe(100);
+  });
+
+  it('adopts rounds stored before progress was filed per player', () => {
+    localStorage.setItem('roundHistory', JSON.stringify([round(80, '2026-09-01T10:00:00.000Z')]));
+
+    expect(service.getRoundsPlayed()).toBe(1);
+    expect(localStorage.getItem('roundHistory')).toBeNull();
+    expect(localStorage.getItem('roundHistory:guest')).toBeTruthy();
+  });
+
+  it('carries a guest’s rounds into the account they sign up for', () => {
+    service.record({ correctAnswers: 8, total: 10, percentage: 80, score: 18, grade: 2 });
+    service.recordMissed({ num1: 7, num2: 5, operation: '+' });
+
+    service.adoptGuestProgress('ada');
+
+    localStorage.setItem('username', 'ada');
+    expect(service.getRoundsPlayed()).toBe(1);
+    expect(service.getBestPercentage()).toBe(80);
+    expect(service.getMissedFacts().length).toBe(1);
+  });
+
+  it('leaves nothing behind for the next guest on the device', () => {
+    service.record({ correctAnswers: 8, total: 10, percentage: 80, score: 18, grade: 2 });
+    service.recordMissed({ num1: 7, num2: 5, operation: '+' });
+
+    service.adoptGuestProgress('ada');
+
+    expect(service.getHistory()).toEqual([]);
+    expect(service.getMissedFacts()).toEqual([]);
+    expect(service.hasGuestProgress()).toBe(false);
+  });
+
+  it('merges rather than overwrites when the account already has rounds', () => {
+    localStorage.setItem('username', 'ada');
+    service.record({ correctAnswers: 10, total: 10, percentage: 100, score: 25, grade: 3 });
+
+    localStorage.removeItem('username');
+    service.record({ correctAnswers: 6, total: 10, percentage: 60, score: 12, grade: 2 });
+
+    service.adoptGuestProgress('ada');
+
+    localStorage.setItem('username', 'ada');
+    expect(service.getRoundsPlayed()).toBe(2);
+    expect(service.getBestPercentage()).toBe(100);
+  });
+
+  it('does nothing when the guest has played nothing', () => {
+    localStorage.setItem('username', 'ada');
+    service.record({ correctAnswers: 10, total: 10, percentage: 100, score: 25, grade: 3 });
+    const before = localStorage.getItem('roundHistory:user:ada');
+
+    localStorage.removeItem('username');
+    service.adoptGuestProgress('ada');
+
+    expect(localStorage.getItem('roundHistory:user:ada')).toBe(before);
+  });
+
+  it('survives a corrupt guest store when adopting', () => {
+    localStorage.setItem('roundHistory:guest', 'not json');
+    localStorage.setItem('missedFacts:guest', '{"nope":true}');
+
+    expect(() => service.adoptGuestProgress('ada')).not.toThrow();
+  });
+
+  it('reports whether a guest has anything worth keeping', () => {
+    expect(service.hasGuestProgress()).toBe(false);
+
+    service.record({ correctAnswers: 5, total: 10, percentage: 50, score: 10, grade: 1 });
+
+    expect(service.hasGuestProgress()).toBe(true);
+  });
+});
+
+describe('progress merging', () => {
+  const round = (percentage: number, date: string) => ({
+    date, percentage, correctAnswers: 9, total: 10, score: 20, grade: 2
+  });
+
+  it('orders merged rounds newest first', () => {
+    const merged = mergeHistory(
+      [round(90, '2026-09-03T00:00:00.000Z'), round(70, '2026-09-01T00:00:00.000Z')],
+      [round(80, '2026-09-02T00:00:00.000Z')]
+    );
+
+    expect(merged.map(r => r.percentage)).toEqual([90, 80, 70]);
+  });
+
+  it('caps a merged history at twenty rounds', () => {
+    const many = Array.from({ length: 18 }, (_, i) =>
+      round(50 + i, `2026-09-${String(i + 1).padStart(2, '0')}T00:00:00.000Z`));
+
+    expect(mergeHistory(many, many).length).toBe(20);
+  });
+
+  it('keeps the same fact only once, account side first', () => {
+    const merged = mergeMissed(
+      [{ num1: 3, num2: 4, operation: '+' }],
+      [{ num1: 3, num2: 4, operation: '+' }, { num1: 9, num2: 2, operation: '+' }]
+    );
+
+    expect(merged.length).toBe(2);
+    expect(merged[0]).toEqual({ num1: 3, num2: 4, operation: '+' });
+  });
+
+  it('caps merged facts at twelve', () => {
+    const facts = Array.from({ length: 10 }, (_, i) => ({ num1: i, num2: 1, operation: '+' }));
+    const others = Array.from({ length: 10 }, (_, i) => ({ num1: i, num2: 2, operation: '+' }));
+
+    expect(mergeMissed(facts, others).length).toBe(12);
   });
 });

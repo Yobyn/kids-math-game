@@ -42,4 +42,17 @@
   <button class="play-again" (click)="playAgain()">
     {{ languageService.translate('play-again') }}
   </button>
+
+  <aside class="keep-offer" *ngIf="showKeepOffer" role="note">
+    <h2 class="keep-offer-title">{{ languageService.translate('keep-progress-title') }}</h2>
+    <p class="keep-offer-body">{{ languageService.translate('keep-progress-body') }}</p>
+    <div class="keep-offer-actions">
+      <button type="button" class="keep-offer-create" (click)="createAccount()">
+        {{ languageService.translate('create-account') }}
+      </button>
+      <button type="button" class="keep-offer-dismiss" (click)="dismissKeepOffer()">
+        {{ languageService.translate('not-now') }}
+      </button>
+    </div>
+  </aside>
 </div>
