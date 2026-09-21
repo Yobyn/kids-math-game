@@ -74,3 +74,42 @@ button:disabled {
 .login-link a:hover {
   text-decoration: underline;
 } 
+/* Particle-vector theme. Glow sits on the card edge and on focus rings —
+   never behind text, which halates for readers with astigmatism. */
+.register-container {
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  box-shadow: var(--glow), 0 12px 32px rgba(6, 4, 20, 0.55);
+  color: var(--text);
+}
+
+.register-container h2 {
+  color: var(--text);
+}
+
+.register-container input {
+  background: var(--surface-input);
+  border-color: var(--edge);
+  color: var(--text);
+}
+
+.register-container input::placeholder {
+  color: var(--text-dim);
+}
+
+.register-container input:focus {
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(56, 128, 255, 0.35);
+}
+
+.register-container button[type="submit"] {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
+  border: none;
+  color: #ffffff;
+}
+
+.register-container .toggle-link,
+.register-container .forgot-link,
+.register-container a {
+  color: var(--text-dim);
+}

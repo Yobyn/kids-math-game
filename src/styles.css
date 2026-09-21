@@ -6,6 +6,24 @@ app-root > *:not(app-particles) {
   z-index: 1;
 }
 
+/* Theme tokens for the particle-vector look. Surfaces are dark grey rather
+   than pure black: black on an OLED tablet is harsher to read against, and
+   the guidance for dark interfaces is consistent about avoiding it. Every
+   text colour here clears WCAG AA against the surface it sits on. */
+:root {
+  --surface: #1b1733;
+  --surface-raised: #241f42;
+  --surface-input: #15122b;
+  --edge: rgba(150, 140, 220, 0.35);
+  --text: #f2f0ff;
+  --text-dim: #bcb6e0;
+  --accent-blue: #3880ff;
+  --accent-magenta: #d633eb;
+  /* Glow lives on edges and surfaces, never behind text: a halo around
+     letters is painful to read for anyone with astigmatism. */
+  --glow: 0 0 24px rgba(120, 80, 220, 0.45);
+}
+
 /* The particle backdrop is dark, so the page behind it must be too —
    otherwise a white flash shows through before the canvas paints. */
 html,
