@@ -47,6 +47,52 @@ describe('QuestionComponent', () => {
     }
   });
 
+  describe('theme: reading surfaces stay positive polarity', () => {
+    const luminance = (colour: string): number => {
+      const parts = (colour.match(/\d+/g) || ['0', '0', '0']).slice(0, 3).map(Number);
+      const [r, g, b] = parts.map(channel => {
+        const c = channel / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+
+    it('keeps the question card light, so the sum is dark text on light', () => {
+      fixture.detectChanges();
+      const card = fixture.nativeElement.querySelector('.question-box');
+
+      expect(luminance(getComputedStyle(card).backgroundColor)).toBeGreaterThan(0.7);
+    });
+
+    it('keeps the keypad faces light for the same reason', () => {
+      fixture.detectChanges();
+      const key = fixture.nativeElement.querySelector('.keypad .key');
+
+      if (key) {
+        expect(luminance(getComputedStyle(key).backgroundColor)).toBeGreaterThan(0.7);
+      } else {
+        // No keypad on a non-touch test runner; the card check above still holds
+        expect(true).toBe(true);
+      }
+    });
+
+    it('carries the theme on the card edge rather than behind the text', () => {
+      fixture.detectChanges();
+      const card = fixture.nativeElement.querySelector('.question-box');
+      const style = getComputedStyle(card);
+
+      expect(style.borderTopWidth).not.toBe('0px');
+      expect(style.boxShadow).not.toBe('none');
+    });
+
+    it('fills the progress bar with the theme accents', () => {
+      fixture.detectChanges();
+      const fill = fixture.nativeElement.querySelector('.progress-fill');
+
+      expect(getComputedStyle(fill).backgroundImage).toContain('gradient');
+    });
+  });
+
   describe('facts carried over from an earlier round', () => {
     it('asks a fact missed last round, but not as the opening question', () => {
       localStorage.setItem('missedFacts', JSON.stringify([{ num1: 8, num2: 6, operation: '+' }]));

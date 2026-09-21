@@ -347,8 +347,11 @@ input[type="number"].incorrect {
 .progress-track {
   width: 100%;
   /* .question-box is max-width 600px plus its 2rem padding on each side, and
-     is not border-box, so the bar has to add that padding back to line up. */
+     is not border-box, so the bar has to add that padding back to line up.
+     The transparent border matches the card's themed 1px edge, keeping the
+     two outer widths identical. */
   max-width: calc(600px + 4rem);
+  border: 1px solid transparent;
   height: 12px;
   margin: 1rem auto 1.25rem;
   background: rgba(223, 230, 233, 0.9);
@@ -397,4 +400,50 @@ input[type="number"].incorrect {
 
 .progress-track {
   background: rgba(255, 255, 255, 0.22);
+}
+
+/* Theme the chrome, not the reading surface. Positive polarity — dark text on
+   a light card — measurably beats the reverse for reading speed and accuracy,
+   so the card faces stay light and the theme lives on their edges. */
+.question-box {
+  border: 1px solid var(--edge);
+  box-shadow: var(--glow), 0 12px 32px rgba(6, 4, 20, 0.5);
+}
+
+.score-display {
+  border: 1px solid var(--edge);
+  box-shadow: 0 8px 24px rgba(6, 4, 20, 0.45);
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-magenta));
+}
+
+.keypad .key {
+  border-color: rgba(120, 100, 200, 0.35);
+  box-shadow: 0 2px 6px rgba(6, 4, 20, 0.18);
+}
+
+.keypad .key:active {
+  background: #eef0ff;
+  box-shadow: 0 0 14px rgba(56, 128, 255, 0.55);
+}
+
+.keypad .key-action {
+  color: var(--accent-magenta);
+  background: #fdf2ff;
+  border-color: rgba(214, 51, 235, 0.35);
+}
+
+.check-button,
+.next-button {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
+  border: none;
+  color: #ffffff;
+}
+
+.back-button {
+  color: var(--text-dim);
+  border-color: var(--edge);
+  background: rgba(27, 23, 51, 0.55);
 }
