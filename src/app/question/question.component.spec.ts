@@ -47,6 +47,84 @@ describe('QuestionComponent', () => {
     }
   });
 
+  describe('coming back to a missed question', () => {
+    const missTwice = () => {
+      const wrong = String(component.currentQuestion.num1 + component.currentQuestion.num2 + 7);
+      component.userAnswer = wrong;
+      component.checkAnswer();
+      component.userAnswer = wrong;
+      component.checkAnswer();
+    };
+
+    beforeEach(() => {
+      component.currentQuestion = { num1: 7, num2: 5, operation: '+' };
+      component.wrongAttempts = 0;
+      component.isReplay = false;
+      (component as any).missed = [];
+      component.questionsAnswered = 0;
+    });
+
+    it('queues a question the child could not get', () => {
+      missTwice();
+
+      expect((component as any).missed.length).toBe(1);
+      expect((component as any).missed[0].question.num1).toBe(7);
+    });
+
+    it('does not queue a question answered correctly', () => {
+      component.userAnswer = '12';
+      component.checkAnswer();
+
+      expect((component as any).missed.length).toBe(0);
+    });
+
+    it('waits a couple of questions before asking it again', () => {
+      missTwice();
+
+      component.questionsAnswered = 1;
+      component.generateQuestion();
+      expect(component.isReplay).toBe(false);
+    });
+
+    it('asks it again once the gap has passed', () => {
+      missTwice();
+
+      component.questionsAnswered = 2;
+      component.generateQuestion();
+
+      expect(component.isReplay).toBe(true);
+      expect(component.currentQuestion.num1).toBe(7);
+      expect(component.currentQuestion.num2).toBe(5);
+    });
+
+    it('asks a replayed question only once', () => {
+      missTwice();
+      component.questionsAnswered = 2;
+      component.generateQuestion();
+      expect(component.isReplay).toBe(true);
+
+      component.wrongAttempts = 0;
+      missTwice();
+
+      expect((component as any).missed.length).toBe(0);
+    });
+
+    it('keeps the money wording when a money question comes back', () => {
+      component.currentQuestion = { num1: 10, num2: 6, operation: '-', moneyPrompt: 'A toy costs €6.' };
+      component.wrongAttempts = 0;
+      component.userAnswer = '2';
+      component.checkAnswer();
+      component.userAnswer = '2';
+      component.checkAnswer();
+
+      component.questionsAnswered = 2;
+      component.generateQuestion();
+
+      expect(component.isReplay).toBe(true);
+      expect(component.currentQuestion.moneyPrompt).toBe('A toy costs €6.');
+    });
+  });
+
   describe('money questions', () => {
     const generateMoney = (grade: number) => {
       component.grade = grade;

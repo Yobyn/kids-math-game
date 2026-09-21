@@ -7,6 +7,13 @@ import { trigger, state, style, animate, transition } from '@angular/animations'
 
 /** The quiz is ten questions long; ScoreService.isGameComplete() agrees. */
 const TOTAL_QUESTIONS = 10;
+/** A missed question comes back this many questions later — soon, not last. */
+const REPLAY_GAP = 2;
+
+interface PendingReplay {
+  question: { num1: number; num2: number; operation: string; moneyPrompt?: string };
+  dueAfter: number;
+}
 
 @Component({
   selector: 'app-question',
@@ -34,6 +41,8 @@ export class QuestionComponent implements OnInit {
   @ViewChild('answerInput') answerInput!: ElementRef;
   @ViewChild('nextButton') nextButton!: ElementRef;
   
+  isReplay = false;
+  private missed: PendingReplay[] = [];
   currentQuestion: { num1: number; num2: number; operation: string; moneyPrompt?: string } = {
     num1: 0,
     num2: 0,
@@ -179,6 +188,19 @@ export class QuestionComponent implements OnInit {
   generateQuestion() {
     if (this.scoreService.isGameComplete()) {
       this.router.navigate(['/result']);
+      return;
+    }
+
+    this.isReplay = false;
+    const dueIndex = this.missed.findIndex(item => item.dueAfter <= this.questionsAnswered);
+    if (dueIndex !== -1) {
+      const [due] = this.missed.splice(dueIndex, 1);
+      this.currentQuestion = { ...due.question };
+      this.isReplay = true;
+      this.userAnswer = '';
+      this.feedback = '';
+      this.inputPlaceholder = '?';
+      this.showOkButton = false;
       return;
     }
 
@@ -336,6 +358,16 @@ export class QuestionComponent implements OnInit {
         setTimeout(() => this.answerInput.nativeElement.focus(), 100);
       }
     } else {
+      // Retrieval practice works best when a missed fact returns a couple of
+      // questions later, not at the very end — so queue it, unless this was
+      // already a second look at the same question.
+      if (!this.isReplay) {
+        this.missed.push({
+          question: { ...this.currentQuestion },
+          dueAfter: this.questionsAnswered + REPLAY_GAP
+        });
+      }
+
       // Out of attempts: show the answer itself. A child who only hears "wrong"
       // learns nothing from the question they just spent two tries on.
       this.feedback = `${this.languageService.translate('answer-is')} ${this.correctAnswer}. ` +
