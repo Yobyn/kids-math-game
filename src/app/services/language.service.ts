@@ -74,6 +74,9 @@ export type TranslationKeys =
 
 export type Language = 'en' | 'nl' | 'es';
 
+export const SUPPORTED_LANGUAGES: Language[] = ['en', 'nl', 'es'];
+const STORAGE_KEY = 'language';
+
 type TranslationSet = {
   [key in Language]: {
     [key in TranslationKeys]: string;
@@ -84,7 +87,17 @@ type TranslationSet = {
   providedIn: 'root'
 })
 export class LanguageService {
-  private currentLanguage = new BehaviorSubject<Language>('en');
+  private currentLanguage = new BehaviorSubject<Language>(LanguageService.readStoredLanguage());
+
+  /** A child should not have to re-pick their language on every visit. */
+  private static readStoredLanguage(): Language {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY) as Language | null;
+      return stored && SUPPORTED_LANGUAGES.includes(stored) ? stored : 'en';
+    } catch {
+      return 'en';
+    }
+  }
 
   getCurrentLang(): Observable<Language> {
     return this.currentLanguage.asObservable();
@@ -309,7 +322,15 @@ export class LanguageService {
   constructor() {}
 
   setLanguage(lang: Language) {
+    if (!SUPPORTED_LANGUAGES.includes(lang)) {
+      return;
+    }
     this.currentLanguage.next(lang);
+    try {
+      localStorage.setItem(STORAGE_KEY, lang);
+    } catch {
+      // Private browsing is not worth failing a language switch over
+    }
   }
 
   translate(key: TranslationKeys): string {

@@ -9,7 +9,8 @@ import { LanguageService, Language } from '../services/language.service';
 export class LanguageSelectorComponent {
   languages: { code: Language; name: string; flag: string; }[] = [
     { code: 'en', name: 'English', flag: '🇬🇧' },
-    { code: 'nl', name: 'Nederlands', flag: '🇳🇱' }
+    { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
+    { code: 'es', name: 'Español', flag: '🇪🇸' }
   ];
 
   constructor(public languageService: LanguageService) {}
