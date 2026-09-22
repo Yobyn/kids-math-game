@@ -184,6 +184,9 @@ export class ResultComponent implements OnInit, OnDestroy {
     for (let level = before.level + 1; level <= this.level.level; level++) {
       this.unlocked = this.unlocked.concat(itemsUnlockedAt(level));
     }
+    // Written down the moment it is won, because a level can say WHAT a
+    // child has but never WHEN they got it
+    this.unlocked.forEach(item => this.progressService.keepItem(item.id));
 
     // Start the bar where the child left it, unless they have just levelled
     // up — then it genuinely starts from the bottom of the new level.
@@ -226,6 +229,11 @@ export class ResultComponent implements OnInit, OnDestroy {
     this.eventJustEarned = this.progressService.getEarnedEvents().indexOf(event.id) < 0;
     this.progressService.earnEvent(event.id);
     this.eventItem = itemForEvent(event.id);
+    // After the item is known, not before: the first draft of this recorded
+    // a field that had not been assigned yet and kept nothing at all.
+    if (this.eventItem) {
+      this.progressService.keepItem(this.eventItem.id);
+    }
   }
 
   private shouldOfferToKeepProgress(): boolean {

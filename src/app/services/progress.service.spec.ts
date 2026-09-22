@@ -725,3 +725,94 @@ describe('ProgressService: the round in play', () => {
     expect(localStorage.getItem('round:guest')).toBeNull();
   });
 });
+
+describe('ProgressService: writing down when things happened', () => {
+  let service: ProgressService;
+
+  beforeEach(() => {
+    localStorage.clear();
+    service = new ProgressService();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('records the day an event was earned', () => {
+    service.earnEvent('winter', new Date('2026-12-20T10:00:00.000Z'));
+
+    expect(service.getEventRecord()).toEqual([
+      { id: 'winter', date: '2026-12-20T10:00:00.000Z' }
+    ]);
+  });
+
+  it('still answers the old question, for everything that asks it', () => {
+    // The wardrobe only needs to know WHICH events, not when
+    service.earnEvent('winter');
+    service.earnEvent('spring');
+
+    expect(service.getEarnedEvents()).toEqual(['winter', 'spring']);
+  });
+
+  it('never re-dates an event a child already earned', () => {
+    service.earnEvent('winter', new Date('2025-12-20T10:00:00.000Z'));
+    service.earnEvent('winter', new Date('2026-12-20T10:00:00.000Z'));
+
+    expect(service.getEventRecord().length).toBe(1);
+    expect(service.getEventRecord()[0].date).toBe('2025-12-20T10:00:00.000Z');
+  });
+
+  it('reads events stored before dates existed, without losing them', () => {
+    // A child who earned an event last year keeps it; the date is simply
+    // not known, and the book says so rather than making one up
+    localStorage.setItem('events:guest', JSON.stringify(['winter', 'autumn']));
+
+    expect(service.getEventRecord()).toEqual([{ id: 'winter' }, { id: 'autumn' }]);
+    expect(service.getEarnedEvents()).toEqual(['winter', 'autumn']);
+  });
+
+  it('records an item the day it is won', () => {
+    service.keepItem('crown', new Date('2026-09-01T09:00:00.000Z'));
+
+    expect(service.getKeepsakes()).toEqual([
+      { id: 'crown', date: '2026-09-01T09:00:00.000Z' }
+    ]);
+  });
+
+  it('records each item once, however many rounds pass', () => {
+    service.keepItem('crown', new Date('2026-09-01T09:00:00.000Z'));
+    service.keepItem('crown', new Date('2026-09-02T09:00:00.000Z'));
+    service.keepItem('cap', new Date('2026-09-03T09:00:00.000Z'));
+
+    expect(service.getKeepsakes().map(item => item.id)).toEqual(['crown', 'cap']);
+  });
+
+  it('ignores an item with no name', () => {
+    service.keepItem('');
+
+    expect(service.getKeepsakes()).toEqual([]);
+  });
+
+  it('reads a corrupt record as nothing, never as an error', () => {
+    localStorage.setItem('keepsakes:guest', 'not json');
+
+    expect(service.getKeepsakes()).toEqual([]);
+  });
+
+  it('files them under the child who is playing', () => {
+    service.keepItem('crown');
+    localStorage.setItem('username', 'sam');
+
+    expect(service.getKeepsakes()).toEqual([]);
+  });
+
+  it('carries both records over when a guest signs up', () => {
+    service.earnEvent('winter', new Date('2026-01-01T00:00:00.000Z'));
+    service.keepItem('crown', new Date('2026-02-01T00:00:00.000Z'));
+    service.record({ correctAnswers: 8, total: 10, percentage: 80, score: 9, grade: 3 });
+
+    service.adoptGuestProgress('ada');
+    localStorage.setItem('username', 'ada');
+
+    expect(service.getEventRecord()[0].date).toBe('2026-01-01T00:00:00.000Z');
+    expect(service.getKeepsakes()[0]).toEqual({ id: 'crown', date: '2026-02-01T00:00:00.000Z' });
+  });
+});

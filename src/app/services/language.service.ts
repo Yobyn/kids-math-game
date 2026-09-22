@@ -166,7 +166,19 @@ export type TranslationKeys =
   | 'things-to-wear'
   | 'update-ready'
   | 'update-now'
-  | 'update-later';
+  | 'update-later'
+  | 'your-book'
+  | 'book-empty'
+  | 'book-won'
+  | 'book-from-event'
+  | 'book-long-ago'
+  | 'book-best'
+  | 'book-first'
+  | 'open-book'
+  | 'event-winter'
+  | 'event-spring'
+  | 'event-autumn'
+  | 'book-back';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -337,6 +349,18 @@ export class LanguageService {
       'update-ready': 'A new version of the game is ready.',
       'update-now': 'Get it now',
       'update-later': 'Later',
+      'your-book': 'Your book',
+      'book-empty': 'Play a round and this book starts filling up.',
+      'book-won': 'You won this',
+      'book-from-event': 'You were here for this',
+      'book-long-ago': 'A while ago',
+      'book-best': 'Your best round: {percent}%',
+      'book-first': 'The earliest round in here',
+      'open-book': 'Your book',
+      'event-winter': 'Winter',
+      'event-spring': 'Spring',
+      'event-autumn': 'Autumn',
+      'book-back': 'Back to your progress',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -504,6 +528,18 @@ export class LanguageService {
       'update-ready': 'Er is een nieuwe versie van het spel klaar.',
       'update-now': 'Nu ophalen',
       'update-later': 'Later',
+      'your-book': 'Jouw boek',
+      'book-empty': 'Speel een ronde en dit boek loopt vol.',
+      'book-won': 'Dit heb je verdiend',
+      'book-from-event': 'Hier was je bij',
+      'book-long-ago': 'Een tijdje geleden',
+      'book-best': 'Je beste ronde: {percent}%',
+      'book-first': 'De oudste ronde hierin',
+      'open-book': 'Jouw boek',
+      'event-winter': 'Winter',
+      'event-spring': 'Lente',
+      'event-autumn': 'Herfst',
+      'book-back': 'Terug naar je voortgang',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -671,6 +707,18 @@ export class LanguageService {
       'update-ready': 'Hay una nueva versión del juego lista.',
       'update-now': 'Obtenerla ahora',
       'update-later': 'Más tarde',
+      'your-book': 'Tu libro',
+      'book-empty': 'Juega una ronda y este libro empezará a llenarse.',
+      'book-won': 'Esto lo ganaste',
+      'book-from-event': 'Aquí estuviste',
+      'book-long-ago': 'Hace un tiempo',
+      'book-best': 'Tu mejor ronda: {percent}%',
+      'book-first': 'La ronda más antigua de aquí',
+      'open-book': 'Tu libro',
+      'event-winter': 'Invierno',
+      'event-spring': 'Primavera',
+      'event-autumn': 'Otoño',
+      'book-back': 'Volver a tu progreso',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',
