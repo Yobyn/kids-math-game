@@ -31,3 +31,20 @@ body {
   margin: 0;
   background: #0b0a18;
 }
+
+/* The shape of the screen, published by LayoutService from the rule in
+   src/app/layout/screen-fit.ts. Every stylesheet that cares keys off this
+   one attribute rather than repeating a media query. */
+html:not([data-fit]) {
+  /* Before the app has measured, stack — the layout that works everywhere */
+}
+
+/* Notches, rounded corners and the home indicator. `viewport-fit=cover` in
+   index.html is what makes these anything other than zero. max() keeps the
+   ordinary spacing on a device that has no cutouts. */
+body {
+  padding-left: env(safe-area-inset-left, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-sizing: border-box;
+}

@@ -181,3 +181,10 @@
 .avatar-button:focus-visible {
   border-color: var(--accent-magenta);
 }
+
+/* The notch sits over the top of the header, which is the topmost thing on
+   every screen. The sides and the bottom are handled once, on the body. */
+.app-header {
+  padding-top: max(0.8rem, env(safe-area-inset-top, 0px));
+}
+
