@@ -2,11 +2,11 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const { AccountStore } = require('./store');
+const { signToken, verifyToken } = require('./token');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -45,13 +45,13 @@ const authenticateToken = (req, res, next) => {
     return res.sendStatus(401);
   }
 
-  jwt.verify(token, secretKey, (err, user) => {
-    if (err) {
-      return res.sendStatus(403);
-    }
-    req.user = user;
-    next();
-  });
+  verifyToken(token, secretKey).then(
+    (user) => {
+      req.user = user;
+      next();
+    },
+    () => res.sendStatus(403)
+  );
 };
 
 // Register endpoint
@@ -85,11 +85,7 @@ app.post('/api/auth/register', async (req, res) => {
     });
 
     // Create token
-    const token = jwt.sign(
-      { userId: user.id },
-      secretKey,
-      { expiresIn: '24h' }
-    );
+    const token = await signToken({ userId: user.id }, secretKey);
 
     res.status(201).json({ token });
   } catch (error) {
@@ -118,11 +114,7 @@ app.post('/api/auth/login', async (req, res) => {
     }
 
     // Create token
-    const token = jwt.sign(
-      { userId: user.id },
-      secretKey,
-      { expiresIn: '24h' }
-    );
+    const token = await signToken({ userId: user.id }, secretKey);
 
     res.json({ token });
   } catch (error) {
