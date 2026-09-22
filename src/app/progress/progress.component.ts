@@ -70,6 +70,10 @@ export class ProgressComponent implements OnInit {
     return this.totals.rounds > 0;
   }
 
+  openBook() {
+    this.router.navigate(['/scrapbook']);
+  }
+
   back() {
     this.router.navigate(['/grade']);
   }

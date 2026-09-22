@@ -93,10 +93,24 @@
   color: var(--text-dim);
 }
 
+/* The book is the second way on from here, so it is outlined rather than
+   filled: the back button stays the loud one. */
+.book-btn {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 1.5rem;
+  border: 2px solid var(--edge);
+  border-radius: 10px;
+  font-size: 1.1rem;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+}
+
 .back-btn {
   width: 100%;
   min-height: 52px;
-  margin-top: 1.75rem;
+  margin-top: 0.75rem;
   border: none;
   border-radius: 10px;
   font-size: 1.1rem;

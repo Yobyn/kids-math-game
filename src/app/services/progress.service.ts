@@ -2,6 +2,12 @@ import { Injectable } from '@angular/core';
 import { afterMiss, afterReview, dueFacts } from '../teaching/review-schedule';
 import { SavedRound, parseRound, serialiseRound } from '../question/round-state';
 import { MoneyQuestion } from '../teaching/money';
+import {
+  EarnedEvent,
+  EarnedItem,
+  readEarnedEvents,
+  readEarnedItems
+} from '../scrapbook/scrapbook';
 
 export interface RoundResult {
   date: string;
@@ -57,6 +63,8 @@ const EVENTS_KEY = 'events';
 const TOTALS_KEY = 'totals';
 /** The one round still in play, if any. At most one per owner. */
 const ROUND_KEY = 'round';
+/** Items won, with the day they were won. See scrapbook/scrapbook.ts. */
+const KEEPSAKES_KEY = 'keepsakes';
 /** Enough to carry a round's mistakes forward without burying the next one. */
 const MAX_MISSED = 12;
 /** Enough to show improvement over time without growing without bound. */
@@ -228,19 +236,50 @@ export class ProgressService {
    * lost, so nothing here ever removes one.
    */
   getEarnedEvents(): string[] {
+    return this.readEvents(this.currentOwner()).map(event => event.id);
+  }
+
+  /** The same events, with the day each was earned where that is known. */
+  getEventRecord(): EarnedEvent[] {
     return this.readEvents(this.currentOwner());
   }
 
-  earnEvent(id: string): void {
+  /**
+   * Records an event the child was here for, and WHEN. The date is the part
+   * that is new: events used to be stored as bare ids, so the scrapbook had
+   * nothing to say about when any of it happened.
+   */
+  earnEvent(id: string, now: Date = new Date()): void {
     if (!id) {
       return;
     }
     const owner = this.currentOwner();
     const earned = this.readEvents(owner);
-    if (earned.indexOf(id) >= 0) {
+    if (earned.some(event => event.id === id)) {
       return;
     }
-    this.write(this.key(EVENTS_KEY, owner), [...earned, id]);
+    this.write(this.key(EVENTS_KEY, owner), [...earned, { id, date: now.toISOString() }]);
+  }
+
+  /**
+   * Items the child has won, with the day. Derived-from-level was enough to
+   * decide what they may WEAR; it can never say when they got it.
+   */
+  getKeepsakes(): EarnedItem[] {
+    return readEarnedItems(this.readList(KEEPSAKES_KEY, this.currentOwner()));
+  }
+
+  /** Writes down an item the moment it is won. Never records one twice. */
+  keepItem(id: string, now: Date = new Date()): void {
+    if (!id) {
+      return;
+    }
+    const owner = this.currentOwner();
+    const kept = readEarnedItems(this.readList(KEEPSAKES_KEY, owner));
+    if (kept.some(item => item.id === id)) {
+      return;
+    }
+    this.write(this.key(KEEPSAKES_KEY, owner), [...kept, { id, date: now.toISOString() }]);
   }
 
   /**
@@ -293,14 +332,25 @@ export class ProgressService {
     this.writeHistory(owner, mergeHistory(this.readHistory(owner), guestHistory));
     this.writeMissed(owner, mergeMissed(this.readMissed(owner), guestMissed));
     this.writeXp(owner, this.readXp(owner) + guestXp);
-    // Union: an event either child was here for stays earned
+    // Union: an event either child was here for stays earned, with whichever
+    // date is known — the account's own first, since it is the one playing
     const merged = this.readEvents(owner);
-    guestEvents.forEach(id => {
-      if (merged.indexOf(id) < 0) {
-        merged.push(id);
+    guestEvents.forEach(event => {
+      if (!merged.some(mine => mine.id === event.id)) {
+        merged.push(event);
       }
     });
     this.write(this.key(EVENTS_KEY, owner), merged);
+
+    // And the items, which carry their own dates
+    const keptOwn = readEarnedItems(this.readList(KEEPSAKES_KEY, owner));
+    readEarnedItems(this.readList(KEEPSAKES_KEY, GUEST_OWNER)).forEach(item => {
+      if (!keptOwn.some(mine => mine.id === item.id)) {
+        keptOwn.push(item);
+      }
+    });
+    this.write(this.key(KEEPSAKES_KEY, owner), keptOwn);
+    this.remove(this.key(KEEPSAKES_KEY, GUEST_OWNER));
     this.remove(this.key(STORAGE_KEY, GUEST_OWNER));
     this.remove(this.key(MISSED_KEY, GUEST_OWNER));
     this.remove(this.key(XP_KEY, GUEST_OWNER));
@@ -379,8 +429,13 @@ export class ProgressService {
     }
   }
 
-  private readEvents(owner: string): string[] {
-    return this.readList(EVENTS_KEY, owner).filter(id => typeof id === 'string');
+  /**
+   * Reads the events, whichever shape they are in. Everything stored before
+   * dates existed is a bare id string, and one of those still means "this
+   * happened" — it is kept, without a date, which is the truth about it.
+   */
+  private readEvents(owner: string): EarnedEvent[] {
+    return readEarnedEvents(this.readList(EVENTS_KEY, owner));
   }
 
   private readTotals(owner: string): PlayTotals {

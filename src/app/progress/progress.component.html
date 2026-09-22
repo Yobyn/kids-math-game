@@ -44,6 +44,12 @@
     </p>
   </div>
 
+  <!-- The way into the record of what actually happened. This page counts;
+       the book remembers. -->
+  <button type="button" class="book-btn" (click)="openBook()">
+    {{ languageService.translate('open-book') }}
+  </button>
+
   <button type="button" class="back-btn" (click)="back()">
     {{ languageService.translate('back') }}
   </button>

@@ -1,0 +1,32 @@
+<div class="book">
+  <h1>{{ languageService.translate('your-book') }}</h1>
+
+  <p class="nothing-yet" *ngIf="isEmpty">
+    {{ languageService.translate('book-empty') }}
+  </p>
+
+  <!-- Newest first, and the entries that were never dated come last. There is
+       no count of what is missing: this is a record, not a checklist. -->
+  <ol class="entries" *ngIf="!isEmpty">
+    <li class="entry" *ngFor="let entry of entries" [class]="'entry ' + entry.kind">
+      <span class="picture" aria-hidden="true">
+        <app-avatar *ngIf="item(entry)"
+                    [avatar]="avatarWearing(entry)"
+                    [size]="56"
+                    [framing]="framingFor(entry)"></app-avatar>
+        <span class="badge" *ngIf="!item(entry)">{{ mark(entry) }}</span>
+      </span>
+      <span class="said">
+        <span class="title">{{ title(entry) }}</span>
+        <span class="note" *ngIf="note(entry)">{{ note(entry) }}</span>
+        <span class="when">{{ when(entry) }}</span>
+      </span>
+    </li>
+  </ol>
+
+  <!-- Named for where it actually goes: the shared 'back' string reads
+       "Back to Grade Selection", and this button does not. -->
+  <button type="button" class="back-btn" (click)="back()">
+    {{ languageService.translate('book-back') }}
+  </button>
+</div>

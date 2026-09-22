@@ -8,6 +8,7 @@ import { GradeSelectComponent } from './grade-select/grade-select.component';
 import { DifficultySelectComponent } from './difficulty-select/difficulty-select.component';
 import { AvatarChooserComponent } from './avatar/avatar-chooser.component';
 import { ProgressComponent } from './progress/progress.component';
+import { ScrapbookComponent } from './scrapbook/scrapbook.component';
 import { AdultsComponent } from './adults/adults.component';
 import { AuthGuard } from './auth.guard';
 
@@ -20,6 +21,7 @@ export const routes: Routes = [
   { path: 'result', component: ResultComponent, canActivate: [AuthGuard] },
   { path: 'avatar', component: AvatarChooserComponent, canActivate: [AuthGuard] },
   { path: 'progress', component: ProgressComponent, canActivate: [AuthGuard] },
+  { path: 'scrapbook', component: ScrapbookComponent, canActivate: [AuthGuard] },
   // Guarded like every other screen, and gated again on arrival: the guard
   // only asks whether somebody is playing, not whether they are the adult
   { path: 'grown-ups', component: AdultsComponent, canActivate: [AuthGuard] },

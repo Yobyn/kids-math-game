@@ -3,8 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (a new version stopped arriving unannounced,
-the same day)
+Last surveyed: 2026-09-22 (the game given a memory of itself, the same day)
 
 ## What works today
 
@@ -42,11 +41,15 @@ the same day)
   pinch zoom works.
 - A new version never takes over unannounced: it waits, the child is told
   between rounds, and nothing changes until they say yes.
+- A book of what actually happened, at `/scrapbook`: the events a child was
+  here for, the things they won and the day each arrived, their best round
+  and the earliest one still remembered — newest first, with nothing to
+  complete and no count of what is left.
 - The character has a face of its own: six skin tones, four face shapes, four
   eye shapes, four mouths, nine hair styles and three hair textures that
   compose with all of them, plus hair and eye colour. The page is three
   sections a child moves between rather than one long scroll.
-- 945 unit tests, 7 build-script tests and 16 server tests, run on every PR
+- 990 unit tests, 7 build-script tests and 16 server tests, run on every PR
   by GitHub Actions
   alongside the build.
 
@@ -250,6 +253,40 @@ a backend that currently keeps its users in memory (see Code health).
   carry their own, built where the question is (see Money, above).
 
 ### Keeping a child coming back
+- **The game remembers what happened now.** `/scrapbook` is a record, reached
+  from the progress screen: the events a child was present for, the items
+  they won, the day each arrived, their best round and the earliest one the
+  history still holds. Newest first.
+  WHAT WAS MISSING WAS NOT A PAGE, IT WAS THE DATA. Earned events were a list
+  of bare ids and items were never recorded at all — only derived from the
+  level a child happens to be at now, which can say WHAT they have and never
+  WHEN they got it. So `events:<owner>` now carries a date and
+  `keepsakes:<owner>` is new, written at the moment an item is won.
+  THE DATES BEFORE TODAY ARE GONE AND THE BOOK SAYS SO. Anything earned
+  before this reads as "A while ago" rather than being given an invented
+  date, and those entries sort to the end. A made-up date in a book of what
+  really happened is worse than an honest gap.
+  IT IS NOT A SET TO COMPLETE. The progress screen already counts items
+  earned against items in all; this one never does, and shows no count of
+  what is left. Habgood and Ainsworth (Journal of the Learning Sciences,
+  2011) found children learned more from a game whose reward WAS the subject,
+  and spent seven times longer at it freely, than from one where the reward
+  sat alongside the learning — so this records the maths that was done and
+  what it won, rather than becoming a second game about collecting. The
+  collecting literature that does exist is mostly about what keeps adults
+  buying, and this project has already turned down the countdown version of
+  that in `seasonal-events.ts`.
+  THREE THINGS A BROWSER FOUND that the tests did not: the seasonal events
+  had NO NAMES AT ALL — there was no `event-*` string anywhere, so every
+  event entry rendered nameless; "You won this" was printed under the best
+  round and the earliest round, neither of which is a thing you win; and the
+  way out said "Back to Grade Selection" while going to the progress page.
+  STILL OPEN: the book is 2.3 screenfuls in landscape and will grow as a
+  child plays, so it will want the landscape treatment the other pages got.
+  The earliest round it can show is the oldest of the twenty kept in history,
+  not the first ever played — it is worded as "the earliest round in here"
+  for that reason, but a child who has played more than twenty rounds has a
+  first round the game cannot name.
 - **Guest play is done end to end.** A child takes "Play without an account"
   on the login screen, plays full rounds, and after three of them the result
   screen offers an account below the celebration — once, and not again if it
