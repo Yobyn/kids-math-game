@@ -3,7 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (accounts made to survive a restart the same day)
+Last surveyed: 2026-09-22 (the avatar page given a front door the same day)
 
 ## What works today
 
@@ -32,7 +32,7 @@ Last surveyed: 2026-09-22 (accounts made to survive a restart the same day)
 - Sound and haptics switch in the header, remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
   respects `prefers-reduced-motion`.
-- 658 unit tests plus 16 server tests, run on every PR by GitHub Actions
+- 666 unit tests plus 16 server tests, run on every PR by GitHub Actions
   alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
@@ -264,11 +264,36 @@ a backend that currently keeps its users in memory (see Code health).
   what makes it special and a record of when a child played; but a child who
   was ill, on holiday, or not yet playing has lost nothing permanent. If the
   intent really is one-shot exclusivity, this is the decision to revisit.
-  What remains: nothing yet shows a child their character outside the chooser
-  and the header — the result screen would be the natural place to see who
-  they just earned something for. There is also no way to see which events a
-  child has been present for as a set, which is the closest thing the game
-  would have to a scrapbook.
+  THE PAGE HAD NO FRONT DOOR, and that was worth more than anything on it.
+  Yobyn asked for "an avatar page where you can change the way you look" — it
+  had existed for several runs, which said plainly that the page was not the
+  problem. Measured: on every screen, the ONLY route to it was
+  `.welcome-icon`, a 45px circle in the header with an `aria-label` and NO
+  VISIBLE TEXT AT ALL. Its border was `2px solid transparent` until `:hover`,
+  and a phone has no hover. So on the devices this game is built for, the one
+  route to the character never looked like a button — and the page was more
+  discoverable to a child using a screen reader than to a child looking at it.
+  Now: a named, drawn button on the grade screen (the screen a child starts
+  on) and another on the result screen, plus a ring on the header circle that
+  is there without hovering.
+  THE RESULT SCREEN ONE CHANGES ITS WORDS. It already said "You unlocked the
+  Cap" and then offered no way to go and wear it; on a round that handed
+  something over the button reads "Put it on" and takes a visible border.
+  The research CONFIRMS rather than contradicts here, and that is worth
+  saying: Zhang et al. (CHI 2025, "Understanding Children's Avatar Making in
+  Social Online Games") find children's avatar-making is driven by
+  self-representation and identity exploration rather than collecting, and
+  describe a "wardrobe effect" — children make several avatars but use one
+  favourite consistently. That is an argument FOR what is already here (one
+  character, identity free, items earned on top) and AGAINST adding avatar
+  slots. It is also why the entrance is permanent rather than appearing only
+  when something is unlocked: a trophy cabinet opens when you win something,
+  but this is meant to be you.
+  What remains: no way to see which events a child has been present for as a
+  set, which is the closest thing the game would have to a scrapbook. And the
+  page itself has not been reconsidered — four identity choices and three
+  item rows, 1687px tall on a phone. Now that a child can actually find it,
+  whether it earns the visit is the next question.
 - **A child can see how far they have come.** "How far you have come", from
   the result screen, shows their character, the level they have climbed to,
   and four numbers: rounds finished, questions answered, answers right, and

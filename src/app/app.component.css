@@ -165,9 +165,12 @@
 
 /* The character in the header doubles as the way in to changing it, so it is
    a real button with the touch target a small finger needs. */
+/* The ring used to be transparent until hover, and a phone has no hover — so
+   on the devices this game is built for, the one route to the character never
+   looked like a button at all. */
 .avatar-button {
   padding: 0;
-  border: 2px solid transparent;
+  border: 2px solid rgba(214, 51, 235, 0.55);
   cursor: pointer;
   overflow: hidden;
   min-width: 45px;

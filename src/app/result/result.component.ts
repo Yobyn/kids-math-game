@@ -8,6 +8,8 @@ import { AuthService } from '../services/auth.service';
 import { LevelProgress, levelProgress, xpForRound } from '../levels/level-curve';
 import { WardrobeItem, itemForEvent, itemsUnlockedAt } from '../avatar/avatar-model';
 import { activeEvent } from '../events/seasonal-events';
+import { AvatarService } from '../services/avatar.service';
+import { Avatar } from '../avatar/avatar-model';
 import { EASED_KEY } from '../levels/in-round-tuner';
 
 /**
@@ -50,6 +52,8 @@ export class ResultComponent implements OnInit, OnDestroy {
   eventJustEarned = false;
   /** Where the bar starts before it fills, so the round's gain is visible. */
   levelFillPercent = 0;
+  /** Drawn on the way in to the character, so it reads as a door to it. */
+  avatar!: Avatar;
 
   constructor(
     private scoreService: ScoreService,
@@ -57,7 +61,8 @@ export class ResultComponent implements OnInit, OnDestroy {
     public languageService: LanguageService,
     private progressService: ProgressService,
     private fieldPulse: FieldPulseService,
-    private authService: AuthService
+    private authService: AuthService,
+    private avatarService: AvatarService
   ) {}
 
   ngOnInit() {
@@ -85,6 +90,7 @@ export class ResultComponent implements OnInit, OnDestroy {
 
     this.showKeepOffer = this.shouldOfferToKeepProgress();
 
+    this.avatar = this.avatarService.get();
     this.starsEarned = this.getStarsEarned();
     this.fieldPulse.pulse(1);
     this.celebrate();
@@ -256,6 +262,15 @@ export class ResultComponent implements OnInit, OnDestroy {
 
   seeProgress() {
     this.router.navigate(['/progress']);
+  }
+
+  /** True when this round handed something over that can actually be worn. */
+  get justEarnedSomething(): boolean {
+    return this.unlocked.length > 0 || this.eventJustEarned;
+  }
+
+  seeCharacter() {
+    this.router.navigate(['/avatar']);
   }
 
   playAgain() {

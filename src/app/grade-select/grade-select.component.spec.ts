@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { GradeSelectComponent } from './grade-select.component';
+import { AvatarComponent } from '../avatar/avatar.component';
 
 describe('GradeSelectComponent', () => {
   let fixture: ComponentFixture<GradeSelectComponent>;
@@ -12,7 +13,7 @@ describe('GradeSelectComponent', () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule],
-      declarations: [GradeSelectComponent]
+      declarations: [GradeSelectComponent, AvatarComponent]
     }).compileComponents();
 
     fixture = TestBed.createComponent(GradeSelectComponent);
@@ -82,7 +83,7 @@ describe('GradeSelectComponent offering the grade last played', () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule],
-      declarations: [GradeSelectComponent]
+      declarations: [GradeSelectComponent, AvatarComponent]
     }).compileComponents();
   });
 
@@ -162,7 +163,7 @@ describe('GradeSelectComponent marking a grade to try next', () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule],
-      declarations: [GradeSelectComponent]
+      declarations: [GradeSelectComponent, AvatarComponent]
     }).compileComponents();
   });
 
@@ -222,5 +223,48 @@ describe('GradeSelectComponent marking a grade to try next', () => {
 
     expect(component.carryOnGrade).toBe(3);
     expect(fixture.nativeElement.querySelector('.carry-on')).toBeTruthy();
+  });
+});
+
+describe('GradeSelectComponent pointing at the character', () => {
+  let fixture: ComponentFixture<GradeSelectComponent>;
+  let router: Router;
+
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [GradeSelectComponent, AvatarComponent]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(GradeSelectComponent);
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    fixture.detectChanges();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('names the way in rather than leaving it to an unlabelled circle', () => {
+    const door = fixture.nativeElement.querySelector('.your-character');
+
+    expect(door).toBeTruthy();
+    expect(door.textContent.trim().length).toBeGreaterThan(0);
+  });
+
+  it('draws the character on it, so it looks like what it opens', () => {
+    expect(fixture.nativeElement.querySelector('.your-character app-avatar')).toBeTruthy();
+  });
+
+  it('opens the character', () => {
+    fixture.nativeElement.querySelector('.your-character').click();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/avatar']);
+  });
+
+  it('keeps a target a child can hit', () => {
+    const door = fixture.nativeElement.querySelector('.your-character');
+
+    expect(parseFloat(getComputedStyle(door).minHeight)).toBeGreaterThanOrEqual(44);
   });
 });

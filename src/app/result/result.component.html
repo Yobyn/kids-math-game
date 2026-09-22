@@ -76,6 +76,17 @@
     {{ languageService.translate('your-progress') }}
   </button>
 
+  <!-- The screen has just said "Unlocked: Cap" and, until now, offered no way
+       to go and wear it. When something was earned this round the button says
+       so; the rest of the time it is simply the way to the character. -->
+  <button type="button"
+          class="see-character"
+          [class.earned]="justEarnedSomething"
+          (click)="seeCharacter()">
+    <app-avatar [avatar]="avatar" [size]="32"></app-avatar>
+    <span>{{ languageService.translate(justEarnedSomething ? 'put-it-on' : 'your-character') }}</span>
+  </button>
+
   <aside class="keep-offer" *ngIf="showKeepOffer" role="note">
     <h2 class="keep-offer-title">{{ languageService.translate('keep-progress-title') }}</h2>
     <p class="keep-offer-body">{{ languageService.translate('keep-progress-body') }}</p>
