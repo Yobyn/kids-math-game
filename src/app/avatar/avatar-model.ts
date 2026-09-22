@@ -25,9 +25,10 @@ export interface Avatar {
   /** Item ids, or NO_ITEM. Earned, unlike everything above. */
   hat: string;
   glasses: string;
+  top: string;
 }
 
-export type ItemSlot = 'hat' | 'glasses';
+export type ItemSlot = 'hat' | 'glasses' | 'top';
 
 /** Wearing nothing in a slot is always available and never locked. */
 export const NO_ITEM = 'none';
@@ -41,6 +42,12 @@ export interface WardrobeItem {
   colour: string;
   /** Drawn as an outline rather than a filled shape. */
   outline?: boolean;
+  /**
+   * A top colours the whole shirt rather than sitting on top of the face, so
+   * its `path` is decoration drawn over that shirt — stripes, a badge — and
+   * may be empty.
+   */
+  decorationColour?: string;
 }
 
 export type HairStyle = 'short' | 'long' | 'curly' | 'bun';
@@ -91,7 +98,8 @@ export function defaultAvatar(): Avatar {
     hairColour: HAIR_COLOURS[1],
     eyeColour: EYE_COLOURS[0],
     hat: NO_ITEM,
-    glasses: NO_ITEM
+    glasses: NO_ITEM,
+    top: NO_ITEM
   };
 }
 
@@ -116,7 +124,8 @@ export function normaliseAvatar(raw: any, level = 1): Avatar {
     hairColour: pick(HAIR_COLOURS, raw.hairColour, fallback.hairColour),
     eyeColour: pick(EYE_COLOURS, raw.eyeColour, fallback.eyeColour),
     hat: wearable('hat', raw.hat, level),
-    glasses: wearable('glasses', raw.glasses, level)
+    glasses: wearable('glasses', raw.glasses, level),
+    top: wearable('top', raw.top, level)
   };
 }
 
@@ -246,4 +255,62 @@ export function nextUnlock(level: number): WardrobeItem | undefined {
   return WARDROBE
     .filter(item => item.id !== NO_ITEM && item.unlockLevel > level)
     .sort((a, b) => a.unlockLevel - b.unlockLevel)[0];
+}
+
+/**
+ * The character below the chin. Drawn only in the fuller framing: guidance on
+ * small avatars is that a circular mask eats the corners first and that thin
+ * marks vanish, and the header draws this at 44px inside a circle. Pushing a
+ * torso into the same square would crop the shoulders away and shrink the
+ * face to pay for them — so the head keeps its own framing, and clothes get
+ * a taller one.
+ */
+export const FULL_VIEW_BOX = '0 0 100 132';
+export const PORTRAIT_VIEW_BOX = '0 0 100 100';
+
+export const NECK_PATH = 'M42 78 L58 78 L58 96 L42 96 Z';
+export const TORSO_PATH = 'M50 90 C28 90 16 104 16 132 L84 132 C84 104 72 90 50 90 Z';
+
+/** What the shirt is when a child has not earned another one. */
+export const DEFAULT_TOP_COLOUR = '#5b679a';
+
+/**
+ * Tops sit between the hats and the glasses in what they cost, so something
+ * arrives at nearly every early level without any single slot filling up.
+ */
+export const TOP_ITEMS: WardrobeItem[] = [
+  { id: NO_ITEM, slot: 'top', unlockLevel: 1, path: '', colour: DEFAULT_TOP_COLOUR },
+  {
+    id: 'striped',
+    slot: 'top',
+    unlockLevel: 5,
+    colour: '#c1442e',
+    decorationColour: '#f5ece0',
+    path: 'M22 106 L80 106 L81 113 L21 113 Z M17 120 L84 120 L84 127 L16 127 Z'
+  },
+  {
+    id: 'star-tee',
+    slot: 'top',
+    unlockLevel: 7,
+    colour: '#3f8fd6',
+    decorationColour: '#ffd34d',
+    path: 'M50 102 L55 114 L68 114 L58 122 L62 132 L50 125 L38 132 L42 122 L32 114 L45 114 Z'
+  },
+  {
+    id: 'hoodie',
+    slot: 'top',
+    unlockLevel: 9,
+    colour: '#3f8f5a',
+    decorationColour: '#26603c',
+    path: 'M50 90 C40 90 34 96 34 104 C40 98 44 96 50 96 C56 96 60 98 66 104 '
+        + 'C66 96 60 90 50 90 Z M49 106 L51 106 L51 126 L49 126 Z'
+  }
+];
+
+WARDROBE.push(...TOP_ITEMS);
+
+/** The colour the shirt is drawn in, worn or not. */
+export function topColour(avatar: Avatar): string {
+  const item = findItem('top', avatar.top);
+  return item && item.colour ? item.colour : DEFAULT_TOP_COLOUR;
 }

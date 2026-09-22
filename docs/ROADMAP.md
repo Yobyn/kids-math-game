@@ -139,10 +139,18 @@ a backend that currently keeps its users in memory (see Code health).
   off when the character is read, so a hand-edited store cannot wear a crown.
   The parts live in `src/app/avatar/avatar-model.ts`, DOM-free and tested,
   including that every hair style actually covers the crown.
-  What remains: the character is a head, so there is nowhere to put actual
-  clothing — a shirt needs shoulders, which means extending the drawing rather
-  than adding another item to a list. Special events come after that, and they
-  need a notion of time as well as a wardrobe to draw from.
+  The character now has shoulders and wears clothes: three shirts at levels 5,
+  7 and 9, plus a plain one nobody has to earn — a bare chest is not a
+  sensible default. It is drawn in two framings from one model rather than one
+  stretched to cover both: the header draws a 44px portrait inside a circular
+  clip, where a torso would be cropped away and would shrink the face to pay
+  for itself, so clothes get a taller framing used on the chooser and its
+  shirt swatches. A test holds the head to the same size in both.
+  What remains: special events, which need a notion of time as well as a
+  wardrobe to draw from, and which the product direction wants to grant items
+  obtainable no other way. Nothing yet shows a child their character outside
+  the chooser and the header — the result screen would be the natural place to
+  see who they just earned something for.
 - **History is stored but barely used.** `ProgressService` keeps the last 20
   rounds; only the best percentage is shown. Nothing plots improvement over
   time, and nothing distinguishes grades or question types.

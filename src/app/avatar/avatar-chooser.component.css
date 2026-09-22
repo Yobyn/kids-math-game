@@ -107,3 +107,11 @@
   text-align: center;
   color: var(--text-dim);
 }
+
+/* A clothes swatch is taller than a face one, because it has to show the
+   shoulders for the shirt to mean anything. */
+.style-swatch app-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

@@ -2,7 +2,7 @@
   <h1>{{ languageService.translate('your-character') }}</h1>
 
   <div class="stage">
-    <app-avatar [avatar]="avatar" [size]="180"></app-avatar>
+    <app-avatar [avatar]="avatar" [size]="180" framing="full"></app-avatar>
   </div>
 
   <section class="choice-row">
@@ -74,7 +74,9 @@
               [attr.aria-pressed]="wearing(row.slot) === item.id"
               [attr.aria-label]="itemLabel(item)"
               (click)="wear(row.slot, item)">
-        <app-avatar [avatar]="withItem(row.slot, item)" [size]="44"></app-avatar>
+        <app-avatar [avatar]="withItem(row.slot, item)"
+                    [size]="44"
+                    [framing]="framingFor(row.slot)"></app-avatar>
         <span class="lock" *ngIf="!canWear(item)" aria-hidden="true">🔒{{ item.unlockLevel }}</span>
       </button>
     </div>

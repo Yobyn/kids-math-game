@@ -8,7 +8,7 @@ import { ProgressService } from '../services/progress.service';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { ROUND_COMPLETION_XP, xpForRound, xpToReach } from '../levels/level-curve';
-import { NO_ITEM } from '../avatar/avatar-model';
+import { NO_ITEM, WARDROBE } from '../avatar/avatar-model';
 
 describe('ResultComponent', () => {
   let fixture: ComponentFixture<ResultComponent>;
@@ -444,8 +444,14 @@ describe('ResultComponent naming the reward', () => {
   });
 
   it('says nothing about items on a level that hands none over', () => {
-    // Level 5 unlocks nothing; the level up still shows, the reward does not
-    finishRoundAt(xpToReach(5) - 5, 100);
+    // Derived, not written down: a level that wins nothing today may win
+    // something tomorrow, and this test must not silently stop testing
+    const winning = new Set(WARDROBE.map(item => item.unlockLevel));
+    const barren = [5, 11, 13, 15, 17].find(level => !winning.has(level))!;
+    expect(barren).toBeDefined();
+
+    // The level up still shows; the reward line does not
+    finishRoundAt(xpToReach(barren) - 5, 100);
 
     expect(component.leveledUp).toBe(true);
     expect(component.unlocked).toEqual([]);

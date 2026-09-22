@@ -100,7 +100,11 @@ export type TranslationKeys =
   | 'item-shades'
   | 'item-goggles'
   | 'try-harder'
-  | 'try-easier';
+  | 'try-easier'
+  | 'tops'
+  | 'item-striped'
+  | 'item-star-tee'
+  | 'item-hoodie';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -203,6 +207,10 @@ export class LanguageService {
       'item-goggles': 'Goggles',
       'try-harder': 'Ready for this one?',
       'try-easier': 'Try this one today',
+      'tops': 'Tops',
+      'item-striped': 'Striped shirt',
+      'item-star-tee': 'Star shirt',
+      'item-hoodie': 'Hoodie',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -304,6 +312,10 @@ export class LanguageService {
       'item-goggles': 'Duikbril',
       'try-harder': 'Klaar voor deze?',
       'try-easier': 'Probeer deze vandaag',
+      'tops': 'Kleding',
+      'item-striped': 'Gestreept shirt',
+      'item-star-tee': 'Sterrenshirt',
+      'item-hoodie': 'Hoodie',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -405,6 +417,10 @@ export class LanguageService {
       'item-goggles': 'Gafas de buceo',
       'try-harder': '¿Listo para este?',
       'try-easier': 'Prueba este hoy',
+      'tops': 'Ropa',
+      'item-striped': 'Camiseta de rayas',
+      'item-star-tee': 'Camiseta de estrella',
+      'item-hoodie': 'Sudadera',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',
