@@ -132,3 +132,70 @@ p {
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* The one-tap way back to where the child was. Prominent, because it is the
+   right answer for anyone who has played before; above the list, because a
+   thing you have to scroll to is not a shortcut. */
+.carry-on {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  min-height: 56px;
+  margin: 0 auto 1.25rem;
+  padding: 0.85rem 1.25rem;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
+}
+
+.or-pick {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  text-shadow: none;
+}
+
+/* On a phone the list used to be one card per row, 183px each, and three
+   screenfuls of scrolling before the page ended. Two columns of compact
+   cards puts the whole choice within about a screen. */
+@media (max-width: 560px) {
+  .grade-container {
+    margin: 1rem auto;
+    padding: 1rem 0.75rem;
+  }
+
+  .grade-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    padding: 0;
+  }
+
+  .grade-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0.85rem 0.5rem;
+  }
+
+  .grade-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .grade-card h2 {
+    margin-bottom: 0;
+    font-size: 1.05rem;
+  }
+
+  /* The description says the heading again in more words. On a phone it costs
+     a third of the screen and adds nothing; the card's aria-label still
+     carries the name for anyone reading by ear. */
+  .grade-card p {
+    display: none;
+  }
+}

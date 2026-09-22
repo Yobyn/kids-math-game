@@ -83,6 +83,18 @@ export function lastPlayed(history: RoundResult[], grade: number): Difficulty | 
   return round ? (round.difficulty as Difficulty) : undefined;
 }
 
+/**
+ * The grade the child last actually played, which is the one worth offering
+ * them again. Read from history rather than storage because the result screen
+ * clears the stored choice on purpose — it wanted a fresh selection, which on
+ * a phone means ten cards and three screenfuls of scrolling every time.
+ */
+export function lastGrade(history: RoundResult[]): number | undefined {
+  const round = (history || []).find(entry =>
+    entry && Number.isFinite(entry.grade) && entry.grade > 0);
+  return round ? Math.floor(round.grade) : undefined;
+}
+
 /** Which way a suggestion goes, for choosing what to say about it. */
 export function suggestionDirection(
   current: Difficulty,

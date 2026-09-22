@@ -145,7 +145,9 @@ export type TranslationKeys =
   | 'easier-no'
   | 'adults-right-so-far'
   | 'adults-waiting'
-  | 'adults-spacing';
+  | 'adults-spacing'
+  | 'carry-on'
+  | 'or-pick-another';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -298,6 +300,8 @@ export class LanguageService {
       'adults-right-so-far': 'Right so far:',
       'adults-waiting': '{count} more are waiting for their day to come round.',
       'adults-spacing': 'Facts come back a day apart, not the same afternoon — the gap is what makes them stick. One answered right on three separate days is done with and drops off this list.',
+      'carry-on': 'Carry on at {grade}',
+      'or-pick-another': 'Or pick a different one',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -444,6 +448,8 @@ export class LanguageService {
       'adults-right-so-far': 'Tot nu toe goed:',
       'adults-waiting': 'Er wachten er nog {count} op hun beurt.',
       'adults-spacing': 'Sommen komen een dag later terug, niet dezelfde middag — die tussentijd zorgt dat ze blijven hangen. Een som die op drie verschillende dagen goed gaat, is klaar en verdwijnt van deze lijst.',
+      'carry-on': 'Ga verder met {grade}',
+      'or-pick-another': 'Of kies een andere',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -590,6 +596,8 @@ export class LanguageService {
       'adults-right-so-far': 'Aciertos hasta ahora:',
       'adults-waiting': 'Quedan {count} esperando su turno.',
       'adults-spacing': 'Las operaciones vuelven un día después, no la misma tarde: ese intervalo es lo que hace que se fijen. La que se acierta en tres días distintos ya está lista y sale de esta lista.',
+      'carry-on': 'Sigue en {grade}',
+      'or-pick-another': 'O elige otro',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',
