@@ -5,6 +5,7 @@ import { LanguageService } from '../services/language.service';
 import { SoundService } from '../services/sound.service';
 import { ProgressService } from '../services/progress.service';
 import { FieldPulseService } from '../services/field-pulse.service';
+import { workedStep } from '../teaching/worked-step';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
 /** The quiz is ten questions long; ScoreService.isGameComplete() agrees. */
@@ -61,6 +62,8 @@ export class QuestionComponent implements OnInit {
   isSecondAttempt: boolean = false;
   showOkButton: boolean = false;
   wrongAttempts = 0;
+  /** How the fact is reached, shown only once the answer is given away. */
+  workedLine = '';
   correctAnswer = 0;
   showShakeAnimation: boolean = false;
   answerWasCorrect: boolean | null = null;
@@ -214,6 +217,7 @@ export class QuestionComponent implements OnInit {
       this.isReplay = true;
       this.userAnswer = '';
       this.feedback = '';
+      this.workedLine = '';
       this.inputPlaceholder = '?';
       this.showOkButton = false;
       return;
@@ -224,6 +228,7 @@ export class QuestionComponent implements OnInit {
       this.generateMoneyQuestion();
       this.userAnswer = '';
       this.feedback = '';
+      this.workedLine = '';
       this.inputPlaceholder = '?';
       this.showOkButton = false;
       return;
@@ -270,6 +275,7 @@ export class QuestionComponent implements OnInit {
 
     this.userAnswer = '';
     this.feedback = '';
+    this.workedLine = '';
     this.inputPlaceholder = '?';
     this.showOkButton = false;
   }
@@ -395,6 +401,12 @@ export class QuestionComponent implements OnInit {
       // learns nothing from the question they just spent two tries on.
       this.feedback = `${this.languageService.translate('answer-is')} ${this.correctAnswer}. ` +
         this.languageService.translate('good-try');
+      // The answer is being given away either way, so give the method with
+      // it. Money questions are worded, not a bare fact, and have no step.
+      this.workedLine = this.currentQuestion.moneyPrompt
+        ? ''
+        : workedStep(this.currentQuestion.num1, this.currentQuestion.num2,
+                     this.currentQuestion.operation) || '';
       this.showOkButton = true;
       // Use the service to increment questions answered
       this.scoreService.incrementQuestionsAnswered();

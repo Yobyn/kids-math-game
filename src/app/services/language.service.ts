@@ -104,7 +104,8 @@ export type TranslationKeys =
   | 'tops'
   | 'item-striped'
   | 'item-star-tee'
-  | 'item-hoodie';
+  | 'item-hoodie'
+  | 'one-way';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -211,6 +212,7 @@ export class LanguageService {
       'item-striped': 'Striped shirt',
       'item-star-tee': 'Star shirt',
       'item-hoodie': 'Hoodie',
+      'one-way': 'One way to do it:',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -316,6 +318,7 @@ export class LanguageService {
       'item-striped': 'Gestreept shirt',
       'item-star-tee': 'Sterrenshirt',
       'item-hoodie': 'Hoodie',
+      'one-way': 'Zo kan het ook:',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -421,6 +424,7 @@ export class LanguageService {
       'item-striped': 'Camiseta de rayas',
       'item-star-tee': 'Camiseta de estrella',
       'item-hoodie': 'Sudadera',
+      'one-way': 'Una forma de hacerlo:',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',
