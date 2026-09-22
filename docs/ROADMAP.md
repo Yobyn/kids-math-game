@@ -3,7 +3,8 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (the character finished, the same day)
+Last surveyed: 2026-09-22 (a new version stopped arriving unannounced,
+the same day)
 
 ## What works today
 
@@ -39,11 +40,14 @@ Last surveyed: 2026-09-22 (the character finished, the same day)
   restored silently — for four hours.
 - Fits a phone on its side, a large tablet, and a device with a notch;
   pinch zoom works.
+- A new version never takes over unannounced: it waits, the child is told
+  between rounds, and nothing changes until they say yes.
 - The character has a face of its own: six skin tones, four face shapes, four
   eye shapes, four mouths, nine hair styles and three hair textures that
   compose with all of them, plus hair and eye colour. The page is three
   sections a child moves between rather than one long scroll.
-- 907 unit tests plus 16 server tests, run on every PR by GitHub Actions
+- 945 unit tests, 7 build-script tests and 16 server tests, run on every PR
+  by GitHub Actions
   alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
@@ -515,7 +519,45 @@ a backend that currently keeps its users in memory (see Code health).
   what is left to lay out. The texture rim reads as beads or coils at the
   edge of the hair rather than through it, which is a stylisation rather
   than a likeness, and a child with fine wavy hair will not find it exactly.
-- **Installable, but the update prompt is missing.** The service worker takes
+- **A new version waits to be let in.** The service worker used to call
+  `skipWaiting()` the moment it installed and `clients.claim()` the moment it
+  activated, so a deploy landing mid-round took over the page without a word:
+  the running app and the cache it fetched from came from two different
+  builds. The documented pattern (Workbox, "Handling service worker updates",
+  Chrome for Developers) is the opposite — do not skip waiting, tell the
+  person, and take over only on their say-so — and that is what happens now.
+  THE PROMPT WAS DEAD CODE WITHOUT A BUILD STEP, which is the part that had to
+  come first. A browser decides whether a worker changed by comparing the
+  bytes of the script, and `src/service-worker.js` is copied into the build
+  verbatim: identical on every deploy. `registration.waiting` therefore never
+  appeared and there was nothing to detect. `scripts/stamp-service-worker.js`
+  stamps a hash of the built `index.html` into it after `ng build`, so the
+  worker changes when and only when the app does — a comment-only source edit
+  that minifies away correctly produces no update at all. It also fixes a
+  second thing: `CACHE_VERSION` was the literal `math-game-v1` forever, so
+  `activate` never had an old cache to clear.
+  WHEN A CHILD MAY BE TOLD is this game's own decision, and the answer is
+  never while a question is on screen. A round survives a reload now, but a
+  reload mid-round lands them on the resume card, so accepting there would
+  swap one interruption for two. It is offered on the grade and result
+  screens and nowhere else. A "later" is remembered against that exact
+  version; a newer one asks again, because that is a different question.
+  FOUR BUGS THIS FOUND, none of them visible to a unit test — all four came
+  from running two real builds against a real service worker:
+  `main.ts` registered a SECOND `PwaService` with `new`, so the instance the
+  app shell asked about updates never learned anything; `clients.claim()` on
+  a first install fired `controllerchange` and reloaded the game the first
+  time a child ever opened it; the route stayed `/` for the whole session
+  because the initial navigation completes before `ngOnInit` subscribes to
+  the router; and the version reply arrives on a `MessagePort`, whose
+  `onmessage` zone.js does not patch, so the state was right and the screen
+  never re-rendered.
+  STILL OPEN: the update is only noticed when the browser re-checks the
+  worker — on navigation, or roughly daily — so a child who never closes the
+  tab may not be told for a while. Nothing polls for it, deliberately: a
+  background check every few minutes to tell a child about a deploy is a lot
+  of machinery for very little.
+- **Installable, and it says so when there is something new.** The service worker takes
   over immediately on activation (`skipWaiting` + `clients.claim`); a child
   mid-round when a deploy lands gets the new shell on their next navigation
   with no warning. A "refresh for the new version" prompt is the usual fix.

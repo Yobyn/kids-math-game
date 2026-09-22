@@ -37,4 +37,19 @@
   </div>
 </header>
 
+<!-- A new version, offered between rounds and nowhere else. It is a strip
+     below the header rather than a dialog: nothing a child is doing needs to
+     stop for it, and "later" is a real answer. -->
+<div class="update-offer" *ngIf="showUpdate" role="status">
+  <span class="update-text">{{ languageService.translate('update-ready') }}</span>
+  <span class="update-actions">
+    <button type="button" class="update-yes" (click)="takeUpdate()">
+      {{ languageService.translate('update-now') }}
+    </button>
+    <button type="button" class="update-later" (click)="laterUpdate()">
+      {{ languageService.translate('update-later') }}
+    </button>
+  </span>
+</div>
+
 <router-outlet></router-outlet>

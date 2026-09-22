@@ -1,15 +1,37 @@
-// Hand-rolled and deliberately small. Bump CACHE_VERSION on any change here:
-// a stale shell is the classic PWA failure, and a child on a school tablet
-// has no way to clear it.
-const CACHE_VERSION = 'math-game-v1';
+// Hand-rolled and deliberately small.
+//
+// THE VERSION IS STAMPED AT BUILD TIME by scripts/stamp-service-worker.js,
+// from a hash of the built index.html. It has to be: a browser decides
+// whether a worker has changed by comparing the bytes of this file, and this
+// file used to be identical on every deploy — so `registration.waiting`
+// never appeared and there was nothing for an update prompt to detect. The
+// placeholder is replaced after `ng build`; if it is still here, the build
+// script did not run.
+const CACHE_VERSION = 'math-game-__BUILD_VERSION__';
 const SHELL = ['./', './index.html', './assets/icon-192.png', './assets/icon-512.png'];
 
+// NO skipWaiting HERE, on purpose. A new worker that takes over the moment
+// it installs swaps the cache under a page that is still running the old
+// code, and a child mid-round gets the new shell with no warning. The
+// documented pattern is to wait, let the app ask the child, and take over
+// only when they say yes — see src/app/pwa/update-offer.ts.
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_VERSION)
-      .then(cache => cache.addAll(SHELL))
-      .then(() => self.skipWaiting())
+    caches.open(CACHE_VERSION).then(cache => cache.addAll(SHELL))
   );
+});
+
+// The two things the page may ask a waiting worker: who are you, and take
+// over now. Nothing else, and nothing without being asked.
+self.addEventListener('message', event => {
+  const data = event.data || {};
+  if (data.type === 'skipWaiting') {
+    self.skipWaiting();
+    return;
+  }
+  if (data.type === 'version' && event.ports && event.ports[0]) {
+    event.ports[0].postMessage(CACHE_VERSION);
+  }
 });
 
 self.addEventListener('activate', event => {

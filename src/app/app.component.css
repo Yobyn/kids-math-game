@@ -188,3 +188,54 @@
   padding-top: max(0.8rem, env(safe-area-inset-top, 0px));
 }
 
+
+/* A strip below the header, not a dialog over the game: nothing a child is
+   doing has to stop for this, and "Later" is a real answer. */
+.update-offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 1rem;
+  padding: 0.6rem 1rem;
+  position: relative;
+  z-index: 999;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 2px solid var(--accent-blue);
+  color: #2c3e50;
+}
+
+.update-text {
+  font-size: 1rem;
+}
+
+.update-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.update-yes,
+.update-later {
+  min-height: 44px;
+  padding: 0.4rem 1rem;
+  border-radius: 10px;
+  border: 2px solid #b6c2d9;
+  background: #ffffff;
+  color: #2c3e50;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* Neither answer is the loud one: later costs a child nothing. */
+.update-yes {
+  border-color: var(--accent-blue);
+}
+
+
+
+
+
+
+
+
+

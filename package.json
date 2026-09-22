@@ -4,7 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "NODE_OPTIONS=--openssl-legacy-provider ng serve",
-    "build": "ng build",
+    "build": "ng build && node scripts/stamp-service-worker.js",
+    "test:scripts": "node --test scripts/*.test.js",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "test:ci": "ng test --watch=false --browsers=ChromeHeadlessCI"
