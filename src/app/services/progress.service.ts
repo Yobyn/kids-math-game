@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { afterMiss, afterReview, dueFacts } from '../teaching/review-schedule';
 
 export interface RoundResult {
   date: string;
@@ -32,6 +33,13 @@ export interface MissedFact {
   num2: number;
   operation: string;
   moneyPrompt?: string;
+  /**
+   * The day this fact is ready to be asked again (YYYY-MM-DD, local). Absent
+   * on facts stored before the schedule existed, which reads as due now.
+   */
+  due?: string;
+  /** Correct retrievals, on separate days, since it was last missed. */
+  reviews?: number;
 }
 
 const STORAGE_KEY = 'roundHistory';
@@ -143,18 +151,42 @@ export class ProgressService {
     return this.readMissed(this.currentOwner());
   }
 
-  recordMissed(fact: MissedFact): void {
+  /**
+   * A fact just missed goes back to the beginning of the schedule, whatever
+   * it had earned before: getting it wrong is evidence it was not learned.
+   */
+  recordMissed(fact: MissedFact, now: Date = new Date()): void {
     const existing = this.getMissedFacts().filter(f => factSignature(f) !== factSignature(fact));
-    this.writeMissed(this.currentOwner(), [fact, ...existing].slice(0, MAX_MISSED));
+    const scheduled = afterMiss(fact, now);
+    this.writeMissed(this.currentOwner(), [scheduled, ...existing].slice(0, MAX_MISSED));
   }
 
-  /** Hands back up to `limit` facts and forgets them — they are being asked now. */
-  takeMissedFacts(limit: number): MissedFact[] {
+  /**
+   * Hands back up to `limit` facts that are DUE and forgets them — they are
+   * being asked now, and whatever happens next re-files them. Facts whose day
+   * has not come are left alone, so a child playing five rounds in one
+   * sitting does not meet the same fact five times.
+   */
+  takeMissedFacts(limit: number, now: Date = new Date()): MissedFact[] {
     const owner = this.currentOwner();
     const all = this.readMissed(owner);
-    const taken = all.slice(0, limit);
-    this.writeMissed(owner, all.slice(limit));
+    const taken = dueFacts(all, now, limit);
+    const takenSignatures = new Set(taken.map(factSignature));
+    this.writeMissed(owner, all.filter(fact => !takenSignatures.has(factSignature(fact))));
     return taken;
+  }
+
+  /**
+   * A fact answered right on its review day. It goes back in the queue for
+   * another day unless it has now been retrieved correctly often enough, in
+   * which case it is simply done and nothing is written.
+   */
+  passedReview(fact: MissedFact, now: Date = new Date()): void {
+    const owner = this.currentOwner();
+    const rest = this.readMissed(owner)
+      .filter(f => factSignature(f) !== factSignature(fact));
+    const again = afterReview(fact, now);
+    this.writeMissed(owner, again ? [...rest, again].slice(0, MAX_MISSED) : rest);
   }
 
   /**

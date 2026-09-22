@@ -218,6 +218,30 @@ describe('AdultsComponent', () => {
       expect(fixture.nativeElement.querySelectorAll('.fact-worked').length).toBe(3);
     });
 
+    it('says how far each fact has got, and what is still waiting', () => {
+      progress.recordMissed({ num1: 8, num2: 7, operation: '+' }, new Date(2026, 8, 22));
+      progress.recordMissed({ num1: 9, num2: 6, operation: '*' }, new Date(2026, 8, 22));
+      open();
+      passGate();
+
+      expect(fixture.nativeElement.querySelectorAll('.fact-reviews').length).toBe(2);
+      expect(fixture.nativeElement.querySelector('.fact-reviews').textContent)
+        .toContain('0 / ' + component.plan.facts[0].toGraduate);
+      // Both were missed today, so both are waiting for tomorrow
+      expect(component.plan.waiting).toBe(2);
+      expect(component.waitingLine).not.toContain('{count}');
+      expect(fixture.nativeElement.querySelector('.waiting')).toBeTruthy();
+    });
+
+    it('explains why facts are not coming back the same afternoon', () => {
+      progress.recordMissed({ num1: 8, num2: 7, operation: '+' });
+      open();
+      passGate();
+
+      expect(fixture.nativeElement.querySelector('.spacing-note').textContent.length)
+        .toBeGreaterThan(40);
+    });
+
     it('says so when nothing is being missed', () => {
       progress.record(round(10));
       open();

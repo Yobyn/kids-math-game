@@ -3,7 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (the mid-round offer added the same day)
+Last surveyed: 2026-09-22 (spacing measured in days, added the same day)
 
 ## What works today
 
@@ -25,13 +25,14 @@ Last surveyed: 2026-09-22 (the mid-round offer added the same day)
   shows a personal best — beaten, or quietly displayed when it was not.
 - A question missed twice comes back two questions later in the same round,
   once, the way a flashcard goes back a few cards from the front — and is
-  kept for the next round, where it returns near the start (never first).
+  kept for a LATER DAY, where it returns near the start of a round (never
+  first). Never the same day it was missed: see spacing, below.
 - Progress bar through the round; result screen with up to three stars and a
   counted-up percentage.
 - Sound and haptics switch in the header, remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
   respects `prefers-reduced-motion`.
-- 563 unit tests, run on every PR by GitHub Actions alongside the build.
+- 600 unit tests, run on every PR by GitHub Actions alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
 
@@ -110,10 +111,40 @@ a backend that currently keeps its users in memory (see Code health).
   outgrown their grade entirely is never told. The offer also only goes one
   way — there is no "shall we make it harder" for a child breezing through,
   which is the same argument in reverse and worth its own run.
-- **Spacing is one session deep.** Missed facts carry to the *next* round, but
-  the interval is "next time you play", whether that is a minute or a month.
-  Expanding intervals (a day, then three, then a week) would need timestamps
-  on each fact and a scheduler to match.
+- **Spacing is measured in days now, and the intervals are EQUAL.** A missed
+  fact used to come back "next round" — a month later, or ninety seconds
+  later if the child kept playing. Ninety seconds later is massed practice,
+  which is the one thing the spacing literature is unambiguous about. A fact
+  is now due a day after it was missed, so a child playing five rounds in one
+  sitting meets it in none of them and meets it tomorrow. Answered right on
+  three separate days, it is learned and leaves the queue; missed again, it
+  goes back to the beginning.
+  THE ROADMAP USED TO ASK FOR EXPANDING INTERVALS — a day, then three, then a
+  week — which is what every flashcard app builds. The evidence does not
+  support the complexity. Karpicke and Roediger (Psychonomic Bulletin &
+  Review, 2014) compared expanding against equal-interval retrieval over the
+  long term and found no reliable advantage for expanding; Logan and Balota
+  (2008) found the expanding advantage appears during the learning session
+  and is gone after a day, with expanded items at a DISADVANTAGE for younger
+  learners. What the meta-analytic work does support is the absolute gap:
+  spacing beats massing, and the size of the lag does the work, not the shape
+  of the ladder. So the ladder is flat and the gap is the feature.
+  `src/app/teaching/review-schedule.ts` is DOM-free and tested against any
+  date. A fact stored before any of this existed reads as due now, which is
+  the truth about it.
+  A visible consequence, and a deliberate one: a single sitting now contains
+  far less review than it used to. Rounds two through five of an afternoon
+  are all new questions. The work moved to tomorrow.
+  The grown-ups' screen says how far each fact has got ("Right so far: 1 / 3")
+  and how many are waiting for their day, which is the closest thing there is
+  to "did last week's three stick".
+  What is missing: the within-round replay is untouched and still immediate —
+  a fact missed twice comes back two questions later in the same round, which
+  is retrieval practice rather than spacing and belongs where it is. There is
+  also no sense of a fact being harder than another: every fact gets the same
+  gap and the same three reviews, which is exactly the simplification the
+  evidence licenses but would be worth revisiting if a child ends up stuck on
+  one fact forever.
 - **Division can produce awkward questions** — it guarantees whole answers but
   not sensible ones for the grade.
 - **A missed fact is now shown worked out, not just answered.** After two

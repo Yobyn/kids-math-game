@@ -150,6 +150,20 @@
   font-size: 0.95rem;
 }
 
+.fact-reviews {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.waiting,
+.spacing-note {
+  margin: 0.6rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
 .weakest {
   margin: 0.9rem 0 0;
   font-size: 0.95rem;

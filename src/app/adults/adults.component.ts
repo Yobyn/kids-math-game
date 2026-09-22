@@ -39,7 +39,7 @@ export class AdultsComponent implements OnInit {
   typed = '';
 
   totals: PlayTotals = { rounds: 0, questions: 0, correct: 0 };
-  plan: PracticePlan = { trend: [], facts: [], accuracy: null };
+  plan: PracticePlan = { trend: [], facts: [], accuracy: null, waiting: 0 };
 
   readonly chartWidth = CHART_WIDTH;
   readonly chartHeight = CHART_HEIGHT;
@@ -140,6 +140,12 @@ export class AdultsComponent implements OnInit {
     };
     const key = this.plan.weakest ? names[this.plan.weakest] : undefined;
     return key ? this.languageService.translate(key) : null;
+  }
+
+  /** How many facts are waiting for their day, worded for an adult. */
+  get waitingLine(): string {
+    return this.languageService.translate('adults-waiting')
+      .replace('{count}', String(this.plan.waiting));
   }
 
   get weakestLine(): string {

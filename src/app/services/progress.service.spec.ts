@@ -1,4 +1,5 @@
 import { ProgressService, mergeHistory, mergeMissed } from './progress.service';
+import { REVIEWS_TO_GRADUATE } from '../teaching/review-schedule';
 
 describe('ProgressService', () => {
   let service: ProgressService;
@@ -63,7 +64,7 @@ describe('ProgressService', () => {
     expect(service.getBestPercentage()).toBe(70);
   });
 
-  describe('facts to revisit next round', () => {
+  describe('facts to revisit on a later day', () => {
     const fact = (num1: number, num2: number, operation = '+') => ({ num1, num2, operation });
 
     it('starts with nothing to revisit', () => {
@@ -92,19 +93,82 @@ describe('ProgressService', () => {
     });
 
     it('hands back only what was asked for, and forgets it', () => {
-      service.recordMissed(fact(1, 1));
-      service.recordMissed(fact(2, 2));
-      service.recordMissed(fact(3, 3));
+      const missedOn = new Date(2026, 8, 22);
+      const tomorrow = new Date(2026, 8, 23);
+      service.recordMissed(fact(1, 1), missedOn);
+      service.recordMissed(fact(2, 2), missedOn);
+      service.recordMissed(fact(3, 3), missedOn);
 
-      const taken = service.takeMissedFacts(2);
+      const taken = service.takeMissedFacts(2, tomorrow);
 
       expect(taken.length).toBe(2);
       expect(service.getMissedFacts().length).toBe(1);
     });
 
+    it('hands back nothing on the day a fact was missed', () => {
+      // The thing that was broken: a fact used to come back "next round",
+      // which for a child playing five rounds in a sitting meant minutes
+      // later. That is massed practice, and the gap is what does the work.
+      const missedOn = new Date(2026, 8, 22);
+      service.recordMissed(fact(7, 5), missedOn);
+
+      expect(service.takeMissedFacts(2, missedOn)).toEqual([]);
+      expect(service.getMissedFacts().length).toBe(1);
+    });
+
+    it('hands it back the next day', () => {
+      service.recordMissed(fact(7, 5), new Date(2026, 8, 22));
+
+      expect(service.takeMissedFacts(2, new Date(2026, 8, 23)).length).toBe(1);
+    });
+
+    it('hands back a fact stored before the schedule existed', () => {
+      // Migration: it was missed, and nothing says it has been seen since
+      localStorage.setItem('missedFacts:guest',
+        JSON.stringify([{ num1: 7, num2: 5, operation: '+' }]));
+
+      expect(service.takeMissedFacts(2, new Date(2026, 8, 22)).length).toBe(1);
+    });
+
+    it('puts a fact answered right back for another day', () => {
+      const day = new Date(2026, 8, 22);
+      service.recordMissed(fact(7, 5), day);
+      const [taken] = service.takeMissedFacts(1, new Date(2026, 8, 23));
+
+      service.passedReview(taken, new Date(2026, 8, 23));
+
+      expect(service.getMissedFacts().length).toBe(1);
+      expect(service.getMissedFacts()[0].reviews).toBe(1);
+      expect(service.takeMissedFacts(2, new Date(2026, 8, 23))).toEqual([]);
+    });
+
+    it('is done with a fact answered right on enough separate days', () => {
+      service.recordMissed(fact(7, 5), new Date(2026, 8, 22));
+
+      let day = 23;
+      for (let review = 0; review < REVIEWS_TO_GRADUATE; review++, day++) {
+        const [taken] = service.takeMissedFacts(1, new Date(2026, 8, day));
+        expect(taken).toBeDefined();
+        service.passedReview(taken, new Date(2026, 8, day));
+      }
+
+      expect(service.getMissedFacts()).toEqual([]);
+    });
+
+    it('sends a fact missed again back to the beginning', () => {
+      service.recordMissed(fact(7, 5), new Date(2026, 8, 22));
+      const [taken] = service.takeMissedFacts(1, new Date(2026, 8, 23));
+      service.passedReview(taken, new Date(2026, 8, 23));
+
+      const [again] = service.takeMissedFacts(1, new Date(2026, 8, 24));
+      service.recordMissed(again, new Date(2026, 8, 24));
+
+      expect(service.getMissedFacts()[0].reviews).toBe(0);
+    });
+
     it('keeps the newest mistakes and caps the list', () => {
       for (let i = 0; i < 20; i++) {
-        service.recordMissed(fact(i, i));
+        service.recordMissed(fact(i, i), new Date(2026, 8, 22));
       }
 
       const stored = service.getMissedFacts();

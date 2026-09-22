@@ -121,6 +121,66 @@ describe('QuestionComponent', () => {
       expect(JSON.parse(localStorage.getItem('missedFacts:guest') as string)).toEqual([]);
     });
 
+    it('does not ask again the same day it was missed', () => {
+      // A child playing five rounds in one sitting used to meet the same fact
+      // five times. That is massed practice; the gap is what makes it stick.
+      component.currentQuestion = { num1: 9, num2: 4, operation: '+' };
+      component.wrongAttempts = 0;
+      component.isReplay = false;
+      component.userAnswer = '11';
+      component.checkAnswer();
+      component.userAnswer = '11';
+      component.checkAnswer();
+
+      const fresh = TestBed.createComponent(QuestionComponent);
+      fresh.detectChanges();
+      const c = fresh.componentInstance;
+      c.questionsAnswered = 1;
+      c.generateQuestion();
+
+      expect(c.isReplay).toBe(false);
+      // and it is still waiting, not thrown away
+      expect(JSON.parse(localStorage.getItem('missedFacts:guest') as string).length).toBe(1);
+    });
+
+    it('moves a carried fact along when the child gets it right', () => {
+      localStorage.setItem('missedFacts:guest',
+        JSON.stringify([{ num1: 8, num2: 6, operation: '+' }]));
+
+      const fresh = TestBed.createComponent(QuestionComponent);
+      fresh.detectChanges();
+      const c = fresh.componentInstance;
+      c.questionsAnswered = 1;
+      c.generateQuestion();
+      expect(c.isReplay).toBe(true);
+
+      c.userAnswer = '14';
+      c.checkAnswer();
+
+      const stored = JSON.parse(localStorage.getItem('missedFacts:guest') as string);
+      expect(stored.length).toBe(1);
+      expect(stored[0].reviews).toBe(1);
+    });
+
+    it('sends a carried fact back to the beginning when it is missed again', () => {
+      localStorage.setItem('missedFacts:guest',
+        JSON.stringify([{ num1: 8, num2: 6, operation: '+', reviews: 2 }]));
+
+      const fresh = TestBed.createComponent(QuestionComponent);
+      fresh.detectChanges();
+      const c = fresh.componentInstance;
+      c.questionsAnswered = 1;
+      c.generateQuestion();
+
+      c.userAnswer = '1';
+      c.checkAnswer();
+      c.userAnswer = '2';
+      c.checkAnswer();
+
+      const stored = JSON.parse(localStorage.getItem('missedFacts:guest') as string);
+      expect(stored[0].reviews).toBe(0);
+    });
+
     it('stores a fact the child could not get, for the next round', () => {
       component.currentQuestion = { num1: 9, num2: 4, operation: '+' };
       component.wrongAttempts = 0;
