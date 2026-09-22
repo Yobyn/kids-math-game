@@ -2,9 +2,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AvatarComponent } from './avatar.component';
 import {
   DEFAULT_TOP_COLOUR,
+  FACE_SHAPES,
   FULL_VIEW_BOX,
-  HAIR_PATHS,
+  FaceShape,
   HAIR_COLOURS,
+  HAIR_PATHS,
   HAIR_STYLES,
   NO_ITEM,
   PORTRAIT_VIEW_BOX,
@@ -84,17 +86,121 @@ describe('AvatarComponent', () => {
     expect(svg.getAttribute('viewBox')).toBe('0 0 100 100');
   });
 
-  it('covers the crown with hair, in every style', () => {
+  it('covers the crown with hair, in every style on every face', () => {
     // The face is drawn first, so hair that starts too low leaves a bare dome
-    // of scalp poking out above the fringe. Measured, not eyeballed.
-    HAIR_STYLES.forEach(style => {
-      component.avatar = { ...defaultAvatar(), hairStyle: style };
+    // of scalp poking out above the fringe. Measured, not eyeballed — and
+    // swept over both axes now, because a style that covered the round face
+    // can still leave the taller oval one bare.
+    FACE_SHAPES.forEach(faceShape => {
+      HAIR_STYLES.forEach(hairStyle => {
+        component.avatar = { ...defaultAvatar(), faceShape, hairStyle };
+        fixture.detectChanges();
+
+        const hair = fixture.nativeElement.querySelector('.hair').getBBox();
+        const face = fixture.nativeElement.querySelector('.face').getBBox();
+
+        expect(hair.y)
+          .withContext(`${hairStyle} on a ${faceShape} face`)
+          .toBeLessThan(face.y);
+      });
+    });
+  });
+
+  /** How wide the face actually is at a given height, sampled from the fill. */
+  function widthAt(face: SVGGeometryElement, y: number): number {
+    const svg = face.ownerSVGElement!;
+    let inside = 0;
+    for (let x = 0; x <= 100; x++) {
+      const point = svg.createSVGPoint();
+      point.x = x;
+      point.y = y;
+      if (face.isPointInFill(point)) {
+        inside++;
+      }
+    }
+    return inside;
+  }
+
+  function faceFor(faceShape: FaceShape): SVGGeometryElement {
+    component.avatar = { ...defaultAvatar(), faceShape };
+    fixture.detectChanges();
+    return fixture.nativeElement.querySelector('.face');
+  }
+
+  /** The silhouette: how wide the face is at the brow, the cheek and the chin. */
+  function profileOf(shape: FaceShape): number[] {
+    const face = faceFor(shape);
+    return [40, 54, 78].map(y => widthAt(face, y));
+  }
+
+  it('gives each face a shape of its own, not just a size of its own', () => {
+    // A bounding box cannot see a jaw, and the first version of these shapes
+    // passed a bounds check while looking identical at swatch size. Two faces
+    // are different when their silhouettes are, so measure the silhouette.
+    const profiles = FACE_SHAPES.map(profileOf);
+
+    FACE_SHAPES.forEach((shape, i) => {
+      FACE_SHAPES.slice(i + 1).forEach((other, j) => {
+        const mine = profiles[i];
+        const theirs = profiles[i + 1 + j];
+        const apart = mine.reduce((sum, width, at) => sum + Math.abs(width - theirs[at]), 0);
+
+        expect(apart)
+          .withContext(`${shape} vs ${other}, widths ${mine} against ${theirs}`)
+          .toBeGreaterThan(6);
+      });
+    });
+  });
+
+  it('tapers the heart face and squares off the square one', () => {
+    const chinOf = (shape: FaceShape) => widthAt(faceFor(shape), 78);
+
+    expect(chinOf('heart')).toBeLessThan(chinOf('round'));
+    expect(chinOf('square')).toBeGreaterThan(chinOf('round'));
+  });
+
+  it('keeps every face wider at the cheek than at the chin', () => {
+    // A face that is widest at the jaw is not a face
+    FACE_SHAPES.forEach(shape => {
+      const face = faceFor(shape);
+      expect(widthAt(face, 54)).withContext(shape).toBeGreaterThan(widthAt(face, 80));
+    });
+  });
+
+  it('keeps every face inside the box it is drawn in', () => {
+    FACE_SHAPES.forEach(faceShape => {
+      component.avatar = { ...defaultAvatar(), faceShape };
       fixture.detectChanges();
 
-      const hair = fixture.nativeElement.querySelector('.hair').getBBox();
-      const face = fixture.nativeElement.querySelector('.face').getBBox();
+      const box = fixture.nativeElement.querySelector('.face').getBBox();
+      expect(box.x).withContext(faceShape).toBeGreaterThanOrEqual(0);
+      expect(box.y).withContext(faceShape).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).withContext(faceShape).toBeLessThanOrEqual(100);
+      expect(box.y + box.height).withContext(faceShape).toBeLessThanOrEqual(100);
+    });
+  });
 
-      expect(hair.y).toBeLessThan(face.y);
+  it('keeps the eyes and mouth on the face, whatever its shape', () => {
+    // They are drawn at fixed points; a face narrow or short enough would
+    // leave them floating off it
+    FACE_SHAPES.forEach(faceShape => {
+      component.avatar = { ...defaultAvatar(), faceShape };
+      fixture.detectChanges();
+
+      const face = fixture.nativeElement.querySelector('.face').getBBox();
+      const eyes = Array.from(
+        fixture.nativeElement.querySelectorAll('.eye') as NodeListOf<SVGGraphicsElement>);
+      const mouth = fixture.nativeElement.querySelector('.mouth').getBBox();
+
+      eyes.forEach(eye => {
+        const box = eye.getBBox();
+        expect(box.x).withContext(`eye on ${faceShape}`).toBeGreaterThan(face.x);
+        expect(box.x + box.width).toBeLessThan(face.x + face.width);
+        expect(box.y).toBeGreaterThan(face.y);
+      });
+      expect(mouth.y + mouth.height)
+        .withContext(`mouth on ${faceShape}`)
+        .toBeLessThan(face.y + face.height);
     });
   });
 

@@ -8,7 +8,17 @@
  * What is here and what is deliberately not: research on children's avatars
  * finds that the act of customising is itself what builds identification with
  * the character, and that skin tone, hair and eyes are what children reach for
- * when they are trying to make a character theirs. So none of that is earned —
+ * when they are trying to make a character theirs.
+ *
+ * SKIN TONE ALONE IS NOT REPRESENTATION, and this model used to behave as if
+ * it were. Work on inclusive avatars (Mack et al., CHI 2023, and the EGAL
+ * guidance drawn from it) is explicit: changing skin colour is not enough to
+ * represent people of colour, because the shapes of eyes, mouths, hairstyles
+ * and HAIR TEXTURES are key physical characteristics too. This had six skin
+ * tones and four hair shapes, none of which was a coil, a braid or a loc —
+ * so a child could tint the character their colour and still not find
+ * themselves in it. Zhang et al. (CHI 2025) separately record that children
+ * ask for more hairstyle options than games give them. So none of that is earned —
  * it is free from the first moment, before a single round is played. A child
  * should never have to climb a ladder to be allowed to look like themselves.
  * Items ARE earned. Showing a locked one is the point rather than a tease:
@@ -19,6 +29,7 @@
 
 export interface Avatar {
   skin: string;
+  faceShape: FaceShape;
   hairStyle: HairStyle;
   hairColour: string;
   eyeColour: string;
@@ -55,7 +66,11 @@ export interface WardrobeItem {
   event?: string;
 }
 
-export type HairStyle = 'short' | 'long' | 'curly' | 'bun';
+export type HairStyle =
+  | 'short' | 'long' | 'curly' | 'bun'
+  | 'afro' | 'coils' | 'braids' | 'locs' | 'buzz';
+
+export type FaceShape = 'round' | 'oval' | 'square' | 'heart';
 
 export interface Choice {
   id: string;
@@ -94,11 +109,20 @@ export const EYE_COLOURS: string[] = [
   '#3f8f5a'
 ];
 
-export const HAIR_STYLES: HairStyle[] = ['short', 'long', 'curly', 'bun'];
+/**
+ * Nine, and the five added last are the point: a coil, a braid, a loc, an
+ * afro and a buzz. The first four were all versions of the same hair.
+ */
+export const HAIR_STYLES: HairStyle[] = [
+  'short', 'long', 'curly', 'bun', 'afro', 'coils', 'braids', 'locs', 'buzz'
+];
+
+export const FACE_SHAPES: FaceShape[] = ['round', 'oval', 'square', 'heart'];
 
 export function defaultAvatar(): Avatar {
   return {
     skin: SKIN_TONES[2],
+    faceShape: 'round',
     hairStyle: 'short',
     hairColour: HAIR_COLOURS[1],
     eyeColour: EYE_COLOURS[0],
@@ -125,6 +149,9 @@ export function normaliseAvatar(raw: any, level = 1, earnedEvents: string[] = []
 
   return {
     skin: pick(SKIN_TONES, raw.skin, fallback.skin),
+    // Absent on every character saved before faces could change, which reads
+    // as the round one they have been looking at all along
+    faceShape: pick(FACE_SHAPES, raw.faceShape, fallback.faceShape) as FaceShape,
     hairStyle: pick(HAIR_STYLES, raw.hairStyle, fallback.hairStyle) as HairStyle,
     hairColour: pick(HAIR_COLOURS, raw.hairColour, fallback.hairColour),
     eyeColour: pick(EYE_COLOURS, raw.eyeColour, fallback.eyeColour),
@@ -156,12 +183,46 @@ export const HAIR_PATHS: { [style in HairStyle]: string } = {
   curly: 'M20 44 A10 10 0 0 1 32 28 A10 10 0 0 1 50 22 A10 10 0 0 1 68 28 '
        + 'A10 10 0 0 1 80 44 C74 34 64 28 50 28 C36 28 26 34 20 44 Z',
   bun: 'M22 46 C22 12 78 12 78 46 C78 34 66 30 50 30 C34 30 22 34 22 46 Z '
-     + 'M50 18 m-9 0 a9 9 0 1 0 18 0 a9 9 0 1 0 -18 0'
+     + 'M50 18 m-9 0 a9 9 0 1 0 18 0 a9 9 0 1 0 -18 0',
+  // Wider than the face on both sides, which is the whole shape of it
+  afro: 'M12 50 A38 38 0 0 1 88 50 C88 34 71 26 50 26 C29 26 12 34 12 50 Z',
+  // Tight and close to the scalp, scalloped rather than smooth
+  coils: 'M22 47 A9 9 0 0 1 33 30 A9 9 0 0 1 41 22 A9 9 0 0 1 50 17 '
+       + 'A9 9 0 0 1 59 22 A9 9 0 0 1 67 30 A9 9 0 0 1 78 47 '
+       + 'C73 36 63 31 50 31 C37 31 27 36 22 47 Z',
+  braids: 'M22 46 C22 12 78 12 78 46 C78 34 66 30 50 30 C34 30 22 34 22 46 Z '
+        + 'M19 42 L29 42 L29 86 L19 86 Z M71 42 L81 42 L81 86 L71 86 Z',
+  locs: 'M22 46 C22 12 78 12 78 46 C78 34 66 30 50 30 C34 30 22 34 22 46 Z '
+      + 'M18 44 L23 44 L23 82 L18 82 Z M25 47 L30 47 L30 74 L25 74 Z '
+      + 'M70 47 L75 47 L75 74 L70 74 Z M77 44 L82 44 L82 82 L77 82 Z',
+  // Cropped right down: a thin cap that follows the skull
+  buzz: 'M25 45 C25 8 75 8 75 45 C75 30 64 26 50 26 C36 26 25 30 25 45 Z'
+};
+
+/**
+ * The face shapes, over the same box. `round` is exactly the circle the face
+ * was before it could change, so every character saved until now looks
+ * identical after this.
+ */
+export const FACE_PATHS: { [shape in FaceShape]: string } = {
+  round: 'M50 24 C66.6 24 80 37.4 80 54 C80 70.6 66.6 84 50 84 '
+       + 'C33.4 84 20 70.6 20 54 C20 37.4 33.4 24 50 24 Z',
+  oval: 'M50 22 C64.9 22 77 36.3 77 54 C77 71.7 64.9 86 50 86 '
+      + 'C35.1 86 23 71.7 23 54 C23 36.3 35.1 22 50 22 Z',
+  // Wide and flat-jawed, so the difference is in the silhouette and not only
+  // in the bounding box a test can measure
+  square: 'M34 25 L66 25 Q82 25 82 42 L82 66 Q82 83 64 83 L36 83 '
+        + 'Q18 83 18 66 L18 42 Q18 25 34 25 Z',
+  // Broad at the temples and tapering to a point, which is what makes it
+  // read as a different face rather than a slightly smaller one
+  heart: 'M50 22 C70 22 82 35 82 50 C82 66 69 77 50 89 '
+       + 'C31 77 18 66 18 50 C18 35 30 22 50 22 Z'
 };
 
 /** Everything a child can change today, in the order the chooser shows it. */
 export const AVATAR_CHOICES: { key: keyof Avatar; options: string[] }[] = [
   { key: 'skin', options: SKIN_TONES },
+  { key: 'faceShape', options: FACE_SHAPES },
   { key: 'hairStyle', options: HAIR_STYLES },
   { key: 'hairColour', options: HAIR_COLOURS },
   { key: 'eyeColour', options: EYE_COLOURS }

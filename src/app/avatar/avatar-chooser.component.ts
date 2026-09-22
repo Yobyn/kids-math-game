@@ -8,6 +8,8 @@ import { levelForXp } from '../levels/level-curve';
 import {
   Avatar,
   EYE_COLOURS,
+  FACE_SHAPES,
+  FaceShape,
   HAIR_COLOURS,
   HAIR_STYLES,
   HairStyle,
@@ -36,6 +38,7 @@ import {
 export class AvatarChooserComponent implements OnInit {
   avatar!: Avatar;
   skinTones = SKIN_TONES;
+  faceShapes = FACE_SHAPES;
   hairStyles = HAIR_STYLES;
   hairColours = HAIR_COLOURS;
   eyeColours = EYE_COLOURS;
@@ -134,6 +137,11 @@ export class AvatarChooserComponent implements OnInit {
   }
 
   /** The character as it would look with this hair, for the style swatches. */
+  /** The character wearing one face shape, for its swatch to draw. */
+  withFace(shape: FaceShape): Avatar {
+    return { ...this.avatar, faceShape: shape };
+  }
+
   withHair(style: HairStyle): Avatar {
     return { ...this.avatar, hairStyle: style };
   }

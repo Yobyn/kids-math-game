@@ -149,7 +149,8 @@ export type TranslationKeys =
   | 'carry-on'
   | 'or-pick-another'
   | 'ready-to-try'
-  | 'put-it-on';
+  | 'put-it-on'
+  | 'face-shape';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -306,6 +307,7 @@ export class LanguageService {
       'or-pick-another': 'Or pick a different one',
       'ready-to-try': 'Ready to try this one?',
       'put-it-on': 'Put it on',
+      'face-shape': 'Face',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -456,6 +458,7 @@ export class LanguageService {
       'or-pick-another': 'Of kies een andere',
       'ready-to-try': 'Klaar om deze te proberen?',
       'put-it-on': 'Doe het aan',
+      'face-shape': 'Gezicht',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -606,6 +609,7 @@ export class LanguageService {
       'or-pick-another': 'O elige otro',
       'ready-to-try': '¿Listo para probar este?',
       'put-it-on': 'Póntelo',
+      'face-shape': 'Cara',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',

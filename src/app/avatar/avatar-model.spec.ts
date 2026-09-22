@@ -65,6 +65,7 @@ describe('reading a stored character', () => {
   it('keeps every choice that is still valid', () => {
     const chosen: Avatar = {
       skin: SKIN_TONES[4],
+      faceShape: 'square',
       hairStyle: 'curly',
       hairColour: HAIR_COLOURS[5],
       eyeColour: EYE_COLOURS[2],
