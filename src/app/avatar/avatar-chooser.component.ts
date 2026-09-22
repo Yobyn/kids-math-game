@@ -8,12 +8,13 @@ import { levelForXp } from '../levels/level-curve';
 import {
   Avatar,
   EYE_COLOURS,
+  EYE_SHAPES,
   FACE_SHAPES,
-  FaceShape,
   HAIR_COLOURS,
   HAIR_STYLES,
-  HairStyle,
+  HAIR_TEXTURES,
   ItemSlot,
+  MOUTH_SHAPES,
   NO_ITEM,
   SKIN_TONES,
   WardrobeItem,
@@ -21,6 +22,7 @@ import {
   itemsForSlot,
   nextUnlock
 } from './avatar-model';
+import { ChooserRow, SECTIONS, SectionId } from './chooser-sections';
 
 /**
  * Where a child makes the character theirs. Every choice here is free and
@@ -37,17 +39,21 @@ import {
 })
 export class AvatarChooserComponent implements OnInit {
   avatar!: Avatar;
-  skinTones = SKIN_TONES;
-  faceShapes = FACE_SHAPES;
-  hairStyles = HAIR_STYLES;
-  hairColours = HAIR_COLOURS;
-  eyeColours = EYE_COLOURS;
-  /** The earned rows, kept as data so the template stays typed. */
-  wardrobe: { slot: ItemSlot; heading: TranslationKeys; items: WardrobeItem[] }[] = [
-    { slot: 'hat', heading: 'hats', items: itemsForSlot('hat') },
-    { slot: 'glasses', heading: 'glasses', items: itemsForSlot('glasses') },
-    { slot: 'top', heading: 'tops', items: itemsForSlot('top') }
-  ];
+  readonly sections = SECTIONS;
+  /** The section on screen. The face first: it is what says who this is. */
+  open: SectionId = 'face';
+
+  /** What each row of choices offers, looked up by the part it changes. */
+  private readonly options: { [part: string]: string[] } = {
+    skin: SKIN_TONES,
+    faceShape: FACE_SHAPES,
+    eyeShape: EYE_SHAPES,
+    eyeColour: EYE_COLOURS,
+    mouthShape: MOUTH_SHAPES,
+    hairStyle: HAIR_STYLES,
+    hairTexture: HAIR_TEXTURES,
+    hairColour: HAIR_COLOURS
+  };
   level = 1;
   nextReward?: WardrobeItem;
   earnedEvents: string[] = [];
@@ -87,6 +93,50 @@ export class AvatarChooserComponent implements OnInit {
     }
     return nextOpening(event, new Date())
       .toLocaleDateString(undefined, { month: 'long' });
+  }
+
+  /** The section a child is looking at. */
+  show(id: SectionId) {
+    this.open = id;
+  }
+
+  get rows(): ChooserRow[] {
+    const section = SECTIONS.find(entry => entry.id === this.open);
+    return section ? section.rows : [];
+  }
+
+  /** The choices in a row: colours and shapes for a part, items for a slot. */
+  choicesFor(row: ChooserRow): string[] {
+    return row.part ? this.options[row.part] || [] : [];
+  }
+
+  itemsFor(row: ChooserRow): WardrobeItem[] {
+    return row.slot ? itemsForSlot(row.slot) : [];
+  }
+
+  /** True where the swatch shows a colour rather than drawing a character. */
+  isColour(row: ChooserRow): boolean {
+    return !row.shape;
+  }
+
+  chosen(row: ChooserRow, value: string): boolean {
+    return !!row.part && this.avatar[row.part] === value;
+  }
+
+  /** The character as it would look with this one part changed. */
+  withPart(row: ChooserRow, value: string): Avatar {
+    return row.part ? ({ ...this.avatar, [row.part]: value } as Avatar) : this.avatar;
+  }
+
+  /** Hair texture only reads at all on the head, so its swatches show one. */
+  framingForRow(row: ChooserRow): 'portrait' | 'full' {
+    return row.slot === 'top' ? 'full' : 'portrait';
+  }
+
+  pickPart(row: ChooserRow, value: string) {
+    if (row.part) {
+      this.choose(row.part, value);
+    }
   }
 
   wearing(slot: ItemSlot): string {
@@ -134,16 +184,6 @@ export class AvatarChooserComponent implements OnInit {
   choose(part: keyof Avatar, value: string) {
     this.avatar = { ...this.avatar, [part]: value } as Avatar;
     this.avatarService.save(this.avatar);
-  }
-
-  /** The character as it would look with this hair, for the style swatches. */
-  /** The character wearing one face shape, for its swatch to draw. */
-  withFace(shape: FaceShape): Avatar {
-    return { ...this.avatar, faceShape: shape };
-  }
-
-  withHair(style: HairStyle): Avatar {
-    return { ...this.avatar, hairStyle: style };
   }
 
   done() {

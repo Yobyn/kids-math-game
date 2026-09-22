@@ -3,7 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (made to fit a device held sideways, the same day)
+Last surveyed: 2026-09-22 (the character finished, the same day)
 
 ## What works today
 
@@ -39,7 +39,11 @@ Last surveyed: 2026-09-22 (made to fit a device held sideways, the same day)
   restored silently — for four hours.
 - Fits a phone on its side, a large tablet, and a device with a notch;
   pinch zoom works.
-- 858 unit tests plus 16 server tests, run on every PR by GitHub Actions
+- The character has a face of its own: six skin tones, four face shapes, four
+  eye shapes, four mouths, nine hair styles and three hair textures that
+  compose with all of them, plus hair and eye colour. The page is three
+  sections a child moves between rather than one long scroll.
+- 907 unit tests plus 16 server tests, run on every PR by GitHub Actions
   alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
@@ -479,6 +483,38 @@ a backend that currently keeps its users in memory (see Code health).
   persists the result screen itself. And an interrupted round is not carried
   into an account at signup — it is deliberately let go, on the grounds that
   the child is in the middle of it right now under whichever name.
+- **The character is finished, and the page that makes it is navigable.**
+  The inclusive-avatar work (Mack et al., CHI 2023) names four physical
+  characteristics that skin tone cannot stand in for; two were done and two
+  were not. EYE SHAPE was one pair of circles on every child and MOUTH SHAPE
+  one curve. Both are choices now, four of each, and `round` and `smile` are
+  exactly what was drawn before, so nobody's saved character moved.
+  HAIR TEXTURE IS ITS OWN AXIS NOW, which means long coily hair exists — it
+  could not before, because texture was bundled into the style and the only
+  coily options were short ones. The obvious design was a silhouette per
+  style per texture: twenty-seven hand-drawn shapes, and incoherent anyway,
+  because five of the nine styles (afro, coils, braids, locs, curly) ARE a
+  texture and a texture control over them asks the same question twice.
+  Instead the texture is a rim along the hair's own outline — a dash pattern
+  in a lighter tint of the hair colour, so it composes with every style at
+  the cost of no new paths. Smooth draws no rim at all.
+  THE PAGE IS THREE SECTIONS: your face, your hair, things to wear, in that
+  order. It was eight rows in one column — 1862px at 390px wide, 2.2
+  screenfuls, 3.7 in landscape, the longest screen in the game — and every
+  row was equally present and none of them findable. Fu et al. (2025,
+  preprint: 48 children aged 8-13, interviews and observed play) put
+  SELF-REPRESENTATION first among four reasons children make avatars, so the
+  parts that make a face look like a particular child do not belong at the
+  bottom of a scroll. After: 1.4-1.6 screenfuls in portrait, 1.0 on a tablet.
+  Everything earned is in the third section and nothing earned is anywhere
+  else, so two of the three can be opened without ever meeting a lock — a
+  test pins that, along with "every part of the character is in exactly one
+  section", which is the failure this splits into.
+  STILL OPEN: the page is 2.3-2.9 screenfuls with the phone on its side, so
+  the sections helped but did not finish the job there; the swatch rows are
+  what is left to lay out. The texture rim reads as beads or coils at the
+  edge of the hair rather than through it, which is a stylisation rather
+  than a likeness, and a child with fine wavy hair will not find it exactly.
 - **Installable, but the update prompt is missing.** The service worker takes
   over immediately on activation (`skipWaiting` + `clients.claim`); a child
   mid-round when a deploy lands gets the new shell on their next navigation

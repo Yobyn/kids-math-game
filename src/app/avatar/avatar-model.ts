@@ -31,8 +31,11 @@ export interface Avatar {
   skin: string;
   faceShape: FaceShape;
   hairStyle: HairStyle;
+  hairTexture: HairTexture;
   hairColour: string;
+  eyeShape: EyeShape;
   eyeColour: string;
+  mouthShape: MouthShape;
   /** Item ids, or NO_ITEM. Earned, unlike everything above. */
   hat: string;
   glasses: string;
@@ -71,6 +74,24 @@ export type HairStyle =
   | 'afro' | 'coils' | 'braids' | 'locs' | 'buzz';
 
 export type FaceShape = 'round' | 'oval' | 'square' | 'heart';
+
+/**
+ * The shape of the eyes, which used to be one pair of circles on every child.
+ * Mack et al. name eye shape among the physical characteristics that skin
+ * tone alone cannot stand in for.
+ */
+export type EyeShape = 'round' | 'almond' | 'wide' | 'narrow';
+
+/** And the mouth, which used to be one curve on every child. */
+export type MouthShape = 'smile' | 'grin' | 'soft' | 'open';
+
+/**
+ * Hair texture, separate from the shape the hair is cut into — so long hair
+ * can be coily, which it could not be while texture was bundled into the
+ * style. Drawn as a rim along the hair's own outline rather than as a second
+ * silhouette per style, which would have meant nine paths times three.
+ */
+export type HairTexture = 'smooth' | 'wavy' | 'coily';
 
 export interface Choice {
   id: string;
@@ -119,13 +140,22 @@ export const HAIR_STYLES: HairStyle[] = [
 
 export const FACE_SHAPES: FaceShape[] = ['round', 'oval', 'square', 'heart'];
 
+export const EYE_SHAPES: EyeShape[] = ['round', 'almond', 'wide', 'narrow'];
+
+export const MOUTH_SHAPES: MouthShape[] = ['smile', 'grin', 'soft', 'open'];
+
+export const HAIR_TEXTURES: HairTexture[] = ['smooth', 'wavy', 'coily'];
+
 export function defaultAvatar(): Avatar {
   return {
     skin: SKIN_TONES[2],
     faceShape: 'round',
     hairStyle: 'short',
+    hairTexture: 'smooth',
     hairColour: HAIR_COLOURS[1],
+    eyeShape: 'round',
     eyeColour: EYE_COLOURS[0],
+    mouthShape: 'smile',
     hat: NO_ITEM,
     glasses: NO_ITEM,
     top: NO_ITEM
@@ -153,8 +183,13 @@ export function normaliseAvatar(raw: any, level = 1, earnedEvents: string[] = []
     // as the round one they have been looking at all along
     faceShape: pick(FACE_SHAPES, raw.faceShape, fallback.faceShape) as FaceShape,
     hairStyle: pick(HAIR_STYLES, raw.hairStyle, fallback.hairStyle) as HairStyle,
+    // Absent on every character saved before these could change, and every
+    // fallback is exactly what was drawn then — so nobody's character moves
+    hairTexture: pick(HAIR_TEXTURES, raw.hairTexture, fallback.hairTexture) as HairTexture,
     hairColour: pick(HAIR_COLOURS, raw.hairColour, fallback.hairColour),
+    eyeShape: pick(EYE_SHAPES, raw.eyeShape, fallback.eyeShape) as EyeShape,
     eyeColour: pick(EYE_COLOURS, raw.eyeColour, fallback.eyeColour),
+    mouthShape: pick(MOUTH_SHAPES, raw.mouthShape, fallback.mouthShape) as MouthShape,
     hat: wearable('hat', raw.hat, level, earnedEvents),
     glasses: wearable('glasses', raw.glasses, level, earnedEvents),
     top: wearable('top', raw.top, level, earnedEvents)
@@ -219,13 +254,97 @@ export const FACE_PATHS: { [shape in FaceShape]: string } = {
        + 'C31 77 18 66 18 50 C18 35 30 22 50 22 Z'
 };
 
+/**
+ * Both eyes in one path, so a shape is one string rather than a pair that can
+ * drift apart. `round` is exactly the two circles the eyes were before this,
+ * to the same centres and radius, so no saved character changes.
+ *
+ * Every shape covers (39, 50.5) and (61, 50.5), because that is where the
+ * white glint sits and a glint outside the eye is a freckle.
+ */
+export const EYE_PATHS: { [shape in EyeShape]: string } = {
+  round: 'M34.5 52 a4.5 4.5 0 1 0 9 0 a4.5 4.5 0 1 0 -9 0 '
+       + 'M56.5 52 a4.5 4.5 0 1 0 9 0 a4.5 4.5 0 1 0 -9 0',
+  // Tapered at both corners, which is the shape a circle cannot make
+  almond: 'M33 52 Q39 46 45 52 Q39 58 33 52 Z '
+        + 'M55 52 Q61 46 67 52 Q61 58 55 52 Z',
+  wide: 'M33 52 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0 '
+      + 'M55 52 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0',
+  // Long and low, and still tall enough at the centre to hold the glint
+  narrow: 'M32.5 52 Q39 47.5 45.5 52 Q39 55.5 32.5 52 Z '
+        + 'M54.5 52 Q61 47.5 67.5 52 Q61 55.5 54.5 52 Z'
+};
+
+export interface Mouth {
+  d: string;
+  /** Filled shapes are drawn rather than traced. */
+  filled?: boolean;
+}
+
+/** `smile` is exactly the curve every child used to have. */
+export const MOUTH_PATHS: { [shape in MouthShape]: Mouth } = {
+  smile: { d: 'M40 66 Q50 74 60 66' },
+  grin: { d: 'M36 65 Q50 78 64 65' },
+  soft: { d: 'M42 68 Q50 71.5 58 68' },
+  open: { d: 'M41 65 Q50 62 59 65 Q50 78 41 65 Z', filled: true }
+};
+
+/**
+ * Texture as a rim along the hair's own outline: a dash pattern, drawn in a
+ * lighter tint of the hair colour over the same path.
+ *
+ * THE OBVIOUS DESIGN WAS A SECOND SILHOUETTE PER STYLE, and it does not
+ * survive contact with the styles already here: nine styles times three
+ * textures is twenty-seven hand-drawn shapes, and five of the styles — afro,
+ * coils, braids, locs, curly — ARE a texture, so a texture control over them
+ * would be asking the same question twice. A rim composes with every style,
+ * costs no new paths, and lets a child have long coily hair, which is the
+ * thing that was actually missing.
+ *
+ * An empty pattern means no rim at all, so `smooth` draws exactly what was
+ * drawn before.
+ */
+export const TEXTURE_DASHES: { [texture in HairTexture]: string } = {
+  smooth: '',
+  wavy: '7 5',
+  coily: '0.5 4'
+};
+
+/** How wide the rim is drawn, which is what makes a dash read as a coil. */
+export const TEXTURE_WIDTH: { [texture in HairTexture]: number } = {
+  smooth: 0,
+  wavy: 3,
+  coily: 4
+};
+
+/**
+ * A lighter version of a colour, for the texture rim. Kept here rather than
+ * in CSS because the hair colour is chosen at runtime and the rim has to
+ * follow it — a fixed highlight would read as grey hair on a dark head and
+ * as nothing at all on a light one.
+ */
+export function lighten(colour: string, amount = 0.35): string {
+  const hex = /^#([0-9a-f]{6})$/i.exec(colour || '');
+  if (!hex) {
+    return colour;
+  }
+  const value = parseInt(hex[1], 16);
+  const channels = [(value >> 16) & 255, (value >> 8) & 255, value & 255];
+  const lifted = channels.map(channel =>
+    Math.max(0, Math.min(255, Math.round(channel + (255 - channel) * amount))));
+  return '#' + lifted.map(channel => channel.toString(16).padStart(2, '0')).join('');
+}
+
 /** Everything a child can change today, in the order the chooser shows it. */
 export const AVATAR_CHOICES: { key: keyof Avatar; options: string[] }[] = [
   { key: 'skin', options: SKIN_TONES },
   { key: 'faceShape', options: FACE_SHAPES },
+  { key: 'eyeShape', options: EYE_SHAPES },
+  { key: 'eyeColour', options: EYE_COLOURS },
+  { key: 'mouthShape', options: MOUTH_SHAPES },
   { key: 'hairStyle', options: HAIR_STYLES },
-  { key: 'hairColour', options: HAIR_COLOURS },
-  { key: 'eyeColour', options: EYE_COLOURS }
+  { key: 'hairTexture', options: HAIR_TEXTURES },
+  { key: 'hairColour', options: HAIR_COLOURS }
 ];
 
 /**

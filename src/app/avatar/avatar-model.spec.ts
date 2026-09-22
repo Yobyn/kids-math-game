@@ -1,20 +1,28 @@
 import {
   Avatar,
-  NO_ITEM,
+  EVENT_ITEMS,
   EYE_COLOURS,
+  EYE_PATHS,
+  EYE_SHAPES,
   HAIR_COLOURS,
   HAIR_PATHS,
   HAIR_STYLES,
+  HAIR_TEXTURES,
+  MOUTH_PATHS,
+  MOUTH_SHAPES,
+  NO_ITEM,
   SKIN_TONES,
-  EVENT_ITEMS,
+  TEXTURE_DASHES,
+  TEXTURE_WIDTH,
   WARDROBE,
-  itemForEvent,
-  levelItems,
   defaultAvatar,
   findItem,
   isUnlocked,
+  itemForEvent,
   itemsForSlot,
   itemsUnlockedAt,
+  levelItems,
+  lighten,
   nextUnlock,
   normaliseAvatar
 } from './avatar-model';
@@ -67,8 +75,11 @@ describe('reading a stored character', () => {
       skin: SKIN_TONES[4],
       faceShape: 'square',
       hairStyle: 'curly',
+      hairTexture: 'coily',
       hairColour: HAIR_COLOURS[5],
+      eyeShape: 'almond',
       eyeColour: EYE_COLOURS[2],
+      mouthShape: 'grin',
       hat: NO_ITEM,
       glasses: NO_ITEM,
       top: NO_ITEM
@@ -301,5 +312,144 @@ describe('items won by being there', () => {
       expect(item.path).toMatch(/^M/);
       expect(item.colour).toMatch(/^#[0-9a-f]{6}$/i);
     });
+  });
+});
+
+describe('the parts of a face that skin tone cannot stand in for', () => {
+  it('offers a shape for the eyes, which used to be one pair of circles', () => {
+    expect(EYE_SHAPES.length).toBeGreaterThan(1);
+    EYE_SHAPES.forEach(shape => expect(EYE_PATHS[shape]).toBeTruthy());
+  });
+
+  it('offers a shape for the mouth, which used to be one curve', () => {
+    expect(MOUTH_SHAPES.length).toBeGreaterThan(1);
+    MOUTH_SHAPES.forEach(shape => expect(MOUTH_PATHS[shape].d).toBeTruthy());
+  });
+
+  it('draws every eye shape differently from every other', () => {
+    const drawn = EYE_SHAPES.map(shape => EYE_PATHS[shape]);
+
+    expect(new Set(drawn).size).toBe(EYE_SHAPES.length);
+  });
+
+  it('draws every mouth shape differently from every other', () => {
+    const drawn = MOUTH_SHAPES.map(shape => MOUTH_PATHS[shape].d);
+
+    expect(new Set(drawn).size).toBe(MOUTH_SHAPES.length);
+  });
+
+  it('draws both eyes in every shape, not one', () => {
+    // One path holds the pair, so they cannot drift apart. Two subpaths.
+    EYE_SHAPES.forEach(shape => {
+      const starts = (EYE_PATHS[shape].match(/M/g) || []).length;
+      expect(starts).toBe(2, shape);
+    });
+  });
+
+  it('leaves the default character exactly as it was drawn before', () => {
+    // A child who saved a character last week must find the same one
+    const fresh = defaultAvatar();
+
+    expect(fresh.eyeShape).toBe('round');
+    expect(fresh.mouthShape).toBe('smile');
+    expect(fresh.hairTexture).toBe('smooth');
+    expect(EYE_PATHS.round).toContain('4.5');
+    expect(MOUTH_PATHS.smile.d).toBe('M40 66 Q50 74 60 66');
+    expect(TEXTURE_DASHES.smooth).toBe('');
+  });
+
+  it('reads a character saved before any of these existed as the old one', () => {
+    const before = {
+      skin: SKIN_TONES[4], faceShape: 'oval', hairStyle: 'long',
+      hairColour: HAIR_COLOURS[2], eyeColour: EYE_COLOURS[1],
+      hat: NO_ITEM, glasses: NO_ITEM, top: NO_ITEM
+    };
+
+    const read = normaliseAvatar(before);
+
+    expect(read.eyeShape).toBe('round');
+    expect(read.mouthShape).toBe('smile');
+    expect(read.hairTexture).toBe('smooth');
+    // And keeps everything it did have
+    expect(read.skin).toBe(SKIN_TONES[4]);
+    expect(read.hairStyle).toBe('long');
+  });
+
+  it('drops a shape that is not one of the shapes', () => {
+    const read = normaliseAvatar({ eyeShape: 'googly', mouthShape: 'fangs', hairTexture: 'wet' });
+
+    expect(read.eyeShape).toBe('round');
+    expect(read.mouthShape).toBe('smile');
+    expect(read.hairTexture).toBe('smooth');
+  });
+});
+
+describe('hair texture, separate from the shape the hair is cut into', () => {
+  it('lets long hair be coily, which it could not be before', () => {
+    // The gap this closes: texture used to be bundled into the style, so the
+    // only coily options were short ones
+    const coilyLong = normaliseAvatar({ hairStyle: 'long', hairTexture: 'coily' });
+
+    expect(coilyLong.hairStyle).toBe('long');
+    expect(coilyLong.hairTexture).toBe('coily');
+  });
+
+  it('composes with every style, without a silhouette for each pairing', () => {
+    HAIR_STYLES.forEach(style => {
+      HAIR_TEXTURES.forEach(texture => {
+        const both = normaliseAvatar({ hairStyle: style, hairTexture: texture });
+        expect(both.hairStyle).toBe(style);
+        expect(both.hairTexture).toBe(texture);
+      });
+    });
+  });
+
+  it('draws nothing at all for smooth hair', () => {
+    expect(TEXTURE_DASHES.smooth).toBe('');
+    expect(TEXTURE_WIDTH.smooth).toBe(0);
+  });
+
+  it('draws something, and something different, for each of the others', () => {
+    const textured = HAIR_TEXTURES.filter(texture => texture !== 'smooth');
+
+    textured.forEach(texture => {
+      expect(TEXTURE_DASHES[texture]).toBeTruthy();
+      expect(TEXTURE_WIDTH[texture]).toBeGreaterThan(0);
+    });
+    expect(new Set(textured.map(texture => TEXTURE_DASHES[texture])).size)
+      .toBe(textured.length);
+  });
+});
+
+describe('the lighter tint the texture rim is drawn in', () => {
+  it('lifts a colour towards white', () => {
+    expect(lighten('#000000', 0.5)).toBe('#808080');
+    expect(lighten('#ffffff', 0.5)).toBe('#ffffff');
+  });
+
+  it('follows the hair colour rather than being a fixed highlight', () => {
+    // A fixed one reads as grey hair on a dark head and as nothing on a light
+    expect(lighten('#2b2118')).not.toBe(lighten('#e0b35a'));
+  });
+
+  it('always lands on a colour a browser can read', () => {
+    HAIR_COLOURS.forEach(colour => {
+      expect(lighten(colour)).toMatch(/^#[0-9a-f]{6}$/);
+    });
+  });
+
+  it('is always lighter than what it came from, never darker', () => {
+    const brightness = (hex: string) =>
+      parseInt(hex.slice(1, 3), 16) + parseInt(hex.slice(3, 5), 16) + parseInt(hex.slice(5, 7), 16);
+
+    HAIR_COLOURS.forEach(colour => {
+      expect(brightness(lighten(colour))).toBeGreaterThan(brightness(colour) - 1);
+    });
+  });
+
+  it('hands back anything that is not a colour unchanged, rather than NaN', () => {
+    expect(lighten('')).toBe('');
+    expect(lighten('rebeccapurple')).toBe('rebeccapurple');
+    expect(lighten(null as any)).toBe(null as any);
   });
 });
