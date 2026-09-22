@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { LanguageService } from '../services/language.service';
 import { ProgressService } from '../services/progress.service';
 import { lastGrade } from '../levels/difficulty-tuner';
+import { suggestGrade } from '../levels/grade-tuner';
 
 @Component({
   selector: 'app-grade-select',
@@ -26,6 +27,13 @@ export class GradeSelectComponent implements OnInit {
    */
   carryOnGrade?: number;
 
+  /**
+   * The grade to try next, when several rounds at the top rung of this one
+   * have gone well. Marked, never chosen for them — the same rule the
+   * difficulty screen follows.
+   */
+  suggestedGrade?: number;
+
   constructor(
     private router: Router,
     private progressService: ProgressService,
@@ -33,7 +41,11 @@ export class GradeSelectComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.carryOnGrade = lastGrade(this.progressService.getHistory());
+    const history = this.progressService.getHistory();
+    this.carryOnGrade = lastGrade(history);
+    if (this.carryOnGrade) {
+      this.suggestedGrade = suggestGrade(history, this.carryOnGrade);
+    }
   }
 
   get carryOnLabel(): string {

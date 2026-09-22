@@ -3,7 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (the grade screen fixed the same day)
+Last surveyed: 2026-09-22 (grade suggestions added the same day)
 
 ## What works today
 
@@ -32,7 +32,7 @@ Last surveyed: 2026-09-22 (the grade screen fixed the same day)
 - Sound and haptics switch in the header, remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
   respects `prefers-reduced-motion`.
-- 611 unit tests, run on every PR by GitHub Actions alongside the build.
+- 632 unit tests, run on every PR by GitHub Actions alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
 
@@ -106,11 +106,39 @@ a backend that currently keeps its users in memory (see Code health).
   answer "how hard was it" and must not become evidence about which rung the
   child belongs on. The child's stored choice is left alone: the offer is
   about the rest of this round, not about what they play next.
-  What is still missing: grade is never revisited, and the between-round
-  suggestion only reads rounds at the current grade, so a child who has
-  outgrown their grade entirely is never told. The offer also only goes one
-  way — there is no "shall we make it harder" for a child breezing through,
-  which is the same argument in reverse and worth its own run.
+  GRADE IS REVISITED NOW TOO, and three decisions in
+  `src/app/levels/grade-tuner.ts` are worth keeping straight.
+  It only ever points UP. A grade is a school year, so telling a child to go
+  down one is a statement about them rather than about the questions — and it
+  is not needed, because the difficulty ladder already handles "this is too
+  hard" without touching the grade, and asks rather than tells. Up and down
+  look symmetrical and are not. A sweep asserts no history at any grade and
+  any score can ever produce a downward suggestion.
+  It WAITS FOR THE DIFFICULTY LADDER TO RUN OUT: grade and difficulty are two
+  dials on the same thing, and the cheaper, safer one comes first. Only three
+  rounds at the TOP rung, all at 90% or better, mark the next grade's card —
+  a higher bar and more rounds than a difficulty step, because moving a whole
+  year is a bigger claim. The card is marked and given a line; every other
+  card stays exactly as choosable.
+  It DOES NOT MEASURE SPEED, which is the obvious way to tell "knows it" from
+  "got there eventually". Boaler's Fluency Without Fear reports that for
+  roughly a third of students the onset of timed testing is where maths
+  anxiety begins, and Beilock's imaging work finds time pressure blocks the
+  working memory the facts are held in, so a child under the clock cannot
+  reach facts they know. The evidence is contested — there are no clean
+  experiments proving timed tests cause anxiety — but either way a timer buys
+  a better signal with exactly the thing this game exists to avoid. Accuracy
+  over several rounds is noisier and is the right trade.
+  DELIBERATELY NOT BUILT: a mid-round "shall we make it harder" to mirror the
+  easier offer. It looks like the symmetric case and is not. The downward
+  offer exists because drowning is harmful right now; interrupting a child who
+  is doing well, to ask whether they would like to do worse, turns a good run
+  into a decision they can regret — and a child who says yes and then slips
+  has spoilt their own round by choosing. The upward nudge belongs between
+  rounds, where nothing is at stake, and that is where it now is.
+  What is still missing: the suggestion is read from the grade last played, so
+  a child who has never finished a round sees nothing, which is right; but a
+  child who switches grades often will keep resetting the three-round window.
 - **Spacing is measured in days now, and the intervals are EQUAL.** A missed
   fact used to come back "next round" — a month later, or ninety seconds
   later if the child kept playing. Ninety seconds later is massed practice,

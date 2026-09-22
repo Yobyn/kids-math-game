@@ -19,13 +19,20 @@
          *ngFor="let grade of grades"
          role="button"
          tabindex="0"
-         [attr.aria-label]="grade.name"
+         [class.suggested]="grade.level === suggestedGrade"
+         [attr.aria-label]="grade.name
+           + (grade.level === suggestedGrade
+              ? ' — ' + languageService.translate('ready-to-try')
+              : '')"
          (click)="selectGrade(grade.level)"
          (keydown.enter)="selectGrade(grade.level)"
          (keydown.space)="selectGrade(grade.level)">
       <div class="grade-icon">{{ grade.icon }}</div>
       <h2>{{ grade.name }}</h2>
       <p>{{ grade.description }}</p>
+      <p class="suggestion" *ngIf="grade.level === suggestedGrade">
+        {{ languageService.translate('ready-to-try') }}
+      </p>
     </div>
   </div>
 
