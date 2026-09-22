@@ -8,6 +8,7 @@ import { AuthService } from '../services/auth.service';
 import { LevelProgress, levelProgress, xpForRound } from '../levels/level-curve';
 import { WardrobeItem, itemForEvent, itemsUnlockedAt } from '../avatar/avatar-model';
 import { activeEvent } from '../events/seasonal-events';
+import { EASED_KEY } from '../levels/in-round-tuner';
 
 /**
  * How many rounds a guest plays before the game mentions an account. Guidance
@@ -76,7 +77,7 @@ export class ResultComponent implements OnInit, OnDestroy {
       percentage: this.percentage,
       score: this.score,
       grade: Number(localStorage.getItem('grade')) || 1,
-      difficulty: localStorage.getItem('difficulty') || undefined
+      difficulty: this.difficultyPlayed()
     });
     this.roundsPlayed = this.progressService.getRoundsPlayed();
     this.awardExperience();
@@ -125,6 +126,24 @@ export class ResultComponent implements OnInit, OnDestroy {
       this.timers.push(window.setTimeout(() => {
         this.displayPercentage = Math.round((this.percentage * step) / steps);
       }, 40 * step));
+    }
+  }
+
+  /**
+   * The setting this round was actually played at, or nothing when it changed
+   * part way through. A round that cannot say how hard it was must not be
+   * counted as evidence about how hard the next one should be — and the
+   * suggestion on the difficulty screen reads exactly this field.
+   */
+  private difficultyPlayed(): string | undefined {
+    try {
+      if (localStorage.getItem(EASED_KEY) === 'true') {
+        localStorage.removeItem(EASED_KEY);
+        return undefined;
+      }
+      return localStorage.getItem('difficulty') || undefined;
+    } catch {
+      return undefined;
     }
   }
 

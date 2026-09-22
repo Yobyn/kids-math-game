@@ -66,6 +66,21 @@
       </div>
     </div>
 
+    <!-- Asked, never done silently. A change made for a child without their
+         knowing is one they feel anyway, and it takes the win with it. -->
+    <div class="easier-offer" *ngIf="showEasierOffer" role="group"
+         [attr.aria-label]="languageService.translate('easier-ask')">
+      <p class="easier-ask">{{ languageService.translate('easier-ask') }}</p>
+      <div class="easier-choices">
+        <button type="button" class="easier-yes" (click)="takeEasier()">
+          {{ languageService.translate('easier-yes') }}
+        </button>
+        <button type="button" class="easier-no" (click)="keepGoing()">
+          {{ languageService.translate('easier-no') }}
+        </button>
+      </div>
+    </div>
+
     <div class="button-container">
       <button *ngIf="!showOkButton" 
               class="check-button" 

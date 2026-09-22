@@ -6,6 +6,7 @@ import { SoundService } from '../services/sound.service';
 import { ProgressService } from '../services/progress.service';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { workedStep } from '../teaching/worked-step';
+import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
 /** The quiz is ten questions long; ScoreService.isGameComplete() agrees. */
@@ -70,6 +71,17 @@ export class QuestionComponent implements OnInit {
   readonly totalQuestions = TOTAL_QUESTIONS;
   streakCount: number = 0;
   useKeypad: boolean = false;
+  /**
+   * Every finished question this round, in order, so the offer below can read
+   * a run of misses rather than a single bad question.
+   */
+  private results: boolean[] = [];
+  /** True while the "easier ones?" offer is in front of the child. */
+  showEasierOffer = false;
+  /** Set once the offer has been answered, either way. It never comes back. */
+  private offerSpent = false;
+  /** What the offer would switch to, for naming it on the button. */
+  easierSetting = '';
   keypadKeys: string[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '0', 'del'];
 
   constructor(
@@ -91,6 +103,9 @@ export class QuestionComponent implements OnInit {
       return;
     }
     this.scoreService.resetScore();
+    // A round abandoned half way could leave this set; a new round is honest
+    // about its own setting until it is not.
+    this.clearEasedFlag();
     this.seedMissedFromLastRound();
     this.generateQuestion();
     this.scoreService.getCurrentScore().subscribe(score => {
@@ -348,6 +363,7 @@ export class QuestionComponent implements OnInit {
 
   private handleCorrectAnswer() {
     this.answerWasCorrect = true;
+    this.results.push(true);
     this.streakCount++;
     const bonusPoints = this.calculateBonusPoints();
     this.feedback = this.languageService.translate('correct');
@@ -408,6 +424,8 @@ export class QuestionComponent implements OnInit {
         : workedStep(this.currentQuestion.num1, this.currentQuestion.num2,
                      this.currentQuestion.operation) || '';
       this.showOkButton = true;
+      this.results.push(false);
+      this.considerEasierOffer();
       // Use the service to increment questions answered
       this.scoreService.incrementQuestionsAnswered();
       if (this.scoreService.isGameComplete()) {
@@ -421,6 +439,64 @@ export class QuestionComponent implements OnInit {
       }, 0);
     }
     this.playErrorSound();
+  }
+
+  /**
+   * Asks, once a round at most, whether the child would like the rest of it
+   * easier. It asks rather than acts on purpose: see in-round-tuner.ts. A
+   * change made for a child without their knowing is one they will feel
+   * anyway, and it takes the win with it.
+   */
+  private considerEasierOffer() {
+    const state: OfferState = {
+      results: this.results,
+      difficulty: this.difficulty,
+      totalQuestions: TOTAL_QUESTIONS,
+      spent: this.offerSpent
+    };
+
+    if (!shouldOfferEasier(state)) {
+      return;
+    }
+
+    this.easierSetting = easierThan(this.difficulty) || '';
+    this.showEasierOffer = true;
+  }
+
+  /** Yes: the rest of the round runs a rung easier, and says so. */
+  takeEasier() {
+    const easier = easierThan(this.difficulty);
+    this.dismissOffer();
+    if (!easier) {
+      return;
+    }
+
+    this.difficulty = easier;
+    // The stored choice is left alone: this is a decision about the rest of
+    // this round, not about what the child picked or what they play next.
+    try {
+      localStorage.setItem(EASED_KEY, 'true');
+    } catch {
+      // Worth carrying on without; the round still gets easier
+    }
+  }
+
+  /** No: nothing changes, and nothing asks again. */
+  keepGoing() {
+    this.dismissOffer();
+  }
+
+  private dismissOffer() {
+    this.showEasierOffer = false;
+    this.offerSpent = true;
+  }
+
+  private clearEasedFlag() {
+    try {
+      localStorage.removeItem(EASED_KEY);
+    } catch {
+      // Nothing to clean up if storage is unavailable
+    }
   }
 
   private calculateBonusPoints(): number {

@@ -613,3 +613,208 @@ describe('QuestionComponent showing how', () => {
     expect(component.workedLine).toContain('15');
   });
 });
+
+describe('QuestionComponent offering an easier rest of the round', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  /** Answers the current question wrongly twice, which finishes it. */
+  function missIt() {
+    component.currentQuestion = { num1: 7, num2: 5, operation: '+' };
+    component.correctAnswer = 12;
+    component.wrongAttempts = 0;
+    component.isSecondAttempt = false;
+    component.showOkButton = false;
+    component.userAnswer = '99';
+    component.checkAnswer();
+    component.userAnswer = '98';
+    component.checkAnswer();
+  }
+
+  function getIt() {
+    component.currentQuestion = { num1: 7, num2: 5, operation: '+' };
+    component.correctAnswer = 12;
+    component.wrongAttempts = 0;
+    component.isSecondAttempt = false;
+    component.showOkButton = false;
+    component.userAnswer = '12';
+    component.checkAnswer();
+  }
+
+  function open(difficulty = 'hard') {
+    localStorage.clear();
+    localStorage.setItem('difficulty', difficulty);
+    localStorage.setItem('grade', '3');
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
+      declarations: [QuestionComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('says nothing while the round is going well', () => {
+    open();
+    getIt();
+    getIt();
+    getIt();
+    fixture.detectChanges();
+
+    expect(component.showEasierOffer).toBe(false);
+    expect(fixture.nativeElement.querySelector('.easier-offer')).toBeNull();
+  });
+
+  it('asks after three questions have gone wrong in a row', () => {
+    open();
+    missIt();
+    missIt();
+    expect(component.showEasierOffer).toBe(false);
+
+    missIt();
+    fixture.detectChanges();
+
+    expect(component.showEasierOffer).toBe(true);
+    expect(fixture.nativeElement.querySelector('.easier-offer')).toBeTruthy();
+  });
+
+  it('asks rather than acts', () => {
+    // The whole point: a change made for a child without their knowing is one
+    // they feel anyway, and it takes the win with it
+    open();
+    missIt();
+    missIt();
+    missIt();
+
+    expect(component.difficulty).toBe('hard');
+    expect(localStorage.getItem('difficultyEased')).toBeNull();
+  });
+
+  it('sits on a light face, like everything else there is to read', () => {
+    // Caught by looking at it: the offer first landed as a dark panel inside
+    // the white card, which is the one thing this theme does not do
+    const luminance = (colour: string): number => {
+      const parts = (colour.match(/\d+/g) || ['0', '0', '0']).slice(0, 3).map(Number);
+      const [r, g, b] = parts.map(channel => {
+        const c = channel / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+
+    open();
+    missIt();
+    missIt();
+    missIt();
+    fixture.detectChanges();
+
+    const panel = fixture.nativeElement.querySelector('.easier-offer');
+    const yes = fixture.nativeElement.querySelector('.easier-yes');
+    expect(luminance(getComputedStyle(panel).backgroundColor)).toBeGreaterThan(0.7);
+    expect(luminance(getComputedStyle(yes).backgroundColor)).toBeGreaterThan(0.7);
+  });
+
+  it('offers two choices, neither of them louder than the other', () => {
+    open();
+    missIt();
+    missIt();
+    missIt();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.easier-yes')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.easier-no')).toBeTruthy();
+  });
+
+  it('eases the rest of the round when the child says yes', () => {
+    open();
+    missIt();
+    missIt();
+    missIt();
+    component.takeEasier();
+    fixture.detectChanges();
+
+    expect(component.difficulty).toBe('medium');
+    expect(component.showEasierOffer).toBe(false);
+    expect(fixture.nativeElement.querySelector('.easier-offer')).toBeNull();
+  });
+
+  it('leaves the stored choice alone, so the next round is still theirs', () => {
+    open();
+    missIt();
+    missIt();
+    missIt();
+    component.takeEasier();
+
+    expect(localStorage.getItem('difficulty')).toBe('hard');
+  });
+
+  it('marks the round as one that cannot say how hard it was', () => {
+    // A half-easy round must not become evidence about which rung the child
+    // belongs on — the between-round suggestion reads exactly that field
+    open();
+    missIt();
+    missIt();
+    missIt();
+    component.takeEasier();
+
+    expect(localStorage.getItem('difficultyEased')).toBe('true');
+  });
+
+  it('changes nothing at all when the child says no', () => {
+    open();
+    missIt();
+    missIt();
+    missIt();
+    component.keepGoing();
+
+    expect(component.difficulty).toBe('hard');
+    expect(localStorage.getItem('difficultyEased')).toBeNull();
+    expect(component.showEasierOffer).toBe(false);
+  });
+
+  it('never asks twice, whichever way it was answered', () => {
+    open();
+    missIt();
+    missIt();
+    missIt();
+    component.keepGoing();
+
+    missIt();
+    missIt();
+    missIt();
+    expect(component.showEasierOffer).toBe(false);
+  });
+
+  it('never asks on the easiest setting', () => {
+    open('easy');
+    missIt();
+    missIt();
+    missIt();
+
+    expect(component.showEasierOffer).toBe(false);
+    expect(component.difficulty).toBe('easy');
+  });
+
+  it('only ever steps down one rung', () => {
+    open('hard');
+    missIt();
+    missIt();
+    missIt();
+    component.takeEasier();
+
+    expect(component.difficulty).toBe('medium');
+  });
+
+  it('starts a fresh round with no mark left from an abandoned one', () => {
+    localStorage.setItem('difficultyEased', 'true');
+    open();
+
+    expect(localStorage.getItem('difficultyEased')).toBeNull();
+  });
+});
