@@ -31,6 +31,28 @@
       {{ message }}
     </div>
 
+    <div class="level-panel">
+      <div class="level-row">
+        <span class="level-badge">{{ languageService.translate('level') }} {{ level.level }}</span>
+        <span class="xp-earned">+{{ xpEarned }} {{ languageService.translate('xp') }}</span>
+      </div>
+      <div class="level-track"
+           role="progressbar"
+           [attr.aria-valuenow]="level.xpIntoLevel"
+           [attr.aria-valuemin]="0"
+           [attr.aria-valuemax]="level.xpForLevel"
+           [attr.aria-label]="languageService.translate('level') + ' ' + level.level">
+        <div class="level-fill" [style.width.%]="levelFillPercent"></div>
+      </div>
+      <div class="level-remaining">
+        {{ level.xpRemaining }} {{ languageService.translate('xp-to-next') }}
+      </div>
+    </div>
+
+    <div class="level-up" *ngIf="leveledUp">
+      ⭐ {{ languageService.translate('level-up') }}
+    </div>
+
     <div class="personal-best" *ngIf="isPersonalBest">
       🎉 {{ languageService.translate('new-best') }}
     </div>

@@ -18,6 +18,7 @@ export interface MissedFact {
 
 const STORAGE_KEY = 'roundHistory';
 const MISSED_KEY = 'missedFacts';
+const XP_KEY = 'xp';
 /** Enough to carry a round's mistakes forward without burying the next one. */
 const MAX_MISSED = 12;
 /** Enough to show improvement over time without growing without bound. */
@@ -118,6 +119,23 @@ export class ProgressService {
     return taken;
   }
 
+  /**
+   * Experience is stored rather than derived from history: history is capped
+   * at twenty rounds, and a child must never watch levels fall off the end of
+   * it because they kept playing.
+   */
+  getXp(): number {
+    return this.readXp(this.currentOwner());
+  }
+
+  addXp(amount: number): void {
+    if (!(amount > 0)) {
+      return;
+    }
+    const owner = this.currentOwner();
+    this.writeXp(owner, this.readXp(owner) + Math.floor(amount));
+  }
+
   /** True when a guest has anything an account would be worth keeping for. */
   hasGuestProgress(): boolean {
     return this.readHistory(GUEST_OWNER).length > 0;
@@ -134,15 +152,18 @@ export class ProgressService {
     const owner = accountOwner(username);
     const guestHistory = this.readHistory(GUEST_OWNER);
     const guestMissed = this.readMissed(GUEST_OWNER);
+    const guestXp = this.readXp(GUEST_OWNER);
 
-    if (!guestHistory.length && !guestMissed.length) {
+    if (!guestHistory.length && !guestMissed.length && !guestXp) {
       return;
     }
 
     this.writeHistory(owner, mergeHistory(this.readHistory(owner), guestHistory));
     this.writeMissed(owner, mergeMissed(this.readMissed(owner), guestMissed));
+    this.writeXp(owner, this.readXp(owner) + guestXp);
     this.remove(this.key(STORAGE_KEY, GUEST_OWNER));
     this.remove(this.key(MISSED_KEY, GUEST_OWNER));
+    this.remove(this.key(XP_KEY, GUEST_OWNER));
   }
 
   private currentOwner(): string {
@@ -204,6 +225,21 @@ export class ProgressService {
       return localStorage.getItem(key);
     } catch {
       return null;
+    }
+  }
+
+  private readXp(owner: string): number {
+    const raw = this.item(this.key(XP_KEY, owner));
+    const parsed = Number(raw);
+    // A corrupt or missing value reads as nothing earned, never as NaN
+    return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0;
+  }
+
+  private writeXp(owner: string, xp: number): void {
+    try {
+      localStorage.setItem(this.key(XP_KEY, owner), String(xp));
+    } catch {
+      // Storage being unavailable must never break a round
     }
   }
 

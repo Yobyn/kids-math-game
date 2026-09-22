@@ -211,3 +211,68 @@ h2 {
   background: transparent;
   color: var(--text-dim);
 }
+
+/* The level ladder. The card face stays light — the bar earns its colour from
+   the theme's accents rather than by darkening anything behind the text. */
+.level-panel {
+  margin: 1.5rem 0 0;
+}
+
+.level-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.level-badge {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2d3436;
+}
+
+.xp-earned {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0a7d3f;
+}
+
+.level-track {
+  height: 14px;
+  border-radius: 999px;
+  background: #e4e6f0;
+  overflow: hidden;
+}
+
+.level-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-magenta));
+  transition: width 120ms linear;
+}
+
+.level-remaining {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #636e72;
+  text-align: right;
+}
+
+/* Only on the round that actually crossed a level — a banner every time would
+   make the crossing mean nothing. */
+.level-up {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border-left: 4px solid var(--accent-magenta);
+  background: #faf2ff;
+  color: #5a2170;
+  font-weight: 700;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .level-fill {
+    transition: none;
+  }
+}

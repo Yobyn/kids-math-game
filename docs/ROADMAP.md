@@ -93,8 +93,21 @@ a backend that currently keeps its users in memory (see Code health).
   keeps its progress in `localStorage` like a guest's, so it still does not
   follow a child to another device — the thing the offer implies. That needs
   a progress API and a backend that survives a restart (see Code health).
-- **No levels.** Rounds produce a score and stars; nothing accumulates into a
-  level, so there is no ladder to climb and nothing for rewards to hang off.
+- **Levels exist; nothing hangs off them yet.** Rounds earn experience and
+  experience earns levels, shown on the result screen as a badge, a bar and a
+  "Level up!" on the round that crosses. A round always pays — ten for
+  finishing plus two per correct answer — so a child who scores nothing still
+  climbs, at a third of the pace of a perfect round. Levels cost one round's
+  worth more each time, capped at eight rounds' worth so the ladder never
+  becomes a grind. Experience is stored per player (`xp:<owner>`), not derived
+  from history, which is capped at twenty rounds. The curve lives in
+  `src/app/levels/level-curve.ts`, DOM-free and tested directly.
+  What is missing is the reward: a level up says "Level up!" and nothing else
+  happens. Until the avatar and wardrobe exist there is nothing to unlock, and
+  the product direction is explicit that a reward at every level only works if
+  the levels take real practice — worth re-checking the curve against real
+  play once there is something to win. Level is also not shown anywhere
+  outside the result screen; the header is the obvious home for it.
 - **No avatar, no wardrobe, no events.** None of the reward system exists yet.
 - **History is stored but barely used.** `ProgressService` keeps the last 20
   rounds; only the best percentage is shown. Nothing plots improvement over

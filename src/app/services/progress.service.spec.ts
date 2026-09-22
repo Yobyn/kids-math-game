@@ -276,3 +276,95 @@ describe('progress merging', () => {
     expect(mergeMissed(facts, others).length).toBe(12);
   });
 });
+
+describe('ProgressService experience', () => {
+  let service: ProgressService;
+
+  beforeEach(() => {
+    localStorage.clear();
+    service = new ProgressService();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('starts a new player at nothing earned', () => {
+    expect(service.getXp()).toBe(0);
+  });
+
+  it('accumulates across rounds', () => {
+    service.addXp(24);
+    service.addXp(18);
+
+    expect(service.getXp()).toBe(42);
+  });
+
+  it('files experience per player, like everything else', () => {
+    service.addXp(30);
+    localStorage.setItem('username', 'ada');
+
+    expect(service.getXp()).toBe(0);
+
+    localStorage.removeItem('username');
+    expect(service.getXp()).toBe(30);
+  });
+
+  it('survives history rolling off the end', () => {
+    // History is capped at twenty rounds; a level must not be capped with it
+    for (let i = 0; i < 25; i++) {
+      service.record({ correctAnswers: 8, total: 10, percentage: 80, score: 18, grade: 2 });
+      service.addXp(26);
+    }
+
+    expect(service.getRoundsPlayed()).toBe(20);
+    expect(service.getXp()).toBe(25 * 26);
+  });
+
+  it('ignores nothing, negatives and junk', () => {
+    service.addXp(0);
+    service.addXp(-40);
+    service.addXp(NaN);
+
+    expect(service.getXp()).toBe(0);
+  });
+
+  it('reads a corrupt total as a fresh start rather than NaN', () => {
+    localStorage.setItem('xp:guest', 'plenty');
+
+    expect(service.getXp()).toBe(0);
+
+    service.addXp(10);
+    expect(service.getXp()).toBe(10);
+  });
+
+  it('carries experience into the account a guest signs up for', () => {
+    service.addXp(120);
+
+    service.adoptGuestProgress('ada');
+
+    expect(service.getXp()).toBe(0);
+    localStorage.setItem('username', 'ada');
+    expect(service.getXp()).toBe(120);
+  });
+
+  it('adds to what an account already had rather than replacing it', () => {
+    localStorage.setItem('username', 'ada');
+    service.addXp(200);
+    localStorage.removeItem('username');
+    service.addXp(50);
+
+    service.adoptGuestProgress('ada');
+
+    localStorage.setItem('username', 'ada');
+    expect(service.getXp()).toBe(250);
+  });
+
+  it('carries experience even when no rounds are left in history', () => {
+    service.addXp(75);
+    localStorage.removeItem('roundHistory:guest');
+
+    service.adoptGuestProgress('ada');
+
+    localStorage.setItem('username', 'ada');
+    expect(service.getXp()).toBe(75);
+  });
+});

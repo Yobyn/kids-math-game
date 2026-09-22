@@ -77,7 +77,10 @@ export type TranslationKeys =
   | 'keep-progress-title'
   | 'keep-progress-body'
   | 'create-account'
-  | 'not-now';
+  | 'not-now'
+  | 'xp'
+  | 'xp-to-next'
+  | 'level-up';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -157,6 +160,9 @@ export class LanguageService {
       'keep-progress-body': 'Right now they are saved on this device. An account keeps them under your own name.',
       'create-account': 'Create an account',
       'not-now': 'Not now',
+      'xp': 'XP',
+      'xp-to-next': 'XP to the next level',
+      'level-up': 'Level up!',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -235,6 +241,9 @@ export class LanguageService {
       'keep-progress-body': 'Nu staan ze op dit apparaat. Met een account blijven ze onder je eigen naam bewaard.',
       'create-account': 'Account aanmaken',
       'not-now': 'Niet nu',
+      'xp': 'XP',
+      'xp-to-next': 'XP tot het volgende niveau',
+      'level-up': 'Niveau omhoog!',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -313,6 +322,9 @@ export class LanguageService {
       'keep-progress-body': 'Ahora se guardan en este dispositivo. Con una cuenta se conservan a tu propio nombre.',
       'create-account': 'Crear una cuenta',
       'not-now': 'Ahora no',
+      'xp': 'XP',
+      'xp-to-next': 'XP para el siguiente nivel',
+      'level-up': '¡Subiste de nivel!',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',
