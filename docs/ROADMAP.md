@@ -108,7 +108,7 @@ a backend that currently keeps its users in memory (see Code health).
   the levels take real practice — worth re-checking the curve against real
   play once there is something to win. Level is also not shown anywhere
   outside the result screen; the header is the obvious home for it.
-- **The avatar exists; the wardrobe and events do not.** A child has a
+- **The avatar and its wardrobe exist; events do not.** A child has a
   character they can make theirs from the first visit — skin tone, hair style,
   hair colour and eye colour — reached by tapping the character in the header,
   and it is drawn from SVG primitives with no image assets, so it stays sharp
@@ -118,11 +118,20 @@ a backend that currently keeps its users in memory (see Code health).
   finds the act of customising is what builds identification with the
   character, and skin tone and hair are what children reach for to make one
   theirs. Nobody should have to climb a ladder to be allowed to look like
-  themselves. Clothing and items are what levels unlock, and they hang off
-  this model rather than replacing it — that is the next piece, and it is what
-  finally gives a level up something to hand over. Special events come after.
+  themselves.
+  Items are earned, and now exist: four hats and three pairs of glasses,
+  unlocked at levels 2, 3, 4, 6, 8, 10 and 12 — something almost immediately,
+  then further apart, because a reward at every turn stops reading as a
+  reward. Locked ones are shown rather than hidden, dimmed with a padlock and
+  the level they cost, and the chooser names the next one to climb for. A
+  level up now says what it handed over. An item above the child's level comes
+  off when the character is read, so a hand-edited store cannot wear a crown.
   The parts live in `src/app/avatar/avatar-model.ts`, DOM-free and tested,
   including that every hair style actually covers the crown.
+  What remains: the character is a head, so there is nowhere to put actual
+  clothing — a shirt needs shoulders, which means extending the drawing rather
+  than adding another item to a list. Special events come after that, and they
+  need a notion of time as well as a wardrobe to draw from.
 - **History is stored but barely used.** `ProgressService` keeps the last 20
   rounds; only the best percentage is shown. Nothing plots improvement over
   time, and nothing distinguishes grades or question types.

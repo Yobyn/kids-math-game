@@ -79,3 +79,31 @@
     transform: none;
   }
 }
+
+/* A locked item is shown, not hidden: the point is to want it. Dimmed and
+   padlocked rather than removed, with the level it costs written on it. */
+.swatch.locked {
+  position: relative;
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.swatch.locked .lock {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  padding: 1px 4px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  font-size: 0.7rem;
+  color: var(--text);
+  opacity: 1;
+}
+
+.next-unlock {
+  margin: 0 0 1.25rem;
+  font-size: 0.95rem;
+  text-align: center;
+  color: var(--text-dim);
+}

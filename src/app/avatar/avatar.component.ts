@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Avatar, HAIR_PATHS, defaultAvatar } from './avatar-model';
+import { Avatar, HAIR_PATHS, WardrobeItem, defaultAvatar, findItem } from './avatar-model';
 
 /**
  * Draws the child's character from primitives — no images, so it stays sharp
@@ -17,5 +17,18 @@ export class AvatarComponent {
 
   get hairPath(): string {
     return HAIR_PATHS[this.avatar.hairStyle];
+  }
+
+  get glasses(): WardrobeItem | undefined {
+    return this.wornItem('glasses', this.avatar.glasses);
+  }
+
+  get hat(): WardrobeItem | undefined {
+    return this.wornItem('hat', this.avatar.hat);
+  }
+
+  private wornItem(slot: 'hat' | 'glasses', id: string): WardrobeItem | undefined {
+    const item = findItem(slot, id);
+    return item && item.path ? item : undefined;
   }
 }

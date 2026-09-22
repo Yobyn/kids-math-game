@@ -8,6 +8,7 @@ import { ProgressService } from '../services/progress.service';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { ROUND_COMPLETION_XP, xpForRound, xpToReach } from '../levels/level-curve';
+import { NO_ITEM } from '../avatar/avatar-model';
 
 describe('ResultComponent', () => {
   let fixture: ComponentFixture<ResultComponent>;
@@ -385,5 +386,73 @@ describe('ResultComponent levels', () => {
 
     // No timers to wait on: it is already where it belongs
     expect(component.levelFillPercent).toBe(Math.round(component.level.fraction * 100));
+  });
+});
+
+describe('ResultComponent naming the reward', () => {
+  let fixture: ComponentFixture<ResultComponent>;
+  let component: ResultComponent;
+  let progress: ProgressService;
+
+  function finishRoundAt(startingXp: number, percentage: number) {
+    progress.addXp(startingXp);
+    spyOn(TestBed.inject(ScoreService), 'getFinalScore').and.returnValue({
+      score: 20, total: 10, correctAnswers: Math.round(percentage / 10), percentage
+    });
+    fixture = TestBed.createComponent(ResultComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+
+    progress = TestBed.inject(ProgressService);
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('says what a level handed over, not just that one happened', () => {
+    // One round short of level 2, which wins the cap
+    finishRoundAt(xpToReach(2) - 5, 100);
+
+    expect(component.leveledUp).toBe(true);
+    expect(component.unlocked.map(i => i.id)).toEqual(['cap']);
+    expect(fixture.nativeElement.querySelector('.unlocked').textContent).toContain('Cap');
+  });
+
+  it('says nothing about items on a level that hands none over', () => {
+    // Level 5 unlocks nothing; the level up still shows, the reward does not
+    finishRoundAt(xpToReach(5) - 5, 100);
+
+    expect(component.leveledUp).toBe(true);
+    expect(component.unlocked).toEqual([]);
+    expect(fixture.nativeElement.querySelector('.unlocked')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.level-up')).toBeTruthy();
+  });
+
+  it('hands over everything a big round crossed, not only the last level', () => {
+    // Sitting at the very top of level 1 with a perfect round: the round is
+    // worth more than the single level in front of it
+    const justBelowTwo = xpToReach(2) - 1;
+    finishRoundAt(justBelowTwo, 100);
+
+    expect(component.level.level).toBeGreaterThanOrEqual(2);
+    expect(component.unlocked.length).toBeGreaterThanOrEqual(1);
+    component.unlocked.forEach(item => {
+      expect(item.unlockLevel).toBeLessThanOrEqual(component.level.level);
+    });
+  });
+
+  it('mentions no reward at all on a round that crossed nothing', () => {
+    finishRoundAt(xpToReach(3), 50);
+
+    expect(component.leveledUp).toBe(false);
+    expect(component.unlocked).toEqual([]);
   });
 });

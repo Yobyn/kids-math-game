@@ -18,6 +18,20 @@
   <circle class="glint" cx="40.5" cy="50.5" r="1.4" fill="#ffffff"></circle>
   <circle class="glint" cx="62.5" cy="50.5" r="1.4" fill="#ffffff"></circle>
 
+  <!-- Glasses sit over the eyes, the hat over the hair: both are worn, so
+       both are drawn last -->
+  <path class="item glasses"
+        *ngIf="glasses"
+        [attr.d]="glasses.path"
+        [attr.fill]="glasses.outline ? 'none' : glasses.colour"
+        [attr.stroke]="glasses.outline ? glasses.colour : null"
+        [attr.stroke-width]="glasses.outline ? 2.5 : null"></path>
+
+  <path class="item hat"
+        *ngIf="hat"
+        [attr.d]="hat.path"
+        [attr.fill]="hat.colour"></path>
+
   <path class="mouth"
         d="M40 66 Q50 74 60 66"
         fill="none"
