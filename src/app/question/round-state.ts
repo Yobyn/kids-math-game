@@ -1,4 +1,5 @@
 import { MissedFact } from '../services/progress.service';
+import { MoneyQuestion } from '../teaching/money';
 
 /**
  * A round that outlives the tab it was played in.
@@ -35,8 +36,11 @@ import { MissedFact } from '../services/progress.service';
 /** The quiz is ten questions long. ScoreService.isGameComplete() agrees. */
 export const QUESTIONS_IN_ROUND = 10;
 
-/** Bumped when the saved shape changes; an older version reads as nothing. */
-export const ROUND_VERSION = 1;
+/**
+ * Bumped when the saved shape changes; an older version reads as nothing.
+ * 2: a money question carries its whole self, not just a line of wording.
+ */
+export const ROUND_VERSION = 2;
 
 /**
  * How long a round stays worth coming back to.
@@ -64,7 +68,7 @@ export interface SavedQuestion {
   num1: number;
   num2: number;
   operation: string;
-  moneyPrompt?: string;
+  money?: MoneyQuestion;
 }
 
 export interface SavedReplay {
@@ -120,10 +124,53 @@ function readQuestion(raw: any): SavedQuestion | null {
     return null;
   }
   const question: SavedQuestion = { num1, num2, operation: raw.operation };
-  if (typeof raw.moneyPrompt === 'string' && raw.moneyPrompt) {
-    question.moneyPrompt = raw.moneyPrompt;
+  const money = readMoney(raw.money);
+  if (money) {
+    question.money = money;
   }
   return question;
+}
+
+/**
+ * A stored money question, or undefined for anything that is not a whole one.
+ * A half-read money question would put a pile on the screen that does not add
+ * up to its own answer, so it is dropped entirely rather than patched.
+ */
+function readMoney(raw: any): MoneyQuestion | undefined {
+  if (!raw || typeof raw !== 'object') {
+    return undefined;
+  }
+  const answer = Number(raw.answer);
+  const answerCents = Number(raw.answerCents);
+  if (!Number.isFinite(answer) || !Number.isFinite(answerCents)) {
+    return undefined;
+  }
+  if (typeof raw.shape !== 'string' || typeof raw.prompt !== 'string' || typeof raw.unit !== 'string') {
+    return undefined;
+  }
+  if (!Array.isArray(raw.pile) || raw.pile.some((piece: any) => !Number.isFinite(Number(piece)))) {
+    return undefined;
+  }
+  const values: { [name: string]: string } = {};
+  if (raw.values && typeof raw.values === 'object') {
+    Object.keys(raw.values).forEach(name => {
+      if (typeof raw.values[name] === 'string') {
+        values[name] = raw.values[name];
+      }
+    });
+  }
+  return {
+    shape: raw.shape,
+    prompt: raw.prompt,
+    values,
+    pile: raw.pile.map((piece: any) => Number(piece)),
+    answer,
+    unit: raw.unit,
+    answerCents,
+    worked: typeof raw.worked === 'string' ? raw.worked : '',
+    answerText: typeof raw.answerText === 'string' ? raw.answerText : String(answer),
+    summary: typeof raw.summary === 'string' ? raw.summary : ''
+  };
 }
 
 function readFact(raw: any): MissedFact | undefined {

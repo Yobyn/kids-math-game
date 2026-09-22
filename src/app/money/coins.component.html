@@ -1,0 +1,11 @@
+<div class="coins" *ngIf="pieces && pieces.length">
+  <span class="piece"
+        *ngFor="let piece of pieces"
+        [class.copper]="kind(piece) === 'copper'"
+        [class.gold]="kind(piece) === 'gold'"
+        [class.silver-centre]="kind(piece) === 'silverCentre'"
+        [class.gold-centre]="kind(piece) === 'goldCentre'"
+        [class.note]="kind(piece) === 'note'">
+    {{ face(piece) }}
+  </span>
+</div>

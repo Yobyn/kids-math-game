@@ -279,7 +279,7 @@ describe('GradeSelectComponent: the round they left half finished', () => {
 
   function storeRound(overrides: any = {}) {
     localStorage.setItem(KEY, JSON.stringify({
-      version: 1,
+      version: 2,
       savedAt: Date.now(),
       grade: 5,
       difficulty: 'hard',

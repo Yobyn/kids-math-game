@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { afterMiss, afterReview, dueFacts } from '../teaching/review-schedule';
 import { SavedRound, parseRound, serialiseRound } from '../question/round-state';
+import { MoneyQuestion } from '../teaching/money';
 
 export interface RoundResult {
   date: string;
@@ -33,7 +34,13 @@ export interface MissedFact {
   num1: number;
   num2: number;
   operation: string;
-  moneyPrompt?: string;
+  /**
+   * The whole money question, when that is what was missed. A money question
+   * is no longer a sum with a sentence in front of it — the pieces on the
+   * table and the unit the answer is in are part of the question, so they
+   * have to come back with it tomorrow.
+   */
+  money?: MoneyQuestion;
   /**
    * The day this fact is ready to be asked again (YYYY-MM-DD, local). Absent
    * on facts stored before the schedule existed, which reads as due now.
@@ -70,6 +77,12 @@ function whole(value: any): number {
 }
 
 export function factSignature(fact: MissedFact): string {
+  if (fact.money) {
+    // Every money question has the same 0/money/0 sum behind it, so the
+    // identity has to come from the question itself or they all collide.
+    return `money:${fact.money.shape}:${fact.money.answerCents}:${fact.money.pile.join('-')}`
+      + `:${Object.keys(fact.money.values).map(name => fact.money!.values[name]).join('-')}`;
+  }
   return `${fact.num1}${fact.operation}${fact.num2}`;
 }
 

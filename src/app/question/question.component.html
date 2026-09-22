@@ -39,14 +39,21 @@
   </div>
 
   <div class="question-box" [class.shake]="showShakeAnimation">
-    <p class="money-prompt" *ngIf="currentQuestion.moneyPrompt">{{ currentQuestion.moneyPrompt }}</p>
+    <p class="money-prompt" *ngIf="currentQuestion.money">{{ moneyText }}</p>
+
+    <!-- The pieces on the table, for the shapes that put any there. -->
+    <app-coins *ngIf="currentQuestion.money"
+               [pieces]="currentQuestion.money.pile"
+               [decimal]="needsDecimalKey"></app-coins>
 
     <div class="math-problem">
-      <span class="number" *ngIf="!currentQuestion.moneyPrompt">{{ currentQuestion.num1 }}</span>
-      <span class="operation" *ngIf="!currentQuestion.moneyPrompt">{{ currentQuestion.operation }}</span>
-      <span class="number" *ngIf="!currentQuestion.moneyPrompt">{{ currentQuestion.num2 }}</span>
-      <span class="equals" *ngIf="!currentQuestion.moneyPrompt">=</span>
-      <span class="currency" *ngIf="currentQuestion.moneyPrompt">€</span>
+      <span class="number" *ngIf="!currentQuestion.money">{{ currentQuestion.num1 }}</span>
+      <span class="operation" *ngIf="!currentQuestion.money">{{ currentQuestion.operation }}</span>
+      <span class="number" *ngIf="!currentQuestion.money">{{ currentQuestion.num2 }}</span>
+      <span class="equals" *ngIf="!currentQuestion.money">=</span>
+      <!-- The unit sits on the box itself, so a child is never left guessing
+           whether the answer wanted is 75 or 0.75. -->
+      <span class="currency" *ngIf="answerPrefix">{{ answerPrefix }}</span>
       <input #answerInput
              type="number"
              [(ngModel)]="userAnswer"
@@ -58,10 +65,12 @@
              (keyup.enter)="showOkButton ? moveToNextQuestion() : checkAnswer()"
              [readonly]="useKeypad"
              [disabled]="showOkButton">
+      <span class="currency unit-after" *ngIf="answerSuffix">{{ answerSuffix }}</span>
     </div>
 
     <app-keypad *ngIf="useKeypad"
                 [disabled]="showOkButton"
+                [decimal]="needsDecimalKey"
                 (press)="onKeypadPress($event)"></app-keypad>
 
     <div class="feedback-container" [@feedbackAnimation]="feedback !== ''">

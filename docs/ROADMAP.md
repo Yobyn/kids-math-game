@@ -3,8 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (a round made to survive an interruption the
-same day)
+Last surveyed: 2026-09-22 (money turned into a taught strand the same day)
 
 ## What works today
 
@@ -16,8 +15,10 @@ same day)
 - Touch number pad on phones and tablets, so the OS keyboard never covers the
   question. Haptics on key press and on answers.
 - A wrong answer shows the correct one with effort-focused encouragement.
-- Money questions (whole euros): totals from grade 2, change from grade 4,
-  following the usual teaching order — counting before change-making.
+- Money is a taught strand, not a themed sum: coins and notes on the table to
+  count from grade 1, combining coins into an amount, totals and change, and
+  the decimal €.p form from grade 4 — with a decimal point on the keypad to
+  type it. Money questions carry their own worked line.
 - English, Dutch and Spanish, chosen in the header and remembered between
   visits.
 - Installs to a home screen (manifest, maskable icons, standalone display) and
@@ -36,7 +37,7 @@ same day)
 - A round survives being interrupted: it is written down after every
   question and whenever the page goes away, and offered back — never
   restored silently — for four hours.
-- 754 unit tests plus 16 server tests, run on every PR by GitHub Actions
+- 826 unit tests plus 16 server tests, run on every PR by GitHub Actions
   alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
@@ -76,9 +77,49 @@ a backend that currently keeps its users in memory (see Code health).
 ## Outstanding — roughly in the order a real product would need them
 
 ### Content and teaching
-- **Money mode is a first pass only.** Whole euros, one shape of question per
-  band, no coins to count and no decimal amounts — worth extending once the
-  rest of the teaching gaps are closed.
+- **Money is a taught strand now, and it follows the published progression.**
+  It used to be one shape of question per band in whole euros: add two prices
+  from grade 2, work out change from grade 4, and nothing else ever. No
+  coins, no cents, no decimals, and no worked line at all.
+  THE PROGRESSION IS NOT A GUESS. The national curriculum programmes of study
+  for mathematics, and the teaching-for-mastery material built on them, set
+  it out: Years 1-2 recognise the coins and combine them to make an amount,
+  with pounds and pence kept SEPARATE and deliberately no decimal point;
+  Year 3 adds and subtracts mixed units and gives change, still recorded
+  separately, with the pence part never reaching 100; Year 4 is where the
+  decimal £.p form is introduced formally. Practitioner guidance on counting
+  coins adds the prerequisite — a mixed pile rests on SKIP COUNTING, so a
+  child meets one denomination before two and two before a handful.
+  So `src/app/teaching/money.ts` holds a band per grade, four question shapes
+  (count a pile, make an amount from one coin, total two prices, give
+  change), and the rule that decides how an amount is written. Grade 1 gets
+  one denomination and nothing else; grade 2 gets a second and "how many 20c
+  coins make €1"; grade 3 gets mixed units, totals and change written as
+  "€4 and 15c"; grade 4 writes "€4.15".
+  THE ONE RULE THAT SHAPES THE REST: below the decimal band every answer must
+  be a whole number in ONE unit — so many cents, or so many euros, never
+  "3 euros 40". That is the curriculum's own separation rule rather than a
+  workaround, and questions are BUILT to satisfy it rather than generated and
+  rejected. The unit sits on the answer box (`c` after, or `€` in front), so
+  a child is never left guessing whether 75 or 0.75 is wanted.
+  The keypad grew a decimal point for the bands that need one — the minus
+  key swapped for it rather than a thirteenth key added, because no money
+  answer here is ever negative and a thirteenth key narrows all the others on
+  a phone. 3.4 and 3.40 both count, and the comparison is done in whole cents
+  so no float ever decides whether a child was right.
+  MONEY QUESTIONS HAVE A WORKED LINE NOW, which this roadmap recorded as
+  missing: a counted pile is added up one piece at a time, and change is
+  counted UP from the price to what was handed over, which is how it is
+  taught. Every printed line is read back as arithmetic by the tests.
+  Coins are drawn all the same size on purpose. Children read value off size,
+  and the real euro set does not even agree with that — a 5c coin is
+  physically larger than a 10c. Colour and the printed value separate them,
+  and the €1 and €2 are drawn the way round they really are.
+  STILL OPEN: the pieces are drawn, not photographed, so a child does not
+  meet the real faces; there is no "show me the coins that make this amount"
+  where the child picks pieces rather than typing a number, which is the one
+  practical shape the curriculum names that a number pad cannot express; and
+  nothing adapts the currency — see Reach, below.
 - **Difficulty advises, and stops short of adapting.** Rounds now record the
   setting they were played at, and the difficulty screen marks a card when
   recent play says the child is on the wrong rung: two rounds at 85% or better
@@ -195,8 +236,8 @@ a backend that currently keeps its users in memory (see Code health).
   its wording.
   What is missing: facts whose method is just the answer again get no line,
   which is right, but it means the youngest players (whose sums never cross
-  ten) rarely see one. Money questions get none at all — they are worded
-  problems and would need a different kind of explanation.
+  ten) rarely see one. Money questions used to get none at all; they now
+  carry their own, built where the question is (see Money, above).
 
 ### Keeping a child coming back
 - **Guest play is done end to end.** A child takes "Play without an account"

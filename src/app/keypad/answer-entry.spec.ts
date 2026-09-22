@@ -1,6 +1,8 @@
 import {
+  DECIMAL_KEY,
   DELETE_KEY,
   KEYPAD_KEYS,
+  KEYPAD_KEYS_DECIMAL,
   MAX_DIGITS,
   applyKey,
   digitsIn,
@@ -138,5 +140,79 @@ describe('the prompt in an empty box', () => {
   it('gets out of the way once there is', () => {
     expect(placeholderFor('4')).toBe('');
     expect(placeholderFor('-')).toBe('');
+  });
+});
+
+describe('the money keypad', () => {
+  it('has the same twelve keys, with a point where the minus was', () => {
+    // A thirteenth key would narrow every other one on a phone, and no money
+    // answer here is ever negative
+    expect(KEYPAD_KEYS_DECIMAL.length).toBe(KEYPAD_KEYS.length);
+    expect(KEYPAD_KEYS_DECIMAL).toContain(DECIMAL_KEY);
+    expect(KEYPAD_KEYS_DECIMAL).not.toContain('-');
+    expect(KEYPAD_KEYS_DECIMAL.indexOf(DECIMAL_KEY)).toBe(KEYPAD_KEYS.indexOf('-'));
+  });
+
+  it('keeps every digit where it was, so nothing moves under a thumb', () => {
+    KEYPAD_KEYS.forEach((key, index) => {
+      if (key !== '-') {
+        expect(KEYPAD_KEYS_DECIMAL[index]).toBe(key);
+      }
+    });
+  });
+
+  it('adds a point after a digit', () => {
+    expect(applyKey('3', DECIMAL_KEY)).toBe('3.');
+    expect(applyKey('12', DECIMAL_KEY)).toBe('12.');
+  });
+
+  it('never adds a second one', () => {
+    expect(applyKey('3.4', DECIMAL_KEY)).toBe('3.4');
+    expect(applyKey('3.', DECIMAL_KEY)).toBe('3.');
+  });
+
+  it('never starts an answer with one', () => {
+    // "€.50" is not how anybody writes it; a child who wants 50c types 0 first
+    expect(applyKey('', DECIMAL_KEY)).toBe('');
+  });
+
+  it('lets the delete key take it back off again', () => {
+    expect(applyKey(applyKey('3', DECIMAL_KEY), DELETE_KEY)).toBe('3');
+  });
+
+  it('does not count the point against the digit limit', () => {
+    let answer = '';
+    for (let i = 0; i < MAX_DIGITS; i++) {
+      answer = applyKey(answer, '9');
+    }
+    const withPoint = applyKey(answer, DECIMAL_KEY);
+
+    expect(withPoint).toBe(answer + '.');
+    expect(digitsIn(withPoint)).toBe(MAX_DIGITS);
+  });
+
+  it('still stops at the digit limit with a point in the middle', () => {
+    let answer = '1';
+    answer = applyKey(answer, DECIMAL_KEY);
+    for (let i = 0; i < MAX_DIGITS + 4; i++) {
+      answer = applyKey(answer, '7');
+    }
+
+    expect(digitsIn(answer)).toBe(MAX_DIGITS);
+  });
+
+  it('reads back as the number the child meant', () => {
+    let answer = '';
+    ['3', DECIMAL_KEY, '4', '0'].forEach(key => {
+      answer = applyKey(answer, key);
+    });
+
+    expect(answer).toBe('3.40');
+    expect(Number(answer)).toBe(3.4);
+  });
+
+  it('says "point", because "." is not a word', () => {
+    expect(keyLabel(DECIMAL_KEY)).toBe('point');
+    expect(keyFace(DECIMAL_KEY)).toBe('.');
   });
 });

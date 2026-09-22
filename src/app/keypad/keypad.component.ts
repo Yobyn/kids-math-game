@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { KEYPAD_KEYS, keyFace, keyLabel } from './answer-entry';
+import { KEYPAD_KEYS, KEYPAD_KEYS_DECIMAL, keyFace, keyLabel } from './answer-entry';
 
 /**
  * The touch keypad, so the phone's own keyboard never covers the question.
@@ -25,10 +25,18 @@ export class KeypadComponent {
   /** True while the answer is settled and the keys should not respond. */
   @Input() disabled = false;
 
+  /**
+   * True on a money question at a band that writes decimals, which swaps the
+   * minus key for a decimal point.
+   */
+  @Input() decimal = false;
+
   /** The key that was pressed. What it means is the answer box's business. */
   @Output() press = new EventEmitter<string>();
 
-  readonly keys = KEYPAD_KEYS;
+  get keys(): string[] {
+    return this.decimal ? KEYPAD_KEYS_DECIMAL : KEYPAD_KEYS;
+  }
 
   face(key: string): string {
     return keyFace(key);

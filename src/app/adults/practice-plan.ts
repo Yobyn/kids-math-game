@@ -150,7 +150,7 @@ function accuracyOf(rounds: RoundResult[]): number | null {
 function weakestOf(missed: MissedFact[]): string | undefined {
   const counts: { [operation: string]: number } = {};
   missed.forEach(fact => {
-    if (fact && fact.operation && !fact.moneyPrompt) {
+    if (fact && fact.operation && !fact.money) {
       counts[fact.operation] = (counts[fact.operation] || 0) + 1;
     }
   });
@@ -173,7 +173,7 @@ function weakestOf(missed: MissedFact[]): string | undefined {
  */
 function factsToPractise(missed: MissedFact[]): PracticeItem[] {
   return missed
-    .filter(fact => fact && Number.isFinite(fact.num1) && Number.isFinite(fact.num2))
+    .filter(fact => fact && (!!fact.money || (Number.isFinite(fact.num1) && Number.isFinite(fact.num2))))
     .slice(0, FACTS_TO_PRACTISE)
     .map(toItem);
 }
@@ -183,9 +183,19 @@ function toItem(fact: MissedFact): PracticeItem {
   const reviews = reviewsOf(fact);
   const toGraduate = REVIEWS_TO_GRADUATE;
 
-  if (fact.moneyPrompt) {
-    // A worded problem's method is the wording; there is no one line for it
-    return { question: fact.moneyPrompt, answer: `\u20ac${answer}`, reviews, toGraduate };
+  if (fact.money) {
+    // Money questions carry their own summary and their own worked line now,
+    // both already written in the notation the child's band uses
+    const item: PracticeItem = {
+      question: fact.money.summary,
+      answer: fact.money.answerText,
+      reviews,
+      toGraduate
+    };
+    if (fact.money.worked) {
+      item.worked = fact.money.worked;
+    }
+    return item;
   }
 
   const item: PracticeItem = {

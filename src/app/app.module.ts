@@ -16,6 +16,7 @@ import { LanguageSelectorComponent } from './language-selector/language-selector
 import { ProgressComponent } from './progress/progress.component';
 import { AdultsComponent } from './adults/adults.component';
 import { KeypadComponent } from './keypad/keypad.component';
+import { CoinsComponent } from './money/coins.component';
 import { AvatarComponent } from './avatar/avatar.component';
 import { AvatarChooserComponent } from './avatar/avatar-chooser.component';
 import { ParticlesComponent } from './particles/particles.component';
@@ -36,7 +37,8 @@ import { AuthInterceptor } from './auth.interceptor';
     AvatarChooserComponent,
     ProgressComponent,
     AdultsComponent,
-    KeypadComponent
+    KeypadComponent,
+    CoinsComponent
   ],
   imports: [
     BrowserModule,
