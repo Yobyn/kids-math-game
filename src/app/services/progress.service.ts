@@ -15,6 +15,18 @@ export interface RoundResult {
   difficulty?: string;
 }
 
+/**
+ * Everything a child has done, counted rather than listed. Stored rather than
+ * derived from history for the same reason experience is: history keeps only
+ * the last twenty rounds, and a child who played fifty should not be told
+ * they played twenty. These only ever go up.
+ */
+export interface PlayTotals {
+  rounds: number;
+  questions: number;
+  correct: number;
+}
+
 export interface MissedFact {
   num1: number;
   num2: number;
@@ -26,6 +38,7 @@ const STORAGE_KEY = 'roundHistory';
 const MISSED_KEY = 'missedFacts';
 const XP_KEY = 'xp';
 const EVENTS_KEY = 'events';
+const TOTALS_KEY = 'totals';
 /** Enough to carry a round's mistakes forward without burying the next one. */
 const MAX_MISSED = 12;
 /** Enough to show improvement over time without growing without bound. */
@@ -37,6 +50,12 @@ export const GUEST_OWNER = 'guest';
 /** The owner an account's progress is filed under. */
 export function accountOwner(username: string): string {
   return `user:${username}`;
+}
+
+/** A count that is safe to put in front of a child: never NaN, never negative. */
+function whole(value: any): number {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0;
 }
 
 export function factSignature(fact: MissedFact): string {
@@ -88,6 +107,18 @@ export class ProgressService {
     const owner = this.currentOwner();
     const history = [{ ...result, date: new Date().toISOString() }, ...this.readHistory(owner)];
     this.writeHistory(owner, history.slice(0, MAX_ROUNDS));
+
+    const totals = this.readTotals(owner);
+    this.writeTotals(owner, {
+      rounds: totals.rounds + 1,
+      questions: totals.questions + Math.max(0, result.total || 0),
+      correct: totals.correct + Math.max(0, result.correctAnswers || 0)
+    });
+  }
+
+  /** What a child has done in total, however long ago. */
+  getTotals(): PlayTotals {
+    return this.readTotals(this.currentOwner());
   }
 
   /** The best percentage so far, or null when this is the first round. */
@@ -182,8 +213,10 @@ export class ProgressService {
     const guestMissed = this.readMissed(GUEST_OWNER);
     const guestXp = this.readXp(GUEST_OWNER);
     const guestEvents = this.readEvents(GUEST_OWNER);
+    const guestTotals = this.readTotals(GUEST_OWNER);
 
-    if (!guestHistory.length && !guestMissed.length && !guestXp && !guestEvents.length) {
+    if (!guestHistory.length && !guestMissed.length && !guestXp
+        && !guestEvents.length && !guestTotals.rounds) {
       return;
     }
 
@@ -201,7 +234,14 @@ export class ProgressService {
     this.remove(this.key(STORAGE_KEY, GUEST_OWNER));
     this.remove(this.key(MISSED_KEY, GUEST_OWNER));
     this.remove(this.key(XP_KEY, GUEST_OWNER));
+    const ownTotals = this.readTotals(owner);
+    this.writeTotals(owner, {
+      rounds: ownTotals.rounds + guestTotals.rounds,
+      questions: ownTotals.questions + guestTotals.questions,
+      correct: ownTotals.correct + guestTotals.correct
+    });
     this.remove(this.key(EVENTS_KEY, GUEST_OWNER));
+    this.remove(this.key(TOTALS_KEY, GUEST_OWNER));
   }
 
   private currentOwner(): string {
@@ -268,6 +308,33 @@ export class ProgressService {
 
   private readEvents(owner: string): string[] {
     return this.readList(EVENTS_KEY, owner).filter(id => typeof id === 'string');
+  }
+
+  private readTotals(owner: string): PlayTotals {
+    const empty: PlayTotals = { rounds: 0, questions: 0, correct: 0 };
+    try {
+      const raw = this.item(this.key(TOTALS_KEY, owner));
+      const parsed = raw ? JSON.parse(raw) : null;
+      if (!parsed || typeof parsed !== 'object') {
+        return empty;
+      }
+      return {
+        rounds: whole(parsed.rounds),
+        questions: whole(parsed.questions),
+        correct: whole(parsed.correct)
+      };
+    } catch {
+      // A corrupt count reads as nothing done, never as NaN on a screen
+      return empty;
+    }
+  }
+
+  private writeTotals(owner: string, totals: PlayTotals): void {
+    try {
+      localStorage.setItem(this.key(TOTALS_KEY, owner), JSON.stringify(totals));
+    } catch {
+      // Storage being unavailable must never break a round
+    }
   }
 
   private readXp(owner: string): number {

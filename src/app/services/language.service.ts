@@ -111,7 +111,14 @@ export type TranslationKeys =
   | 'events-return'
   | 'item-bobble-hat'
   | 'item-flower-tee'
-  | 'item-spooky-glasses';
+  | 'item-spooky-glasses'
+  | 'your-progress'
+  | 'progress-empty'
+  | 'rounds-finished'
+  | 'questions-answered'
+  | 'answers-right'
+  | 'things-earned'
+  | 'more-to-win';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -225,6 +232,13 @@ export class LanguageService {
       'item-bobble-hat': 'Bobble hat',
       'item-flower-tee': 'Flower shirt',
       'item-spooky-glasses': 'Spooky glasses',
+      'your-progress': 'How far you have come',
+      'progress-empty': 'Play a round and this fills up.',
+      'rounds-finished': 'rounds finished',
+      'questions-answered': 'questions answered',
+      'answers-right': 'answers right',
+      'things-earned': 'Things you have earned:',
+      'more-to-win': 'There is more to win — keep playing.',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -337,6 +351,13 @@ export class LanguageService {
       'item-bobble-hat': 'Muts met pompon',
       'item-flower-tee': 'Bloemenshirt',
       'item-spooky-glasses': 'Griezelbril',
+      'your-progress': 'Hoe ver je al bent',
+      'progress-empty': 'Speel een ronde en dit vult zich.',
+      'rounds-finished': 'rondes gespeeld',
+      'questions-answered': 'vragen beantwoord',
+      'answers-right': 'goede antwoorden',
+      'things-earned': 'Wat je hebt verdiend:',
+      'more-to-win': 'Er is meer te winnen — blijf spelen.',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -449,6 +470,13 @@ export class LanguageService {
       'item-bobble-hat': 'Gorro con pompón',
       'item-flower-tee': 'Camiseta de flores',
       'item-spooky-glasses': 'Gafas de miedo',
+      'your-progress': 'Lo lejos que has llegado',
+      'progress-empty': 'Juega una ronda y esto se llenará.',
+      'rounds-finished': 'rondas jugadas',
+      'questions-answered': 'preguntas respondidas',
+      'answers-right': 'respuestas correctas',
+      'things-earned': 'Lo que has ganado:',
+      'more-to-win': 'Hay más por ganar: sigue jugando.',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',

@@ -295,3 +295,16 @@ h2 {
   font-weight: 700;
   text-align: center;
 }
+
+.see-progress {
+  display: block;
+  margin: 0.75rem auto 0;
+  min-height: 48px;
+  padding: 0.6rem 1.5rem;
+  border-radius: 8px;
+  border: 2px solid var(--accent-blue);
+  background: transparent;
+  color: #f1f0ff;
+  font-size: 1rem;
+  cursor: pointer;
+}

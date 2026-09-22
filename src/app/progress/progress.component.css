@@ -1,0 +1,112 @@
+.progress-page {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.progress-page h1 {
+  margin: 0 0 1rem;
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+.who {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.level-badge {
+  padding: 0.35rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
+}
+
+.nothing-yet {
+  margin: 0 0 1.5rem;
+  text-align: center;
+  color: var(--text-dim);
+}
+
+/* Counts, never a trend: every number here can only ever grow, so there is
+   no bad week for a child to read as getting worse. */
+.counts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.count {
+  padding: 1rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--edge);
+  background: var(--surface-input);
+  text-align: center;
+}
+
+.count-value {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.count-label {
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.collection h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.earned-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.earned-item {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent-magenta);
+  font-size: 0.9rem;
+  color: var(--text);
+}
+
+.more-coming {
+  margin: 0.9rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+}
+
+.back-btn {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 1.75rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  color: #ffffff;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
+}
+
+@media (min-width: 560px) {
+  .counts {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}

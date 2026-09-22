@@ -235,6 +235,10 @@ export class ResultComponent implements OnInit, OnDestroy {
     }
   }
 
+  seeProgress() {
+    this.router.navigate(['/progress']);
+  }
+
   playAgain() {
     this.scoreService.resetScore();
     // Clear the stored grade and difficulty to force new selection

@@ -454,3 +454,90 @@ describe('ProgressService remembering events', () => {
     expect(service.getEarnedEvents()).toEqual(['autumn']);
   });
 });
+
+describe('ProgressService counting everything done', () => {
+  let service: ProgressService;
+
+  const round = (correct: number, total = 10) => ({
+    correctAnswers: correct, total, percentage: (correct / total) * 100,
+    score: correct * 2, grade: 2
+  });
+
+  beforeEach(() => {
+    localStorage.clear();
+    service = new ProgressService();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('starts a new child at nothing done', () => {
+    expect(service.getTotals()).toEqual({ rounds: 0, questions: 0, correct: 0 });
+  });
+
+  it('counts a round as it is recorded', () => {
+    service.record(round(7));
+
+    expect(service.getTotals()).toEqual({ rounds: 1, questions: 10, correct: 7 });
+  });
+
+  it('keeps counting past the twenty rounds history remembers', () => {
+    // The whole reason these are stored rather than derived
+    for (let i = 0; i < 25; i++) {
+      service.record(round(6));
+    }
+
+    expect(service.getRoundsPlayed()).toBe(20);
+    expect(service.getTotals().rounds).toBe(25);
+    expect(service.getTotals().questions).toBe(250);
+    expect(service.getTotals().correct).toBe(150);
+  });
+
+  it('never goes down, whatever the round was like', () => {
+    let previous = service.getTotals();
+
+    [10, 0, 3, 0, 9, 1].forEach(correct => {
+      service.record(round(correct));
+      const now = service.getTotals();
+
+      // A bad round still moves every number forward
+      expect(now.rounds).toBeGreaterThan(previous.rounds);
+      expect(now.questions).toBeGreaterThan(previous.questions);
+      expect(now.correct).toBeGreaterThanOrEqual(previous.correct);
+      previous = now;
+    });
+  });
+
+  it('survives a reload', () => {
+    service.record(round(8));
+
+    expect(new ProgressService().getTotals().rounds).toBe(1);
+  });
+
+  it('reads a corrupt count as nothing done rather than NaN on a screen', () => {
+    localStorage.setItem('totals:guest', 'not json');
+    expect(new ProgressService().getTotals()).toEqual({ rounds: 0, questions: 0, correct: 0 });
+
+    localStorage.setItem('totals:guest', JSON.stringify({ rounds: 'lots', questions: -4 }));
+    expect(new ProgressService().getTotals()).toEqual({ rounds: 0, questions: 0, correct: 0 });
+  });
+
+  it('counts per player, like everything else', () => {
+    service.record(round(9));
+    localStorage.setItem('username', 'ada');
+
+    expect(service.getTotals().rounds).toBe(0);
+  });
+
+  it('adds a guest’s totals to the account they sign up for', () => {
+    localStorage.setItem('username', 'ada');
+    service.record(round(10));
+    localStorage.removeItem('username');
+    service.record(round(4));
+    service.record(round(6));
+
+    service.adoptGuestProgress('ada');
+
+    localStorage.setItem('username', 'ada');
+    expect(service.getTotals()).toEqual({ rounds: 3, questions: 30, correct: 20 });
+  });
+});
