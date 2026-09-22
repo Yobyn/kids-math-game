@@ -45,6 +45,9 @@ export type TranslationKeys =
   | 'good-try'
   | 'money-total'
   | 'money-change'
+  | 'money-count'
+  | 'money-make'
+  | 'money-and'
   | 'new-best'
   | 'your-best'
   | 'ok'
@@ -320,8 +323,11 @@ export class LanguageService {
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
       'good-try': "Good try — you'll get the next one!",
-      'money-total': 'You buy a toy for €{first} and a book for €{second}. How much altogether?',
-      'money-change': 'A toy costs €{price}. You pay with €{paid}. How much change do you get?',
+      'money-total': 'You buy a toy for {first} and a book for {second}. How much altogether?',
+      'money-change': 'A toy costs {price}. You pay with {paid}. How much change do you get?',
+      'money-count': 'How much money is this?',
+      'money-make': 'How many {coin} coins make {target}?',
+      'money-and': 'and',
       'new-best': 'Your best round yet!',
       'your-best': 'Your best so far',
       'ok': 'OK',
@@ -475,8 +481,11 @@ export class LanguageService {
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
       'good-try': 'Goed geprobeerd — de volgende lukt je!',
-      'money-total': 'Je koopt speelgoed voor €{first} en een boek voor €{second}. Hoeveel is dat samen?',
-      'money-change': 'Speelgoed kost €{price}. Je betaalt met €{paid}. Hoeveel krijg je terug?',
+      'money-total': 'Je koopt speelgoed voor {first} en een boek voor {second}. Hoeveel is dat samen?',
+      'money-change': 'Speelgoed kost {price}. Je betaalt met {paid}. Hoeveel krijg je terug?',
+      'money-count': 'Hoeveel geld is dit?',
+      'money-make': 'Hoeveel munten van {coin} maken {target}?',
+      'money-and': 'en',
       'new-best': 'Je beste ronde tot nu toe!',
       'your-best': 'Je beste tot nu toe',
       'ok': 'OK',
@@ -630,8 +639,11 @@ export class LanguageService {
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',
       'good-try': '¡Buen intento, la próxima te saldrá!',
-      'money-total': 'Compras un juguete por €{first} y un libro por €{second}. ¿Cuánto es en total?',
-      'money-change': 'Un juguete cuesta €{price}. Pagas con €{paid}. ¿Cuánto cambio recibes?',
+      'money-total': 'Compras un juguete por {first} y un libro por {second}. ¿Cuánto es en total?',
+      'money-change': 'Un juguete cuesta {price}. Pagas con {paid}. ¿Cuánto cambio recibes?',
+      'money-count': '¿Cuánto dinero hay aquí?',
+      'money-make': '¿Cuántas monedas de {coin} hacen {target}?',
+      'money-and': 'y',
       'new-best': '¡Tu mejor ronda hasta ahora!',
       'your-best': 'Tu mejor resultado',
       'ok': 'OK',

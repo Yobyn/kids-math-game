@@ -6,6 +6,13 @@ import { SoundService } from '../services/sound.service';
 import { MissedFact, ProgressService } from '../services/progress.service';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { workedStep } from '../teaching/worked-step';
+import {
+  MoneyQuestion,
+  moneyAnswerMatches,
+  moneyQuestion,
+  unitPrefix,
+  unitSuffix
+} from '../teaching/money';
 import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
 import { trigger, state, style, animate, transition } from '@angular/animations';
@@ -24,8 +31,20 @@ const TOTAL_QUESTIONS = QUESTIONS_IN_ROUND;
 /** A missed question comes back this many questions later — soon, not last. */
 const REPLAY_GAP = 2;
 
+/**
+ * What is on the screen. A money question carries its whole self — the
+ * pieces to draw, the wording, the unit the answer is in — because it is no
+ * longer a sum with a sentence in front of it.
+ */
+export interface AskedQuestion {
+  num1: number;
+  num2: number;
+  operation: string;
+  money?: MoneyQuestion;
+}
+
 interface PendingReplay {
-  question: { num1: number; num2: number; operation: string; moneyPrompt?: string };
+  question: AskedQuestion;
   dueAfter: number;
   /**
    * The stored fact this came from, when it came from an earlier day's queue
@@ -65,7 +84,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
   private missed: PendingReplay[] = [];
   /** Set while the question on screen is a review from an earlier day. */
   private reviewing?: MissedFact;
-  currentQuestion: { num1: number; num2: number; operation: string; moneyPrompt?: string } = {
+  currentQuestion: AskedQuestion = {
     num1: 0,
     num2: 0,
     operation: '+'
@@ -84,6 +103,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
   /** How the fact is reached, shown only once the answer is given away. */
   workedLine = '';
   correctAnswer = 0;
+  /** The answer as the child would write it, which for money is not a bare number. */
+  correctAnswerText = '';
   showShakeAnimation: boolean = false;
   answerWasCorrect: boolean | null = null;
   readonly totalQuestions = TOTAL_QUESTIONS;
@@ -423,7 +444,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     this.progressService.takeMissedFacts(2).forEach((fact, index) => {
       this.missed.push({
         question: { num1: fact.num1, num2: fact.num2, operation: fact.operation,
-                    moneyPrompt: fact.moneyPrompt },
+                    money: fact.money },
         dueAfter: index + 1,
         reviewOf: fact
       });
@@ -431,40 +452,51 @@ export class QuestionComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Money is taught in stages: counting totals well before working out change,
-   * which children generally reach around nine or ten. So grades 2-3 only ever
-   * get totals, and change questions start at grade 4.
+   * Money is a strand of its own now rather than a themed sum: which shapes
+   * of question a child meets, which pieces are on the table, and whether
+   * amounts are written €3 and 40c or €3.40, all follow the band for their
+   * grade. See teaching/money.ts, which holds the progression and the reason
+   * for it. Every grade from 1 gets money; it used to start at 2.
    */
   private shouldAskAboutMoney(): boolean {
-    return this.grade >= 2 && Math.random() < 0.25;
+    return this.grade >= 1 && Math.random() < 0.25;
   }
 
-  private generateMoneyQuestion() {
-    // Whole euros only — decimals come after this age group has the idea
-    const cap = Math.max(5, Math.min(this.getNumberRange(), 20));
-    const askForChange = this.grade >= 4;
-
-    if (askForChange) {
-      const price = Math.floor(Math.random() * (cap - 1)) + 1;
-      const paid = price + Math.floor(Math.random() * (cap - price)) + 1;
-      this.currentQuestion.operation = '-';
-      this.currentQuestion.num1 = paid;
-      this.currentQuestion.num2 = price;
-      this.currentQuestion.moneyPrompt = this.languageService
-        .translate('money-change')
-        .replace('{price}', String(price))
-        .replace('{paid}', String(paid));
-    } else {
-      const first = Math.floor(Math.random() * cap) + 1;
-      const second = Math.floor(Math.random() * cap) + 1;
-      this.currentQuestion.operation = '+';
-      this.currentQuestion.num1 = first;
-      this.currentQuestion.num2 = second;
-      this.currentQuestion.moneyPrompt = this.languageService
-        .translate('money-total')
-        .replace('{first}', String(first))
-        .replace('{second}', String(second));
+  private generateMoneyQuestion(): boolean {
+    const question = moneyQuestion(this.grade, Math.random, {
+      and: this.languageService.translate('money-and')
+    });
+    if (!question) {
+      return false;
     }
+    this.currentQuestion = { num1: 0, num2: 0, operation: 'money', money: question };
+    return true;
+  }
+
+  /** The wording, with the amounts already written the way this band writes them. */
+  get moneyText(): string {
+    const money = this.currentQuestion.money;
+    if (!money) {
+      return '';
+    }
+    return Object.keys(money.values).reduce(
+      (text, name) => text.split(`{${name}}`).join(money.values[name]),
+      this.languageService.translate(money.prompt as any)
+    );
+  }
+
+  /** What sits in front of the answer box, and what sits after it. */
+  get answerPrefix(): string {
+    return this.currentQuestion.money ? unitPrefix(this.currentQuestion.money.unit) : '';
+  }
+
+  get answerSuffix(): string {
+    return this.currentQuestion.money ? unitSuffix(this.currentQuestion.money.unit) : '';
+  }
+
+  /** True where the band writes €3.40, which needs a point on the keypad. */
+  get needsDecimalKey(): boolean {
+    return this.currentQuestion.money ? this.currentQuestion.money.unit === 'decimal' : false;
   }
 
   generateQuestion() {
@@ -490,9 +522,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.currentQuestion.moneyPrompt = undefined;
-    if (this.shouldAskAboutMoney()) {
-      this.generateMoneyQuestion();
+    if (this.shouldAskAboutMoney() && this.generateMoneyQuestion()) {
       this.userAnswer = '';
       this.feedback = '';
       this.workedLine = '';
@@ -501,6 +531,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.currentQuestion = { num1: 0, num2: 0, operation: '+' };
     const availableOperations = this.getAvailableOperations();
     this.currentQuestion.operation = availableOperations[Math.floor(Math.random() * availableOperations.length)];
     
@@ -584,6 +615,18 @@ export class QuestionComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const money = this.currentQuestion.money;
+    if (money) {
+      this.correctAnswer = money.answer;
+      this.correctAnswerText = money.answerText;
+      if (moneyAnswerMatches(this.userAnswer, money)) {
+        this.handleCorrectAnswer();
+      } else {
+        this.handleWrongAnswer();
+      }
+      return;
+    }
+
     const answer = Number(this.userAnswer);
     let isCorrect = false;
 
@@ -605,6 +648,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
         this.correctAnswer = this.currentQuestion.num1 / this.currentQuestion.num2;
         break;
     }
+
+    this.correctAnswerText = String(this.correctAnswer);
 
     if (isCorrect) {
       this.handleCorrectAnswer();
@@ -674,12 +719,13 @@ export class QuestionComponent implements OnInit, OnDestroy {
 
       // Out of attempts: show the answer itself. A child who only hears "wrong"
       // learns nothing from the question they just spent two tries on.
-      this.feedback = `${this.languageService.translate('answer-is')} ${this.correctAnswer}. ` +
+      this.feedback = `${this.languageService.translate('answer-is')} ${this.correctAnswerText}. ` +
         this.languageService.translate('good-try');
       // The answer is being given away either way, so give the method with
-      // it. Money questions are worded, not a bare fact, and have no step.
-      this.workedLine = this.currentQuestion.moneyPrompt
-        ? ''
+      // it. Money questions used to get nothing here; they now carry their
+      // own line — a pile counted up, or change counted on from the price.
+      this.workedLine = this.currentQuestion.money
+        ? this.currentQuestion.money.worked
         : workedStep(this.currentQuestion.num1, this.currentQuestion.num2,
                      this.currentQuestion.operation) || '';
       this.showOkButton = true;

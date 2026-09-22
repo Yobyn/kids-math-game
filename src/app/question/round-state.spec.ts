@@ -43,7 +43,12 @@ describe('round-state', () => {
         answered: true,
         wrongAttempts: 1,
         isReplay: true,
-        question: { num1: 3, num2: 4, operation: '-', moneyPrompt: 'You pay €4' },
+        question: { num1: 0, num2: 0, operation: 'money', money: {
+      shape: 'count', prompt: 'money-count', values: {},
+      pile: [50, 20, 5], answer: 75, unit: 'cents', answerCents: 75,
+      worked: '50c + 20c = 70c → 70c + 5c = 75c',
+      answerText: '75c', summary: '50c + 20c + 5c'
+    } },
         reviewing: { num1: 3, num2: 4, operation: '-', due: '2026-09-21', reviews: 1 },
         missed: [{
           question: { num1: 9, num2: 9, operation: '*' },

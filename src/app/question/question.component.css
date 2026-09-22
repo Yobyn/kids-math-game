@@ -320,6 +320,12 @@ input[type="number"].incorrect {
   color: #0984e3;
 }
 
+/* A cents answer is written 75c, so the unit sits after the box rather than
+   in front of it — and it is always one or the other, never both. */
+.math-problem .unit-after {
+  margin-left: 0.3rem;
+}
+
 @media (max-width: 480px) {
   .money-prompt {
     font-size: 1rem;

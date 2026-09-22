@@ -146,13 +146,24 @@ describe('the facts an adult is asked to practise', () => {
     expect(plan.facts[0].worked).toBeUndefined();
   });
 
-  it('shows a money question by its wording, and never invents a method for it', () => {
-    const money: MissedFact = { num1: 4, num2: 3, operation: '+', moneyPrompt: 'You buy a toy for €4 and a book for €3. How much altogether?' };
+  it('shows a money question as the pile it was, with its own method', () => {
+    // Money questions used to arrive here as a sentence with no method at
+    // all. They now carry a summary and a worked line, both already written
+    // in the notation the child's own band uses.
+    const money: MissedFact = {
+      num1: 0, num2: 0, operation: 'money',
+      money: {
+        shape: 'count', prompt: 'money-count', values: {},
+        pile: [50, 20, 5], answer: 75, unit: 'cents', answerCents: 75,
+        worked: '50c + 20c = 70c → 70c + 5c = 75c',
+        answerText: '75c', summary: '50c + 20c + 5c'
+      }
+    };
     const plan = practicePlan([], [money]);
 
-    expect(plan.facts[0].question).toBe(money.moneyPrompt!);
-    expect(plan.facts[0].answer).toBe('€7');
-    expect(plan.facts[0].worked).toBeUndefined();
+    expect(plan.facts[0].question).toBe('50c + 20c + 5c');
+    expect(plan.facts[0].answer).toBe('75c');
+    expect(plan.facts[0].worked).toBe('50c + 20c = 70c → 70c + 5c = 75c');
   });
 
   it('drops a stored fact that is not a fact', () => {
@@ -227,8 +238,17 @@ describe('the pattern an adult is told about', () => {
   });
 
   it('leaves money questions out of the count', () => {
-    const money = { num1: 4, num2: 3, operation: '+', moneyPrompt: 'a shop' };
-    const plan = practicePlan([], [money, { ...money }, { ...money }]);
+    // Every money question carries the same placeholder operation, so
+    // counting them would report a child as weak at something they never met
+    const money = (cents: number): MissedFact => ({
+      num1: 0, num2: 0, operation: 'money',
+      money: {
+        shape: 'count', prompt: 'money-count', values: {},
+        pile: [cents], answer: cents, unit: 'cents', answerCents: cents,
+        worked: '', answerText: `${cents}c`, summary: `${cents}c`
+      }
+    });
+    const plan = practicePlan([], [money(5), money(10), money(20)]);
 
     expect(plan.weakest).toBeUndefined();
   });

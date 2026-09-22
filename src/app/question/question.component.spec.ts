@@ -36,6 +36,11 @@ describe('QuestionComponent', () => {
   it('only asks a grade 3 child to add and subtract', () => {
     for (let i = 0; i < 25; i++) {
       component.generateQuestion();
+      // Money is its own strand now and is allowed at every grade; the
+      // point here is that a grade 3 child never meets × or ÷
+      if (component.currentQuestion.money) {
+        continue;
+      }
       expect(['+', '-']).toContain(component.currentQuestion.operation);
     }
   });
@@ -43,7 +48,7 @@ describe('QuestionComponent', () => {
   it('never generates a subtraction with a negative answer', () => {
     for (let i = 0; i < 25; i++) {
       component.generateQuestion();
-      if (component.currentQuestion.operation === '-') {
+      if (!component.currentQuestion.money && component.currentQuestion.operation === '-') {
         expect(component.currentQuestion.num1).toBeGreaterThanOrEqual(component.currentQuestion.num2);
       }
     }
@@ -259,92 +264,138 @@ describe('QuestionComponent', () => {
       expect((component as any).missed.length).toBe(0);
     });
 
-    it('keeps the money wording when a money question comes back', () => {
-      component.currentQuestion = { num1: 10, num2: 6, operation: '-', moneyPrompt: 'A toy costs €6.' };
+    it('brings the whole money question back, pieces and all', () => {
+      component.currentQuestion = { num1: 0, num2: 0, operation: 'money', money: {
+        shape: 'count', prompt: 'money-count', values: {},
+        pile: [50, 20, 5], answer: 75, unit: 'cents', answerCents: 75,
+        worked: '50c + 20c = 70c → 70c + 5c = 75c',
+        answerText: '75c', summary: '50c + 20c + 5c'
+      } };
       component.wrongAttempts = 0;
-      component.userAnswer = '2';
+      component.userAnswer = '60';
       component.checkAnswer();
-      component.userAnswer = '2';
+      component.userAnswer = '60';
       component.checkAnswer();
 
       component.questionsAnswered = 2;
       component.generateQuestion();
 
       expect(component.isReplay).toBe(true);
-      expect(component.currentQuestion.moneyPrompt).toBe('A toy costs €6.');
+      expect(component.currentQuestion.money!.pile).toEqual([50, 20, 5]);
+      expect(component.currentQuestion.money!.answerCents).toBe(75);
     });
   });
 
   describe('money questions', () => {
-    const generateMoney = (grade: number) => {
+    const askMoney = (grade: number) => {
       component.grade = grade;
-      spyOn(Math, 'random').and.returnValue(0.1); // under the 0.25 money threshold
-      component.generateQuestion();
+      let built = false;
+      for (let i = 0; i < 40 && !built; i++) {
+        built = (component as any).generateMoneyQuestion();
+      }
+      return component.currentQuestion.money!;
     };
 
-    it('never asks a grade 1 child about money', () => {
-      component.grade = 1;
-      spyOn(Math, 'random').and.returnValue(0.1);
-      for (let i = 0; i < 10; i++) {
-        component.generateQuestion();
-        expect(component.currentQuestion.moneyPrompt).toBeUndefined();
+    it('asks a grade 1 child about money, which it never used to', () => {
+      // The curriculum puts coin recognition and combining coins in Year 1;
+      // the old code started money at grade 2 and never showed a coin at all
+      const money = askMoney(1);
+
+      expect(money).toBeTruthy();
+      expect(money.shape).toBe('count');
+      expect(money.pile.length).toBeGreaterThan(1);
+    });
+
+    it('puts one denomination in front of the youngest players', () => {
+      for (let i = 0; i < 40; i++) {
+        const money = askMoney(1);
+        const kinds = new Set(money.pile);
+        expect(kinds.size).toBe(1);
       }
     });
 
-    it('asks younger children for a total, never for change', () => {
-      generateMoney(2);
-
-      expect(component.currentQuestion.moneyPrompt).toContain('€');
-      expect(component.currentQuestion.operation).toBe('+');
+    it('never writes a decimal point before the year it is taught', () => {
+      [1, 2, 3].forEach(grade => {
+        for (let i = 0; i < 30; i++) {
+          const money = askMoney(grade);
+          expect(money.unit).not.toBe('decimal');
+          const shown = [money.answerText, money.summary, money.worked].join(' ');
+          expect(shown).not.toMatch(/\d\.\d/);
+        }
+      });
     });
 
-    it('asks older children to work out change', () => {
-      generateMoney(5);
-
-      expect(component.currentQuestion.moneyPrompt).toContain('€');
-      expect(component.currentQuestion.operation).toBe('-');
-    });
-
-    it('never asks for change larger than what was paid', () => {
-      component.grade = 5;
-      for (let i = 0; i < 30; i++) {
-        (component as any).generateMoneyQuestion();
-        expect(component.currentQuestion.num1).toBeGreaterThan(component.currentQuestion.num2);
+    it('writes decimals from grade 4, where the curriculum introduces them', () => {
+      let sawDecimal = false;
+      for (let i = 0; i < 120 && !sawDecimal; i++) {
+        sawDecimal = askMoney(4).unit === 'decimal';
       }
+
+      expect(sawDecimal).toBe(true);
     });
 
-    it('keeps the amounts whole euros', () => {
-      component.grade = 4;
-      for (let i = 0; i < 30; i++) {
-        (component as any).generateMoneyQuestion();
-        expect(Number.isInteger(component.currentQuestion.num1)).toBe(true);
-        expect(Number.isInteger(component.currentQuestion.num2)).toBe(true);
+    it('fills every placeholder in the wording', () => {
+      [1, 2, 3, 5, 8].forEach(grade => {
+        for (let i = 0; i < 30; i++) {
+          askMoney(grade);
+          fixture.detectChanges();
+          expect(component.moneyText).not.toContain('{');
+          expect(component.moneyText.length).toBeGreaterThan(0);
+        }
+      });
+    });
+
+    it('says which unit the answer is in, so 75 is never confused with 0.75', () => {
+      for (let i = 0; i < 60; i++) {
+        const money = askMoney(5);
+        const shown = component.answerPrefix + component.answerSuffix;
+        if (money.unit === 'cents') {
+          expect(shown).toBe('c');
+        } else if (money.unit === 'count') {
+          expect(shown).toBe('');
+        } else {
+          expect(shown).toBe('€');
+        }
       }
-    });
-
-    it('fills every placeholder in the sentence', () => {
-      generateMoney(5);
-
-      expect(component.currentQuestion.moneyPrompt).not.toContain('{');
     });
 
     it('marks the right answer correct through the normal check', () => {
-      generateMoney(5);
-      const expected = component.currentQuestion.num1 - component.currentQuestion.num2;
+      for (let i = 0; i < 60; i++) {
+        const money = askMoney(5);
+        component.wrongAttempts = 0;
+        component.answerWasCorrect = null;
+        component.userAnswer = String(money.answer);
+        component.checkAnswer();
 
-      component.userAnswer = String(expected);
-      component.checkAnswer();
-
-      expect(component.answerWasCorrect).toBe(true);
+        expect(component.answerWasCorrect as boolean | null).toBe(true);
+      }
     });
 
-    it('shows the sentence instead of the bare sum', () => {
-      generateMoney(2);
-      fixture.detectChanges();
+    it('accepts 3.4 for 3.40, because a child typing it is not wrong', () => {
+      let money = askMoney(6);
+      for (let i = 0; i < 120 && money.unit !== 'decimal'; i++) {
+        money = askMoney(6);
+      }
+      expect(money.unit).toBe('decimal');
 
-      expect(fixture.nativeElement.querySelector('.money-prompt')).toBeTruthy();
-      expect(fixture.nativeElement.querySelectorAll('.math-problem .number').length).toBe(0);
-      expect(fixture.nativeElement.querySelector('.currency').textContent).toContain('€');
+      component.wrongAttempts = 0;
+      component.answerWasCorrect = null;
+      component.userAnswer = String(money.answer);
+      component.checkAnswer();
+
+      expect(component.answerWasCorrect as boolean | null).toBe(true);
+    });
+
+    it('turns the minus key into a decimal point only where decimals are written', () => {
+      askMoney(1);
+      expect(component.needsDecimalKey).toBe(false);
+
+      let money = askMoney(6);
+      for (let i = 0; i < 120 && money.unit !== 'decimal'; i++) {
+        money = askMoney(6);
+      }
+
+      expect(component.needsDecimalKey).toBe(true);
     });
   });
 
@@ -531,7 +582,7 @@ describe('QuestionComponent sums for the youngest players', () => {
 
         for (let i = 0; i < 200; i++) {
           component.generateQuestion();
-          if (component.currentQuestion.moneyPrompt) {
+          if (component.currentQuestion.money) {
             continue;
           }
           const { num1, num2 } = component.currentQuestion;
@@ -639,18 +690,25 @@ describe('QuestionComponent showing how', () => {
     expect(fixture.nativeElement.querySelector('.worked-step')).toBeNull();
   });
 
-  it('leaves money questions alone — they are worded, not a bare fact', () => {
+  it('gives a money question its own line, not the sum behind it', () => {
+    // Money used to get nothing here, on the grounds that a worded problem
+    // has no one-line method. A counted pile does: it is the pile, added up.
     component.currentQuestion = {
-      num1: 8, num2: 7, operation: '+', moneyPrompt: 'You buy a toy...'
+      num1: 0, num2: 0, operation: 'money', money: {
+      shape: 'count', prompt: 'money-count', values: {},
+      pile: [50, 20, 5], answer: 75, unit: 'cents', answerCents: 75,
+      worked: '50c + 20c = 70c → 70c + 5c = 75c',
+      answerText: '75c', summary: '50c + 20c + 5c'
+    }
     };
     component.wrongAttempts = 0;
     component.isReplay = false;
     component.workedLine = '';
 
-    answer('14');
-    answer('13');
+    answer('60');
+    answer('70');
 
-    expect(component.workedLine).toBe('');
+    expect(component.workedLine).toBe('50c + 20c = 70c → 70c + 5c = 75c');
   });
 
   it('clears the method before the next question is asked', () => {
@@ -907,6 +965,9 @@ describe('QuestionComponent: a round that survives the real world', () => {
 
   function solve(c: QuestionComponent): number {
     const q = c.currentQuestion;
+    if (q.money) {
+      return q.money.answer;
+    }
     switch (q.operation) {
       case '+': return q.num1 + q.num2;
       case '-': return q.num1 - q.num2;

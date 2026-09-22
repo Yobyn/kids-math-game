@@ -17,6 +17,17 @@ export const KEYPAD_KEYS = [
 ];
 
 /**
+ * The same twelve keys with the minus swapped for a decimal point, used on
+ * money questions once a child writes amounts as €3.40. A thirteenth key
+ * would narrow all the others on a phone, and the swap costs nothing: change
+ * is never negative and no money answer here ever is.
+ */
+export const KEYPAD_KEYS_DECIMAL = KEYPAD_KEYS.map(key => (key === '-' ? '.' : key));
+
+/** The key that adds a decimal point, on the money keypad only. */
+export const DECIMAL_KEY = '.';
+
+/**
  * Longer than any answer the game can ask for. It exists so a child leaning
  * on a key cannot push the question off the screen.
  */
@@ -40,12 +51,18 @@ export function applyKey(current: string, key: string): string {
     return answer.startsWith('-') ? answer.slice(1) : '-' + answer;
   }
 
+  if (key === DECIMAL_KEY) {
+    // One point, and never the first character: "€.50" is not how anybody
+    // writes it, and a child who wants fifty cents types 0 first.
+    return answer && answer.indexOf(DECIMAL_KEY) < 0 ? answer + DECIMAL_KEY : answer;
+  }
+
   return digitsIn(answer) < MAX_DIGITS ? answer + key : answer;
 }
 
-/** How many digits are typed, not counting a leading minus. */
+/** How many digits are typed, not counting a leading minus or a point. */
 export function digitsIn(answer: string): number {
-  return (answer || '').replace('-', '').length;
+  return (answer || '').replace('-', '').replace(DECIMAL_KEY, '').length;
 }
 
 /** What to show in the empty box, which is a prompt rather than a value. */
@@ -58,7 +75,10 @@ export function keyFace(key: string): string {
   return key === DELETE_KEY ? '⌫' : key;
 }
 
-/** What a screen reader should say, since "⌫" is not a word. */
+/** What a screen reader should say, since "⌫" and "." are not words. */
 export function keyLabel(key: string): string {
-  return key === DELETE_KEY ? 'delete' : key;
+  if (key === DELETE_KEY) {
+    return 'delete';
+  }
+  return key === DECIMAL_KEY ? 'point' : key;
 }

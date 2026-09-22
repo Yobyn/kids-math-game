@@ -2,7 +2,7 @@
   <button type="button"
           class="key"
           *ngFor="let key of keys"
-          [class.key-action]="key === 'del' || key === '-'"
+          [class.key-action]="key === 'del' || key === '-' || key === '.'"
           [disabled]="disabled"
           [attr.aria-label]="label(key)"
           (click)="onPress(key)">

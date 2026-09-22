@@ -1,0 +1,51 @@
+.coins {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 0 auto 1rem;
+}
+
+/* One size for every piece: see the note in coins.component.ts. Colour and
+   the value on the face are what tell them apart. */
+.piece {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  font-size: 0.95rem;
+  font-weight: 700;
+  /* Dark text on a light face, like every other reading surface here */
+  color: #3a2c12;
+  border: 2px solid rgba(0, 0, 0, 0.18);
+  box-shadow: 0 2px 4px rgba(6, 4, 20, 0.25);
+}
+
+.copper {
+  background: linear-gradient(145deg, #e0a070, #b87333);
+}
+
+.gold {
+  background: linear-gradient(145deg, #f0d98c, #d4af37);
+}
+
+/* A €1 really is a silver centre inside a gold ring, and a €2 really is the
+   reverse. A child who has held them would notice these being swapped. */
+.silver-centre {
+  background: radial-gradient(circle at 50% 50%, #dcdcdc 0 58%, #d4af37 58%);
+}
+
+.gold-centre {
+  background: radial-gradient(circle at 50% 50%, #f0d98c 0 58%, #cfcfcf 58%);
+}
+
+/* A note is not a disc, and looking like one would be its own small lie */
+.note {
+  width: 76px;
+  height: 46px;
+  border-radius: 6px;
+  background: linear-gradient(145deg, #cfe3f5, #9dc0e0);
+  color: #1d3550;
+}

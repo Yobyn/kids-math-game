@@ -176,10 +176,42 @@ describe('ProgressService', () => {
       expect(stored[0].num1).toBe(19);
     });
 
-    it('carries the money wording with the fact', () => {
-      service.recordMissed({ num1: 10, num2: 6, operation: '-', moneyPrompt: 'A toy costs €6.' });
+    it('carries the whole money question with the fact', () => {
+      // The pieces on the table and the unit the answer is in are part of
+      // the question, so they have to come back with it tomorrow
+      service.recordMissed({ num1: 0, num2: 0, operation: 'money', money: {
+      shape: 'count', prompt: 'money-count', values: {},
+      pile: [50, 20, 5], answer: 75, unit: 'cents', answerCents: 75,
+      worked: '50c + 20c = 70c → 70c + 5c = 75c',
+      answerText: '75c', summary: '50c + 20c + 5c'
+    } });
 
-      expect(service.getMissedFacts()[0].moneyPrompt).toBe('A toy costs €6.');
+      const stored = service.getMissedFacts()[0];
+      expect(stored.money!.pile).toEqual([50, 20, 5]);
+      expect(stored.money!.unit).toBe('cents');
+      expect(stored.money!.answerCents).toBe(75);
+    });
+
+    it('keeps two different money questions apart', () => {
+      // Every money question is the same 0/money/0 sum, so the signature has
+      // to come from the question itself or the second overwrites the first
+      const first: any = { ...{
+      shape: 'count', prompt: 'money-count', values: {},
+      pile: [50, 20, 5], answer: 75, unit: 'cents', answerCents: 75,
+      worked: '50c + 20c = 70c → 70c + 5c = 75c',
+      answerText: '75c', summary: '50c + 20c + 5c'
+    } };
+      const second: any = { ...{
+      shape: 'count', prompt: 'money-count', values: {},
+      pile: [50, 20, 5], answer: 75, unit: 'cents', answerCents: 75,
+      worked: '50c + 20c = 70c → 70c + 5c = 75c',
+      answerText: '75c', summary: '50c + 20c + 5c'
+    }, pile: [100, 100], answer: 2, unit: 'euros',
+                            answerCents: 200, summary: '€1 + €1' };
+      service.recordMissed({ num1: 0, num2: 0, operation: 'money', money: first });
+      service.recordMissed({ num1: 0, num2: 0, operation: 'money', money: second });
+
+      expect(service.getMissedFacts().length).toBe(2);
     });
 
     it('survives a corrupt store', () => {
@@ -610,7 +642,7 @@ describe('ProgressService: the round in play', () => {
   let service: ProgressService;
 
   const round: any = {
-    version: 1,
+    version: 2,
     savedAt: Date.now(),
     grade: 4,
     difficulty: 'easy',
