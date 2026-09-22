@@ -8,7 +8,7 @@ import { ProgressService } from '../services/progress.service';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { ROUND_COMPLETION_XP, xpForRound, xpToReach } from '../levels/level-curve';
-import { NO_ITEM, WARDROBE } from '../avatar/avatar-model';
+import { NO_ITEM, levelItems } from '../avatar/avatar-model';
 
 describe('ResultComponent', () => {
   let fixture: ComponentFixture<ResultComponent>;
@@ -446,7 +446,7 @@ describe('ResultComponent naming the reward', () => {
   it('says nothing about items on a level that hands none over', () => {
     // Derived, not written down: a level that wins nothing today may win
     // something tomorrow, and this test must not silently stop testing
-    const winning = new Set(WARDROBE.map(item => item.unlockLevel));
+    const winning = new Set(levelItems().map(item => item.unlockLevel));
     const barren = [5, 11, 13, 15, 17].find(level => !winning.has(level))!;
     expect(barren).toBeDefined();
 
@@ -477,5 +477,85 @@ describe('ResultComponent naming the reward', () => {
 
     expect(component.leveledUp).toBe(false);
     expect(component.unlocked).toEqual([]);
+  });
+});
+
+describe('ResultComponent and seasonal events', () => {
+  let fixture: ComponentFixture<ResultComponent>;
+  let component: ResultComponent;
+  let progress: ProgressService;
+
+  function finishRoundOn(date: Date) {
+    jasmine.clock().mockDate(date);
+    spyOn(TestBed.inject(ScoreService), 'getFinalScore').and.returnValue({
+      score: 20, total: 10, correctAnswers: 8, percentage: 80
+    });
+    fixture = TestBed.createComponent(ResultComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    localStorage.clear();
+    jasmine.clock().install();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+
+    progress = TestBed.inject(ProgressService);
+  });
+
+  afterEach(() => {
+    jasmine.clock().uninstall();
+    localStorage.clear();
+  });
+
+  it('says nothing about events on an ordinary day', () => {
+    finishRoundOn(new Date(2026, 8, 22));
+
+    expect(component.eventItem).toBeUndefined();
+    expect(component.eventJustEarned).toBe(false);
+    expect(fixture.nativeElement.querySelector('.event-earned')).toBeNull();
+    expect(progress.getEarnedEvents()).toEqual([]);
+  });
+
+  it('hands over the item for a round played while an event is on', () => {
+    finishRoundOn(new Date(2026, 2, 25));
+
+    expect(component.eventItem!.event).toBe('spring');
+    expect(component.eventJustEarned).toBe(true);
+    expect(progress.getEarnedEvents()).toEqual(['spring']);
+    expect(fixture.nativeElement.querySelector('.event-earned').textContent)
+      .toContain('Flower shirt');
+  });
+
+  it('announces it once, not on every round of the event', () => {
+    progress.earnEvent('spring');
+
+    finishRoundOn(new Date(2026, 2, 25));
+
+    // Still theirs, but the celebration was last time
+    expect(component.eventItem!.event).toBe('spring');
+    expect(component.eventJustEarned).toBe(false);
+    expect(fixture.nativeElement.querySelector('.event-earned')).toBeNull();
+  });
+
+  it('earns it for a bad round too — being there is the whole requirement', () => {
+    jasmine.clock().mockDate(new Date(2026, 9, 31));
+    spyOn(TestBed.inject(ScoreService), 'getFinalScore').and.returnValue({
+      score: 0, total: 10, correctAnswers: 0, percentage: 0
+    });
+    fixture = TestBed.createComponent(ResultComponent);
+    fixture.detectChanges();
+
+    expect(progress.getEarnedEvents()).toEqual(['autumn']);
+  });
+
+  it('works across the year end, where the window wraps', () => {
+    finishRoundOn(new Date(2027, 0, 2));
+
+    expect(progress.getEarnedEvents()).toEqual(['winter']);
   });
 });

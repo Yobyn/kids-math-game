@@ -284,3 +284,96 @@ describe('AvatarChooserComponent wardrobe', () => {
     expect(component.avatar.glasses).toBe('shades');
   });
 });
+
+describe('AvatarChooserComponent and event items', () => {
+  let fixture: ComponentFixture<AvatarChooserComponent>;
+  let component: AvatarChooserComponent;
+  let progress: ProgressService;
+
+  function open() {
+    fixture = TestBed.createComponent(AvatarChooserComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    localStorage.clear();
+    jasmine.clock().install();
+    jasmine.clock().mockDate(new Date(2026, 8, 22));
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [AvatarChooserComponent, AvatarComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+
+    progress = TestBed.inject(ProgressService);
+  });
+
+  afterEach(() => {
+    jasmine.clock().uninstall();
+    localStorage.clear();
+  });
+
+  it('shows an event item a child has not earned, rather than hiding it', () => {
+    open();
+
+    const labels = Array.from(fixture.nativeElement.querySelectorAll('.swatch'))
+      .map((el: any) => el.getAttribute('aria-label'));
+
+    expect(labels.some((label: string) => label && label.startsWith('Bobble hat'))).toBe(true);
+  });
+
+  it('tells a child when it comes back, never how long is left', () => {
+    open();
+
+    const bobble = Array.from(fixture.nativeElement.querySelectorAll('.swatch'))
+      .find((el: any) => (el.getAttribute('aria-label') || '').startsWith('Bobble hat')) as HTMLElement;
+
+    // The winter event is ahead of 22 September, so it returns this December
+    expect(bobble.getAttribute('aria-label')).toBe('Bobble hat — back in December');
+    expect(bobble.classList.contains('locked')).toBe(true);
+  });
+
+  it('marks an event item differently from a level one', () => {
+    open();
+
+    const eventLock = fixture.nativeElement.querySelector('.event-lock');
+    expect(eventLock).toBeTruthy();
+    // A level lock shows a number to reach; an event lock cannot
+    expect(eventLock.textContent).not.toMatch(/\d/);
+  });
+
+  it('says plainly that nothing is ever gone for good', () => {
+    open();
+
+    expect(fixture.nativeElement.querySelector('.event-note').textContent)
+      .toContain('come back every year');
+  });
+
+  it('refuses to put on an event item that was never earned', () => {
+    open();
+
+    component.wear('hat', findItem('hat', 'bobble-hat')!);
+
+    expect(component.avatar.hat).toBe(NO_ITEM);
+  });
+
+  it('lets a child wear one they were there for, at any level', () => {
+    progress.earnEvent('winter');
+    open();
+
+    expect(component.level).toBe(1);
+    component.wear('hat', findItem('hat', 'bobble-hat')!);
+
+    expect(component.avatar.hat).toBe('bobble-hat');
+  });
+
+  it('never promises an event item as the next level reward', () => {
+    progress.addXp(xpToReach(3));
+    open();
+
+    if (component.nextReward) {
+      expect(component.nextReward.event).toBeUndefined();
+    }
+  });
+});

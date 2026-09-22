@@ -6,7 +6,10 @@ import {
   HAIR_PATHS,
   HAIR_STYLES,
   SKIN_TONES,
+  EVENT_ITEMS,
   WARDROBE,
+  itemForEvent,
+  levelItems,
   defaultAvatar,
   findItem,
   isUnlocked,
@@ -15,6 +18,7 @@ import {
   nextUnlock,
   normaliseAvatar
 } from './avatar-model';
+import { SEASONAL_EVENTS } from '../events/seasonal-events';
 
 describe('the character a child can make', () => {
   it('offers a range of skin tones wide enough to find yourself in', () => {
@@ -113,16 +117,13 @@ describe('the wardrobe', () => {
   });
 
   it('hands over the first item early, so the ladder proves it pays', () => {
-    const earliest = Math.min(...WARDROBE
-      .filter(item => item.unlockLevel > 1)
-      .map(item => item.unlockLevel));
+    const earliest = Math.min(...levelItems().map(item => item.unlockLevel));
 
     expect(earliest).toBe(2);
   });
 
   it('spreads later items out, so a reward stays a reward', () => {
-    const levels = WARDROBE
-      .filter(item => item.unlockLevel > 1)
+    const levels = levelItems()
       .map(item => item.unlockLevel)
       .sort((a, b) => a - b);
 
@@ -157,7 +158,7 @@ describe('the wardrobe', () => {
   it('hands over nothing at a level that wins nothing', () => {
     // Found from the wardrobe rather than written down, so adding an item at
     // some level does not quietly turn this test into a lie
-    const winning = new Set(WARDROBE.map(item => item.unlockLevel));
+    const winning = new Set(levelItems().map(item => item.unlockLevel));
     const barren = [3, 5, 7, 9, 11, 13, 15, 17].find(level => !winning.has(level));
 
     expect(barren).toBeDefined();
@@ -169,7 +170,7 @@ describe('the wardrobe', () => {
   });
 
   it('points at the next thing worth climbing for', () => {
-    const earned = WARDROBE.filter(item => item.id !== NO_ITEM);
+    const earned = levelItems();
 
     for (let level = 1; level < 20; level++) {
       const ahead = earned
@@ -239,5 +240,65 @@ describe('wearing what has been earned', () => {
   it('treats a missing level as a brand new player', () => {
     // The default must be the cautious one: nothing earned yet
     expect(normaliseAvatar({ hat: 'cap' }).hat).toBe(NO_ITEM);
+  });
+});
+
+describe('items won by being there', () => {
+  it('gives every event exactly one item', () => {
+    SEASONAL_EVENTS.forEach(event => {
+      const item = itemForEvent(event.id);
+      expect(item).toBeDefined();
+      expect(item!.event).toBe(event.id);
+    });
+  });
+
+  it('spreads event items across the slots rather than piling them up', () => {
+    const slots = EVENT_ITEMS.map(item => item.slot);
+
+    expect(new Set(slots).size).toBe(EVENT_ITEMS.length);
+  });
+
+  it('never unlocks one by levelling, however high', () => {
+    EVENT_ITEMS.forEach(item => {
+      expect(isUnlocked(item, 1)).toBe(false);
+      expect(isUnlocked(item, 500)).toBe(false);
+    });
+  });
+
+  it('unlocks one for a child who was there', () => {
+    const winter = itemForEvent('winter')!;
+
+    expect(isUnlocked(winter, 1, ['winter'])).toBe(true);
+    expect(isUnlocked(winter, 1, ['spring'])).toBe(false);
+  });
+
+  it('keeps event items out of what a level hands over', () => {
+    // Otherwise a level up would announce a reward it did not give
+    for (let level = 1; level <= 30; level++) {
+      itemsUnlockedAt(level).forEach(item => expect(item.event).toBeUndefined());
+      const next = nextUnlock(level);
+      if (next) {
+        expect(next.event).toBeUndefined();
+      }
+    }
+  });
+
+  it('takes an event item off a character who never earned it', () => {
+    const worn = normaliseAvatar({ ...defaultAvatar(), hat: 'bobble-hat' }, 99, []);
+
+    expect(worn.hat).toBe(NO_ITEM);
+  });
+
+  it('leaves it on for a child who did', () => {
+    const worn = normaliseAvatar({ ...defaultAvatar(), hat: 'bobble-hat' }, 1, ['winter']);
+
+    expect(worn.hat).toBe('bobble-hat');
+  });
+
+  it('has something to draw for every event item', () => {
+    EVENT_ITEMS.forEach(item => {
+      expect(item.path).toMatch(/^M/);
+      expect(item.colour).toMatch(/^#[0-9a-f]{6}$/i);
+    });
   });
 });

@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AvatarService } from '../services/avatar.service';
 import { LanguageService, TranslationKeys } from '../services/language.service';
 import { ProgressService } from '../services/progress.service';
+import { findEvent, nextOpening } from '../events/seasonal-events';
 import { levelForXp } from '../levels/level-curve';
 import {
   Avatar,
@@ -46,6 +47,7 @@ export class AvatarChooserComponent implements OnInit {
   ];
   level = 1;
   nextReward?: WardrobeItem;
+  earnedEvents: string[] = [];
 
   constructor(
     private avatarService: AvatarService,
@@ -57,6 +59,7 @@ export class AvatarChooserComponent implements OnInit {
   ngOnInit() {
     this.avatar = { ...this.avatarService.get() };
     this.level = levelForXp(this.progressService.getXp());
+    this.earnedEvents = this.progressService.getEarnedEvents();
     this.nextReward = nextUnlock(this.level);
   }
 
@@ -66,7 +69,21 @@ export class AvatarChooserComponent implements OnInit {
    * goal at all.
    */
   canWear(item: WardrobeItem): boolean {
-    return isUnlocked(item, this.level);
+    return isUnlocked(item, this.level, this.earnedEvents);
+  }
+
+  /**
+   * What a locked event item says: when it comes back, never how long is
+   * left. A child who missed one has lost nothing, and should not be told
+   * otherwise.
+   */
+  returnsOn(item: WardrobeItem): string {
+    const event = item.event ? findEvent(item.event) : undefined;
+    if (!event) {
+      return '';
+    }
+    return nextOpening(event, new Date())
+      .toLocaleDateString(undefined, { month: 'long' });
   }
 
   wearing(slot: ItemSlot): string {
@@ -98,6 +115,9 @@ export class AvatarChooserComponent implements OnInit {
   itemLabel(item: WardrobeItem): string {
     if (this.canWear(item)) {
       return this.itemName(item);
+    }
+    if (item.event) {
+      return `${this.itemName(item)} — ${this.languageService.translate('back-in')} ${this.returnsOn(item)}`;
     }
     return `${this.itemName(item)} — ${this.languageService.translate('level')} ${item.unlockLevel}`;
   }

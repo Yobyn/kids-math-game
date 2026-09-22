@@ -77,10 +77,13 @@
         <app-avatar [avatar]="withItem(row.slot, item)"
                     [size]="44"
                     [framing]="framingFor(row.slot)"></app-avatar>
-        <span class="lock" *ngIf="!canWear(item)" aria-hidden="true">🔒{{ item.unlockLevel }}</span>
+        <span class="lock" *ngIf="!canWear(item) && !item.event" aria-hidden="true">🔒{{ item.unlockLevel }}</span>
+        <span class="lock event-lock" *ngIf="!canWear(item) && item.event" aria-hidden="true">🎁</span>
       </button>
     </div>
   </section>
+
+  <p class="event-note">{{ languageService.translate('events-return') }}</p>
 
   <p class="next-unlock" *ngIf="nextReward">
     {{ languageService.translate('next-unlock') }}

@@ -115,3 +115,17 @@
   align-items: center;
   justify-content: center;
 }
+
+/* An event item is locked differently: not by a level it has to reach, but
+   by a season that comes round again. */
+.swatch.locked .event-lock {
+  font-size: 0.85rem;
+  padding: 1px 3px;
+}
+
+.event-note {
+  margin: 0 0 1rem;
+  font-size: 0.85rem;
+  text-align: center;
+  color: var(--text-dim);
+}

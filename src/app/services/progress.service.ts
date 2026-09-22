@@ -25,6 +25,7 @@ export interface MissedFact {
 const STORAGE_KEY = 'roundHistory';
 const MISSED_KEY = 'missedFacts';
 const XP_KEY = 'xp';
+const EVENTS_KEY = 'events';
 /** Enough to carry a round's mistakes forward without burying the next one. */
 const MAX_MISSED = 12;
 /** Enough to show improvement over time without growing without bound. */
@@ -142,6 +143,27 @@ export class ProgressService {
     this.writeXp(owner, this.readXp(owner) + Math.floor(amount));
   }
 
+  /**
+   * Seasonal events the child was here for. Once earned an event is never
+   * taken away — the whole point of making them recur is that nothing is
+   * lost, so nothing here ever removes one.
+   */
+  getEarnedEvents(): string[] {
+    return this.readEvents(this.currentOwner());
+  }
+
+  earnEvent(id: string): void {
+    if (!id) {
+      return;
+    }
+    const owner = this.currentOwner();
+    const earned = this.readEvents(owner);
+    if (earned.indexOf(id) >= 0) {
+      return;
+    }
+    this.write(this.key(EVENTS_KEY, owner), [...earned, id]);
+  }
+
   /** True when a guest has anything an account would be worth keeping for. */
   hasGuestProgress(): boolean {
     return this.readHistory(GUEST_OWNER).length > 0;
@@ -159,17 +181,27 @@ export class ProgressService {
     const guestHistory = this.readHistory(GUEST_OWNER);
     const guestMissed = this.readMissed(GUEST_OWNER);
     const guestXp = this.readXp(GUEST_OWNER);
+    const guestEvents = this.readEvents(GUEST_OWNER);
 
-    if (!guestHistory.length && !guestMissed.length && !guestXp) {
+    if (!guestHistory.length && !guestMissed.length && !guestXp && !guestEvents.length) {
       return;
     }
 
     this.writeHistory(owner, mergeHistory(this.readHistory(owner), guestHistory));
     this.writeMissed(owner, mergeMissed(this.readMissed(owner), guestMissed));
     this.writeXp(owner, this.readXp(owner) + guestXp);
+    // Union: an event either child was here for stays earned
+    const merged = this.readEvents(owner);
+    guestEvents.forEach(id => {
+      if (merged.indexOf(id) < 0) {
+        merged.push(id);
+      }
+    });
+    this.write(this.key(EVENTS_KEY, owner), merged);
     this.remove(this.key(STORAGE_KEY, GUEST_OWNER));
     this.remove(this.key(MISSED_KEY, GUEST_OWNER));
     this.remove(this.key(XP_KEY, GUEST_OWNER));
+    this.remove(this.key(EVENTS_KEY, GUEST_OWNER));
   }
 
   private currentOwner(): string {
@@ -232,6 +264,10 @@ export class ProgressService {
     } catch {
       return null;
     }
+  }
+
+  private readEvents(owner: string): string[] {
+    return this.readList(EVENTS_KEY, owner).filter(id => typeof id === 'string');
   }
 
   private readXp(owner: string): number {

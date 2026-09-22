@@ -282,3 +282,16 @@ h2 {
   font-size: 0.95rem;
   font-weight: 600;
 }
+
+/* Earned by being here while the event was on. Shown once, on the round that
+   earned it — not on every round for the rest of the event. */
+.event-earned {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border-left: 4px solid #2e7d32;
+  background: #edf7ee;
+  color: #1b4d20;
+  font-weight: 700;
+  text-align: center;
+}

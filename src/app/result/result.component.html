@@ -56,6 +56,10 @@
       </div>
     </div>
 
+    <div class="event-earned" *ngIf="eventJustEarned && eventItem">
+      🎁 {{ languageService.translate('event-earned') }} {{ itemName(eventItem) }}
+    </div>
+
     <div class="personal-best" *ngIf="isPersonalBest">
       🎉 {{ languageService.translate('new-best') }}
     </div>

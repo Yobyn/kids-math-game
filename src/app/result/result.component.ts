@@ -6,7 +6,8 @@ import { ProgressService } from '../services/progress.service';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { AuthService } from '../services/auth.service';
 import { LevelProgress, levelProgress, xpForRound } from '../levels/level-curve';
-import { WardrobeItem, itemsUnlockedAt } from '../avatar/avatar-model';
+import { WardrobeItem, itemForEvent, itemsUnlockedAt } from '../avatar/avatar-model';
+import { activeEvent } from '../events/seasonal-events';
 
 /**
  * How many rounds a guest plays before the game mentions an account. Guidance
@@ -43,6 +44,9 @@ export class ResultComponent implements OnInit, OnDestroy {
   leveledUp = false;
   /** What this level actually handed over, if anything. */
   unlocked: WardrobeItem[] = [];
+  /** An event item earned by having played while the event was on. */
+  eventItem?: WardrobeItem;
+  eventJustEarned = false;
   /** Where the bar starts before it fills, so the round's gain is visible. */
   levelFillPercent = 0;
 
@@ -76,6 +80,7 @@ export class ResultComponent implements OnInit, OnDestroy {
     });
     this.roundsPlayed = this.progressService.getRoundsPlayed();
     this.awardExperience();
+    this.awardEventItem();
 
     this.showKeepOffer = this.shouldOfferToKeepProgress();
 
@@ -180,6 +185,22 @@ export class ResultComponent implements OnInit, OnDestroy {
 
   itemName(item: WardrobeItem): string {
     return this.languageService.translate(('item-' + item.id) as TranslationKeys);
+  }
+
+  /**
+   * Finishing a round while an event is on earns its item. Nothing is timed
+   * at the child and nothing is taken away later: the event returns next
+   * year, so a child who was not here has missed nothing permanent.
+   */
+  private awardEventItem() {
+    const event = activeEvent(new Date());
+    if (!event) {
+      return;
+    }
+
+    this.eventJustEarned = this.progressService.getEarnedEvents().indexOf(event.id) < 0;
+    this.progressService.earnEvent(event.id);
+    this.eventItem = itemForEvent(event.id);
   }
 
   private shouldOfferToKeepProgress(): boolean {

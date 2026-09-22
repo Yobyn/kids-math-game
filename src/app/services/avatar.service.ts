@@ -26,6 +26,11 @@ export class AvatarService {
     return levelForXp(this.progressService.getXp());
   }
 
+  /** Events they were here for, which decide the rest of it. */
+  private earned(): string[] {
+    return this.progressService.getEarnedEvents();
+  }
+
   get(): Avatar {
     return this.subject.value;
   }
@@ -35,7 +40,7 @@ export class AvatarService {
   }
 
   save(avatar: Avatar): void {
-    const clean = normaliseAvatar(avatar, this.level());
+    const clean = normaliseAvatar(avatar, this.level(), this.earned());
     this.write(this.currentOwner(), clean);
     this.subject.next(clean);
   }
@@ -65,7 +70,7 @@ export class AvatarService {
     // An account that already has a character keeps it; the guest's is only
     // taken when there is nothing of their own to overwrite.
     if (this.stored(owner) === null) {
-      this.write(owner, normaliseAvatar(guest, this.level()));
+      this.write(owner, normaliseAvatar(guest, this.level(), this.earned()));
     }
     this.remove(this.key(GUEST_OWNER));
     this.refresh();
@@ -86,7 +91,7 @@ export class AvatarService {
 
   private read(owner: string): Avatar {
     const stored = this.stored(owner);
-    return stored === null ? defaultAvatar() : normaliseAvatar(stored, this.level());
+    return stored === null ? defaultAvatar() : normaliseAvatar(stored, this.level(), this.earned());
   }
 
   /** The raw stored object, or null when this player has never chosen. */
