@@ -5,6 +5,7 @@ import { LanguageService } from '../services/language.service';
 import { ProgressService } from '../services/progress.service';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { AuthService } from '../services/auth.service';
+import { LevelProgress, levelProgress, xpForRound } from '../levels/level-curve';
 
 /**
  * How many rounds a guest plays before the game mentions an account. Guidance
@@ -36,6 +37,11 @@ export class ResultComponent implements OnInit, OnDestroy {
   isPersonalBest = false;
   roundsPlayed = 0;
   showKeepOffer = false;
+  xpEarned = 0;
+  level: LevelProgress = levelProgress(0);
+  leveledUp = false;
+  /** Where the bar starts before it fills, so the round's gain is visible. */
+  levelFillPercent = 0;
 
   constructor(
     private scoreService: ScoreService,
@@ -65,6 +71,7 @@ export class ResultComponent implements OnInit, OnDestroy {
       grade: Number(localStorage.getItem('grade')) || 1
     });
     this.roundsPlayed = this.progressService.getRoundsPlayed();
+    this.awardExperience();
 
     this.showKeepOffer = this.shouldOfferToKeepProgress();
 
@@ -92,6 +99,8 @@ export class ResultComponent implements OnInit, OnDestroy {
 
   /** Pop the stars in one by one and count the percentage up, so finishing feels like a reward. */
   private celebrate() {
+    this.fillLevelBar();
+
     if (this.prefersReducedMotion()) {
       this.starsShown = this.starsEarned;
       this.displayPercentage = this.percentage;
@@ -119,6 +128,42 @@ export class ResultComponent implements OnInit, OnDestroy {
       this.message = this.languageService.translate('good-effort');
     } else {
       this.message = this.languageService.translate('keep-practicing');
+    }
+  }
+
+  /**
+   * Finishing a round always pays, so a hard round still moves the bar. A
+   * child who is struggling is exactly the one who must not watch the ladder
+   * stand still.
+   */
+  private awardExperience() {
+    this.xpEarned = xpForRound(this.correctAnswers, this.total);
+
+    const before = levelProgress(this.progressService.getXp());
+    this.progressService.addXp(this.xpEarned);
+    this.level = levelProgress(this.progressService.getXp());
+    this.leveledUp = this.level.level > before.level;
+
+    // Start the bar where the child left it, unless they have just levelled
+    // up — then it genuinely starts from the bottom of the new level.
+    const startFraction = this.leveledUp ? 0 : before.fraction;
+    this.levelFillPercent = Math.round(startFraction * 100);
+  }
+
+  private fillLevelBar() {
+    const target = Math.round(this.level.fraction * 100);
+
+    if (this.prefersReducedMotion()) {
+      this.levelFillPercent = target;
+      return;
+    }
+
+    const start = this.levelFillPercent;
+    const steps = 20;
+    for (let step = 1; step <= steps; step++) {
+      this.timers.push(window.setTimeout(() => {
+        this.levelFillPercent = Math.round(start + ((target - start) * step) / steps);
+      }, 40 * step));
     }
   }
 

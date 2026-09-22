@@ -1,5 +1,5 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { ResultComponent } from './result.component';
@@ -7,6 +7,7 @@ import { ScoreService } from '../services/score.service';
 import { ProgressService } from '../services/progress.service';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { ROUND_COMPLETION_XP, xpForRound, xpToReach } from '../levels/level-curve';
 
 describe('ResultComponent', () => {
   let fixture: ComponentFixture<ResultComponent>;
@@ -260,5 +261,129 @@ describe('ResultComponent offering an account', () => {
 
     expect(() => component.dismissKeepOffer()).not.toThrow();
     expect(component.showKeepOffer).toBe(false);
+  });
+});
+
+describe('ResultComponent levels', () => {
+  let fixture: ComponentFixture<ResultComponent>;
+  let component: ResultComponent;
+  let progress: ProgressService;
+
+  function render(percentage: number) {
+    spyOn(TestBed.inject(ScoreService), 'getFinalScore').and.returnValue({
+      score: 20, total: 10, correctAnswers: Math.round(percentage / 10), percentage
+    });
+    fixture = TestBed.createComponent(ResultComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    return component;
+  }
+
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+
+    progress = TestBed.inject(ProgressService);
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('pays for a round that went badly', () => {
+    render(0);
+
+    expect(component.xpEarned).toBe(ROUND_COMPLETION_XP);
+    expect(progress.getXp()).toBe(ROUND_COMPLETION_XP);
+  });
+
+  it('pays more for a round that went well', () => {
+    render(100);
+
+    expect(component.xpEarned).toBeGreaterThan(ROUND_COMPLETION_XP);
+    expect(component.xpEarned).toBe(xpForRound(10, 10));
+  });
+
+  it('banks the round on top of what was already earned', () => {
+    progress.addXp(40);
+
+    render(80);
+
+    expect(progress.getXp()).toBe(40 + xpForRound(8, 10));
+  });
+
+  it('celebrates crossing a level, and only then', () => {
+    render(100);
+    expect(component.leveledUp).toBe(true);
+    expect(fixture.nativeElement.querySelector('.level-up')).toBeTruthy();
+
+    // Park the child just inside a level so the next round cannot cross it
+    localStorage.clear();
+    progress.addXp(xpToReach(5));
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    });
+    spyOn(TestBed.inject(ScoreService), 'getFinalScore').and.returnValue({
+      score: 20, total: 10, correctAnswers: 5, percentage: 50
+    });
+    const quiet = TestBed.createComponent(ResultComponent);
+    quiet.detectChanges();
+
+    expect(quiet.componentInstance.leveledUp).toBe(false);
+    expect(quiet.nativeElement.querySelector('.level-up')).toBeNull();
+  });
+
+  it('shows the level the child is now on', () => {
+    progress.addXp(xpToReach(4));
+
+    render(90);
+
+    const badge = fixture.nativeElement.querySelector('.level-badge').textContent;
+    expect(badge).toContain(String(component.level.level));
+    expect(component.level.level).toBeGreaterThanOrEqual(4);
+  });
+
+  it('describes the bar to a screen reader in the same terms it draws it', () => {
+    progress.addXp(60);
+    render(70);
+
+    const track = fixture.nativeElement.querySelector('.level-track');
+    expect(track.getAttribute('role')).toBe('progressbar');
+    expect(Number(track.getAttribute('aria-valuenow'))).toBe(component.level.xpIntoLevel);
+    expect(Number(track.getAttribute('aria-valuemax'))).toBe(component.level.xpForLevel);
+  });
+
+  it('fills the bar to where the child actually stands', fakeAsync(() => {
+    progress.addXp(xpToReach(3));
+    render(60);
+
+    tick(1000);
+    expect(component.levelFillPercent).toBe(Math.round(component.level.fraction * 100));
+
+    component.ngOnDestroy();
+  }));
+
+  it('starts the bar from the level floor after a level up', () => {
+    progress.addXp(xpToReach(2) - 1);
+
+    render(100);
+
+    expect(component.leveledUp).toBe(true);
+    expect(component.levelFillPercent).toBe(0);
+  });
+
+  it('keeps the bar still when motion is not wanted', () => {
+    spyOn(window, 'matchMedia').and.returnValue({ matches: true } as MediaQueryList);
+    progress.addXp(40);
+
+    render(80);
+
+    // No timers to wait on: it is already where it belongs
+    expect(component.levelFillPercent).toBe(Math.round(component.level.fraction * 100));
   });
 });
