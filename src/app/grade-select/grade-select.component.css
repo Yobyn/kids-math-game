@@ -160,6 +160,21 @@ p {
   text-shadow: none;
 }
 
+/* A suggestion, not a decision: the card is marked and given a line of
+   explanation, and every other card is exactly as choosable as before. The
+   same treatment the difficulty screen uses, so it reads as the same idea. */
+.grade-card.suggested {
+  border: 2px solid var(--accent-magenta);
+  box-shadow: 0 0 0 4px rgba(214, 51, 235, 0.22);
+}
+
+.grade-card .suggestion {
+  margin-top: 0.4rem;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #8a2a9c;
+}
+
 /* On a phone the list used to be one card per row, 183px each, and three
    screenfuls of scrolling before the page ended. Two columns of compact
    cards puts the whole choice within about a screen. */
@@ -194,8 +209,13 @@ p {
 
   /* The description says the heading again in more words. On a phone it costs
      a third of the screen and adds nothing; the card's aria-label still
-     carries the name for anyone reading by ear. */
+     carries the name for anyone reading by ear. The suggestion is the one
+     line here that says something new, so it stays. */
   .grade-card p {
     display: none;
+  }
+
+  .grade-card .suggestion {
+    display: block;
   }
 }

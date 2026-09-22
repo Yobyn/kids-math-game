@@ -139,3 +139,88 @@ describe('GradeSelectComponent offering the grade last played', () => {
     expect(component.carryOnGrade).toBeUndefined();
   });
 });
+
+describe('GradeSelectComponent marking a grade to try next', () => {
+  let fixture: ComponentFixture<GradeSelectComponent>;
+  let component: GradeSelectComponent;
+
+  const round = (grade: number, percentage: number, difficulty = 'hard') => ({
+    date: '2026-09-22T10:00:00.000Z',
+    correctAnswers: Math.round(percentage / 10),
+    total: 10, percentage, score: percentage, grade, difficulty
+  });
+
+  function open(history: any[]) {
+    localStorage.setItem('roundHistory:guest', JSON.stringify(history));
+    fixture = TestBed.createComponent(GradeSelectComponent);
+    component = fixture.componentInstance;
+    spyOn(TestBed.inject(Router), 'navigate');
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [GradeSelectComponent]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('marks the next grade after a run at the top rung', () => {
+    open([round(3, 100), round(3, 95), round(3, 90)]);
+
+    expect(component.suggestedGrade).toBe(4);
+    const marked = fixture.nativeElement.querySelectorAll('.grade-card.suggested');
+    expect(marked.length).toBe(1);
+    expect(marked[0].textContent).toContain('4');
+  });
+
+  it('says why, in words, rather than only colouring the card', () => {
+    open([round(3, 100), round(3, 95), round(3, 90)]);
+
+    const line = fixture.nativeElement.querySelector('.grade-card.suggested .suggestion');
+    expect(line).toBeTruthy();
+    expect(line.textContent.trim().length).toBeGreaterThan(0);
+  });
+
+  it('leaves every other card exactly as choosable', () => {
+    // A suggestion, not a decision — the same rule the difficulty screen keeps
+    open([round(3, 100), round(3, 95), round(3, 90)]);
+
+    const cards = fixture.nativeElement.querySelectorAll('.grade-card');
+    expect(cards.length).toBe(component.grades.length);
+    Array.from(cards).forEach((card: any) => {
+      expect(card.getAttribute('role')).toBe('button');
+      expect(card.getAttribute('tabindex')).toBe('0');
+    });
+  });
+
+  it('marks nothing for a child having an ordinary time of it', () => {
+    open([round(3, 70), round(3, 60), round(3, 80)]);
+
+    expect(component.suggestedGrade).toBeUndefined();
+    expect(fixture.nativeElement.querySelector('.grade-card.suggested')).toBeNull();
+  });
+
+  it('marks nothing while there is still a harder rung at this grade', () => {
+    open([round(3, 100, 'easy'), round(3, 100, 'easy'), round(3, 100, 'easy')]);
+
+    expect(component.suggestedGrade).toBeUndefined();
+  });
+
+  it('marks nothing for a child who has never played', () => {
+    open([]);
+
+    expect(component.suggestedGrade).toBeUndefined();
+  });
+
+  it('carries on offering the grade they are on, alongside the suggestion', () => {
+    // It points at a door; it does not close the one they are standing in
+    open([round(3, 100), round(3, 95), round(3, 90)]);
+
+    expect(component.carryOnGrade).toBe(3);
+    expect(fixture.nativeElement.querySelector('.carry-on')).toBeTruthy();
+  });
+});

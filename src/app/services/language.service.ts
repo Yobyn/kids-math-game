@@ -147,7 +147,8 @@ export type TranslationKeys =
   | 'adults-waiting'
   | 'adults-spacing'
   | 'carry-on'
-  | 'or-pick-another';
+  | 'or-pick-another'
+  | 'ready-to-try';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -302,6 +303,7 @@ export class LanguageService {
       'adults-spacing': 'Facts come back a day apart, not the same afternoon — the gap is what makes them stick. One answered right on three separate days is done with and drops off this list.',
       'carry-on': 'Carry on at {grade}',
       'or-pick-another': 'Or pick a different one',
+      'ready-to-try': 'Ready to try this one?',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -450,6 +452,7 @@ export class LanguageService {
       'adults-spacing': 'Sommen komen een dag later terug, niet dezelfde middag — die tussentijd zorgt dat ze blijven hangen. Een som die op drie verschillende dagen goed gaat, is klaar en verdwijnt van deze lijst.',
       'carry-on': 'Ga verder met {grade}',
       'or-pick-another': 'Of kies een andere',
+      'ready-to-try': 'Klaar om deze te proberen?',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -598,6 +601,7 @@ export class LanguageService {
       'adults-spacing': 'Las operaciones vuelven un día después, no la misma tarde: ese intervalo es lo que hace que se fijen. La que se acierta en tres días distintos ya está lista y sale de esta lista.',
       'carry-on': 'Sigue en {grade}',
       'or-pick-another': 'O elige otro',
+      'ready-to-try': '¿Listo para probar este?',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',
