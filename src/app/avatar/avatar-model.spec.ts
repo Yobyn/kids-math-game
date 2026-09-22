@@ -1,11 +1,18 @@
 import {
   Avatar,
+  NO_ITEM,
   EYE_COLOURS,
   HAIR_COLOURS,
   HAIR_PATHS,
   HAIR_STYLES,
   SKIN_TONES,
+  WARDROBE,
   defaultAvatar,
+  findItem,
+  isUnlocked,
+  itemsForSlot,
+  itemsUnlockedAt,
+  nextUnlock,
   normaliseAvatar
 } from './avatar-model';
 
@@ -56,7 +63,9 @@ describe('reading a stored character', () => {
       skin: SKIN_TONES[4],
       hairStyle: 'curly',
       hairColour: HAIR_COLOURS[5],
-      eyeColour: EYE_COLOURS[2]
+      eyeColour: EYE_COLOURS[2],
+      hat: NO_ITEM,
+      glasses: NO_ITEM
     };
 
     expect(normaliseAvatar(chosen)).toEqual(chosen);
@@ -89,5 +98,124 @@ describe('reading a stored character', () => {
     expect(normaliseAvatar(undefined)).toEqual(defaultAvatar());
     expect(normaliseAvatar('a string')).toEqual(defaultAvatar());
     expect(normaliseAvatar(42)).toEqual(defaultAvatar());
+  });
+});
+
+describe('the wardrobe', () => {
+  it('gives a slot an empty option that is never locked', () => {
+    (['hat', 'glasses'] as const).forEach(slot => {
+      const empty = itemsForSlot(slot).filter(item => item.id === NO_ITEM);
+
+      expect(empty.length).toBe(1);
+      expect(empty[0].unlockLevel).toBe(1);
+    });
+  });
+
+  it('hands over the first item early, so the ladder proves it pays', () => {
+    const earliest = Math.min(...WARDROBE
+      .filter(item => item.unlockLevel > 1)
+      .map(item => item.unlockLevel));
+
+    expect(earliest).toBe(2);
+  });
+
+  it('spreads later items out, so a reward stays a reward', () => {
+    const levels = WARDROBE
+      .filter(item => item.unlockLevel > 1)
+      .map(item => item.unlockLevel)
+      .sort((a, b) => a - b);
+
+    // Gaps grow: something at almost every early level, then further apart
+    const gaps = levels.slice(1).map((level, i) => level - levels[i]);
+    expect(gaps[0]).toBeLessThanOrEqual(gaps[gaps.length - 1]);
+    expect(new Set(levels).size).toBe(levels.length);
+  });
+
+  it('has something to draw for every item that is not the empty one', () => {
+    WARDROBE.filter(item => item.id !== NO_ITEM).forEach(item => {
+      expect(item.path).toBeTruthy();
+      expect(item.path).toMatch(/^M/);
+      expect(item.colour).toMatch(/^#[0-9a-f]{6}$/i);
+    });
+  });
+
+  it('keeps item ids unique within a slot', () => {
+    (['hat', 'glasses'] as const).forEach(slot => {
+      const ids = itemsForSlot(slot).map(item => item.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+  });
+
+  it('knows exactly what a level hands over', () => {
+    const atTwo = itemsUnlockedAt(2);
+
+    expect(atTwo.length).toBe(1);
+    expect(atTwo[0].id).toBe('cap');
+    expect(itemsUnlockedAt(5)).toEqual([]);
+  });
+
+  it('never counts the empty option as something a level unlocks', () => {
+    expect(itemsUnlockedAt(1).length).toBe(0);
+  });
+
+  it('points at the next thing worth climbing for', () => {
+    expect(nextUnlock(1)!.unlockLevel).toBe(2);
+    expect(nextUnlock(2)!.unlockLevel).toBe(3);
+    expect(nextUnlock(8)!.unlockLevel).toBe(10);
+  });
+
+  it('runs out of things to promise once everything is won', () => {
+    const highest = Math.max(...WARDROBE.map(item => item.unlockLevel));
+
+    expect(nextUnlock(highest)).toBeUndefined();
+  });
+
+  it('unlocks on reaching the level, not after it', () => {
+    const cap = findItem('hat', 'cap')!;
+
+    expect(isUnlocked(cap, 1)).toBe(false);
+    expect(isUnlocked(cap, 2)).toBe(true);
+    expect(isUnlocked(cap, 9)).toBe(true);
+  });
+});
+
+describe('wearing what has been earned', () => {
+  it('lets a child wear an item they have reached', () => {
+    const worn = normaliseAvatar({ ...defaultAvatar(), hat: 'crown' }, 8);
+
+    expect(worn.hat).toBe('crown');
+  });
+
+  it('takes off an item the child has not earned', () => {
+    // A hand-edited store should not be able to put on a crown
+    const worn = normaliseAvatar({ ...defaultAvatar(), hat: 'crown' }, 3);
+
+    expect(worn.hat).toBe(NO_ITEM);
+  });
+
+  it('keeps the earned item when another in the same outfit is not', () => {
+    const worn = normaliseAvatar(
+      { ...defaultAvatar(), hat: 'cap', glasses: 'goggles' },
+      3
+    );
+
+    expect(worn.hat).toBe('cap');
+    expect(worn.glasses).toBe(NO_ITEM);
+  });
+
+  it('refuses an item that does not exist, and one from the wrong slot', () => {
+    expect(normaliseAvatar({ hat: 'sombrero' }, 99).hat).toBe(NO_ITEM);
+    expect(normaliseAvatar({ hat: 'goggles' }, 99).hat).toBe(NO_ITEM);
+    expect(normaliseAvatar({ glasses: 'crown' }, 99).glasses).toBe(NO_ITEM);
+  });
+
+  it('starts a new character wearing nothing', () => {
+    expect(defaultAvatar().hat).toBe(NO_ITEM);
+    expect(defaultAvatar().glasses).toBe(NO_ITEM);
+  });
+
+  it('treats a missing level as a brand new player', () => {
+    // The default must be the cautious one: nothing earned yet
+    expect(normaliseAvatar({ hat: 'cap' }).hat).toBe(NO_ITEM);
   });
 });

@@ -86,7 +86,19 @@ export type TranslationKeys =
   | 'hair-style'
   | 'hair-colour'
   | 'eyes'
-  | 'done';
+  | 'done'
+  | 'hats'
+  | 'glasses'
+  | 'unlocked'
+  | 'next-unlock'
+  | 'item-none'
+  | 'item-cap'
+  | 'item-beanie'
+  | 'item-crown'
+  | 'item-wizard'
+  | 'item-round-glasses'
+  | 'item-shades'
+  | 'item-goggles';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -175,6 +187,18 @@ export class LanguageService {
       'hair-colour': 'Hair colour',
       'eyes': 'Eyes',
       'done': 'Done',
+      'hats': 'Hats',
+      'glasses': 'Glasses',
+      'unlocked': 'You unlocked the',
+      'next-unlock': 'Next:',
+      'item-none': 'Nothing',
+      'item-cap': 'Cap',
+      'item-beanie': 'Beanie',
+      'item-crown': 'Crown',
+      'item-wizard': 'Wizard hat',
+      'item-round-glasses': 'Round glasses',
+      'item-shades': 'Sunglasses',
+      'item-goggles': 'Goggles',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -262,6 +286,18 @@ export class LanguageService {
       'hair-colour': 'Haarkleur',
       'eyes': 'Ogen',
       'done': 'Klaar',
+      'hats': 'Hoeden',
+      'glasses': 'Brillen',
+      'unlocked': 'Je hebt verdiend:',
+      'next-unlock': 'Hierna:',
+      'item-none': 'Niets',
+      'item-cap': 'Pet',
+      'item-beanie': 'Muts',
+      'item-crown': 'Kroon',
+      'item-wizard': 'Tovenaarshoed',
+      'item-round-glasses': 'Ronde bril',
+      'item-shades': 'Zonnebril',
+      'item-goggles': 'Duikbril',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -349,6 +385,18 @@ export class LanguageService {
       'hair-colour': 'Color de pelo',
       'eyes': 'Ojos',
       'done': 'Listo',
+      'hats': 'Sombreros',
+      'glasses': 'Gafas',
+      'unlocked': 'Has desbloqueado:',
+      'next-unlock': 'Siguiente:',
+      'item-none': 'Nada',
+      'item-cap': 'Gorra',
+      'item-beanie': 'Gorro',
+      'item-crown': 'Corona',
+      'item-wizard': 'Sombrero de mago',
+      'item-round-glasses': 'Gafas redondas',
+      'item-shades': 'Gafas de sol',
+      'item-goggles': 'Gafas de buceo',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',

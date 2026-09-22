@@ -4,6 +4,7 @@ import { AuthService } from './auth.service';
 import { ProgressService } from './progress.service';
 import { AvatarService } from './avatar.service';
 import { SKIN_TONES, defaultAvatar } from '../avatar/avatar-model';
+import { xpToReach } from '../levels/level-curve';
 
 describe('AuthService guest play', () => {
   let http: HttpTestingController;
@@ -191,5 +192,40 @@ describe('AuthService carrying the character', () => {
     http.expectOne('http://localhost:3000/api/auth/login').flush({ token: 'tok' });
 
     expect(localStorage.getItem('avatar:user:ada')).toBeNull();
+  });
+});
+
+describe('AuthService carrying earned items', () => {
+  let http: HttpTestingController;
+  let service: AuthService;
+  let avatars: AvatarService;
+  let progress: ProgressService;
+
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ imports: [HttpClientTestingModule] });
+    http = TestBed.inject(HttpTestingController);
+    service = TestBed.inject(AuthService);
+    avatars = TestBed.inject(AvatarService);
+    progress = TestBed.inject(ProgressService);
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('keeps a hat a guest won when they sign up', () => {
+    service.playAsGuest();
+    progress.addXp(xpToReach(4));
+    avatars.refresh();
+    avatars.save({ ...avatars.get(), hat: 'beanie' });
+    expect(avatars.get().hat).toBe('beanie');
+
+    service.register('ada', 'secret123').subscribe();
+    http.expectOne('http://localhost:3000/api/auth/register').flush({ token: 'tok' });
+
+    // The level that won it came across too, so it is still theirs to wear
+    avatars.refresh();
+    expect(avatars.get().hat).toBe('beanie');
+    expect(JSON.parse(localStorage.getItem('avatar:user:ada') as string).hat).toBe('beanie');
   });
 });

@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Avatar, defaultAvatar, normaliseAvatar } from '../avatar/avatar-model';
-import { GUEST_OWNER, accountOwner } from './progress.service';
+import { GUEST_OWNER, ProgressService, accountOwner } from './progress.service';
+import { levelForXp } from '../levels/level-curve';
 
 const AVATAR_KEY = 'avatar';
 
@@ -14,7 +15,16 @@ const AVATAR_KEY = 'avatar';
   providedIn: 'root'
 })
 export class AvatarService {
-  private subject = new BehaviorSubject<Avatar>(this.read(this.currentOwner()));
+  private subject: BehaviorSubject<Avatar>;
+
+  constructor(private progressService: ProgressService) {
+    this.subject = new BehaviorSubject<Avatar>(this.read(this.currentOwner()));
+  }
+
+  /** What the child has actually earned, which decides what they may wear. */
+  private level(): number {
+    return levelForXp(this.progressService.getXp());
+  }
 
   get(): Avatar {
     return this.subject.value;
@@ -25,7 +35,7 @@ export class AvatarService {
   }
 
   save(avatar: Avatar): void {
-    const clean = normaliseAvatar(avatar);
+    const clean = normaliseAvatar(avatar, this.level());
     this.write(this.currentOwner(), clean);
     this.subject.next(clean);
   }
@@ -55,7 +65,7 @@ export class AvatarService {
     // An account that already has a character keeps it; the guest's is only
     // taken when there is nothing of their own to overwrite.
     if (this.stored(owner) === null) {
-      this.write(owner, normaliseAvatar(guest));
+      this.write(owner, normaliseAvatar(guest, this.level()));
     }
     this.remove(this.key(GUEST_OWNER));
     this.refresh();
@@ -76,7 +86,7 @@ export class AvatarService {
 
   private read(owner: string): Avatar {
     const stored = this.stored(owner);
-    return stored === null ? defaultAvatar() : normaliseAvatar(stored);
+    return stored === null ? defaultAvatar() : normaliseAvatar(stored, this.level());
   }
 
   /** The raw stored object, or null when this player has never chosen. */

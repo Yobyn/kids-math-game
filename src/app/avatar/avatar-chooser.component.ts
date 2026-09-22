@@ -1,14 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AvatarService } from '../services/avatar.service';
-import { LanguageService } from '../services/language.service';
+import { LanguageService, TranslationKeys } from '../services/language.service';
+import { ProgressService } from '../services/progress.service';
+import { levelForXp } from '../levels/level-curve';
 import {
   Avatar,
   EYE_COLOURS,
   HAIR_COLOURS,
   HAIR_STYLES,
   HairStyle,
-  SKIN_TONES
+  ItemSlot,
+  NO_ITEM,
+  SKIN_TONES,
+  WardrobeItem,
+  isUnlocked,
+  itemsForSlot,
+  nextUnlock
 } from './avatar-model';
 
 /**
@@ -30,15 +38,67 @@ export class AvatarChooserComponent implements OnInit {
   hairStyles = HAIR_STYLES;
   hairColours = HAIR_COLOURS;
   eyeColours = EYE_COLOURS;
+  /** The earned rows, kept as data so the template stays typed. */
+  wardrobe: { slot: ItemSlot; heading: TranslationKeys; items: WardrobeItem[] }[] = [
+    { slot: 'hat', heading: 'hats', items: itemsForSlot('hat') },
+    { slot: 'glasses', heading: 'glasses', items: itemsForSlot('glasses') }
+  ];
+  level = 1;
+  nextReward?: WardrobeItem;
 
   constructor(
     private avatarService: AvatarService,
+    private progressService: ProgressService,
     private router: Router,
     public languageService: LanguageService
   ) {}
 
   ngOnInit() {
     this.avatar = { ...this.avatarService.get() };
+    this.level = levelForXp(this.progressService.getXp());
+    this.nextReward = nextUnlock(this.level);
+  }
+
+  /**
+   * Locked items are shown rather than hidden. A goal you can see is what
+   * makes the next level worth climbing to; a goal you cannot see is not a
+   * goal at all.
+   */
+  canWear(item: WardrobeItem): boolean {
+    return isUnlocked(item, this.level);
+  }
+
+  wearing(slot: ItemSlot): string {
+    return slot === 'hat' ? this.avatar.hat : this.avatar.glasses;
+  }
+
+  wear(slot: ItemSlot, item: WardrobeItem) {
+    if (!this.canWear(item)) {
+      return;
+    }
+    this.choose(slot, item.id);
+  }
+
+  /** The character as it would look wearing this, for the swatches. */
+  withItem(slot: ItemSlot, item: WardrobeItem): Avatar {
+    return { ...this.avatar, [slot]: item.id } as Avatar;
+  }
+
+  itemName(item: WardrobeItem): string {
+    return this.languageService.translate(('item-' + item.id) as TranslationKeys);
+  }
+
+  /** What a locked swatch tells a screen reader: the item, and its price. */
+  itemLabel(item: WardrobeItem): string {
+    if (this.canWear(item)) {
+      return this.itemName(item);
+    }
+    return `${this.itemName(item)} — ${this.languageService.translate('level')} ${item.unlockLevel}`;
+  }
+
+  /** A bare character, so an item's own swatch is not lost under a hat. */
+  isEmpty(item: WardrobeItem): boolean {
+    return item.id === NO_ITEM;
   }
 
   /** Saved on every tap: a child should never lose a choice to a missed button. */

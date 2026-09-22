@@ -276,3 +276,9 @@ h2 {
     transition: none;
   }
 }
+
+.level-up .unlocked {
+  margin-top: 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}

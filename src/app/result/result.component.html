@@ -50,7 +50,10 @@
     </div>
 
     <div class="level-up" *ngIf="leveledUp">
-      ⭐ {{ languageService.translate('level-up') }}
+      <div>⭐ {{ languageService.translate('level-up') }}</div>
+      <div class="unlocked" *ngFor="let item of unlocked">
+        {{ languageService.translate('unlocked') }} {{ itemName(item) }}
+      </div>
     </div>
 
     <div class="personal-best" *ngIf="isPersonalBest">

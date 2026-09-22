@@ -1,11 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ScoreService } from '../services/score.service';
-import { LanguageService } from '../services/language.service';
+import { LanguageService, TranslationKeys } from '../services/language.service';
 import { ProgressService } from '../services/progress.service';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { AuthService } from '../services/auth.service';
 import { LevelProgress, levelProgress, xpForRound } from '../levels/level-curve';
+import { WardrobeItem, itemsUnlockedAt } from '../avatar/avatar-model';
 
 /**
  * How many rounds a guest plays before the game mentions an account. Guidance
@@ -40,6 +41,8 @@ export class ResultComponent implements OnInit, OnDestroy {
   xpEarned = 0;
   level: LevelProgress = levelProgress(0);
   leveledUp = false;
+  /** What this level actually handed over, if anything. */
+  unlocked: WardrobeItem[] = [];
   /** Where the bar starts before it fills, so the round's gain is visible. */
   levelFillPercent = 0;
 
@@ -144,6 +147,13 @@ export class ResultComponent implements OnInit, OnDestroy {
     this.level = levelProgress(this.progressService.getXp());
     this.leveledUp = this.level.level > before.level;
 
+    // Every level crossed on this round, not just the last — a big round can
+    // cross two, and the child earned both.
+    this.unlocked = [];
+    for (let level = before.level + 1; level <= this.level.level; level++) {
+      this.unlocked = this.unlocked.concat(itemsUnlockedAt(level));
+    }
+
     // Start the bar where the child left it, unless they have just levelled
     // up — then it genuinely starts from the bottom of the new level.
     const startFraction = this.leveledUp ? 0 : before.fraction;
@@ -165,6 +175,10 @@ export class ResultComponent implements OnInit, OnDestroy {
         this.levelFillPercent = Math.round(start + ((target - start) * step) / steps);
       }, 40 * step));
     }
+  }
+
+  itemName(item: WardrobeItem): string {
+    return this.languageService.translate(('item-' + item.id) as TranslationKeys);
   }
 
   private shouldOfferToKeepProgress(): boolean {

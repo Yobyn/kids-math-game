@@ -62,6 +62,29 @@
     </div>
   </section>
 
+  <section class="choice-row" *ngFor="let row of wardrobe">
+    <h2>{{ languageService.translate(row.heading) }}</h2>
+    <div class="swatches">
+      <button type="button"
+              class="swatch style-swatch"
+              *ngFor="let item of row.items"
+              [class.chosen]="wearing(row.slot) === item.id"
+              [class.locked]="!canWear(item)"
+              [disabled]="!canWear(item)"
+              [attr.aria-pressed]="wearing(row.slot) === item.id"
+              [attr.aria-label]="itemLabel(item)"
+              (click)="wear(row.slot, item)">
+        <app-avatar [avatar]="withItem(row.slot, item)" [size]="44"></app-avatar>
+        <span class="lock" *ngIf="!canWear(item)" aria-hidden="true">🔒{{ item.unlockLevel }}</span>
+      </button>
+    </div>
+  </section>
+
+  <p class="next-unlock" *ngIf="nextReward">
+    {{ languageService.translate('next-unlock') }}
+    {{ itemName(nextReward) }} — {{ languageService.translate('level') }} {{ nextReward.unlockLevel }}
+  </p>
+
   <button type="button" class="done-btn" (click)="done()">
     {{ languageService.translate('done') }}
   </button>
