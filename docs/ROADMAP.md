@@ -185,11 +185,29 @@ a backend that currently keeps its users in memory (see Code health).
   they just earned something for. There is also no way to see which events a
   child has been present for as a set, which is the closest thing the game
   would have to a scrapbook.
-- **History is stored but barely used.** `ProgressService` keeps the last 20
-  rounds; only the best percentage is shown. Nothing plots improvement over
-  time, and nothing distinguishes grades or question types.
-- **No badges or milestones** beyond the three stars of a single round.
+- **A child can see how far they have come.** "How far you have come", from
+  the result screen, shows their character, the level they have climbed to,
+  and four numbers: rounds finished, questions answered, answers right, and
+  their best round. Plus the things they have earned, counted against
+  everything there is to earn.
+  Every one of those only ever goes up, and that is the design rather than an
+  accident. Research on children and progress feedback is clear that recent
+  poor results pile up into a performance loop — a discouraging place with
+  lasting effects — where a child stops being able to see that their learning
+  is building at all. A line of scores over time is exactly that pile, and on
+  a bad week it would tell a child they are getting worse at something they
+  are in fact practising more of. So a child sees effort, never a trend, and
+  a test asserts no chart is drawn.
+  The counts are stored rather than derived (`totals:<owner>`), because
+  history keeps only twenty rounds and a child who played fifty should not be
+  told they played twenty.
+- **No badges or milestones** beyond the three stars of a single round and
+  the wardrobe.
 - **No parent or teacher view** — no way to see what a child struggles with.
+  This is where the honest trend belongs, dips included, along with the facts
+  being missed: it is useful to an adult deciding what to practise and harmful
+  to a child reading it about themselves. It needs a way in that a child will
+  not wander into, which is a question the game has not had to answer yet.
 
 ### Platform
 - **The header fits a phone now.** It used to be 598px across at 390px wide,

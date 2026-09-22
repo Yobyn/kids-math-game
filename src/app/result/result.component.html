@@ -72,6 +72,10 @@
     {{ languageService.translate('play-again') }}
   </button>
 
+  <button type="button" class="see-progress" (click)="seeProgress()">
+    {{ languageService.translate('your-progress') }}
+  </button>
+
   <aside class="keep-offer" *ngIf="showKeepOffer" role="note">
     <h2 class="keep-offer-title">{{ languageService.translate('keep-progress-title') }}</h2>
     <p class="keep-offer-body">{{ languageService.translate('keep-progress-body') }}</p>

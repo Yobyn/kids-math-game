@@ -1,0 +1,50 @@
+<div class="progress-page">
+  <h1>{{ languageService.translate('your-progress') }}</h1>
+
+  <div class="who">
+    <app-avatar [avatar]="avatar" [size]="140" framing="full"></app-avatar>
+    <div class="level-badge">{{ languageService.translate('level') }} {{ level.level }}</div>
+  </div>
+
+  <p class="nothing-yet" *ngIf="!hasPlayed">
+    {{ languageService.translate('progress-empty') }}
+  </p>
+
+  <div class="counts" *ngIf="hasPlayed">
+    <div class="count">
+      <div class="count-value">{{ totals.rounds }}</div>
+      <div class="count-label">{{ languageService.translate('rounds-finished') }}</div>
+    </div>
+    <div class="count">
+      <div class="count-value">{{ totals.questions }}</div>
+      <div class="count-label">{{ languageService.translate('questions-answered') }}</div>
+    </div>
+    <div class="count">
+      <div class="count-value">{{ totals.correct }}</div>
+      <div class="count-label">{{ languageService.translate('answers-right') }}</div>
+    </div>
+    <div class="count" *ngIf="best !== null">
+      <div class="count-value">{{ best }}%</div>
+      <div class="count-label">{{ languageService.translate('your-best') }}</div>
+    </div>
+  </div>
+
+  <div class="collection" *ngIf="hasPlayed">
+    <h2>
+      {{ languageService.translate('things-earned') }}
+      {{ earnedItems.length }} / {{ itemsInAll }}
+    </h2>
+    <div class="earned-items">
+      <span class="earned-item" *ngFor="let item of earnedItems">
+        {{ itemName(item) }}
+      </span>
+    </div>
+    <p class="more-coming" *ngIf="moreToWin">
+      {{ languageService.translate('more-to-win') }}
+    </p>
+  </div>
+
+  <button type="button" class="back-btn" (click)="back()">
+    {{ languageService.translate('back') }}
+  </button>
+</div>
