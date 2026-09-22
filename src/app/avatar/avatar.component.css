@@ -1,0 +1,13 @@
+.avatar {
+  display: block;
+  overflow: visible;
+}
+
+/* A thin dark edge keeps the character readable against both the light cards
+   and the near-black particle backdrop, without a second set of colours. */
+.face,
+.ear,
+.hair {
+  stroke: rgba(24, 16, 48, 0.55);
+  stroke-width: 1.5;
+}

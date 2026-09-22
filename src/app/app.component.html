@@ -3,7 +3,13 @@
 <header class="app-header" *ngIf="username || isGuest">
   <div class="header-content">
     <div class="welcome-message">
-      <div class="welcome-icon">🧮</div>
+      <button type="button"
+              class="welcome-icon avatar-button"
+              (click)="openCharacter()"
+              [attr.aria-label]="languageService.translate('your-character')"
+              [title]="languageService.translate('your-character')">
+        <app-avatar [avatar]="avatar" [size]="44"></app-avatar>
+      </button>
       <div class="welcome-text">
         <span class="welcome-greeting">{{ languageService.translate('welcome') }}, {{ username || languageService.translate('guest-player') }}!</span>
         <span class="welcome-subtitle">{{ languageService.translate('lets-learn') }}</span>

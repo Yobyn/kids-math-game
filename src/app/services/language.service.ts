@@ -80,7 +80,13 @@ export type TranslationKeys =
   | 'not-now'
   | 'xp'
   | 'xp-to-next'
-  | 'level-up';
+  | 'level-up'
+  | 'your-character'
+  | 'skin'
+  | 'hair-style'
+  | 'hair-colour'
+  | 'eyes'
+  | 'done';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -163,6 +169,12 @@ export class LanguageService {
       'xp': 'XP',
       'xp-to-next': 'XP to the next level',
       'level-up': 'Level up!',
+      'your-character': 'Your character',
+      'skin': 'Skin',
+      'hair-style': 'Hair',
+      'hair-colour': 'Hair colour',
+      'eyes': 'Eyes',
+      'done': 'Done',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -244,6 +256,12 @@ export class LanguageService {
       'xp': 'XP',
       'xp-to-next': 'XP tot het volgende niveau',
       'level-up': 'Niveau omhoog!',
+      'your-character': 'Jouw figuur',
+      'skin': 'Huid',
+      'hair-style': 'Haar',
+      'hair-colour': 'Haarkleur',
+      'eyes': 'Ogen',
+      'done': 'Klaar',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -325,6 +343,12 @@ export class LanguageService {
       'xp': 'XP',
       'xp-to-next': 'XP para el siguiente nivel',
       'level-up': '¡Subiste de nivel!',
+      'your-character': 'Tu personaje',
+      'skin': 'Piel',
+      'hair-style': 'Pelo',
+      'hair-colour': 'Color de pelo',
+      'eyes': 'Ojos',
+      'done': 'Listo',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',

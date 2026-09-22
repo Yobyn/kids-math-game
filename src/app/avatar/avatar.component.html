@@ -1,0 +1,27 @@
+<svg class="avatar"
+     [attr.width]="size"
+     [attr.height]="size"
+     viewBox="0 0 100 100"
+     role="img"
+     aria-label="Your character"
+     focusable="false">
+  <!-- Ears sit behind the face so the outline stays clean -->
+  <circle class="ear" cx="22" cy="55" r="7" [attr.fill]="avatar.skin"></circle>
+  <circle class="ear" cx="78" cy="55" r="7" [attr.fill]="avatar.skin"></circle>
+
+  <circle class="face" cx="50" cy="54" r="30" [attr.fill]="avatar.skin"></circle>
+
+  <path class="hair" [attr.d]="hairPath" [attr.fill]="avatar.hairColour"></path>
+
+  <circle class="eye" cx="39" cy="52" r="4.5" [attr.fill]="avatar.eyeColour"></circle>
+  <circle class="eye" cx="61" cy="52" r="4.5" [attr.fill]="avatar.eyeColour"></circle>
+  <circle class="glint" cx="40.5" cy="50.5" r="1.4" fill="#ffffff"></circle>
+  <circle class="glint" cx="62.5" cy="50.5" r="1.4" fill="#ffffff"></circle>
+
+  <path class="mouth"
+        d="M40 66 Q50 74 60 66"
+        fill="none"
+        stroke="#7a3b2e"
+        stroke-width="3"
+        stroke-linecap="round"></path>
+</svg>

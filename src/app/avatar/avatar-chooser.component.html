@@ -1,0 +1,68 @@
+<div class="chooser">
+  <h1>{{ languageService.translate('your-character') }}</h1>
+
+  <div class="stage">
+    <app-avatar [avatar]="avatar" [size]="180"></app-avatar>
+  </div>
+
+  <section class="choice-row">
+    <h2>{{ languageService.translate('skin') }}</h2>
+    <div class="swatches">
+      <button type="button"
+              class="swatch"
+              *ngFor="let tone of skinTones"
+              [class.chosen]="avatar.skin === tone"
+              [attr.aria-pressed]="avatar.skin === tone"
+              [attr.aria-label]="languageService.translate('skin')"
+              [style.background]="tone"
+              (click)="choose('skin', tone)"></button>
+    </div>
+  </section>
+
+  <section class="choice-row">
+    <h2>{{ languageService.translate('hair-style') }}</h2>
+    <div class="swatches">
+      <button type="button"
+              class="swatch style-swatch"
+              *ngFor="let style of hairStyles"
+              [class.chosen]="avatar.hairStyle === style"
+              [attr.aria-pressed]="avatar.hairStyle === style"
+              [attr.aria-label]="languageService.translate('hair-style')"
+              (click)="choose('hairStyle', style)">
+        <app-avatar [avatar]="withHair(style)" [size]="44"></app-avatar>
+      </button>
+    </div>
+  </section>
+
+  <section class="choice-row">
+    <h2>{{ languageService.translate('hair-colour') }}</h2>
+    <div class="swatches">
+      <button type="button"
+              class="swatch"
+              *ngFor="let colour of hairColours"
+              [class.chosen]="avatar.hairColour === colour"
+              [attr.aria-pressed]="avatar.hairColour === colour"
+              [attr.aria-label]="languageService.translate('hair-colour')"
+              [style.background]="colour"
+              (click)="choose('hairColour', colour)"></button>
+    </div>
+  </section>
+
+  <section class="choice-row">
+    <h2>{{ languageService.translate('eyes') }}</h2>
+    <div class="swatches">
+      <button type="button"
+              class="swatch"
+              *ngFor="let colour of eyeColours"
+              [class.chosen]="avatar.eyeColour === colour"
+              [attr.aria-pressed]="avatar.eyeColour === colour"
+              [attr.aria-label]="languageService.translate('eyes')"
+              [style.background]="colour"
+              (click)="choose('eyeColour', colour)"></button>
+    </div>
+  </section>
+
+  <button type="button" class="done-btn" (click)="done()">
+    {{ languageService.translate('done') }}
+  </button>
+</div>

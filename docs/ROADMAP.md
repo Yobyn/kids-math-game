@@ -108,7 +108,21 @@ a backend that currently keeps its users in memory (see Code health).
   the levels take real practice — worth re-checking the curve against real
   play once there is something to win. Level is also not shown anywhere
   outside the result screen; the header is the obvious home for it.
-- **No avatar, no wardrobe, no events.** None of the reward system exists yet.
+- **The avatar exists; the wardrobe and events do not.** A child has a
+  character they can make theirs from the first visit — skin tone, hair style,
+  hair colour and eye colour — reached by tapping the character in the header,
+  and it is drawn from SVG primitives with no image assets, so it stays sharp
+  at any size. It is filed per player (`avatar:<owner>`) and carried into an
+  account on signup like the rest of their progress.
+  None of it is earned, and that is deliberate: research on children's avatars
+  finds the act of customising is what builds identification with the
+  character, and skin tone and hair are what children reach for to make one
+  theirs. Nobody should have to climb a ladder to be allowed to look like
+  themselves. Clothing and items are what levels unlock, and they hang off
+  this model rather than replacing it — that is the next piece, and it is what
+  finally gives a level up something to hand over. Special events come after.
+  The parts live in `src/app/avatar/avatar-model.ts`, DOM-free and tested,
+  including that every hair style actually covers the crown.
 - **History is stored but barely used.** `ProgressService` keeps the last 20
   rounds; only the best percentage is shown. Nothing plots improvement over
   time, and nothing distinguishes grades or question types.
@@ -116,6 +130,13 @@ a backend that currently keeps its users in memory (see Code health).
 - **No parent or teacher view** — no way to see what a child struggles with.
 
 ### Platform
+- **The header overflows on a phone.** At 390px wide the header is 598px
+  across — the three language buttons alone are 387px, before the sound and
+  sign-in buttons. Every screen scrolls sideways because of it; the screens
+  themselves fit. It predates the character button and is not caused by it.
+  The language selector is the thing to rethink: three full buttons is a lot
+  of header to spend on a control a child touches once. Worth its own change,
+  since the fix is a design decision rather than a tweak.
 - **Installable, but the update prompt is missing.** The service worker takes
   over immediately on activation (`skipWaiting` + `clients.claim`); a child
   mid-round when a deploy lands gets the new shell on their next navigation

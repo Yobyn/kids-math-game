@@ -137,3 +137,19 @@
   font-size: 1.3rem;
   line-height: 1;
 }
+
+/* The character in the header doubles as the way in to changing it, so it is
+   a real button with the touch target a small finger needs. */
+.avatar-button {
+  padding: 0;
+  border: 2px solid transparent;
+  cursor: pointer;
+  overflow: hidden;
+  min-width: 45px;
+  min-height: 45px;
+}
+
+.avatar-button:hover,
+.avatar-button:focus-visible {
+  border-color: var(--accent-magenta);
+}

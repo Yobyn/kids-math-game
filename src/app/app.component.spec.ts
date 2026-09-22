@@ -5,6 +5,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { AppComponent } from './app.component';
 import { SoundService } from './services/sound.service';
 import { AuthService } from './services/auth.service';
+import { Router } from '@angular/router';
 
 describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;
@@ -43,6 +44,27 @@ describe('AppComponent', () => {
     expect(header.querySelector('.sound-btn')).toBeTruthy();
     expect(header.textContent).toContain('Sign in');
     expect(header.textContent).not.toContain('Logout');
+  });
+
+  it('puts the child\u2019s own character in the header, as a way in to changing it', () => {
+    TestBed.inject(AuthService).playAsGuest();
+    fixture.detectChanges();
+
+    const button = fixture.nativeElement.querySelector('.avatar-button');
+    expect(button).toBeTruthy();
+    expect(button.getAttribute('aria-label')).toBe('Your character');
+    expect(button.querySelector('app-avatar')).toBeTruthy();
+  });
+
+  it('opens the character screen when the header character is tapped', () => {
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    TestBed.inject(AuthService).playAsGuest();
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('.avatar-button').click();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/avatar']);
   });
 
   it('starts with sound enabled', () => {

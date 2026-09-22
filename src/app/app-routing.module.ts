@@ -6,6 +6,7 @@ import { QuestionComponent } from './question/question.component';
 import { ResultComponent } from './result/result.component';
 import { GradeSelectComponent } from './grade-select/grade-select.component';
 import { DifficultySelectComponent } from './difficulty-select/difficulty-select.component';
+import { AvatarChooserComponent } from './avatar/avatar-chooser.component';
 import { AuthGuard } from './auth.guard';
 
 const routes: Routes = [
@@ -15,6 +16,7 @@ const routes: Routes = [
   { path: 'difficulty', component: DifficultySelectComponent, canActivate: [AuthGuard] },
   { path: 'questions', component: QuestionComponent, canActivate: [AuthGuard] },
   { path: 'result', component: ResultComponent, canActivate: [AuthGuard] },
+  { path: 'avatar', component: AvatarChooserComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/grade', pathMatch: 'full' },
   { path: '**', redirectTo: '/grade' }
 ];
