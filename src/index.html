@@ -4,7 +4,11 @@
   <meta charset="utf-8">
   <title>Math Game</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- viewport-fit=cover is what makes env(safe-area-inset-*) mean anything.
+       No maximum-scale and no user-scalable=no: blocking pinch zoom fails
+       WCAG 1.4.4, and every input here is already 16px so iOS has no reason
+       to zoom on focus. See src/app/layout/screen-fit.ts. -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#0984e3">

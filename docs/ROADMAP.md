@@ -3,7 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (money turned into a taught strand the same day)
+Last surveyed: 2026-09-22 (made to fit a device held sideways, the same day)
 
 ## What works today
 
@@ -37,7 +37,9 @@ Last surveyed: 2026-09-22 (money turned into a taught strand the same day)
 - A round survives being interrupted: it is written down after every
   question and whenever the page goes away, and offered back — never
   restored silently — for four hours.
-- 826 unit tests plus 16 server tests, run on every PR by GitHub Actions
+- Fits a phone on its side, a large tablet, and a device with a notch;
+  pinch zoom works.
+- 858 unit tests plus 16 server tests, run on every PR by GitHub Actions
   alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
@@ -483,8 +485,57 @@ a backend that currently keeps its users in memory (see Code health).
   with no warning. A "refresh for the new version" prompt is the usual fix.
 - **Offline is shell-only.** The app works offline because everything it needs
   is static, but login needs the backend, so an offline child cannot sign in.
-- **No landscape or large-tablet layout.** Portrait-tuned only.
-- **No safe-area padding** for notched devices on the login and result screens.
+- **It fits a phone on its side now, and a large tablet.** It was portrait-
+  tuned only, and the measurements were bad: at 844x390 the question screen
+  ran to 1072px of page — 2.7 screenfuls — with THE KEYPAD KEYS, Check Answer
+  and Back all below the fold. A child holding the phone sideways could not
+  see the thing they answer with. The grade screen was 3.8 screenfuls, the
+  login screen put its own sign-in button off the bottom, and the result
+  screen hid all three ways onward.
+  THE RULE IS "SHORT", NOT "LANDSCAPE", and that distinction is the whole
+  design. A tablet on its side is landscape with 820px of height to stack in;
+  a phone on its side is landscape with 390. `(orientation: landscape)`
+  cannot tell them apart and they want opposite layouts. So
+  `src/app/layout/screen-fit.ts` decides between `stack`, `short` and `wide`
+  from the size, `LayoutService` publishes it as `data-fit` on the document,
+  and `src/fit.css` holds every rule that keys off it — one file, so the
+  landscape layout can be read in one place instead of reconstructed from
+  eight stylesheets.
+  IT IS AN ATTRIBUTE RATHER THAN A MEDIA QUERY FOR A SECOND REASON: karma
+  opens one window and cannot resize it, so a layout written only in media
+  queries cannot be tested at all. Setting the attribute is what lets a test
+  assert that the keypad really does move beside the sum.
+  After: question 1.3 screenfuls (was 2.7) with the keypad reachable, grade
+  1.6 (3.8), progress 1.6 (2.1), difficulty 1.1 (1.5), result 1.9 (3.0). On a
+  tablet in landscape the question screen went from 1.3 screenfuls with the
+  Check button below the fold to 1.2 with nothing below it.
+  The header was the worst single offender: its compact layout was keyed on
+  `max-width: 600px`, and a phone in landscape is 844 WIDE — so the smallest
+  screen the game ever sees got the tablet header, strapline and all, for
+  about 150 of its 390 pixels.
+  STILL OUTSTANDING: the login screen is 1.6 screenfuls in landscape and its
+  secondary links sit below the fold; the result screen is 1.9; the avatar
+  page is 3.7, and that is the page's shape rather than the layout's — see
+  "the character, finished", which is where the sectioning belongs. The
+  question screen's own Back link is the one control still below the fold in
+  landscape, which is the right one to lose if any must be.
+- **Safe areas are asked for now.** `viewport-fit=cover` is in the viewport
+  meta, which is what makes `env(safe-area-inset-*)` mean anything at all —
+  measured before the change, `env(safe-area-inset-top, 99px)` came back as
+  `0px` rather than the fallback, so any safe-area CSS would have been dead
+  code that looked alive. The insets are applied once on the body (sides and
+  bottom) and on the header (top), rather than per screen.
+  NOT VERIFIED ON REAL HARDWARE: a headless browser reports zero insets, so
+  what is proved here is that the values are asked for and applied, not that
+  they look right on a notched phone.
+- **Pinch zoom works again.** The viewport meta carried
+  `maximum-scale=1.0, user-scalable=no`, which fails WCAG 1.4.4 and takes
+  away the one thing a low-vision player has. The usual reason to add it is
+  iOS zooming when an input under 16px is focused; every input here is
+  already 1rem, so there was nothing being protected. A test pins the
+  viewport string against both flags coming back.
+  What is NOT pinned: `index.html` itself. The constant is asserted, but no
+  test reads the file, so the two could drift.
 
 ### Reach
 - **Three languages, all reachable and remembered** (English, Dutch, Spanish).

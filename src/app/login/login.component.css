@@ -97,6 +97,10 @@ input.invalid {
 .toggle-btn, .forgot-password-btn, .cancel-btn {
   background: none;
   border: none;
+  /* Measured at 32px. These read as links, but they are the only way to
+     reach registration or a password reset, and the rule this project keeps
+     is that a target is 44px whatever it looks like. */
+  min-height: 44px;
   color: #4a90e2;
   font-size: 0.9rem;
   padding: 8px 16px;

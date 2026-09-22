@@ -32,7 +32,8 @@
               "src/service-worker.js"
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              "src/fit.css"
             ],
             "scripts": []
           },
@@ -101,7 +102,8 @@
               "src/service-worker.js"
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.css",
+              "src/fit.css"
             ],
             "scripts": []
           }
