@@ -41,17 +41,9 @@
              [disabled]="showOkButton">
     </div>
 
-    <div class="keypad" *ngIf="useKeypad" role="group" aria-label="Number pad">
-      <button type="button"
-              class="key"
-              *ngFor="let key of keypadKeys"
-              [class.key-action]="key === 'del' || key === '-'"
-              [disabled]="showOkButton"
-              [attr.aria-label]="key === 'del' ? 'delete' : key"
-              (click)="onKeypadPress(key)">
-        {{ key === 'del' ? '⌫' : key }}
-      </button>
-    </div>
+    <app-keypad *ngIf="useKeypad"
+                [disabled]="showOkButton"
+                (press)="onKeypadPress($event)"></app-keypad>
 
     <div class="feedback-container" [@feedbackAnimation]="feedback !== ''">
       <div class="feedback" [class.correct]="answerWasCorrect === true"

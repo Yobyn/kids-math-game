@@ -6,6 +6,7 @@ import { SoundService } from '../services/sound.service';
 import { MissedFact, ProgressService } from '../services/progress.service';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { workedStep } from '../teaching/worked-step';
+import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
 import { trigger, state, style, animate, transition } from '@angular/animations';
 
@@ -90,7 +91,6 @@ export class QuestionComponent implements OnInit {
   private offerSpent = false;
   /** What the offer would switch to, for naming it on the button. */
   easierSetting = '';
-  keypadKeys: string[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '0', 'del'];
 
   constructor(
     private scoreService: ScoreService,
@@ -136,21 +136,18 @@ export class QuestionComponent implements OnInit {
         (!!window.matchMedia && window.matchMedia('(pointer: coarse)').matches));
   }
 
+  /**
+   * What a key does to the answer box. The keypad emits a key and says
+   * nothing about what it means; the rules live in answer-entry.ts, where
+   * they can be checked against every state of the box.
+   */
   onKeypadPress(key: string) {
     if (this.showOkButton) {
       return;
     }
     this.vibrate(10);
-    const current = this.userAnswer == null ? '' : String(this.userAnswer);
-    if (key === 'del') {
-      this.userAnswer = current.slice(0, -1);
-    } else if (key === '-') {
-      // Toggle the minus sign instead of allowing it anywhere in the answer
-      this.userAnswer = current.startsWith('-') ? current.slice(1) : '-' + current;
-    } else if (current.replace('-', '').length < 6) {
-      this.userAnswer = current + key;
-    }
-    this.inputPlaceholder = this.userAnswer ? '' : '?';
+    this.userAnswer = applyKey(this.userAnswer, key);
+    this.inputPlaceholder = placeholderFor(this.userAnswer);
   }
 
   private vibrate(pattern: number | number[]) {

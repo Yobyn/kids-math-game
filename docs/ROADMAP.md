@@ -3,7 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (grade suggestions added the same day)
+Last surveyed: 2026-09-22 (the keypad lifted out the same day)
 
 ## What works today
 
@@ -32,7 +32,7 @@ Last surveyed: 2026-09-22 (grade suggestions added the same day)
 - Sound and haptics switch in the header, remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
   respects `prefers-reduced-motion`.
-- 632 unit tests, run on every PR by GitHub Actions alongside the build.
+- 658 unit tests, run on every PR by GitHub Actions alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
 
@@ -375,12 +375,29 @@ a backend that currently keeps its users in memory (see Code health).
 - **Backend stores users in memory** (`server/server.js`) — every restart drops
   all accounts. The Mongoose `User` model exists but is not wired up.
 - **No lint setup.** Angular 12 dropped the default; nothing enforces style.
-- **`question.component.css` is the biggest stylesheet in the app** and sits
-  just under the 6 kB per-component error budget. A pass folded each themed
-  override into the rule it overrode and dropped declarations that were being
-  overridden unconditionally anyway, which bought some room back — but the
-  next thing added to that screen will hit the ceiling again. The keypad is
-  the obvious thing to lift out into a component of its own.
+- **The keypad is its own component now** (`src/app/keypad/`), which was the
+  fix for `question.component.css` sitting 280 bytes under the 6 kB
+  per-component ERROR budget — the next thing added to that screen would have
+  failed the build rather than warned. 5.72 kB → 4.81 kB, and the keypad's
+  own stylesheet is 1.3 kB.
+  THE STYLES HAD TO TRAVEL WITH THE MARKUP, and that is the trap in this
+  refactor rather than an implementation detail. Angular's default emulated
+  view encapsulation scopes a component's CSS to its own template by
+  rewriting the selectors with a generated attribute, so any `.keypad` rule
+  left behind in the question screen's stylesheet would simply have stopped
+  matching. The version of this change that moves the HTML and not the CSS
+  compiles, passes a shallow test, and is broken the moment anyone opens it
+  on a phone. A test now reads the computed style of a real key.
+  The answer-box rules came out too, into `src/app/keypad/answer-entry.ts`:
+  what a key does to what is typed is a pure string transform, and it was
+  tangled up with the field it edited, so the only way to test "does the
+  minus toggle" was to build the whole quiz screen. It is swept now — every
+  key from every state of the box — and holds three invariants the old code
+  only implied: never more than six digits, never a minus anywhere but the
+  front, and always undoable back to empty.
+  What remains: `question.component.css` is still over the 4 kB WARNING
+  budget at 4.81 kB. The progress bar and the score display are the next
+  candidates if it creeps back up.
 - **Dead code**: `src/app/app/` (a leftover scaffold, not in any module),
   `src/app/types/translation-keys.ts` (a second, unused `TranslationKeys`
   union), and `profile-creation` + `pokemon.service`, which no route reaches.
