@@ -92,6 +92,23 @@ a backend that currently keeps its users in memory (see Code health).
   on each fact and a scheduler to match.
 - **Division can produce awkward questions** — it guarantees whole answers but
   not sensible ones for the grade.
+- **A missed fact is now shown worked out, not just answered.** After two
+  honest attempts the game gives the answer as before, and under it one line
+  of method: 8 + 7 as `8 + 2 = 10 → 10 + 5 = 15`, subtraction bridging back
+  down, multiplication leaning on the five times table, division read back as
+  the multiplication behind it. Arithmetic and an arrow, so it needs no
+  translating.
+  It is deliberately never available on demand and never shown before a child
+  has tried: worked examples cut cognitive load and teach more than an answer
+  alone, but they also invite overreliance and stop being read when they are
+  always there. This appears only at the moment the answer was going to be
+  given away regardless. `src/app/teaching/worked-step.ts` is DOM-free, and
+  the tests read every printed step back as arithmetic rather than checking
+  its wording.
+  What is missing: facts whose method is just the answer again get no line,
+  which is right, but it means the youngest players (whose sums never cross
+  ten) rarely see one. Money questions get none at all — they are worded
+  problems and would need a different kind of explanation.
 
 ### Keeping a child coming back
 - **Guest play is done end to end.** A child takes "Play without an account"
@@ -164,9 +181,11 @@ a backend that currently keeps its users in memory (see Code health).
   wraps, and the strapline is dropped: 154px of header at 360, 375 and 390px,
   no overflow from 360px to 1112px, and every control still at least 44px in
   both directions — the label shrinks, the target does not.
+  The question screen has now been measured too, and it was spilling 17px off
+  each side of a 390px phone: the card was 100% wide with 2rem of padding
+  added on top of that. It is border-box now and fits.
   Still outstanding on small screens: the grade cards are around 360px tall
-  each, so choosing a grade on a phone is most of a screen per option. The
-  question screen has not been measured at these widths either.
+  each, so choosing a grade on a phone is most of a screen per option.
 - **Installable, but the update prompt is missing.** The service worker takes
   over immediately on activation (`skipWaiting` + `clients.claim`); a child
   mid-round when a deploy lands gets the new shell on their next navigation

@@ -60,6 +60,10 @@
                            aria-live="polite">
         {{ feedback }}
       </div>
+      <div class="worked-step" *ngIf="workedLine" aria-live="polite">
+        <span class="worked-label">{{ languageService.translate('one-way') }}</span>
+        <span class="worked-line">{{ workedLine }}</span>
+      </div>
     </div>
 
     <div class="button-container">

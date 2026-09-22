@@ -494,3 +494,122 @@ describe('QuestionComponent sums for the youngest players', () => {
       .toBeLessThanOrEqual(5);
   });
 });
+
+describe('QuestionComponent showing how', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  beforeEach(async () => {
+    localStorage.clear();
+    localStorage.setItem('grade', '3');
+    localStorage.setItem('difficulty', 'medium');
+
+    await TestBed.configureTestingModule({
+      imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
+      declarations: [QuestionComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  /** Sets a fact that has a method worth showing. */
+  function ask(num1: number, num2: number, operation = '+') {
+    component.currentQuestion = { num1, num2, operation };
+    component.wrongAttempts = 0;
+    component.isReplay = false;
+    component.workedLine = '';
+  }
+
+  function answer(value: string) {
+    component.userAnswer = value;
+    component.checkAnswer();
+  }
+
+  it('says nothing about method on a first wrong try', () => {
+    ask(8, 7);
+
+    answer('14');
+
+    // Still their turn: showing the method now would end the attempt
+    expect(component.wrongAttempts).toBe(1);
+    expect(component.workedLine).toBe('');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.worked-step')).toBeNull();
+  });
+
+  it('shows how once the answer is given away anyway', () => {
+    ask(8, 7);
+
+    answer('14');
+    answer('13');
+
+    expect(component.workedLine).toBe('8 + 2 = 10 → 10 + 5 = 15');
+    fixture.detectChanges();
+    const shown = fixture.nativeElement.querySelector('.worked-step');
+    expect(shown.textContent).toContain('8 + 2 = 10');
+    expect(shown.textContent).toContain('One way to do it:');
+  });
+
+  it('never shows a method to a child who got it right', () => {
+    ask(8, 7);
+
+    answer('15');
+
+    expect(component.answerWasCorrect).toBe(true);
+    expect(component.workedLine).toBe('');
+  });
+
+  it('says nothing when the fact has no method worth showing', () => {
+    // 3 + 4 never crosses ten; the "method" would be the answer again
+    ask(3, 4);
+
+    answer('6');
+    answer('8');
+
+    expect(component.wrongAttempts).toBe(2);
+    expect(component.workedLine).toBe('');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.worked-step')).toBeNull();
+  });
+
+  it('leaves money questions alone — they are worded, not a bare fact', () => {
+    component.currentQuestion = {
+      num1: 8, num2: 7, operation: '+', moneyPrompt: 'You buy a toy...'
+    };
+    component.wrongAttempts = 0;
+    component.isReplay = false;
+    component.workedLine = '';
+
+    answer('14');
+    answer('13');
+
+    expect(component.workedLine).toBe('');
+  });
+
+  it('clears the method before the next question is asked', () => {
+    ask(8, 7);
+    answer('14');
+    answer('13');
+    expect(component.workedLine).not.toBe('');
+
+    component.moveToNextQuestion();
+
+    expect(component.workedLine).toBe('');
+  });
+
+  it('still shows the answer itself alongside the method', () => {
+    ask(8, 7);
+
+    answer('14');
+    answer('13');
+
+    // The method is an addition to the answer, not a replacement for it
+    expect(component.feedback).toContain('15');
+    expect(component.workedLine).toContain('15');
+  });
+});
