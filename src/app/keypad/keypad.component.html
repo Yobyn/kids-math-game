@@ -1,0 +1,11 @@
+<div class="keypad" role="group" aria-label="Number pad">
+  <button type="button"
+          class="key"
+          *ngFor="let key of keys"
+          [class.key-action]="key === 'del' || key === '-'"
+          [disabled]="disabled"
+          [attr.aria-label]="label(key)"
+          (click)="onPress(key)">
+    {{ face(key) }}
+  </button>
+</div>

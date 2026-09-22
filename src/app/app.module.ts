@@ -15,6 +15,7 @@ import { DifficultySelectComponent } from './difficulty-select/difficulty-select
 import { LanguageSelectorComponent } from './language-selector/language-selector.component';
 import { ProgressComponent } from './progress/progress.component';
 import { AdultsComponent } from './adults/adults.component';
+import { KeypadComponent } from './keypad/keypad.component';
 import { AvatarComponent } from './avatar/avatar.component';
 import { AvatarChooserComponent } from './avatar/avatar-chooser.component';
 import { ParticlesComponent } from './particles/particles.component';
@@ -34,7 +35,8 @@ import { AuthInterceptor } from './auth.interceptor';
     AvatarComponent,
     AvatarChooserComponent,
     ProgressComponent,
-    AdultsComponent
+    AdultsComponent,
+    KeypadComponent
   ],
   imports: [
     BrowserModule,

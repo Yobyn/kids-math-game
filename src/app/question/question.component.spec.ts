@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { QuestionComponent } from './question.component';
+import { KeypadComponent } from '../keypad/keypad.component';
 
 describe('QuestionComponent', () => {
   let component: QuestionComponent;
@@ -16,7 +17,7 @@ describe('QuestionComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
-      declarations: [QuestionComponent],
+      declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
@@ -512,7 +513,7 @@ describe('QuestionComponent sums for the youngest players', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
-      declarations: [QuestionComponent],
+      declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
   });
@@ -566,7 +567,7 @@ describe('QuestionComponent showing how', () => {
 
     await TestBed.configureTestingModule({
       imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
-      declarations: [QuestionComponent],
+      declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
@@ -713,7 +714,7 @@ describe('QuestionComponent offering an easier rest of the round', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
-      declarations: [QuestionComponent],
+      declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
   });
