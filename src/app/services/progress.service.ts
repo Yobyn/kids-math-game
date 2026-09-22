@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { afterMiss, afterReview, dueFacts } from '../teaching/review-schedule';
+import { SavedRound, parseRound, serialiseRound } from '../question/round-state';
 
 export interface RoundResult {
   date: string;
@@ -47,6 +48,8 @@ const MISSED_KEY = 'missedFacts';
 const XP_KEY = 'xp';
 const EVENTS_KEY = 'events';
 const TOTALS_KEY = 'totals';
+/** The one round still in play, if any. At most one per owner. */
+const ROUND_KEY = 'round';
 /** Enough to carry a round's mistakes forward without burying the next one. */
 const MAX_MISSED = 12;
 /** Enough to show improvement over time without growing without bound. */
@@ -227,6 +230,28 @@ export class ProgressService {
     this.write(this.key(EVENTS_KEY, owner), [...earned, id]);
   }
 
+  /**
+   * The round in play, so an interruption does not cost it. Filed per owner
+   * like everything else here: two children sharing a tablet must never be
+   * offered each other's half-finished round.
+   */
+  saveRound(round: SavedRound): void {
+    try {
+      localStorage.setItem(this.key(ROUND_KEY, this.currentOwner()), serialiseRound(round));
+    } catch {
+      // Storage being unavailable must never break a round that is being played
+    }
+  }
+
+  /** Whatever was saved, or null for anything unreadable. See round-state.ts. */
+  readRound(): SavedRound | null {
+    return parseRound(this.item(this.key(ROUND_KEY, this.currentOwner())));
+  }
+
+  clearRound(): void {
+    this.remove(this.key(ROUND_KEY, this.currentOwner()));
+  }
+
   /** True when a guest has anything an account would be worth keeping for. */
   hasGuestProgress(): boolean {
     return this.readHistory(GUEST_OWNER).length > 0;
@@ -274,6 +299,9 @@ export class ProgressService {
     });
     this.remove(this.key(EVENTS_KEY, GUEST_OWNER));
     this.remove(this.key(TOTALS_KEY, GUEST_OWNER));
+    // A half-finished round is not progress to carry over: the child is in
+    // the middle of it right now, under whichever name they are playing.
+    this.remove(this.key(ROUND_KEY, GUEST_OWNER));
   }
 
   private currentOwner(): string {

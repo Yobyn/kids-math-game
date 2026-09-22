@@ -3,7 +3,8 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (the character given hair and faces the same day)
+Last surveyed: 2026-09-22 (a round made to survive an interruption the
+same day)
 
 ## What works today
 
@@ -32,7 +33,10 @@ Last surveyed: 2026-09-22 (the character given hair and faces the same day)
 - Sound and haptics switch in the header, remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
   respects `prefers-reduced-motion`.
-- 671 unit tests plus 16 server tests, run on every PR by GitHub Actions
+- A round survives being interrupted: it is written down after every
+  question and whenever the page goes away, and offered back — never
+  restored silently — for four hours.
+- 754 unit tests plus 16 server tests, run on every PR by GitHub Actions
   alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
@@ -408,6 +412,30 @@ a backend that currently keeps its users in memory (see Code health).
   stays directly below it, because this offers and does not decide.
   Also fixed while measuring: the header's sign-in button was 43px tall, one
   pixel under the minimum this project holds itself to.
+- **A round now survives the real world.** It used to hold everything in
+  memory alone: a phone call, a locked screen or a backgrounded tab lost it,
+  and on a phone that is not an edge case. The obvious fix is a save on
+  `unload`, and it would have run on every platform except this one — per
+  the page lifecycle documentation `unload` never fires on Safari, mobile or
+  desktop, `beforeunload` only fires on desktop navigations, and none of
+  them run when the OS closes a page while the browser is not running. So
+  the round is saved on `visibilitychange` to hidden (the last reliable
+  signal), on `pagehide`, and after every answer.
+  It is OFFERED BACK RATHER THAN RESTORED, at both doors a child can come
+  back through: the question screen itself, when the OS reloaded the tab
+  underneath them, and the grade screen, when the app was closed and
+  reopened. Restoring silently hands a child a mystery; starting fresh
+  silently loses their work. Four hours is the window — long enough for a
+  meal, a school run or a flat battery, short enough that a round whose
+  question they no longer remember is not put back in front of them.
+  Grounded in the disengagement research (Poeller et al., CHI PLAY / CHI):
+  children struggle to leave a session they have not reached CLOSURE in, and
+  a round torn away at question six has none at all.
+  STILL OPEN: a round interrupted after the tenth answer is not offered back,
+  because a finished round belongs on the result screen and nothing yet
+  persists the result screen itself. And an interrupted round is not carried
+  into an account at signup — it is deliberately let go, on the grounds that
+  the child is in the middle of it right now under whichever name.
 - **Installable, but the update prompt is missing.** The service worker takes
   over immediately on activation (`skipWaiting` + `clients.claim`); a child
   mid-round when a deploy lands gets the new shell on their next navigation

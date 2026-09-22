@@ -136,6 +136,34 @@ p {
 /* The one-tap way back to where the child was. Prominent, because it is the
    right answer for anyone who has played before; above the list, because a
    thing you have to scroll to is not a shortcut. */
+/* The unfinished round sits above "carry on at Grade 3" and looks like it —
+   same shape, two lines, because it has something to say as well as offer. */
+.resume-round {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  min-height: 56px;
+  margin: 0 auto 0.85rem;
+  padding: 0.7rem 1.25rem;
+  border: 2px solid var(--accent-blue);
+  border-radius: 12px;
+  background: #ffffff;
+  color: #2c3e50;
+  cursor: pointer;
+}
+
+.resume-title {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.resume-line {
+  display: block;
+  font-size: 0.9rem;
+  opacity: 0.8;
+}
+
 .carry-on {
   display: block;
   width: 100%;

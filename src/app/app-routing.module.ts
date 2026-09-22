@@ -11,7 +11,7 @@ import { ProgressComponent } from './progress/progress.component';
 import { AdultsComponent } from './adults/adults.component';
 import { AuthGuard } from './auth.guard';
 
-const routes: Routes = [
+export const routes: Routes = [
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
   { path: 'grade', component: GradeSelectComponent, canActivate: [AuthGuard] },

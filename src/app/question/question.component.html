@@ -1,4 +1,23 @@
 <div class="question-container">
+  <!-- An interrupted round, offered back. It asks rather than restoring
+       quietly: a child who left at question six and finds themselves at
+       question six with no explanation has been handed a mystery, and one
+       who finds a fresh round has silently lost their work. -->
+  <div class="ask-panel resume-offer" *ngIf="showResumeOffer" role="group"
+       [attr.aria-label]="languageService.translate('welcome-back') + ' ' + resumeLine">
+    <p class="ask-text resume-hello">{{ languageService.translate('welcome-back') }}</p>
+    <p class="ask-text">{{ resumeLine }}</p>
+    <div class="ask-choices">
+      <button type="button" class="ask-yes resume-yes" (click)="takeResume()">
+        {{ languageService.translate('resume-carry-on') }}
+      </button>
+      <button type="button" class="ask-no resume-no" (click)="startOver()">
+        {{ languageService.translate('resume-start-again') }}
+      </button>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!showResumeOffer">
   <div class="score-display">
     <div class="score">{{ languageService.translate('score') }}: {{ currentScore }}</div>
     <div class="streak" *ngIf="streakCount > 2">
@@ -60,14 +79,14 @@
 
     <!-- Asked, never done silently. A change made for a child without their
          knowing is one they feel anyway, and it takes the win with it. -->
-    <div class="easier-offer" *ngIf="showEasierOffer" role="group"
+    <div class="ask-panel easier-offer" *ngIf="showEasierOffer" role="group"
          [attr.aria-label]="languageService.translate('easier-ask')">
-      <p class="easier-ask">{{ languageService.translate('easier-ask') }}</p>
-      <div class="easier-choices">
-        <button type="button" class="easier-yes" (click)="takeEasier()">
+      <p class="ask-text easier-ask">{{ languageService.translate('easier-ask') }}</p>
+      <div class="ask-choices">
+        <button type="button" class="ask-yes easier-yes" (click)="takeEasier()">
           {{ languageService.translate('easier-yes') }}
         </button>
-        <button type="button" class="easier-no" (click)="keepGoing()">
+        <button type="button" class="ask-no easier-no" (click)="keepGoing()">
           {{ languageService.translate('easier-no') }}
         </button>
       </div>
@@ -95,4 +114,5 @@
       {{ languageService.translate('back') }}
     </button>
   </div>
+</ng-container>
 </div>

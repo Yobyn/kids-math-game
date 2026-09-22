@@ -605,3 +605,91 @@ describe('ProgressService counting everything done', () => {
     expect(service.getTotals()).toEqual({ rounds: 3, questions: 30, correct: 20 });
   });
 });
+
+describe('ProgressService: the round in play', () => {
+  let service: ProgressService;
+
+  const round: any = {
+    version: 1,
+    savedAt: Date.now(),
+    grade: 4,
+    difficulty: 'easy',
+    eased: false,
+    questionsAnswered: 2,
+    correctAnswers: 2,
+    score: 3,
+    streak: 2,
+    results: [true, true],
+    question: { num1: 5, num2: 6, operation: '+' },
+    isReplay: false,
+    missed: [],
+    offerSpent: false,
+    answered: false,
+    wrongAttempts: 0
+  };
+
+  beforeEach(() => {
+    localStorage.clear();
+    service = new ProgressService();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('has nothing to give back before a round is saved', () => {
+    expect(service.readRound()).toBeNull();
+  });
+
+  it('gives back what it was given', () => {
+    service.saveRound(round);
+
+    expect(service.readRound()).toEqual(round);
+  });
+
+  it('files it under the child who is playing', () => {
+    service.saveRound(round);
+    expect(localStorage.getItem('round:guest')).toBeTruthy();
+
+    localStorage.setItem('username', 'sam');
+
+    // Sam has not started anything; the guest's round is not theirs to find
+    expect(service.readRound()).toBeNull();
+  });
+
+  it('keeps two children on one tablet out of one another\'s round', () => {
+    localStorage.setItem('username', 'ada');
+    service.saveRound({ ...round, grade: 9 });
+    localStorage.setItem('username', 'sam');
+    service.saveRound({ ...round, grade: 2 });
+
+    expect(service.readRound()!.grade).toBe(2);
+    localStorage.setItem('username', 'ada');
+    expect(service.readRound()!.grade).toBe(9);
+  });
+
+  it('forgets it when told to', () => {
+    service.saveRound(round);
+
+    service.clearRound();
+
+    expect(service.readRound()).toBeNull();
+  });
+
+  it('is happy to be told to forget a round that was never there', () => {
+    expect(() => service.clearRound()).not.toThrow();
+  });
+
+  it('reads an unreadable round as no round', () => {
+    localStorage.setItem('round:guest', 'not a round');
+
+    expect(service.readRound()).toBeNull();
+  });
+
+  it('does not hand a half-finished round over with a guest\'s progress', () => {
+    service.saveRound(round);
+    service.record({ correctAnswers: 8, total: 10, percentage: 80, score: 9, grade: 4 });
+
+    service.adoptGuestProgress('ada');
+
+    expect(localStorage.getItem('round:guest')).toBeNull();
+  });
+});

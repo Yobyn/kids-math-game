@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { Router } from '@angular/router';
 import { ScoreService } from '../services/score.service';
 import { LanguageService } from '../services/language.service';
@@ -9,9 +9,18 @@ import { workedStep } from '../teaching/worked-step';
 import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
 import { trigger, state, style, animate, transition } from '@angular/animations';
+import {
+  QUESTIONS_IN_ROUND,
+  RESUME_CHOICE_KEY,
+  ROUND_VERSION,
+  ResumeChoice,
+  SavedRound,
+  isResumable,
+  resumeQuestionNumber
+} from './round-state';
 
 /** The quiz is ten questions long; ScoreService.isGameComplete() agrees. */
-const TOTAL_QUESTIONS = 10;
+const TOTAL_QUESTIONS = QUESTIONS_IN_ROUND;
 /** A missed question comes back this many questions later — soon, not last. */
 const REPLAY_GAP = 2;
 
@@ -48,7 +57,7 @@ interface PendingReplay {
     ])
   ]
 })
-export class QuestionComponent implements OnInit {
+export class QuestionComponent implements OnInit, OnDestroy {
   @ViewChild('answerInput') answerInput!: ElementRef;
   @ViewChild('nextButton') nextButton!: ElementRef;
   
@@ -91,6 +100,33 @@ export class QuestionComponent implements OnInit {
   private offerSpent = false;
   /** What the offer would switch to, for naming it on the button. */
   easierSetting = '';
+  /**
+   * True while the child is being asked whether to pick an interrupted round
+   * back up. Nothing else is on screen while it is: restoring silently, or
+   * wiping silently, are both decisions taken FOR a child about their own
+   * work, and this game does not do that anywhere else either.
+   */
+  showResumeOffer = false;
+  /** The round behind that offer, held until the child answers it. */
+  private pendingRound: SavedRound | null = null;
+  /** Where they had got to, for saying so in words they can check. */
+  resumeAt = 0;
+  /** Set once the round is live, so half-built state is never written down. */
+  private roundLive = false;
+
+  /**
+   * The page is not reliably told it is closing. `unload` never fires on
+   * Safari, `beforeunload` only fires on desktop navigations, and neither
+   * runs when the OS closes a backgrounded tab. Going hidden is the last
+   * signal that can be counted on, so it is the one the round is saved on.
+   */
+  private readonly onVisibilityChange = () => {
+    if (typeof document === 'undefined' || document.visibilityState === 'hidden') {
+      this.saveRound();
+    }
+  };
+  /** Next best, and the one that fires on a back-forward-cache eviction. */
+  private readonly onPageHide = () => this.saveRound();
 
   constructor(
     private scoreService: ScoreService,
@@ -106,6 +142,53 @@ export class QuestionComponent implements OnInit {
 
   ngOnInit() {
     this.useKeypad = this.isTouchDevice();
+    this.listenForHiding();
+
+    // Two ways back into an interrupted round, and they are not the same.
+    // A grade screen that has already asked sends a choice with the child;
+    // an OS that quietly reloaded this tab underneath them sends nothing, and
+    // that second case is the common one on a phone. So when no choice
+    // arrives and there is a round to come back to, ask here.
+    const choice = this.takeResumeChoice();
+    const saved = this.progressService.readRound();
+
+    if (choice !== 'fresh' && isResumable(saved, Date.now(), TOTAL_QUESTIONS)) {
+      if (choice === 'resume') {
+        this.restoreRound(saved);
+      } else {
+        this.pendingRound = saved;
+        this.resumeAt = resumeQuestionNumber(saved, TOTAL_QUESTIONS);
+        this.showResumeOffer = true;
+      }
+      return;
+    }
+
+    this.progressService.clearRound();
+    this.startFreshRound();
+  }
+
+  ngOnDestroy() {
+    // Leaving the screen on purpose is itself a moment worth saving at: a
+    // child who taps back and returns has not abandoned anything.
+    this.saveRound();
+    if (typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.onVisibilityChange);
+    }
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('pagehide', this.onPageHide);
+    }
+  }
+
+  private listenForHiding() {
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this.onVisibilityChange);
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('pagehide', this.onPageHide);
+    }
+  }
+
+  private startFreshRound() {
     if (!localStorage.getItem('difficulty') || !localStorage.getItem('grade')) {
       this.router.navigate(['/difficulty']);
       return;
@@ -115,13 +198,157 @@ export class QuestionComponent implements OnInit {
     // about its own setting until it is not.
     this.clearEasedFlag();
     this.seedMissedFromLastRound();
+    this.roundLive = true;
     this.generateQuestion();
+    this.watchScore();
+    this.saveRound();
+  }
+
+  private watchScore() {
     this.scoreService.getCurrentScore().subscribe(score => {
       this.currentScore = score;
     });
     this.scoreService.getQuestionsAnswered().subscribe(questions => {
       this.questionsAnswered = questions;
     });
+  }
+
+  /** Yes: back to exactly where they were. */
+  takeResume() {
+    const round = this.pendingRound;
+    this.showResumeOffer = false;
+    this.pendingRound = null;
+    if (round) {
+      this.restoreRound(round);
+    } else {
+      this.startFreshRound();
+    }
+  }
+
+  /** No: the old round is gone, and a new one starts at their own settings. */
+  startOver() {
+    this.showResumeOffer = false;
+    this.pendingRound = null;
+    this.progressService.clearRound();
+    this.startFreshRound();
+  }
+
+  /**
+   * Puts a saved round back. The grade and difficulty travel WITH the round
+   * rather than being read from storage, because the result screen clears
+   * them: a round resumed after the app was closed would otherwise come back
+   * at whatever the defaults happen to be, which is not the round they left.
+   */
+  private restoreRound(round: SavedRound) {
+    this.grade = round.grade;
+    this.difficulty = round.difficulty;
+    try {
+      localStorage.setItem('grade', String(round.grade));
+      localStorage.setItem('difficulty', round.difficulty);
+    } catch {
+      // The round in memory is already right; storage only has to agree later
+    }
+
+    this.scoreService.restore({
+      score: round.score,
+      questionsAnswered: round.questionsAnswered,
+      correctAnswers: round.correctAnswers
+    });
+    this.results = round.results.slice();
+    this.missed = round.missed.map(item => ({
+      question: { ...item.question },
+      dueAfter: item.dueAfter,
+      reviewOf: item.reviewOf
+    }));
+    this.offerSpent = round.offerSpent;
+    this.streakCount = round.streak;
+    this.setEasedFlag(round.eased);
+    this.roundLive = true;
+    this.watchScore();
+
+    if (round.answered) {
+      // They had already answered it and were reading the answer. Asking it
+      // again would count a question they have been counted for, so the
+      // round picks up at the next one instead.
+      this.generateQuestion();
+    } else {
+      this.currentQuestion = { ...round.question };
+      this.isReplay = round.isReplay;
+      this.reviewing = round.reviewing;
+      this.wrongAttempts = round.wrongAttempts;
+      this.isSecondAttempt = round.wrongAttempts > 0;
+      this.userAnswer = '';
+      this.workedLine = '';
+      this.inputPlaceholder = '?';
+      this.showOkButton = false;
+      this.answerWasCorrect = null;
+      // A child coming back to a second attempt should be told it is one,
+      // rather than left to wonder why they have a try in hand.
+      this.feedback = round.wrongAttempts > 0
+        ? this.languageService.translate('try-again')
+        : '';
+    }
+
+    this.saveRound();
+  }
+
+  /** The choice a screen that has already asked left behind, read once. */
+  private takeResumeChoice(): ResumeChoice | null {
+    try {
+      const raw = localStorage.getItem(RESUME_CHOICE_KEY);
+      localStorage.removeItem(RESUME_CHOICE_KEY);
+      return raw === 'resume' || raw === 'fresh' ? raw : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Writes the round down. Called after every question and whenever the page
+   * goes away — never on a timer, because a save that only happens every few
+   * seconds is a save that misses the interruption it exists for.
+   */
+  private saveRound() {
+    if (!this.roundLive || this.scoreService.isGameComplete()) {
+      return;
+    }
+    const counters = this.scoreService.snapshot();
+    this.progressService.saveRound({
+      version: ROUND_VERSION,
+      savedAt: Date.now(),
+      grade: this.grade,
+      difficulty: this.difficulty,
+      eased: this.isEased(),
+      questionsAnswered: counters.questionsAnswered,
+      correctAnswers: counters.correctAnswers,
+      score: counters.score,
+      streak: this.streakCount,
+      results: this.results.slice(),
+      question: { ...this.currentQuestion },
+      isReplay: this.isReplay,
+      reviewing: this.reviewing,
+      missed: this.missed.map(item => ({
+        question: { ...item.question },
+        dueAfter: item.dueAfter,
+        reviewOf: item.reviewOf
+      })),
+      offerSpent: this.offerSpent,
+      answered: this.showOkButton,
+      wrongAttempts: this.wrongAttempts
+    });
+  }
+
+  /** The round is over; there is nothing left to come back to. */
+  private finishRound() {
+    this.roundLive = false;
+    this.progressService.clearRound();
+  }
+
+  /** What to tell the child about where they were, in their own language. */
+  get resumeLine(): string {
+    return this.languageService.translate('resume-progress')
+      .replace('{number}', String(this.resumeAt))
+      .replace('{total}', String(TOTAL_QUESTIONS));
   }
 
   /** How far through the ten questions the child is, as a percentage. */
@@ -148,6 +375,18 @@ export class QuestionComponent implements OnInit {
     this.vibrate(10);
     this.userAnswer = applyKey(this.userAnswer, key);
     this.inputPlaceholder = placeholderFor(this.userAnswer);
+  }
+
+  /**
+   * The answer box is not always on the screen — the resume card takes it
+   * over, and the screen can be left before a queued focus comes round. The
+   * button below has always been checked before being focused; this was not,
+   * and a focus arriving after the box had gone threw.
+   */
+  private focusAnswer() {
+    if (this.answerInput) {
+      this.answerInput.nativeElement.focus();
+    }
   }
 
   private vibrate(pattern: number | number[]) {
@@ -230,6 +469,7 @@ export class QuestionComponent implements OnInit {
 
   generateQuestion() {
     if (this.scoreService.isGameComplete()) {
+      this.finishRound();
       this.router.navigate(['/result']);
       return;
     }
@@ -391,6 +631,7 @@ export class QuestionComponent implements OnInit {
     this.scoreService.incrementCorrectAnswers();
     this.scoreService.incrementScore(bonusPoints);
     this.showOkButton = true;
+    this.saveRound();
     // A streak is worth more of a surge than a single right answer
     this.fieldPulse.pulse(this.streakCount >= 3 ? 0.85 : 0.5);
     this.vibrate([0, 30, 40, 30]);
@@ -415,7 +656,7 @@ export class QuestionComponent implements OnInit {
       this.isSecondAttempt = true;
       this.userAnswer = '';
       if (!this.useKeypad) {
-        setTimeout(() => this.answerInput.nativeElement.focus(), 100);
+        setTimeout(() => this.focusAnswer(), 100);
       }
     } else {
       // Retrieval practice works best when a missed fact returns a couple of
@@ -443,10 +684,12 @@ export class QuestionComponent implements OnInit {
                      this.currentQuestion.operation) || '';
       this.showOkButton = true;
       this.results.push(false);
+      this.saveRound();
       this.considerEasierOffer();
       // Use the service to increment questions answered
       this.scoreService.incrementQuestionsAnswered();
       if (this.scoreService.isGameComplete()) {
+        this.finishRound();
         setTimeout(() => this.router.navigate(['/result']), 1500);
       }
       // Set focus on the next button after it appears
@@ -517,6 +760,27 @@ export class QuestionComponent implements OnInit {
     }
   }
 
+  private isEased(): boolean {
+    try {
+      return localStorage.getItem(EASED_KEY) === 'true';
+    } catch {
+      return false;
+    }
+  }
+
+  /** Put back with a resumed round, so it stays the round they were playing. */
+  private setEasedFlag(eased: boolean) {
+    if (!eased) {
+      this.clearEasedFlag();
+      return;
+    }
+    try {
+      localStorage.setItem(EASED_KEY, 'true');
+    } catch {
+      // The round in memory is already at the eased setting either way
+    }
+  }
+
   private calculateBonusPoints(): number {
     if (this.streakCount >= 5) return 3;
     if (this.streakCount >= 3) return 2;
@@ -539,8 +803,9 @@ export class QuestionComponent implements OnInit {
     this.showOkButton = false;
     this.wrongAttempts = 0;
     this.generateQuestion();
+    this.saveRound();
     if (!this.useKeypad) {
-      setTimeout(() => this.answerInput.nativeElement.focus(), 100);
+      setTimeout(() => this.focusAnswer(), 100);
     }
   }
 

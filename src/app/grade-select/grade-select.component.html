@@ -1,6 +1,17 @@
 <div class="grade-container">
   <h1>{{ languageService.translate('select-grade') }}</h1>
 
+  <!-- An unfinished round comes first, because it is the more specific
+       offer: a child who left half way through one almost always meant to
+       come back to it, not to start another. -->
+  <button type="button"
+          class="resume-round"
+          *ngIf="unfinished"
+          (click)="carryOnRound()">
+    <span class="resume-title">{{ languageService.translate('resume-carry-on') }}</span>
+    <span class="resume-line">{{ unfinishedLine }}</span>
+  </button>
+
   <!-- One tap for a child who has already answered this question once. The
        ten cards stay below it: this offers, it does not decide. -->
   <button type="button"

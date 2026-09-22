@@ -2,6 +2,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { QuestionComponent } from './question.component';
 import { KeypadComponent } from '../keypad/keypad.component';
@@ -877,5 +878,380 @@ describe('QuestionComponent offering an easier rest of the round', () => {
     open();
 
     expect(localStorage.getItem('difficultyEased')).toBeNull();
+  });
+});
+
+describe('QuestionComponent: a round that survives the real world', () => {
+  let fixture: ComponentFixture<QuestionComponent>;
+  let component: QuestionComponent;
+
+  const KEY = 'round:guest';
+
+  function open() {
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    return component;
+  }
+
+  function saved(): any {
+    return JSON.parse(localStorage.getItem(KEY) || 'null');
+  }
+
+  /** Answer the question on screen correctly and move on. */
+  function answerRight() {
+    component.userAnswer = String(solve(component));
+    component.checkAnswer();
+    component.moveToNextQuestion();
+  }
+
+  function solve(c: QuestionComponent): number {
+    const q = c.currentQuestion;
+    switch (q.operation) {
+      case '+': return q.num1 + q.num2;
+      case '-': return q.num1 - q.num2;
+      case '*': return q.num1 * q.num2;
+      default: return q.num1 / q.num2;
+    }
+  }
+
+  beforeEach(async () => {
+    localStorage.clear();
+    localStorage.setItem('difficulty', 'medium');
+    localStorage.setItem('grade', '3');
+    await TestBed.configureTestingModule({
+      imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
+      declarations: [QuestionComponent, KeypadComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+    // The test router has no routes, and these tests play rounds to the end
+    spyOn(TestBed.inject(Router), 'navigate').and.returnValue(Promise.resolve(true));
+  });
+
+  afterEach(() => localStorage.clear());
+
+  describe('writing the round down', () => {
+    it('saves a round the moment it starts', () => {
+      open();
+
+      expect(saved()).toBeTruthy();
+      expect(saved().grade).toBe(3);
+      expect(saved().difficulty).toBe('medium');
+    });
+
+    it('keeps the running count up to date as questions are answered', () => {
+      open();
+      answerRight();
+      answerRight();
+
+      expect(saved().questionsAnswered).toBe(2);
+      expect(saved().correctAnswers).toBe(2);
+      expect(saved().results).toEqual([true, true]);
+    });
+
+    it('saves the question actually on screen, not the one before it', () => {
+      open();
+      answerRight();
+
+      expect(saved().question).toEqual(jasmine.objectContaining({
+        num1: component.currentQuestion.num1,
+        num2: component.currentQuestion.num2,
+        operation: component.currentQuestion.operation
+      }));
+    });
+
+    it('saves when the page goes hidden, which is the last signal a phone gives', () => {
+      // `unload` never fires on Safari and `beforeunload` only fires on
+      // desktop navigations, so this is the event that has to carry it.
+      open();
+      answerRight();
+      localStorage.removeItem(KEY);
+
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      // The test page is visible, so nothing is written — and that is right:
+      // going visible is not going away.
+      expect(saved()).toBeNull();
+
+      spyOnProperty(document, 'visibilityState', 'get').and.returnValue('hidden');
+      document.dispatchEvent(new Event('visibilitychange'));
+
+      expect(saved()).toBeTruthy();
+      expect(saved().questionsAnswered).toBe(1);
+    });
+
+    it('saves on pagehide too, for the browsers that only give that one', () => {
+      open();
+      answerRight();
+      localStorage.removeItem(KEY);
+
+      window.dispatchEvent(new Event('pagehide'));
+
+      expect(saved()).toBeTruthy();
+    });
+
+    it('stops listening once the screen is gone', () => {
+      open();
+      answerRight();
+      fixture.destroy();
+      localStorage.removeItem(KEY);
+
+      window.dispatchEvent(new Event('pagehide'));
+
+      expect(saved()).toBeNull();
+    });
+
+    it('leaves nothing behind once the round is finished', () => {
+      open();
+      for (let i = 0; i < 10; i++) {
+        answerRight();
+      }
+
+      expect(localStorage.getItem(KEY)).toBeNull();
+    });
+  });
+
+  describe('coming back to it', () => {
+    function leaveMidRound(): void {
+      open();
+      answerRight();
+      answerRight();
+      answerRight();
+      fixture.destroy();
+    }
+
+    it('asks rather than resuming silently', () => {
+      leaveMidRound();
+      const before = saved();
+
+      open();
+
+      expect(component.showResumeOffer).toBe(true);
+      expect(fixture.nativeElement.querySelector('.resume-offer')).toBeTruthy();
+      // Nothing has started behind the question being asked
+      expect(fixture.nativeElement.querySelector('.question-box')).toBeNull();
+      expect(saved().questionsAnswered).toBe(before.questionsAnswered);
+    });
+
+    it('tells the child where they were, in a number they can check', () => {
+      leaveMidRound();
+
+      open();
+      fixture.detectChanges();
+
+      expect(component.resumeAt).toBe(4);
+      expect(fixture.nativeElement.querySelector('.resume-offer').textContent)
+        .toContain('4');
+    });
+
+    it('puts the score and the count back when they carry on', () => {
+      leaveMidRound();
+      const before = saved();
+
+      open();
+      component.takeResume();
+      fixture.detectChanges();
+
+      expect(component.showResumeOffer).toBe(false);
+      expect(component.questionsAnswered).toBe(before.questionsAnswered);
+      expect(component.currentScore).toBe(before.score);
+      expect(fixture.nativeElement.querySelector('.question-box')).toBeTruthy();
+    });
+
+    it('puts back the grade and difficulty the round was played at', () => {
+      leaveMidRound();
+      // The result screen clears both, so a resumed round cannot read them
+      localStorage.removeItem('grade');
+      localStorage.removeItem('difficulty');
+
+      open();
+      component.takeResume();
+
+      expect(component.grade).toBe(3);
+      expect(component.difficulty).toBe('medium');
+      expect(localStorage.getItem('grade')).toBe('3');
+    });
+
+    it('starts clean when the child would rather start again', () => {
+      leaveMidRound();
+
+      open();
+      component.startOver();
+      fixture.detectChanges();
+
+      expect(component.questionsAnswered).toBe(0);
+      expect(component.currentScore).toBe(0);
+      expect(saved().questionsAnswered).toBe(0);
+      expect(fixture.nativeElement.querySelector('.question-box')).toBeTruthy();
+    });
+
+    it('does not ask twice when a screen already asked', () => {
+      leaveMidRound();
+      localStorage.setItem('roundResume', 'resume');
+
+      open();
+
+      expect(component.showResumeOffer).toBe(false);
+      expect(component.questionsAnswered).toBe(3);
+    });
+
+    it('starts fresh when a screen was told to', () => {
+      leaveMidRound();
+      localStorage.setItem('roundResume', 'fresh');
+
+      open();
+
+      expect(component.showResumeOffer).toBe(false);
+      expect(component.questionsAnswered).toBe(0);
+    });
+
+    it('reads the choice once and then forgets it', () => {
+      leaveMidRound();
+      localStorage.setItem('roundResume', 'resume');
+      open();
+
+      expect(localStorage.getItem('roundResume')).toBeNull();
+    });
+
+    it('does not offer a round that has gone cold overnight', () => {
+      leaveMidRound();
+      const stale = saved();
+      stale.savedAt = Date.now() - 20 * 60 * 60 * 1000;
+      localStorage.setItem(KEY, JSON.stringify(stale));
+
+      open();
+
+      expect(component.showResumeOffer).toBe(false);
+      expect(component.questionsAnswered).toBe(0);
+    });
+
+    it('does not offer a round with nothing in it yet', () => {
+      open();
+      fixture.destroy();
+
+      open();
+
+      expect(component.showResumeOffer).toBe(false);
+      expect(component.questionsAnswered).toBe(0);
+    });
+
+    it('starts a fresh round rather than failing on a corrupt one', () => {
+      localStorage.setItem(KEY, '{not json at all');
+
+      open();
+
+      expect(component.showResumeOffer).toBe(false);
+      expect(component.currentQuestion.operation).toBeTruthy();
+      expect(saved()).toBeTruthy();
+    });
+
+    it('picks up at the next question when the answer was already showing', () => {
+      open();
+      answerRight();
+      answerRight();
+      component.userAnswer = String(solve(component));
+      component.checkAnswer();
+      expect(component.showOkButton).toBe(true);
+      fixture.destroy();
+      expect(saved().answered).toBe(true);
+      expect(saved().questionsAnswered).toBe(3);
+
+      open();
+      component.takeResume();
+
+      // Three are counted, so the fourth is the one in front of them — the
+      // question they already answered is not asked again.
+      expect(component.questionsAnswered).toBe(3);
+      expect(component.showOkButton).toBe(false);
+      expect(component.userAnswer).toBe('');
+    });
+
+    it('gives back the try they still had in hand, and says so', () => {
+      open();
+      answerRight();
+      component.userAnswer = String(solve(component) + 1);
+      component.checkAnswer();
+      expect(component.wrongAttempts).toBe(1);
+      const question = { ...component.currentQuestion };
+      fixture.destroy();
+
+      open();
+      component.takeResume();
+
+      expect(component.currentQuestion.num1).toBe(question.num1);
+      expect(component.currentQuestion.num2).toBe(question.num2);
+      expect(component.wrongAttempts).toBe(1);
+      expect(component.isSecondAttempt).toBe(true);
+      expect(component.feedback).toBeTruthy();
+    });
+
+    it('comes back at the eased setting when the child had taken the offer', () => {
+      open();
+      answerRight();
+      component.difficulty = 'easy';
+      localStorage.setItem('difficultyEased', 'true');
+      fixture.destroy();
+      expect(saved().eased).toBe(true);
+
+      open();
+      component.takeResume();
+
+      expect(component.difficulty).toBe('easy');
+      expect(localStorage.getItem('difficultyEased')).toBe('true');
+    });
+
+    it('does not carry an eased mark into a round that starts over', () => {
+      open();
+      answerRight();
+      component.difficulty = 'easy';
+      localStorage.setItem('difficultyEased', 'true');
+      fixture.destroy();
+
+      open();
+      component.startOver();
+
+      expect(localStorage.getItem('difficultyEased')).toBeNull();
+    });
+
+    it('does not put the offer back in front of a child who spent it', () => {
+      open();
+      answerRight();
+      (component as any).offerSpent = true;
+      fixture.destroy();
+
+      open();
+      component.takeResume();
+
+      expect((component as any).offerSpent).toBe(true);
+    });
+
+    it('carries the queued replays over, so a missed fact still comes back', () => {
+      open();
+      answerRight();
+      (component as any).missed = [
+        { question: { num1: 6, num2: 7, operation: '+' }, dueAfter: 3 }
+      ];
+      fixture.destroy();
+      expect(saved().missed.length).toBe(1);
+
+      open();
+      component.takeResume();
+
+      expect((component as any).missed.length).toBe(1);
+      expect((component as any).missed[0].question.num1).toBe(6);
+    });
+
+    it('finishes a resumed round at ten, not at ten more', () => {
+      leaveMidRound();
+
+      open();
+      component.takeResume();
+      for (let i = 0; i < 7; i++) {
+        answerRight();
+      }
+
+      expect(component.questionsAnswered).toBe(10);
+      expect(localStorage.getItem(KEY)).toBeNull();
+    });
   });
 });

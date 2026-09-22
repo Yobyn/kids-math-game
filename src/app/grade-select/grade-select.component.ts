@@ -6,6 +6,13 @@ import { lastGrade } from '../levels/difficulty-tuner';
 import { suggestGrade } from '../levels/grade-tuner';
 import { AvatarService } from '../services/avatar.service';
 import { Avatar } from '../avatar/avatar-model';
+import {
+  QUESTIONS_IN_ROUND,
+  RESUME_CHOICE_KEY,
+  SavedRound,
+  isResumable,
+  resumeQuestionNumber
+} from '../question/round-state';
 
 @Component({
   selector: 'app-grade-select',
@@ -39,6 +46,16 @@ export class GradeSelectComponent implements OnInit {
   /** Drawn on the way in, so the button looks like the thing it opens. */
   avatar!: Avatar;
 
+  /**
+   * A round the child was part way through when something took the screen
+   * away. This is where they land when the app is opened again, so this is
+   * where the offer has to be: walking them back through grade and difficulty
+   * would start a new round without ever saying so.
+   */
+  unfinished: SavedRound | null = null;
+  /** The question they had got to, for saying it rather than implying it. */
+  unfinishedAt = 0;
+
   constructor(
     private router: Router,
     private progressService: ProgressService,
@@ -53,6 +70,39 @@ export class GradeSelectComponent implements OnInit {
     if (this.carryOnGrade) {
       this.suggestedGrade = suggestGrade(history, this.carryOnGrade);
     }
+
+    const saved = this.progressService.readRound();
+    if (isResumable(saved, Date.now(), QUESTIONS_IN_ROUND)) {
+      this.unfinished = saved;
+      this.unfinishedAt = resumeQuestionNumber(saved, QUESTIONS_IN_ROUND);
+    }
+  }
+
+  /** What they were part way through, in words they can check against. */
+  get unfinishedLine(): string {
+    return this.languageService.translate('resume-progress')
+      .replace('{number}', String(this.unfinishedAt))
+      .replace('{total}', String(QUESTIONS_IN_ROUND));
+  }
+
+  /**
+   * Back into the round they left. The grade and difficulty are put back
+   * from the round itself, because the result screen clears both and the
+   * question screen turns a child away without them.
+   */
+  carryOnRound() {
+    const round = this.unfinished;
+    if (!round) {
+      return;
+    }
+    try {
+      localStorage.setItem('grade', String(round.grade));
+      localStorage.setItem('difficulty', round.difficulty);
+      localStorage.setItem(RESUME_CHOICE_KEY, 'resume');
+    } catch {
+      // Without storage the question screen simply asks again, which is fine
+    }
+    this.router.navigate(['/questions']);
   }
 
   get carryOnLabel(): string {
@@ -70,6 +120,11 @@ export class GradeSelectComponent implements OnInit {
   }
 
   selectGrade(grade: number) {
+    // Picking a grade is choosing to start something new, so whatever was
+    // half-finished is let go here rather than ambushing them at the next
+    // screen with a round they have just decided against.
+    this.progressService.clearRound();
+    this.unfinished = null;
     localStorage.setItem('grade', grade.toString());
     this.router.navigate(['/difficulty']);
   }

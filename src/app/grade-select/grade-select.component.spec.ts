@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { GradeSelectComponent } from './grade-select.component';
 import { AvatarComponent } from '../avatar/avatar.component';
+import { routes } from '../app-routing.module';
 
 describe('GradeSelectComponent', () => {
   let fixture: ComponentFixture<GradeSelectComponent>;
@@ -266,5 +267,164 @@ describe('GradeSelectComponent pointing at the character', () => {
     const door = fixture.nativeElement.querySelector('.your-character');
 
     expect(parseFloat(getComputedStyle(door).minHeight)).toBeGreaterThanOrEqual(44);
+  });
+});
+
+describe('GradeSelectComponent: the round they left half finished', () => {
+  let fixture: ComponentFixture<GradeSelectComponent>;
+  let component: GradeSelectComponent;
+  let router: Router;
+
+  const KEY = 'round:guest';
+
+  function storeRound(overrides: any = {}) {
+    localStorage.setItem(KEY, JSON.stringify({
+      version: 1,
+      savedAt: Date.now(),
+      grade: 5,
+      difficulty: 'hard',
+      eased: false,
+      questionsAnswered: 6,
+      correctAnswers: 5,
+      score: 8,
+      streak: 1,
+      results: [true, true, true, false, true, true],
+      question: { num1: 12, num2: 9, operation: '+' },
+      isReplay: false,
+      missed: [],
+      offerSpent: false,
+      answered: false,
+      wrongAttempts: 0,
+      ...overrides
+    }));
+  }
+
+  function open() {
+    fixture = TestBed.createComponent(GradeSelectComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [GradeSelectComponent, AvatarComponent]
+    }).compileComponents();
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('says nothing when there is nothing half finished', () => {
+    open();
+
+    expect(component.unfinished).toBeNull();
+    expect(fixture.nativeElement.querySelector('.resume-round')).toBeNull();
+  });
+
+  it('offers the round back, and says which question they were on', () => {
+    storeRound();
+
+    open();
+
+    expect(component.unfinished).toBeTruthy();
+    const button = fixture.nativeElement.querySelector('.resume-round');
+    expect(button).toBeTruthy();
+    expect(button.textContent).toContain('7');
+  });
+
+  it('puts it above the grade list, because it is the more specific offer', () => {
+    storeRound();
+    localStorage.setItem('roundHistory:guest', JSON.stringify([{
+      date: new Date().toISOString(), correctAnswers: 8, total: 10,
+      percentage: 80, score: 10, grade: 5
+    }]));
+
+    open();
+
+    const order = Array.from(
+      fixture.nativeElement.querySelectorAll('.resume-round, .carry-on, .grade-card')
+    ).map((element: any) => element.className.split(' ')[0]);
+    expect(order[0]).toBe('resume-round');
+  });
+
+  it('sends them somewhere that actually exists', () => {
+    // A path that is only ALMOST right ('/question' for '/questions') hits the
+    // wildcard and lands the child back where they started, and a test that
+    // only checks what was asked for cannot see it.
+    storeRound();
+    open();
+
+    fixture.nativeElement.querySelector('.resume-round').click();
+
+    const target = (router.navigate as jasmine.Spy).calls.mostRecent().args[0][0];
+    expect(routes.some(route => `/${route.path}` === target)).toBe(true);
+  });
+
+  it('carries the round back with its own grade and difficulty', () => {
+    storeRound();
+    open();
+
+    fixture.nativeElement.querySelector('.resume-round').click();
+
+    expect(localStorage.getItem('grade')).toBe('5');
+    expect(localStorage.getItem('difficulty')).toBe('hard');
+    expect(localStorage.getItem('roundResume')).toBe('resume');
+    expect(router.navigate).toHaveBeenCalledWith(['/questions']);
+  });
+
+  it('does not offer a round that has gone cold', () => {
+    storeRound({ savedAt: Date.now() - 9 * 60 * 60 * 1000 });
+
+    open();
+
+    expect(component.unfinished).toBeNull();
+  });
+
+  it('does not offer a round with nothing answered in it', () => {
+    storeRound({ questionsAnswered: 0 });
+
+    open();
+
+    expect(component.unfinished).toBeNull();
+  });
+
+  it('does not offer a finished round, which belongs on the result screen', () => {
+    storeRound({ questionsAnswered: 10 });
+
+    open();
+
+    expect(component.unfinished).toBeNull();
+  });
+
+  it('shows nothing rather than failing on a round it cannot read', () => {
+    localStorage.setItem(KEY, 'half a round');
+
+    open();
+
+    expect(component.unfinished).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('.grade-card').length).toBe(10);
+  });
+
+  it('lets the half-finished round go when a grade is chosen instead', () => {
+    // Picking a grade is choosing to start something new, said out loud
+    storeRound();
+    open();
+
+    component.selectGrade(2);
+
+    expect(localStorage.getItem(KEY)).toBeNull();
+    expect(component.unfinished).toBeNull();
+  });
+
+  it('keeps a target a child can hit', () => {
+    storeRound();
+    open();
+
+    const button = fixture.nativeElement.querySelector('.resume-round');
+
+    expect(parseFloat(getComputedStyle(button).minHeight)).toBeGreaterThanOrEqual(44);
   });
 });
