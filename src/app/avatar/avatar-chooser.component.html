@@ -20,6 +20,21 @@
   </section>
 
   <section class="choice-row">
+    <h2>{{ languageService.translate('face-shape') }}</h2>
+    <div class="swatches">
+      <button type="button"
+              class="swatch style-swatch"
+              *ngFor="let shape of faceShapes"
+              [class.chosen]="avatar.faceShape === shape"
+              [attr.aria-pressed]="avatar.faceShape === shape"
+              [attr.aria-label]="languageService.translate('face-shape')"
+              (click)="choose('faceShape', shape)">
+        <app-avatar [avatar]="withFace(shape)" [size]="44"></app-avatar>
+      </button>
+    </div>
+  </section>
+
+  <section class="choice-row">
     <h2>{{ languageService.translate('hair-style') }}</h2>
     <div class="swatches">
       <button type="button"

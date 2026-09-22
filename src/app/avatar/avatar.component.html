@@ -19,7 +19,7 @@
   <circle class="ear" cx="22" cy="55" r="7" [attr.fill]="avatar.skin"></circle>
   <circle class="ear" cx="78" cy="55" r="7" [attr.fill]="avatar.skin"></circle>
 
-  <circle class="face" cx="50" cy="54" r="30" [attr.fill]="avatar.skin"></circle>
+  <path class="face" [attr.d]="facePath" [attr.fill]="avatar.skin"></path>
 
   <path class="hair" [attr.d]="hairPath" [attr.fill]="avatar.hairColour"></path>
 

@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import {
   Avatar,
+  FACE_PATHS,
   FULL_VIEW_BOX,
   HAIR_PATHS,
   NECK_PATH,
@@ -54,6 +55,11 @@ export class AvatarComponent {
 
   get top(): WardrobeItem | undefined {
     return this.wornItem('top', this.avatar.top);
+  }
+
+  /** The face outline, which used to be a circle nobody could change. */
+  get facePath(): string {
+    return FACE_PATHS[this.avatar.faceShape] || FACE_PATHS.round;
   }
 
   get hairPath(): string {

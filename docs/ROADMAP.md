@@ -3,7 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (the avatar page given a front door the same day)
+Last surveyed: 2026-09-22 (the character given hair and faces the same day)
 
 ## What works today
 
@@ -32,7 +32,7 @@ Last surveyed: 2026-09-22 (the avatar page given a front door the same day)
 - Sound and haptics switch in the header, remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
   respects `prefers-reduced-motion`.
-- 666 unit tests plus 16 server tests, run on every PR by GitHub Actions
+- 671 unit tests plus 16 server tests, run on every PR by GitHub Actions
   alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
@@ -289,11 +289,37 @@ a backend that currently keeps its users in memory (see Code health).
   slots. It is also why the entrance is permanent rather than appearing only
   when something is unlocked: a trophy cabinet opens when you win something,
   but this is meant to be you.
-  What remains: no way to see which events a child has been present for as a
-  set, which is the closest thing the game would have to a scrapbook. And the
-  page itself has not been reconsidered — four identity choices and three
-  item rows, 1687px tall on a phone. Now that a child can actually find it,
-  whether it earns the visit is the next question.
+  SKIN TONE ALONE WAS NOT REPRESENTATION, and the page behaved as if it were.
+  Six skin tones, and then one face, one mouth, one eye shape and four hair
+  shapes — short, long, curly and a bun — every one of which is the same
+  hair. Work on inclusive avatars (Mack et al., CHI 2023, and the EGAL
+  guidance drawn from it) is explicit that changing skin colour is not enough
+  to represent people of colour, because the shapes of eyes, mouths,
+  HAIRSTYLES and HAIR TEXTURES are key physical characteristics too. A child
+  could tint the character their colour and still not find themselves in it.
+  Zhang et al. (CHI 2025) separately record that children ask for more
+  hairstyle options than games give them.
+  So: nine hair styles, and the five added are the point — an afro, tight
+  coils, braids, locs and a buzz. And four face shapes where there was a
+  hard-coded circle: round, oval, square, heart.
+  THE SCREENSHOT CAUGHT WHAT THE TEST DID NOT. The first square and heart
+  faces passed a bounding-box test and were indistinguishable at 44px, because
+  a bounding box cannot see a jaw. The shapes were redrawn with real
+  silhouettes, and the test now samples the fill at the brow, the cheek and
+  the chin and requires any two faces to differ across that profile. Two of
+  the new hair styles also failed the crown sweep — which now runs over every
+  face shape as well as every style, since a style that covers the round face
+  can still leave the taller oval one bare.
+  `round` is exactly the circle the face used to be, and a character saved
+  before any of this has no `faceShape` at all, so it reads as round and looks
+  identical to what its owner left.
+  What remains: the research names FOUR characteristics and this did two. Eye
+  shape and mouth shape are still fixed — one pair of circles and one curve,
+  the same on every child. Hair texture is approximated by the style rather
+  than being its own choice, so a child cannot have long coily hair. The page
+  is also one long scroll and got longer: 1687px to 1862px at 390px. And
+  there is still no way to see which events a child has been present for as a
+  set, which is the closest thing the game would have to a scrapbook.
 - **A child can see how far they have come.** "How far you have come", from
   the result screen, shows their character, the level they have climbed to,
   and four numbers: rounds finished, questions answered, answers right, and

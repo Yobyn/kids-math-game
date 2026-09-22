@@ -226,15 +226,20 @@ describe('AvatarChooserComponent wardrobe', () => {
   it('shows clothes on a body and faces on a face', () => {
     openAtLevel(9);
 
-    const rows = fixture.nativeElement.querySelectorAll('.choice-row');
-    const tops = rows[rows.length - 1];
-    const hats = rows[4];
+    // Found by heading rather than by index: a new identity row used to shift
+    // every number here, which is a test breaking for the wrong reason
+    const rowFor = (heading: string) =>
+      Array.from(fixture.nativeElement.querySelectorAll('.choice-row') as NodeListOf<HTMLElement>)
+        .find(row => row.querySelector('h2')!.textContent!.trim()
+          === component.languageService.translate(heading as any))!;
+    const tops = rowFor('tops');
+    const hats = rowFor('hats');
 
     // A shirt swatch is useless without shoulders; a hat swatch does not
     // want them, because they would shrink the head it sits on
-    expect(tops.querySelector('app-avatar svg').getAttribute('viewBox'))
+    expect(tops.querySelector('app-avatar svg')!.getAttribute('viewBox'))
       .toBe(FULL_VIEW_BOX);
-    expect(hats.querySelector('app-avatar svg').getAttribute('viewBox'))
+    expect(hats.querySelector('app-avatar svg')!.getAttribute('viewBox'))
       .toBe(PORTRAIT_VIEW_BOX);
   });
 
