@@ -130,13 +130,15 @@ a backend that currently keeps its users in memory (see Code health).
 - **No parent or teacher view** — no way to see what a child struggles with.
 
 ### Platform
-- **The header overflows on a phone.** At 390px wide the header is 598px
-  across — the three language buttons alone are 387px, before the sound and
-  sign-in buttons. Every screen scrolls sideways because of it; the screens
-  themselves fit. It predates the character button and is not caused by it.
-  The language selector is the thing to rethink: three full buttons is a lot
-  of header to spend on a control a child touches once. Worth its own change,
-  since the fix is a design decision rather than a tweak.
+- **The header fits a phone now.** It used to be 598px across at 390px wide,
+  so every screen scrolled sideways. On phones the language buttons show the
+  flag alone with the name moved to the accessible label, the controls row
+  wraps, and the strapline is dropped: 154px of header at 360, 375 and 390px,
+  no overflow from 360px to 1112px, and every control still at least 44px in
+  both directions — the label shrinks, the target does not.
+  Still outstanding on small screens: the grade cards are around 360px tall
+  each, so choosing a grade on a phone is most of a screen per option. The
+  question screen has not been measured at these widths either.
 - **Installable, but the update prompt is missing.** The service worker takes
   over immediately on activation (`skipWaiting` + `clients.claim`); a child
   mid-round when a deploy lands gets the new shell on their next navigation

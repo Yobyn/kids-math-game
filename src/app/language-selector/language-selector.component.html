@@ -2,6 +2,7 @@
   <button *ngFor="let lang of languages" 
           (click)="switchLanguage(lang.code)"
           [class.active]="(languageService.getCurrentLang() | async) === lang.code"
+          [attr.aria-label]="lang.name"
           class="lang-btn">
     <span class="flag">{{ lang.flag }}</span>
     <span class="lang-name">{{ lang.name }}</span>

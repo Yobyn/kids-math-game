@@ -95,12 +95,34 @@
     gap: 1rem;
     padding: 0.5rem;
   }
-  
+
   .header-actions {
     width: 100%;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
   }
-  
+
+  /* The name and strapline were pushing the row wider than the screen */
+  .welcome-message {
+    margin-right: 0;
+  }
+
+  /* A phone screen is mostly the game. The strapline is decoration, and the
+     sign-in button does not need the padding it has on a tablet — between
+     them they were costing a third of the screen before a question appeared. */
+  .welcome-subtitle {
+    display: none;
+  }
+
+  .welcome-greeting {
+    font-size: 1rem;
+  }
+
+  .logout-btn {
+    padding: 0.5rem 0.75rem;
+  }
+
   .welcome-text {
     text-align: center;
   }

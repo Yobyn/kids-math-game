@@ -1,12 +1,20 @@
 .language-selector {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 0.5rem;
 }
 
 .lang-btn {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  /* The label may be hidden on a narrow screen, but the target never shrinks
+     with it: guidance is firm that a control can look smaller than it is, and
+     small fingers are exactly who this has to work for. */
+  min-width: 44px;
+  min-height: 44px;
   padding: 0.5rem 1rem;
   background: transparent;
   border: 1px solid white;
@@ -41,4 +49,16 @@
 :host-context(.login-container) .lang-btn.active {
   background-color: #007bff;
   color: white;
+}
+/* In the header there is no room for three names beside the sound and account
+   buttons, so the flag carries it and the name moves to the accessible label.
+   The chooser on the login screen keeps its names — it has the space. */
+@media (max-width: 600px) {
+  :host-context(.header-actions) .lang-name {
+    display: none;
+  }
+
+  :host-context(.header-actions) .lang-btn {
+    padding: 0.5rem;
+  }
 }
