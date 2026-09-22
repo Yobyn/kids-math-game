@@ -71,7 +71,8 @@ export class ResultComponent implements OnInit, OnDestroy {
       total: this.total,
       percentage: this.percentage,
       score: this.score,
-      grade: Number(localStorage.getItem('grade')) || 1
+      grade: Number(localStorage.getItem('grade')) || 1,
+      difficulty: localStorage.getItem('difficulty') || undefined
     });
     this.roundsPlayed = this.progressService.getRoundsPlayed();
     this.awardExperience();

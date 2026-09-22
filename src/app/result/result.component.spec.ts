@@ -426,6 +426,23 @@ describe('ResultComponent naming the reward', () => {
     expect(fixture.nativeElement.querySelector('.unlocked').textContent).toContain('Cap');
   });
 
+  it('records which setting the round was played at', () => {
+    // Without it, nothing can tell whether a child is on the right rung
+    localStorage.setItem('difficulty', 'hard');
+    localStorage.setItem('grade', '3');
+    finishRoundAt(0, 40);
+
+    const latest = TestBed.inject(ProgressService).getHistory()[0];
+    expect(latest.difficulty).toBe('hard');
+    expect(latest.grade).toBe(3);
+  });
+
+  it('records no setting rather than a wrong one when none was chosen', () => {
+    finishRoundAt(0, 40);
+
+    expect(TestBed.inject(ProgressService).getHistory()[0].difficulty).toBeUndefined();
+  });
+
   it('says nothing about items on a level that hands none over', () => {
     // Level 5 unlocks nothing; the level up still shows, the reward does not
     finishRoundAt(xpToReach(5) - 5, 100);

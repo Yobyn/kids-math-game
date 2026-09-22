@@ -7,6 +7,12 @@ export interface RoundResult {
   percentage: number;
   score: number;
   grade: number;
+  /**
+   * The setting it was played at. Optional because rounds recorded before
+   * this existed have no answer, and a round that cannot say how hard it was
+   * must not be counted as evidence about how hard it should be.
+   */
+  difficulty?: string;
 }
 
 export interface MissedFact {
