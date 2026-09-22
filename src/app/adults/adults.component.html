@@ -59,10 +59,16 @@
             {{ languageService.translate('adults-answer') }}: {{ fact.answer }}
           </span>
           <span class="fact-worked" *ngIf="fact.worked">{{ fact.worked }}</span>
+          <span class="fact-reviews">
+            {{ languageService.translate('adults-right-so-far') }}
+            {{ fact.reviews }} / {{ fact.toGraduate }}
+          </span>
         </li>
       </ol>
 
       <p class="weakest" *ngIf="weakestName">{{ weakestLine }}</p>
+      <p class="waiting" *ngIf="plan.waiting">{{ waitingLine }}</p>
+      <p class="spacing-note">{{ languageService.translate('adults-spacing') }}</p>
     </section>
 
     <section class="how">

@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { ScoreService } from '../services/score.service';
 import { LanguageService } from '../services/language.service';
 import { SoundService } from '../services/sound.service';
-import { ProgressService } from '../services/progress.service';
+import { MissedFact, ProgressService } from '../services/progress.service';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { workedStep } from '../teaching/worked-step';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
@@ -17,6 +17,12 @@ const REPLAY_GAP = 2;
 interface PendingReplay {
   question: { num1: number; num2: number; operation: string; moneyPrompt?: string };
   dueAfter: number;
+  /**
+   * The stored fact this came from, when it came from an earlier day's queue
+   * rather than from a miss in this round. Getting it right is what moves it
+   * along its schedule, so the fact itself has to travel with it.
+   */
+  reviewOf?: MissedFact;
 }
 
 @Component({
@@ -47,6 +53,8 @@ export class QuestionComponent implements OnInit {
   
   isReplay = false;
   private missed: PendingReplay[] = [];
+  /** Set while the question on screen is a review from an earlier day. */
+  private reviewing?: MissedFact;
   currentQuestion: { num1: number; num2: number; operation: string; moneyPrompt?: string } = {
     num1: 0,
     num2: 0,
@@ -177,7 +185,12 @@ export class QuestionComponent implements OnInit {
    */
   private seedMissedFromLastRound() {
     this.progressService.takeMissedFacts(2).forEach((fact, index) => {
-      this.missed.push({ question: { ...fact }, dueAfter: index + 1 });
+      this.missed.push({
+        question: { num1: fact.num1, num2: fact.num2, operation: fact.operation,
+                    moneyPrompt: fact.moneyPrompt },
+        dueAfter: index + 1,
+        reviewOf: fact
+      });
     });
   }
 
@@ -225,11 +238,13 @@ export class QuestionComponent implements OnInit {
     }
 
     this.isReplay = false;
+    this.reviewing = undefined;
     const dueIndex = this.missed.findIndex(item => item.dueAfter <= this.questionsAnswered);
     if (dueIndex !== -1) {
       const [due] = this.missed.splice(dueIndex, 1);
       this.currentQuestion = { ...due.question };
       this.isReplay = true;
+      this.reviewing = due.reviewOf;
       this.userAnswer = '';
       this.feedback = '';
       this.workedLine = '';
@@ -364,6 +379,12 @@ export class QuestionComponent implements OnInit {
   private handleCorrectAnswer() {
     this.answerWasCorrect = true;
     this.results.push(true);
+    // A fact retrieved correctly on its review day moves along its schedule,
+    // and leaves the queue entirely once it has been retrieved often enough.
+    if (this.reviewing) {
+      this.progressService.passedReview(this.reviewing);
+      this.reviewing = undefined;
+    }
     this.streakCount++;
     const bonusPoints = this.calculateBonusPoints();
     this.feedback = this.languageService.translate('correct');

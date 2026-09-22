@@ -179,6 +179,37 @@ describe('the facts an adult is asked to practise', () => {
   });
 });
 
+describe('whether it is working', () => {
+  const today = new Date(2026, 8, 22, 12);
+
+  it('says how many times each fact has been answered right since', () => {
+    // The honest answer to "did last week's three stick"
+    const plan = practicePlan([], [{ ...fact(8, 7, '+'), reviews: 2 }], today);
+
+    expect(plan.facts[0].reviews).toBe(2);
+    expect(plan.facts[0].toGraduate).toBeGreaterThan(2);
+  });
+
+  it('reads a fact with no history as never yet answered right', () => {
+    expect(practicePlan([], [fact(8, 7, '+')], today).facts[0].reviews).toBe(0);
+  });
+
+  it('counts the facts waiting for their day', () => {
+    const plan = practicePlan([], [
+      { ...fact(8, 7, '+'), due: '2026-09-30' },
+      { ...fact(9, 6, '+'), due: '2026-09-22' },
+      { ...fact(7, 8, '+'), due: '2026-10-01' }
+    ], today);
+
+    expect(plan.waiting).toBe(2);
+  });
+
+  it('counts nothing as waiting when everything is due', () => {
+    expect(practicePlan([], [fact(8, 7, '+')], today).waiting).toBe(0);
+    expect(practicePlan([], [], today).waiting).toBe(0);
+  });
+});
+
 describe('the pattern an adult is told about', () => {
   it('names the operation missed most', () => {
     const plan = practicePlan([], [

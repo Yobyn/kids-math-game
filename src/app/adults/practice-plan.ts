@@ -1,5 +1,6 @@
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
+import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
 
 /**
  * What an adult is shown about a child's practice, and — more importantly —
@@ -46,6 +47,10 @@ export interface PracticeItem {
   answer: string;
   /** One line of method, when the fact has one worth showing. */
   worked?: string;
+  /** Times it has been answered right since it was last missed. */
+  reviews: number;
+  /** Times it needs before it is done with, so the count has a denominator. */
+  toGraduate: number;
 }
 
 export interface PracticePlan {
@@ -56,6 +61,11 @@ export interface PracticePlan {
   accuracy: number | null;
   /** The operation missed most often, when there is enough to call it that. */
   weakest?: string;
+  /**
+   * Facts that are not due yet. The honest answer to "is it working": one
+   * that stuck is not on this list at all any more.
+   */
+  waiting: number;
 }
 
 const SYMBOLS: { [operation: string]: string } = {
@@ -84,14 +94,19 @@ export function factAnswer(fact: MissedFact): number {
  * Turns everything stored about a child into the short plan above. Pure: the
  * same history always produces the same plan, so it can be checked directly.
  */
-export function practicePlan(history: RoundResult[], missed: MissedFact[]): PracticePlan {
+export function practicePlan(
+  history: RoundResult[],
+  missed: MissedFact[],
+  now: Date = new Date()
+): PracticePlan {
   const rounds = (history || []).filter(round => round && Number.isFinite(round.percentage));
 
   return {
     trend: trendOf(rounds),
     facts: factsToPractise(missed || []),
     accuracy: accuracyOf(rounds),
-    weakest: weakestOf(missed || [])
+    weakest: weakestOf(missed || []),
+    waiting: waitingFacts(missed || [], now).length
   };
 }
 
@@ -165,15 +180,19 @@ function factsToPractise(missed: MissedFact[]): PracticeItem[] {
 
 function toItem(fact: MissedFact): PracticeItem {
   const answer = factAnswer(fact);
+  const reviews = reviewsOf(fact);
+  const toGraduate = REVIEWS_TO_GRADUATE;
 
   if (fact.moneyPrompt) {
     // A worded problem's method is the wording; there is no one line for it
-    return { question: fact.moneyPrompt, answer: `\u20ac${answer}` };
+    return { question: fact.moneyPrompt, answer: `\u20ac${answer}`, reviews, toGraduate };
   }
 
   const item: PracticeItem = {
     question: `${fact.num1} ${operationSymbol(fact.operation)} ${fact.num2}`,
-    answer: String(answer)
+    answer: String(answer),
+    reviews,
+    toGraduate
   };
 
   const worked = workedStep(fact.num1, fact.num2, fact.operation);
