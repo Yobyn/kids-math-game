@@ -2,6 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AuthService } from './auth.service';
 import { ProgressService } from './progress.service';
+import { AvatarService } from './avatar.service';
+import { SKIN_TONES, defaultAvatar } from '../avatar/avatar-model';
 
 describe('AuthService guest play', () => {
   let http: HttpTestingController;
@@ -150,5 +152,44 @@ describe('AuthService carrying guest progress', () => {
     service.logout();
 
     expect(progress.getRoundsPlayed()).toBe(0);
+  });
+});
+
+describe('AuthService carrying the character', () => {
+  let http: HttpTestingController;
+  let service: AuthService;
+  let avatars: AvatarService;
+
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ imports: [HttpClientTestingModule] });
+    http = TestBed.inject(HttpTestingController);
+    service = TestBed.inject(AuthService);
+    avatars = TestBed.inject(AvatarService);
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('keeps the character a guest built when they sign up', () => {
+    service.playAsGuest();
+    avatars.save({ ...defaultAvatar(), skin: SKIN_TONES[5] });
+
+    service.register('ada', 'secret123').subscribe();
+    http.expectOne('http://localhost:3000/api/auth/register').flush({ token: 'tok' });
+
+    expect(localStorage.getItem('avatar:user:ada')).toBeTruthy();
+    expect(JSON.parse(localStorage.getItem('avatar:user:ada') as string).skin)
+      .toBe(SKIN_TONES[5]);
+  });
+
+  it('does not hand a returning account the last guest\u2019s character', () => {
+    avatars.save({ ...defaultAvatar(), skin: SKIN_TONES[0] });
+
+    // No playAsGuest() — someone signing in on a device a guest used
+    service.login('ada', 'secret123').subscribe();
+    http.expectOne('http://localhost:3000/api/auth/login').flush({ token: 'tok' });
+
+    expect(localStorage.getItem('avatar:user:ada')).toBeNull();
   });
 });

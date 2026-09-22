@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { ProgressService } from './progress.service';
+import { AvatarService } from './avatar.service';
 
 export interface AuthResponse {
   token: string;
@@ -28,7 +29,11 @@ export class AuthService {
   private usernameSubject = new BehaviorSubject<string | null>(localStorage.getItem('username'));
   private guestSubject = new BehaviorSubject<boolean>(readGuestFlag());
 
-  constructor(private http: HttpClient, private progressService: ProgressService) {}
+  constructor(
+    private http: HttpClient,
+    private progressService: ProgressService,
+    private avatarService: AvatarService
+  ) {}
 
   register(username: string, password: string): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, { username, password }).pipe(
@@ -89,6 +94,7 @@ export class AuthService {
   private claimGuestProgress(username: string): void {
     if (this.isGuest()) {
       this.progressService.adoptGuestProgress(username);
+      this.avatarService.adoptGuestAvatar(username);
     }
   }
 
