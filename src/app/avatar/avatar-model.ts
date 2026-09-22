@@ -48,6 +48,11 @@ export interface WardrobeItem {
    * may be empty.
    */
   decorationColour?: string;
+  /**
+   * Won by playing while a seasonal event is on, rather than by reaching a
+   * level. Its `unlockLevel` is never consulted.
+   */
+  event?: string;
 }
 
 export type HairStyle = 'short' | 'long' | 'curly' | 'bun';
@@ -112,7 +117,7 @@ export function defaultAvatar(): Avatar {
  * a crown that was never won is not a crown, and a hand-edited store should
  * not be able to put one on.
  */
-export function normaliseAvatar(raw: any, level = 1): Avatar {
+export function normaliseAvatar(raw: any, level = 1, earnedEvents: string[] = []): Avatar {
   const fallback = defaultAvatar();
   if (!raw || typeof raw !== 'object') {
     return fallback;
@@ -123,16 +128,16 @@ export function normaliseAvatar(raw: any, level = 1): Avatar {
     hairStyle: pick(HAIR_STYLES, raw.hairStyle, fallback.hairStyle) as HairStyle,
     hairColour: pick(HAIR_COLOURS, raw.hairColour, fallback.hairColour),
     eyeColour: pick(EYE_COLOURS, raw.eyeColour, fallback.eyeColour),
-    hat: wearable('hat', raw.hat, level),
-    glasses: wearable('glasses', raw.glasses, level),
-    top: wearable('top', raw.top, level)
+    hat: wearable('hat', raw.hat, level, earnedEvents),
+    glasses: wearable('glasses', raw.glasses, level, earnedEvents),
+    top: wearable('top', raw.top, level, earnedEvents)
   };
 }
 
 /** The item if it exists and has been earned, otherwise nothing in that slot. */
-function wearable(slot: ItemSlot, id: any, level: number): string {
+function wearable(slot: ItemSlot, id: any, level: number, earnedEvents: string[]): string {
   const item = typeof id === 'string' ? findItem(slot, id) : undefined;
-  return item && isUnlocked(item, level) ? item.id : NO_ITEM;
+  return item && isUnlocked(item, level, earnedEvents) ? item.id : NO_ITEM;
 }
 
 function pick<T>(allowed: T[], value: any, fallback: T): T {
@@ -230,6 +235,16 @@ export const WARDROBE: WardrobeItem[] = [
   }
 ];
 
+/**
+ * The items levels hand over — everything except the empty options and the
+ * event items, whose unlockLevel is a sentinel no level ever reaches.
+ * Anything reasoning about the level ladder should start here rather than
+ * sweeping the whole wardrobe and tripping over that sentinel.
+ */
+export function levelItems(): WardrobeItem[] {
+  return WARDROBE.filter(item => item.id !== NO_ITEM && !item.event);
+}
+
 export function itemsForSlot(slot: ItemSlot): WardrobeItem[] {
   return WARDROBE.filter(item => item.slot === slot);
 }
@@ -238,7 +253,18 @@ export function findItem(slot: ItemSlot, id: string): WardrobeItem | undefined {
   return WARDROBE.find(item => item.slot === slot && item.id === id);
 }
 
-export function isUnlocked(item: WardrobeItem, level: number): boolean {
+/**
+ * An event item is earned by having been there, not by climbing — so the
+ * level says nothing about it either way.
+ */
+export function isUnlocked(
+  item: WardrobeItem,
+  level: number,
+  earnedEvents: string[] = []
+): boolean {
+  if (item.event) {
+    return earnedEvents.indexOf(item.event) >= 0;
+  }
   return level >= item.unlockLevel;
 }
 
@@ -247,13 +273,13 @@ export function isUnlocked(item: WardrobeItem, level: number): boolean {
  * Wearing nothing is not a reward, so the empty options never count.
  */
 export function itemsUnlockedAt(level: number): WardrobeItem[] {
-  return WARDROBE.filter(item => item.id !== NO_ITEM && item.unlockLevel === level);
+  return levelItems().filter(item => item.unlockLevel === level);
 }
 
 /** The next thing to want, so a child can see what they are climbing toward. */
 export function nextUnlock(level: number): WardrobeItem | undefined {
-  return WARDROBE
-    .filter(item => item.id !== NO_ITEM && item.unlockLevel > level)
+  return levelItems()
+    .filter(item => item.unlockLevel > level)
     .sort((a, b) => a.unlockLevel - b.unlockLevel)[0];
 }
 
@@ -313,4 +339,49 @@ WARDROBE.push(...TOP_ITEMS);
 export function topColour(avatar: Avatar): string {
   const item = findItem('top', avatar.top);
   return item && item.colour ? item.colour : DEFAULT_TOP_COLOUR;
+}
+
+/**
+ * What the seasonal events hand over. These have no level: a child earns one
+ * by playing a round while its event is on, and keeps it for good afterwards.
+ * The event comes back next year, so missing one costs nothing permanent.
+ */
+export const EVENT_ITEMS: WardrobeItem[] = [
+  {
+    id: 'bobble-hat',
+    slot: 'hat',
+    event: 'winter',
+    unlockLevel: Infinity,
+    colour: '#c1442e',
+    path: 'M25 34 C25 12 75 12 75 34 Z M21 32 L79 32 L79 40 L21 40 Z '
+        + 'M50 10 m-7 0 a7 7 0 1 0 14 0 a7 7 0 1 0 -14 0'
+  },
+  {
+    id: 'flower-tee',
+    slot: 'top',
+    event: 'spring',
+    unlockLevel: Infinity,
+    colour: '#8ab84f',
+    decorationColour: '#f5d6e8',
+    path: 'M50 106 m-6 0 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0 '
+        + 'M38 116 m-6 0 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0 '
+        + 'M62 116 m-6 0 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0 '
+        + 'M50 126 m-6 0 a6 6 0 1 0 12 0 a6 6 0 1 0 -12 0'
+  },
+  {
+    id: 'spooky-glasses',
+    slot: 'glasses',
+    event: 'autumn',
+    unlockLevel: Infinity,
+    colour: '#e07b2a',
+    path: 'M26 44 L48 44 L44 60 L30 60 Z M52 44 L74 44 L70 60 L56 60 Z '
+        + 'M48 47 L52 47 L52 50 L48 50 Z'
+  }
+];
+
+WARDROBE.push(...EVENT_ITEMS);
+
+/** The item an event hands over, if it has one. */
+export function itemForEvent(eventId: string): WardrobeItem | undefined {
+  return WARDROBE.find(item => item.event === eventId);
 }

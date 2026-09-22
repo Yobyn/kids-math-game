@@ -105,7 +105,13 @@ export type TranslationKeys =
   | 'item-striped'
   | 'item-star-tee'
   | 'item-hoodie'
-  | 'one-way';
+  | 'one-way'
+  | 'event-earned'
+  | 'back-in'
+  | 'events-return'
+  | 'item-bobble-hat'
+  | 'item-flower-tee'
+  | 'item-spooky-glasses';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -213,6 +219,12 @@ export class LanguageService {
       'item-star-tee': 'Star shirt',
       'item-hoodie': 'Hoodie',
       'one-way': 'One way to do it:',
+      'event-earned': 'You were here for the event! You earned the',
+      'back-in': 'back in',
+      'events-return': 'Event items come back every year — nothing is ever gone for good.',
+      'item-bobble-hat': 'Bobble hat',
+      'item-flower-tee': 'Flower shirt',
+      'item-spooky-glasses': 'Spooky glasses',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -319,6 +331,12 @@ export class LanguageService {
       'item-star-tee': 'Sterrenshirt',
       'item-hoodie': 'Hoodie',
       'one-way': 'Zo kan het ook:',
+      'event-earned': 'Je was erbij! Je hebt verdiend:',
+      'back-in': 'terug in',
+      'events-return': 'Evenementen komen elk jaar terug — niets is ooit voorgoed weg.',
+      'item-bobble-hat': 'Muts met pompon',
+      'item-flower-tee': 'Bloemenshirt',
+      'item-spooky-glasses': 'Griezelbril',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -425,6 +443,12 @@ export class LanguageService {
       'item-star-tee': 'Camiseta de estrella',
       'item-hoodie': 'Sudadera',
       'one-way': 'Una forma de hacerlo:',
+      'event-earned': '¡Estuviste aquí! Has ganado:',
+      'back-in': 'vuelve en',
+      'events-return': 'Los eventos vuelven cada año: nada se pierde para siempre.',
+      'item-bobble-hat': 'Gorro con pompón',
+      'item-flower-tee': 'Camiseta de flores',
+      'item-spooky-glasses': 'Gafas de miedo',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',

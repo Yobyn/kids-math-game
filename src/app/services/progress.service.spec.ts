@@ -368,3 +368,89 @@ describe('ProgressService experience', () => {
     expect(service.getXp()).toBe(75);
   });
 });
+
+describe('ProgressService remembering events', () => {
+  let service: ProgressService;
+
+  beforeEach(() => {
+    localStorage.clear();
+    service = new ProgressService();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('starts with no events behind a child', () => {
+    expect(service.getEarnedEvents()).toEqual([]);
+  });
+
+  it('remembers an event they were here for', () => {
+    service.earnEvent('winter');
+
+    expect(service.getEarnedEvents()).toEqual(['winter']);
+    expect(new ProgressService().getEarnedEvents()).toEqual(['winter']);
+  });
+
+  it('never records the same event twice', () => {
+    service.earnEvent('winter');
+    service.earnEvent('winter');
+    service.earnEvent('winter');
+
+    expect(service.getEarnedEvents()).toEqual(['winter']);
+  });
+
+  it('keeps every event, not just the latest', () => {
+    service.earnEvent('winter');
+    service.earnEvent('spring');
+
+    expect(service.getEarnedEvents()).toEqual(['winter', 'spring']);
+  });
+
+  it('ignores an empty id rather than storing one', () => {
+    service.earnEvent('');
+
+    expect(service.getEarnedEvents()).toEqual([]);
+  });
+
+  it('reads a corrupt store as no events rather than breaking', () => {
+    localStorage.setItem('events:guest', 'not json');
+
+    expect(new ProgressService().getEarnedEvents()).toEqual([]);
+  });
+
+  it('files events per player like everything else', () => {
+    service.earnEvent('winter');
+    localStorage.setItem('username', 'ada');
+
+    expect(service.getEarnedEvents()).toEqual([]);
+  });
+
+  it('carries events into the account a guest signs up for', () => {
+    service.earnEvent('winter');
+
+    service.adoptGuestProgress('ada');
+
+    localStorage.setItem('username', 'ada');
+    expect(service.getEarnedEvents()).toEqual(['winter']);
+  });
+
+  it('unions them rather than replacing what the account already had', () => {
+    localStorage.setItem('username', 'ada');
+    service.earnEvent('spring');
+    localStorage.removeItem('username');
+    service.earnEvent('winter');
+
+    service.adoptGuestProgress('ada');
+
+    localStorage.setItem('username', 'ada');
+    expect(service.getEarnedEvents().sort()).toEqual(['spring', 'winter']);
+  });
+
+  it('carries events even when nothing else was earned', () => {
+    service.earnEvent('autumn');
+
+    service.adoptGuestProgress('ada');
+
+    localStorage.setItem('username', 'ada');
+    expect(service.getEarnedEvents()).toEqual(['autumn']);
+  });
+});

@@ -163,11 +163,28 @@ a backend that currently keeps its users in memory (see Code health).
   clip, where a torso would be cropped away and would shrink the face to pay
   for itself, so clothes get a taller framing used on the chooser and its
   shirt swatches. A test holds the head to the same size in both.
-  What remains: special events, which need a notion of time as well as a
-  wardrobe to draw from, and which the product direction wants to grant items
-  obtainable no other way. Nothing yet shows a child their character outside
-  the chooser and the header — the result screen would be the natural place to
-  see who they just earned something for.
+  Seasonal events exist too, in `src/app/events/seasonal-events.ts`: three a
+  year — winter, spring and autumn — each granting one item, in a different
+  slot, to any child who finishes a round while it is on. Score does not come
+  into it; being there is the whole requirement. Locked event items are shown
+  with the month they return, never a countdown, and the chooser says plainly
+  that nothing is ever gone for good.
+  A DELIBERATE DEPARTURE from the product direction, which asks for items
+  "obtainable no other way": research on children and time-limited rewards is
+  consistent that a window closing forever is the FOMO pattern, tied to
+  anxiety and urgency, and now treated by regulators as a consumer-protection
+  problem rather than a design choice. The distinction that matters is the
+  exit — a thing you can walk away from is entertainment, a thing that
+  punishes you for walking away is not. So these events RECUR every year.
+  An item is still only earned by being there while its event is on, which is
+  what makes it special and a record of when a child played; but a child who
+  was ill, on holiday, or not yet playing has lost nothing permanent. If the
+  intent really is one-shot exclusivity, this is the decision to revisit.
+  What remains: nothing yet shows a child their character outside the chooser
+  and the header — the result screen would be the natural place to see who
+  they just earned something for. There is also no way to see which events a
+  child has been present for as a set, which is the closest thing the game
+  would have to a scrapbook.
 - **History is stored but barely used.** `ProgressService` keeps the last 20
   rounds; only the best percentage is shown. Nothing plots improvement over
   time, and nothing distinguishes grades or question types.
