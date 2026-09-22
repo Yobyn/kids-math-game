@@ -1,0 +1,108 @@
+<div class="adults-page">
+
+  <ng-container *ngIf="locked">
+    <h1>{{ languageService.translate('for-grown-ups') }}</h1>
+    <p class="gate-note">{{ languageService.translate('gate-note') }}</p>
+
+    <div class="gate">
+      <label class="gate-ask" for="gate-input">
+        {{ languageService.translate('gate-ask') }}
+      </label>
+      <p class="gate-number">{{ challengeInWords }}</p>
+      <input id="gate-input"
+             class="gate-input"
+             type="text"
+             inputmode="numeric"
+             autocomplete="off"
+             [(ngModel)]="typed"
+             (keyup.enter)="tryGate()"
+             [attr.aria-label]="languageService.translate('gate-ask')">
+      <button type="button" class="gate-btn" (click)="tryGate()">
+        {{ languageService.translate('gate-continue') }}
+      </button>
+    </div>
+
+    <button type="button" class="back-btn" (click)="back()">
+      {{ languageService.translate('back') }}
+    </button>
+  </ng-container>
+
+  <ng-container *ngIf="!locked">
+    <h1>{{ heading }}</h1>
+
+    <div class="counts">
+      <div class="count">
+        <div class="count-value">{{ totals.rounds }}</div>
+        <div class="count-label">{{ languageService.translate('adults-rounds') }}</div>
+      </div>
+      <div class="count">
+        <div class="count-value">{{ totals.questions }}</div>
+        <div class="count-label">{{ languageService.translate('adults-questions') }}</div>
+      </div>
+      <div class="count" *ngIf="plan.accuracy !== null">
+        <div class="count-value">{{ plan.accuracy }}%</div>
+        <div class="count-label">{{ languageService.translate('adults-accuracy') }}</div>
+      </div>
+    </div>
+
+    <section class="practise">
+      <h2>{{ languageService.translate('adults-practise') }}</h2>
+
+      <p class="nothing" *ngIf="!plan.facts.length">
+        {{ languageService.translate('adults-nothing-missed') }}
+      </p>
+
+      <ol class="facts" *ngIf="plan.facts.length">
+        <li class="fact" *ngFor="let fact of plan.facts">
+          <span class="fact-question">{{ fact.question }}</span>
+          <span class="fact-answer">
+            {{ languageService.translate('adults-answer') }}: {{ fact.answer }}
+          </span>
+          <span class="fact-worked" *ngIf="fact.worked">{{ fact.worked }}</span>
+        </li>
+      </ol>
+
+      <p class="weakest" *ngIf="weakestName">{{ weakestLine }}</p>
+    </section>
+
+    <section class="how">
+      <h2>{{ languageService.translate('adults-how-title') }}</h2>
+      <p>{{ languageService.translate('adults-how') }}</p>
+    </section>
+
+    <section class="trend">
+      <h2>{{ languageService.translate('adults-trend') }}</h2>
+
+      <p class="nothing" *ngIf="!hasTrend">
+        {{ languageService.translate('adults-no-rounds') }}
+      </p>
+
+      <div class="chart-frame" *ngIf="hasTrend">
+        <!-- Without a scale the line is decoration. An adult reading a dip
+             needs to know how far down it went. -->
+        <span class="chart-max">100%</span>
+        <span class="chart-min">0%</span>
+        <svg class="chart"
+             [attr.viewBox]="'0 0 ' + chartWidth + ' ' + chartHeight"
+             preserveAspectRatio="none"
+             role="img"
+             [attr.aria-label]="languageService.translate('adults-trend')">
+          <line class="grid" x1="0" [attr.y1]="chartHeight / 2"
+                [attr.x2]="chartWidth" [attr.y2]="chartHeight / 2"></line>
+          <polyline class="line" [attr.points]="trendPoints"></polyline>
+          <circle class="dot" *ngFor="let dot of trendDots"
+                  [attr.cx]="dot.x" [attr.cy]="dot.y" r="3"></circle>
+        </svg>
+      </div>
+
+      <p class="trend-note" *ngIf="hasTrend">
+        {{ languageService.translate('adults-trend-note') }}
+      </p>
+    </section>
+
+    <button type="button" class="back-btn" (click)="back()">
+      {{ languageService.translate('back') }}
+    </button>
+  </ng-container>
+
+</div>

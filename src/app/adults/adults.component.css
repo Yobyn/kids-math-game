@@ -1,0 +1,231 @@
+/* Deliberately plainer than the rest of the game. This screen is for an
+   adult reading quickly, not a child being delighted. */
+.adults-page {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.adults-page h1 {
+  margin: 0 0 0.75rem;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.adults-page h2 {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+/* --- the gate --- */
+
+.gate-note {
+  margin: 0 0 1.5rem;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+.gate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.gate-ask {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+}
+
+/* The challenge itself. Big, because the whole task is reading it. */
+.gate-number {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--edge);
+  background: var(--surface-input);
+  font-size: 1.35rem;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.gate-input {
+  width: 100%;
+  min-height: 52px;
+  padding: 0.75rem 1rem;
+  box-sizing: border-box;
+  border: 1px solid var(--edge);
+  border-radius: 10px;
+  background: var(--surface-input);
+  color: var(--text);
+  font-size: 1.25rem;
+  text-align: center;
+}
+
+.gate-btn {
+  width: 100%;
+  min-height: 52px;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  color: #ffffff;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
+}
+
+/* --- behind the gate --- */
+
+.counts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.count {
+  padding: 0.9rem 0.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--edge);
+  background: var(--surface-input);
+  text-align: center;
+}
+
+.count-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.count-label {
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.practise,
+.how,
+.trend {
+  margin-bottom: 1.5rem;
+}
+
+.nothing {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+.facts {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.fact {
+  margin-bottom: 0.9rem;
+}
+
+.fact-question {
+  display: block;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.fact-answer {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text-dim);
+}
+
+/* The method, written out so an adult never has to invent one on the spot. */
+.fact-worked {
+  display: block;
+  margin-top: 0.2rem;
+  padding: 0.4rem 0.6rem;
+  border-left: 3px solid var(--accent-blue);
+  font-size: 0.95rem;
+}
+
+.weakest {
+  margin: 0.9rem 0 0;
+  font-size: 0.95rem;
+  color: var(--text-dim);
+}
+
+.how p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* The honest trend. It lives here and nowhere the child can read it. */
+.chart-frame {
+  position: relative;
+  padding-left: 2.6rem;
+  margin-bottom: 1.2rem;
+}
+
+.chart-max,
+.chart-min {
+  position: absolute;
+  left: 0;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.chart-max {
+  top: -0.4rem;
+}
+
+.chart-min {
+  bottom: -0.4rem;
+}
+
+.chart {
+  display: block;
+  width: 100%;
+  height: 120px;
+  overflow: visible;
+}
+
+.chart .grid {
+  stroke: var(--edge);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.chart .line {
+  fill: none;
+  stroke: var(--accent-blue);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.chart .dot {
+  fill: var(--accent-magenta);
+  vector-effect: non-scaling-stroke;
+}
+
+.trend-note {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
+.back-btn {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.05rem;
+  color: var(--text);
+  cursor: pointer;
+  background: var(--surface-input);
+  border: 1px solid var(--edge);
+}

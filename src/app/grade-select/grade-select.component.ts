@@ -20,6 +20,11 @@ export class GradeSelectComponent {
     public languageService: LanguageService
   ) {}
 
+  /** The grown-ups' screen, which decides for itself whether to open. */
+  openAdults() {
+    this.router.navigate(['/grown-ups']);
+  }
+
   selectGrade(grade: number) {
     localStorage.setItem('grade', grade.toString());
     this.router.navigate(['/difficulty']);
