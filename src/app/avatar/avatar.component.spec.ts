@@ -1,13 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AvatarComponent } from './avatar.component';
 import {
+  Avatar,
   DEFAULT_TOP_COLOUR,
+  EYE_PATHS,
+  EYE_SHAPES,
   FACE_SHAPES,
   FULL_VIEW_BOX,
   FaceShape,
   HAIR_COLOURS,
   HAIR_PATHS,
   HAIR_STYLES,
+  HAIR_TEXTURES,
+  MOUTH_SHAPES,
   NO_ITEM,
   PORTRAIT_VIEW_BOX,
   SKIN_TONES,
@@ -359,5 +364,157 @@ describe('AvatarComponent framing', () => {
 
     expect(fixture.nativeElement.querySelector('.torso')).toBeNull();
     expect(fixture.nativeElement.querySelector('.top-decoration')).toBeNull();
+  });
+});
+
+describe('AvatarComponent: the face a child actually gets', () => {
+  let fixture: ComponentFixture<AvatarComponent>;
+  let component: AvatarComponent;
+
+  /** Whether a point in the 100x100 box falls inside a drawn shape. */
+  function inside(selector: string, x: number, y: number): boolean {
+    const svg = fixture.nativeElement.querySelector('svg') as SVGSVGElement;
+    const shape = fixture.nativeElement.querySelector(selector) as SVGGeometryElement;
+    const point = svg.createSVGPoint();
+    point.x = x;
+    point.y = y;
+    return shape.isPointInFill(point);
+  }
+
+  function draw(parts: Partial<Avatar>) {
+    component.avatar = { ...defaultAvatar(), ...parts } as Avatar;
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({ declarations: [AvatarComponent] }).compileComponents();
+    fixture = TestBed.createComponent(AvatarComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  describe('eyes', () => {
+    it('draws every shape as a pair, both of them filled', () => {
+      EYE_SHAPES.forEach(eyeShape => {
+        draw({ eyeShape });
+        expect(inside('.eye', 39, 52)).toBe(true, `${eyeShape} left`);
+        expect(inside('.eye', 61, 52)).toBe(true, `${eyeShape} right`);
+      });
+    });
+
+    it('never leaves the glint outside the eye it belongs to', () => {
+      // A white dot on a cheek is a freckle, not a highlight
+      EYE_SHAPES.forEach(eyeShape => {
+        draw({ eyeShape });
+        expect(inside('.eye', 40.5, 50.5)).toBe(true, `${eyeShape} left glint`);
+        expect(inside('.eye', 62.5, 50.5)).toBe(true, `${eyeShape} right glint`);
+      });
+    });
+
+    it('keeps the eyes on the face, whichever face it is', () => {
+      // Both axes: a shape that fits a round face can hang off a heart one
+      FACE_SHAPES.forEach(faceShape => {
+        EYE_SHAPES.forEach(eyeShape => {
+          draw({ faceShape, eyeShape });
+          [[39, 52], [61, 52]].forEach(([x, y]) => {
+            expect(inside('.face', x, y)).toBe(true, `${faceShape} + ${eyeShape}`);
+          });
+        });
+      });
+    });
+
+    it('gives the shapes different silhouettes, not just different sizes', () => {
+      // Sampled above and below the centre line, where a round eye and a
+      // narrow one differ and a bounding box does not
+      const profiles = EYE_SHAPES.map(eyeShape => {
+        draw({ eyeShape });
+        return [48.5, 52, 55.5].map(y => (inside('.eye', 39, y) ? 1 : 0)).join('');
+      });
+
+      expect(new Set(profiles).size).toBeGreaterThan(1);
+    });
+  });
+
+  describe('mouths', () => {
+    it('draws every shape', () => {
+      MOUTH_SHAPES.forEach(mouthShape => {
+        draw({ mouthShape });
+        const mouth = fixture.nativeElement.querySelector('.mouth');
+        expect(mouth.getAttribute('d')).toBeTruthy(mouthShape);
+      });
+    });
+
+    it('traces a line but fills an open mouth', () => {
+      draw({ mouthShape: 'smile' });
+      expect(fixture.nativeElement.querySelector('.mouth').getAttribute('fill')).toBe('none');
+
+      draw({ mouthShape: 'open' });
+      expect(fixture.nativeElement.querySelector('.mouth').getAttribute('fill')).not.toBe('none');
+    });
+
+    it('keeps the mouth on the face, whichever face it is', () => {
+      FACE_SHAPES.forEach(faceShape => {
+        MOUTH_SHAPES.forEach(mouthShape => {
+          draw({ faceShape, mouthShape });
+          // The centre of the mouth, and both corners
+          [[41, 66], [50, 68], [59, 66]].forEach(([x, y]) => {
+            expect(inside('.face', x, y)).toBe(true, `${faceShape} + ${mouthShape}`);
+          });
+        });
+      });
+    });
+  });
+
+  describe('hair texture', () => {
+    it('draws no rim at all on smooth hair, so nothing anybody saved moves', () => {
+      draw({ hairTexture: 'smooth' });
+
+      expect(fixture.nativeElement.querySelector('.hair-texture')).toBeNull();
+    });
+
+    it('draws a rim on the others', () => {
+      ['wavy', 'coily'].forEach((hairTexture: any) => {
+        draw({ hairTexture });
+        const rim = fixture.nativeElement.querySelector('.hair-texture');
+        expect(rim).toBeTruthy(hairTexture);
+        expect(rim.getAttribute('stroke-dasharray')).toBeTruthy(hairTexture);
+      });
+    });
+
+    it('follows the hair it is drawn on, in shape and in colour', () => {
+      HAIR_STYLES.forEach(hairStyle => {
+        draw({ hairStyle, hairTexture: 'coily', hairColour: HAIR_COLOURS[0] });
+        const hair = fixture.nativeElement.querySelector('.hair');
+        const rim = fixture.nativeElement.querySelector('.hair-texture');
+
+        // Same path, so it composes with every style without a new silhouette
+        expect(rim.getAttribute('d')).toBe(hair.getAttribute('d'), hairStyle);
+        expect(rim.getAttribute('stroke')).not.toBe(HAIR_COLOURS[0]);
+      });
+    });
+
+    it('composes with every style and every colour without throwing', () => {
+      HAIR_STYLES.forEach(hairStyle => {
+        HAIR_TEXTURES.forEach((hairTexture: any) => {
+          HAIR_COLOURS.forEach(hairColour => {
+            expect(() => draw({ hairStyle, hairTexture, hairColour })).not.toThrow();
+          });
+        });
+      });
+    });
+  });
+
+  it('draws a character with every axis set at once', () => {
+    // The combination that was impossible: long hair, coily, on a deep skin
+    // tone, with almond eyes
+    draw({
+      skin: SKIN_TONES[5], faceShape: 'oval', hairStyle: 'long',
+      hairTexture: 'coily', eyeShape: 'almond', mouthShape: 'grin'
+    });
+
+    expect(fixture.nativeElement.querySelector('.hair-texture')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.eye').getAttribute('d'))
+      .toBe(EYE_PATHS.almond);
+    expect(inside('.face', 39, 52)).toBe(true);
   });
 });

@@ -23,8 +23,19 @@
 
   <path class="hair" [attr.d]="hairPath" [attr.fill]="avatar.hairColour"></path>
 
-  <circle class="eye" cx="39" cy="52" r="4.5" [attr.fill]="avatar.eyeColour"></circle>
-  <circle class="eye" cx="61" cy="52" r="4.5" [attr.fill]="avatar.eyeColour"></circle>
+  <!-- Texture as a rim along the hair's own outline, so it composes with
+       every style instead of needing a silhouette per style per texture.
+       Smooth hair draws no rim at all. -->
+  <path class="hair-texture"
+        *ngIf="textureDashes"
+        [attr.d]="hairPath"
+        fill="none"
+        [attr.stroke]="textureColour"
+        [attr.stroke-width]="textureWidth"
+        [attr.stroke-dasharray]="textureDashes"
+        stroke-linecap="round"></path>
+
+  <path class="eye" [attr.d]="eyePath" [attr.fill]="avatar.eyeColour"></path>
   <circle class="glint" cx="40.5" cy="50.5" r="1.4" fill="#ffffff"></circle>
   <circle class="glint" cx="62.5" cy="50.5" r="1.4" fill="#ffffff"></circle>
 
@@ -43,9 +54,9 @@
         [attr.fill]="hat.colour"></path>
 
   <path class="mouth"
-        d="M40 66 Q50 74 60 66"
-        fill="none"
-        stroke="#7a3b2e"
-        stroke-width="3"
+        [attr.d]="mouth.d"
+        [attr.fill]="mouth.filled ? '#7a3b2e' : 'none'"
+        [attr.stroke]="mouth.filled ? null : '#7a3b2e'"
+        [attr.stroke-width]="mouth.filled ? null : 3"
         stroke-linecap="round"></path>
 </svg>

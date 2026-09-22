@@ -157,7 +157,13 @@ export type TranslationKeys =
   | 'or-pick-another'
   | 'ready-to-try'
   | 'put-it-on'
-  | 'face-shape';
+  | 'face-shape'
+  | 'eye-shape'
+  | 'mouth-shape'
+  | 'hair-texture'
+  | 'your-face'
+  | 'your-hair'
+  | 'things-to-wear';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -249,7 +255,7 @@ export class LanguageService {
       'skin': 'Skin',
       'hair-style': 'Hair',
       'hair-colour': 'Hair colour',
-      'eyes': 'Eyes',
+      'eyes': 'Eye colour',
       'done': 'Done',
       'hats': 'Hats',
       'glasses': 'Glasses',
@@ -319,6 +325,12 @@ export class LanguageService {
       'ready-to-try': 'Ready to try this one?',
       'put-it-on': 'Put it on',
       'face-shape': 'Face',
+      'eye-shape': 'Eyes',
+      'mouth-shape': 'Mouth',
+      'hair-texture': 'Hair texture',
+      'your-face': 'Your face',
+      'your-hair': 'Your hair',
+      'things-to-wear': 'Things to wear',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -407,7 +419,7 @@ export class LanguageService {
       'skin': 'Huid',
       'hair-style': 'Haar',
       'hair-colour': 'Haarkleur',
-      'eyes': 'Ogen',
+      'eyes': 'Oogkleur',
       'done': 'Klaar',
       'hats': 'Hoeden',
       'glasses': 'Brillen',
@@ -477,6 +489,12 @@ export class LanguageService {
       'ready-to-try': 'Klaar om deze te proberen?',
       'put-it-on': 'Doe het aan',
       'face-shape': 'Gezicht',
+      'eye-shape': 'Ogen',
+      'mouth-shape': 'Mond',
+      'hair-texture': 'Haarstructuur',
+      'your-face': 'Jouw gezicht',
+      'your-hair': 'Jouw haar',
+      'things-to-wear': 'Om aan te doen',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -565,7 +583,7 @@ export class LanguageService {
       'skin': 'Piel',
       'hair-style': 'Pelo',
       'hair-colour': 'Color de pelo',
-      'eyes': 'Ojos',
+      'eyes': 'Color de ojos',
       'done': 'Listo',
       'hats': 'Sombreros',
       'glasses': 'Gafas',
@@ -635,6 +653,12 @@ export class LanguageService {
       'ready-to-try': '¿Listo para probar este?',
       'put-it-on': 'Póntelo',
       'face-shape': 'Cara',
+      'eye-shape': 'Ojos',
+      'mouth-shape': 'Boca',
+      'hair-texture': 'Textura del pelo',
+      'your-face': 'Tu cara',
+      'your-hair': 'Tu pelo',
+      'things-to-wear': 'Para ponerte',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',

@@ -7,10 +7,15 @@ import { AvatarComponent } from './avatar.component';
 import { AvatarService } from '../services/avatar.service';
 import { ProgressService } from '../services/progress.service';
 import { xpToReach } from '../levels/level-curve';
+import { SECTIONS, allRows } from './chooser-sections';
 import {
   EYE_COLOURS,
+  EYE_SHAPES,
+  FACE_SHAPES,
   HAIR_COLOURS,
   HAIR_STYLES,
+  HAIR_TEXTURES,
+  MOUTH_SHAPES,
   NO_ITEM,
   SKIN_TONES,
   WARDROBE,
@@ -43,15 +48,22 @@ describe('AvatarChooserComponent', () => {
   afterEach(() => localStorage.clear());
 
   it('never asks a child to earn the way they look', () => {
-    // Identity is free from the first visit. Items are earned; skin, hair and
-    // eyes never are, so nothing in those rows may ever be locked.
-    const identityRows = Array.from(fixture.nativeElement.querySelectorAll('.choice-row'))
-      .slice(0, 4) as Element[];
-    const identitySwatches = identityRows
-      .reduce((all: Element[], row) => all.concat(Array.from(row.querySelectorAll('.swatch'))), []);
+    // Identity is free from the first visit. Items are earned; a face, hair
+    // and eyes never are, so nothing in those sections may ever be locked.
+    // Checked across BOTH identity sections rather than the first few rows:
+    // counting rows broke the moment the page grew sections, and the rule
+    // was never about how many rows there were.
+    const identitySwatches: Element[] = [];
+    (['face', 'hair'] as const).forEach(section => {
+      component.show(section);
+      fixture.detectChanges();
+      Array.from(fixture.nativeElement.querySelectorAll('.choice-row .swatch'))
+        .forEach((swatch: any) => identitySwatches.push(swatch));
+    });
 
     expect(identitySwatches.length).toBe(
-      SKIN_TONES.length + HAIR_STYLES.length + HAIR_COLOURS.length + EYE_COLOURS.length
+      SKIN_TONES.length + FACE_SHAPES.length + EYE_SHAPES.length + MOUTH_SHAPES.length
+      + HAIR_STYLES.length + HAIR_TEXTURES.length + HAIR_COLOURS.length + EYE_COLOURS.length
     );
     identitySwatches.forEach(swatch => {
       expect(swatch.hasAttribute('disabled')).toBe(false);
@@ -87,9 +99,11 @@ describe('AvatarChooserComponent', () => {
   });
 
   it('previews a hair style on the child’s own character, not a stock one', () => {
+    component.show('hair');
     component.choose('skin', SKIN_TONES[5]);
+    const row = component.rows.find(entry => entry.part === 'hairStyle')!;
 
-    const preview = component.withHair('bun');
+    const preview = component.withPart(row, 'bun');
 
     expect(preview.skin).toBe(SKIN_TONES[5]);
     expect(preview.hairStyle).toBe('bun');
@@ -133,6 +147,9 @@ describe('AvatarChooserComponent wardrobe', () => {
     progress.addXp(xpToReach(level));
     fixture = TestBed.createComponent(AvatarChooserComponent);
     component = fixture.componentInstance;
+    fixture.detectChanges();
+    // The page is three sections now, and the things you wear are the third
+    component.show('wardrobe');
     fixture.detectChanges();
   }
 
@@ -299,6 +316,9 @@ describe('AvatarChooserComponent and event items', () => {
     fixture = TestBed.createComponent(AvatarChooserComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+    // Event items live among the things you wear, which is the third section
+    component.show('wardrobe');
+    fixture.detectChanges();
   }
 
   beforeEach(async () => {
@@ -380,5 +400,115 @@ describe('AvatarChooserComponent and event items', () => {
     if (component.nextReward) {
       expect(component.nextReward.event).toBeUndefined();
     }
+  });
+});
+
+describe('AvatarChooserComponent: three sections rather than one long scroll', () => {
+  let fixture: ComponentFixture<AvatarChooserComponent>;
+  let component: AvatarChooserComponent;
+
+  const tabs = (): HTMLElement[] =>
+    Array.from(fixture.nativeElement.querySelectorAll('.tab'));
+  const headings = (): string[] =>
+    Array.from(fixture.nativeElement.querySelectorAll('.choice-row h2'))
+      .map((h: any) => h.textContent.trim());
+
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [AvatarChooserComponent, AvatarComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+    fixture = TestBed.createComponent(AvatarChooserComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('offers one tab per section', () => {
+    expect(tabs().length).toBe(SECTIONS.length);
+  });
+
+  it('opens on the face, which is what says who this is', () => {
+    expect(component.open).toBe('face');
+    expect(tabs()[0].classList).toContain('open');
+  });
+
+  it('shows only the section that is open', () => {
+    // The whole point: 1862px of page was eight rows all present at once
+    expect(headings().length).toBe(SECTIONS[0].rows.length);
+
+    component.show('hair');
+    fixture.detectChanges();
+
+    expect(headings().length).toBe(SECTIONS[1].rows.length);
+  });
+
+  it('moves when a tab is tapped', () => {
+    tabs()[1].click();
+    fixture.detectChanges();
+
+    expect(component.open).toBe('hair');
+    expect(headings()).toContain('Hair colour');
+  });
+
+  it('tells assistive tech which one is selected', () => {
+    component.show('wardrobe');
+    fixture.detectChanges();
+
+    const selected = tabs().filter(tab => tab.getAttribute('aria-selected') === 'true');
+    expect(selected.length).toBe(1);
+    expect(selected[0].textContent!.trim()).toBe('Things to wear');
+  });
+
+  it('never repeats a heading inside one section', () => {
+    // "Eyes" appeared twice on the face section — once for the shape and
+    // once for the colour — and a child cannot tell two identical rows apart
+    (['face', 'hair', 'wardrobe'] as const).forEach(section => {
+      component.show(section);
+      fixture.detectChanges();
+      const shown = headings();
+      expect(new Set(shown).size).toBe(shown.length, `${section}: ${shown.join(', ')}`);
+    });
+  });
+
+  it('reaches every row of the page through some tab', () => {
+    const reachable: string[] = [];
+    (['face', 'hair', 'wardrobe'] as const).forEach(section => {
+      component.show(section);
+      fixture.detectChanges();
+      headings().forEach(heading => reachable.push(heading));
+    });
+
+    expect(reachable.length).toBe(allRows().length);
+  });
+
+  it('keeps a tab big enough for a thumb', () => {
+    tabs().forEach(tab => {
+      const rect = tab.getBoundingClientRect();
+      expect(Math.min(rect.width, rect.height)).toBeGreaterThanOrEqual(44);
+    });
+  });
+
+  it('keeps the character on screen while it is being changed', () => {
+    // A swatch that you cannot see the effect of is not a choice
+    (['face', 'hair', 'wardrobe'] as const).forEach(section => {
+      component.show(section);
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.stage app-avatar')).toBeTruthy(section);
+    });
+  });
+
+  it('saves a choice made in any section, straight away', () => {
+    component.show('face');
+    fixture.detectChanges();
+    const row = component.rows.find(entry => entry.part === 'mouthShape')!;
+
+    component.pickPart(row, 'grin');
+
+    expect(component.avatar.mouthShape).toBe('grin');
+    expect(TestBed.inject(AvatarService).get().mouthShape).toBe('grin');
   });
 });

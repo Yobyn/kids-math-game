@@ -1,109 +1,76 @@
 <div class="chooser">
   <h1>{{ languageService.translate('your-character') }}</h1>
 
+  <!-- The character stays on screen while it is being changed: the whole
+       point of a swatch is seeing what it does. -->
   <div class="stage">
     <app-avatar [avatar]="avatar" [size]="180" framing="full"></app-avatar>
   </div>
 
-  <section class="choice-row">
-    <h2>{{ languageService.translate('skin') }}</h2>
-    <div class="swatches">
-      <button type="button"
-              class="swatch"
-              *ngFor="let tone of skinTones"
-              [class.chosen]="avatar.skin === tone"
-              [attr.aria-pressed]="avatar.skin === tone"
-              [attr.aria-label]="languageService.translate('skin')"
-              [style.background]="tone"
-              (click)="choose('skin', tone)"></button>
-    </div>
-  </section>
+  <!-- Three sections rather than eight rows in one column. The face first,
+       because it is what says who this is. -->
+  <div class="tabs" role="tablist" [attr.aria-label]="languageService.translate('your-character')">
+    <button type="button"
+            class="tab"
+            *ngFor="let section of sections"
+            role="tab"
+            [class.open]="open === section.id"
+            [attr.aria-selected]="open === section.id"
+            (click)="show(section.id)">
+      {{ languageService.translate(section.heading) }}
+    </button>
+  </div>
 
-  <section class="choice-row">
-    <h2>{{ languageService.translate('face-shape') }}</h2>
-    <div class="swatches">
-      <button type="button"
-              class="swatch style-swatch"
-              *ngFor="let shape of faceShapes"
-              [class.chosen]="avatar.faceShape === shape"
-              [attr.aria-pressed]="avatar.faceShape === shape"
-              [attr.aria-label]="languageService.translate('face-shape')"
-              (click)="choose('faceShape', shape)">
-        <app-avatar [avatar]="withFace(shape)" [size]="44"></app-avatar>
-      </button>
-    </div>
-  </section>
+  <div class="section" role="tabpanel">
+    <section class="choice-row" *ngFor="let row of rows">
+      <h2>{{ languageService.translate(row.heading) }}</h2>
 
-  <section class="choice-row">
-    <h2>{{ languageService.translate('hair-style') }}</h2>
-    <div class="swatches">
-      <button type="button"
-              class="swatch style-swatch"
-              *ngFor="let style of hairStyles"
-              [class.chosen]="avatar.hairStyle === style"
-              [attr.aria-pressed]="avatar.hairStyle === style"
-              [attr.aria-label]="languageService.translate('hair-style')"
-              (click)="choose('hairStyle', style)">
-        <app-avatar [avatar]="withHair(style)" [size]="44"></app-avatar>
-      </button>
-    </div>
-  </section>
+      <!-- A part of the character: a colour to pick, or a shape to see -->
+      <div class="swatches" *ngIf="row.part">
+        <button type="button"
+                class="swatch"
+                *ngFor="let value of choicesFor(row)"
+                [class.style-swatch]="!isColour(row)"
+                [class.chosen]="chosen(row, value)"
+                [attr.aria-pressed]="chosen(row, value)"
+                [attr.aria-label]="languageService.translate(row.heading)"
+                [style.background]="isColour(row) ? value : null"
+                (click)="pickPart(row, value)">
+          <app-avatar *ngIf="!isColour(row)"
+                      [avatar]="withPart(row, value)"
+                      [size]="44"></app-avatar>
+        </button>
+      </div>
 
-  <section class="choice-row">
-    <h2>{{ languageService.translate('hair-colour') }}</h2>
-    <div class="swatches">
-      <button type="button"
-              class="swatch"
-              *ngFor="let colour of hairColours"
-              [class.chosen]="avatar.hairColour === colour"
-              [attr.aria-pressed]="avatar.hairColour === colour"
-              [attr.aria-label]="languageService.translate('hair-colour')"
-              [style.background]="colour"
-              (click)="choose('hairColour', colour)"></button>
-    </div>
-  </section>
+      <!-- Something to wear, which unlike everything above has to be earned -->
+      <div class="swatches" *ngIf="row.slot">
+        <button type="button"
+                class="swatch style-swatch"
+                *ngFor="let item of itemsFor(row)"
+                [class.chosen]="wearing(row.slot) === item.id"
+                [class.locked]="!canWear(item)"
+                [disabled]="!canWear(item)"
+                [attr.aria-pressed]="wearing(row.slot) === item.id"
+                [attr.aria-label]="itemLabel(item)"
+                (click)="wear(row.slot, item)">
+          <app-avatar [avatar]="withItem(row.slot, item)"
+                      [size]="44"
+                      [framing]="framingForRow(row)"></app-avatar>
+          <span class="lock" *ngIf="!canWear(item) && !item.event" aria-hidden="true">🔒{{ item.unlockLevel }}</span>
+          <span class="lock event-lock" *ngIf="!canWear(item) && item.event" aria-hidden="true">🎁</span>
+        </button>
+      </div>
+    </section>
 
-  <section class="choice-row">
-    <h2>{{ languageService.translate('eyes') }}</h2>
-    <div class="swatches">
-      <button type="button"
-              class="swatch"
-              *ngFor="let colour of eyeColours"
-              [class.chosen]="avatar.eyeColour === colour"
-              [attr.aria-pressed]="avatar.eyeColour === colour"
-              [attr.aria-label]="languageService.translate('eyes')"
-              [style.background]="colour"
-              (click)="choose('eyeColour', colour)"></button>
-    </div>
-  </section>
+    <p class="event-note" *ngIf="open === 'wardrobe'">
+      {{ languageService.translate('events-return') }}
+    </p>
 
-  <section class="choice-row" *ngFor="let row of wardrobe">
-    <h2>{{ languageService.translate(row.heading) }}</h2>
-    <div class="swatches">
-      <button type="button"
-              class="swatch style-swatch"
-              *ngFor="let item of row.items"
-              [class.chosen]="wearing(row.slot) === item.id"
-              [class.locked]="!canWear(item)"
-              [disabled]="!canWear(item)"
-              [attr.aria-pressed]="wearing(row.slot) === item.id"
-              [attr.aria-label]="itemLabel(item)"
-              (click)="wear(row.slot, item)">
-        <app-avatar [avatar]="withItem(row.slot, item)"
-                    [size]="44"
-                    [framing]="framingFor(row.slot)"></app-avatar>
-        <span class="lock" *ngIf="!canWear(item) && !item.event" aria-hidden="true">🔒{{ item.unlockLevel }}</span>
-        <span class="lock event-lock" *ngIf="!canWear(item) && item.event" aria-hidden="true">🎁</span>
-      </button>
-    </div>
-  </section>
-
-  <p class="event-note">{{ languageService.translate('events-return') }}</p>
-
-  <p class="next-unlock" *ngIf="nextReward">
-    {{ languageService.translate('next-unlock') }}
-    {{ itemName(nextReward) }} — {{ languageService.translate('level') }} {{ nextReward.unlockLevel }}
-  </p>
+    <p class="next-unlock" *ngIf="open === 'wardrobe' && nextReward">
+      {{ languageService.translate('next-unlock') }}
+      {{ itemName(nextReward) }} — {{ languageService.translate('level') }} {{ nextReward.unlockLevel }}
+    </p>
+  </div>
 
   <button type="button" class="done-btn" (click)="done()">
     {{ languageService.translate('done') }}
