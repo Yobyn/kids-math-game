@@ -14,4 +14,11 @@
       <p>{{ grade.description }}</p>
     </div>
   </div>
+
+  <!-- The way in for an adult. Plain text, no colour and no icon, below ten
+       grade cards, so it is nothing a child is drawn towards; the gate on the
+       other side is what actually keeps them out. -->
+  <button type="button" class="grown-ups-link" (click)="openAdults()">
+    {{ languageService.translate('for-grown-ups') }}
+  </button>
 </div>

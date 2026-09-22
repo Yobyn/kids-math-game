@@ -118,7 +118,28 @@ export type TranslationKeys =
   | 'questions-answered'
   | 'answers-right'
   | 'things-earned'
-  | 'more-to-win';
+  | 'more-to-win'
+  | 'for-grown-ups'
+  | 'gate-note'
+  | 'gate-ask'
+  | 'gate-continue'
+  | 'adults-for'
+  | 'adults-rounds'
+  | 'adults-questions'
+  | 'adults-accuracy'
+  | 'adults-practise'
+  | 'adults-answer'
+  | 'adults-nothing-missed'
+  | 'adults-weakest'
+  | 'op-plus'
+  | 'op-minus'
+  | 'op-times'
+  | 'op-divide'
+  | 'adults-how-title'
+  | 'adults-how'
+  | 'adults-trend'
+  | 'adults-no-rounds'
+  | 'adults-trend-note';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -149,6 +170,11 @@ export class LanguageService {
 
   getCurrentLang(): Observable<Language> {
     return this.currentLanguage.asObservable();
+  }
+
+  /** The language right now, for callers that need it once rather than as a stream. */
+  getLanguage(): Language {
+    return this.currentLanguage.value;
   }
 
   private translations: TranslationSet = {
@@ -239,6 +265,27 @@ export class LanguageService {
       'answers-right': 'answers right',
       'things-earned': 'Things you have earned:',
       'more-to-win': 'There is more to win — keep playing.',
+      'for-grown-ups': 'For grown-ups',
+      'gate-note': 'This page is for the grown-up, not the player.',
+      'gate-ask': 'Type this number in digits.',
+      'gate-continue': 'Continue',
+      'adults-for': 'How {name} is getting on',
+      'adults-rounds': 'Rounds played',
+      'adults-questions': 'Questions answered',
+      'adults-accuracy': 'Answers right',
+      'adults-practise': 'Three things to practise',
+      'adults-answer': 'Answer',
+      'adults-nothing-missed': 'Nothing is being missed at the moment.',
+      'adults-weakest': 'Most of the missed questions are about {operation}.',
+      'op-plus': 'adding',
+      'op-minus': 'taking away',
+      'op-times': 'times tables',
+      'op-divide': 'dividing',
+      'adults-how-title': 'How to use this',
+      'adults-how': 'Keep it to these three, keep it short, and stop while it is still going well. Each one is already worked out, so you never have to explain it on the spot — read the line, then ask for the answer. Sounding relaxed about maths matters more than being good at it: children pick up how an adult feels about it long before they pick up the method.',
+      'adults-trend': 'Every round, oldest first',
+      'adults-no-rounds': 'No rounds finished yet, so there is nothing to show.',
+      'adults-trend-note': 'The player never sees this line. A score that can go down is discouraging to read about yourself, and useful to you.',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -358,6 +405,27 @@ export class LanguageService {
       'answers-right': 'goede antwoorden',
       'things-earned': 'Wat je hebt verdiend:',
       'more-to-win': 'Er is meer te winnen — blijf spelen.',
+      'for-grown-ups': 'Voor volwassenen',
+      'gate-note': 'Deze pagina is voor de volwassene, niet voor de speler.',
+      'gate-ask': 'Typ dit getal in cijfers.',
+      'gate-continue': 'Verder',
+      'adults-for': 'Hoe het met {name} gaat',
+      'adults-rounds': 'Gespeelde rondes',
+      'adults-questions': 'Beantwoorde vragen',
+      'adults-accuracy': 'Goede antwoorden',
+      'adults-practise': 'Drie dingen om te oefenen',
+      'adults-answer': 'Antwoord',
+      'adults-nothing-missed': 'Er gaat op dit moment niets mis.',
+      'adults-weakest': 'De meeste fouten gaan over {operation}.',
+      'op-plus': 'optellen',
+      'op-minus': 'aftrekken',
+      'op-times': 'tafels',
+      'op-divide': 'delen',
+      'adults-how-title': 'Hoe je dit gebruikt',
+      'adults-how': 'Houd het bij deze drie, houd het kort, en stop zolang het nog goed gaat. Elke som is al uitgewerkt, zodat je het nooit ter plekke hoeft uit te leggen — lees de regel voor en vraag daarna om het antwoord. Ontspannen klinken over rekenen telt zwaarder dan er goed in zijn: kinderen pikken op hoe een volwassene zich erbij voelt, lang voordat ze de methode oppikken.',
+      'adults-trend': 'Elke ronde, oudste eerst',
+      'adults-no-rounds': 'Nog geen rondes afgerond, dus er is nog niets te zien.',
+      'adults-trend-note': 'De speler ziet deze lijn nooit. Een score die omlaag kan gaan is ontmoedigend om over jezelf te lezen, en nuttig voor jou.',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -477,6 +545,27 @@ export class LanguageService {
       'answers-right': 'respuestas correctas',
       'things-earned': 'Lo que has ganado:',
       'more-to-win': 'Hay más por ganar: sigue jugando.',
+      'for-grown-ups': 'Para adultos',
+      'gate-note': 'Esta página es para el adulto, no para quien juega.',
+      'gate-ask': 'Escribe este número en cifras.',
+      'gate-continue': 'Continuar',
+      'adults-for': 'Cómo le va a {name}',
+      'adults-rounds': 'Rondas jugadas',
+      'adults-questions': 'Preguntas respondidas',
+      'adults-accuracy': 'Respuestas correctas',
+      'adults-practise': 'Tres cosas para practicar',
+      'adults-answer': 'Respuesta',
+      'adults-nothing-missed': 'Por ahora no falla nada.',
+      'adults-weakest': 'La mayoría de los fallos son de {operation}.',
+      'op-plus': 'sumar',
+      'op-minus': 'restar',
+      'op-times': 'tablas de multiplicar',
+      'op-divide': 'dividir',
+      'adults-how-title': 'Cómo usar esto',
+      'adults-how': 'Quédate con estas tres, que sea corto, y para mientras todavía va bien. Cada una ya está resuelta, así que nunca tienes que explicarla sobre la marcha: lee la línea y luego pregunta la respuesta. Sonar tranquilo con las matemáticas importa más que dárselas bien: los niños captan cómo se siente un adulto mucho antes de captar el método.',
+      'adults-trend': 'Cada ronda, de la más antigua a la más reciente',
+      'adults-no-rounds': 'Todavía no hay rondas terminadas, así que no hay nada que mostrar.',
+      'adults-trend-note': 'Quien juega nunca ve esta línea. Una puntuación que puede bajar desanima si es sobre ti, y es útil para ti.',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',

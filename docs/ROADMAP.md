@@ -3,7 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-21 (money mode added the same day)
+Last surveyed: 2026-09-22 (grown-ups' screen added the same day)
 
 ## What works today
 
@@ -31,7 +31,7 @@ Last surveyed: 2026-09-21 (money mode added the same day)
 - Sound and haptics switch in the header, remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
   respects `prefers-reduced-motion`.
-- 52 unit tests, run on every PR by GitHub Actions alongside the build.
+- 528 unit tests, run on every PR by GitHub Actions alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
 
@@ -203,11 +203,48 @@ a backend that currently keeps its users in memory (see Code health).
   told they played twenty.
 - **No badges or milestones** beyond the three stars of a single round and
   the wardrobe.
-- **No parent or teacher view** — no way to see what a child struggles with.
-  This is where the honest trend belongs, dips included, along with the facts
-  being missed: it is useful to an adult deciding what to practise and harmful
-  to a child reading it about themselves. It needs a way in that a child will
-  not wander into, which is a question the game has not had to answer yet.
+- **There is a grown-ups' screen now.** "For grown-ups", reached from a plain
+  text link below the ten grade cards, holds everything the child's own
+  progress screen deliberately leaves out: the honest round-by-round line with
+  the dips in it and a labelled scale, overall accuracy, and the facts being
+  missed.
+
+  THE DOOR IS NOT ARITHMETIC. Every parental-gate convention reaches for a
+  small multiplication, and in a maths game that turns a locked door into a
+  test a child can fail at the exact skill the product exists to make feel
+  survivable. The gate asks the adult to read a four-digit number written out
+  in words and type it in digits — reading fluency and place value, not
+  calculation — and it fails soft: a wrong answer never says "wrong", it
+  quietly hands over a different number. `src/app/adults/number-words.ts`
+  writes every number from 0 to 9999 in English, Dutch and Spanish (the Dutch
+  trema on the "en" seam included), swept in the tests for uniqueness and for
+  never printing a digit.
+
+  WHAT IS BEHIND THE DOOR IS A PLAN, NOT A REPORT CARD, and that is the
+  research rather than a preference. Maloney et al. (Psychological Science,
+  2015) followed first and second graders for a school year: children of
+  maths-anxious parents learned significantly less maths and ended the year
+  more anxious — but only where those parents reported helping with maths
+  homework often. Where anxious parents helped less, there was no effect at
+  all, and the parents' own maths knowledge never mattered. Wu et al. (Child
+  Development, 2022) adds that parents are least constructively involved
+  exactly when a child is struggling. So the harm travels through anxious,
+  improvised helping, and a dashboard that hands an adult a list of
+  weaknesses and an implied "go and help" recruits precisely the wrong
+  parents into precisely the damaging activity. The protective factor in the
+  follow-up work is structure.
+  Hence: at most three facts, so the ask ends; each one already worked out
+  using the game's own `workedStep`, so nobody has to invent an explanation
+  on the spot in front of their child; and a short note saying to keep it
+  short, stop while it is going well, and that sounding relaxed about maths
+  matters more than being good at it. `src/app/adults/practice-plan.ts` is
+  DOM-free and tested, including that it never hands back more than three.
+
+  What remains: the way in is a plain link, which is discreet (2400px down a
+  390px phone) but not private — a determined older sibling passes the gate.
+  There is no per-fact history, so an adult cannot see whether last week's
+  three facts stuck. And there is no teacher shape at all: one child per
+  device, no class, no export.
 
 ### Platform
 - **The header fits a phone now.** It used to be 598px across at 390px wide,

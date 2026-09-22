@@ -14,6 +14,7 @@ import { GradeSelectComponent } from './grade-select/grade-select.component';
 import { DifficultySelectComponent } from './difficulty-select/difficulty-select.component';
 import { LanguageSelectorComponent } from './language-selector/language-selector.component';
 import { ProgressComponent } from './progress/progress.component';
+import { AdultsComponent } from './adults/adults.component';
 import { AvatarComponent } from './avatar/avatar.component';
 import { AvatarChooserComponent } from './avatar/avatar-chooser.component';
 import { ParticlesComponent } from './particles/particles.component';
@@ -32,7 +33,8 @@ import { AuthInterceptor } from './auth.interceptor';
     ParticlesComponent,
     AvatarComponent,
     AvatarChooserComponent,
-    ProgressComponent
+    ProgressComponent,
+    AdultsComponent
   ],
   imports: [
     BrowserModule,
