@@ -1,5 +1,19 @@
 <div class="grade-container">
   <h1>{{ languageService.translate('select-grade') }}</h1>
+
+  <!-- One tap for a child who has already answered this question once. The
+       ten cards stay below it: this offers, it does not decide. -->
+  <button type="button"
+          class="carry-on"
+          *ngIf="carryOnGrade"
+          (click)="selectGrade(carryOnGrade)">
+    {{ carryOnLabel }}
+  </button>
+
+  <h2 class="or-pick" *ngIf="carryOnGrade">
+    {{ languageService.translate('or-pick-another') }}
+  </h2>
+
   <div class="grade-cards">
     <div class="grade-card"
          *ngFor="let grade of grades"
@@ -16,8 +30,8 @@
   </div>
 
   <!-- The way in for an adult. Plain text, no colour and no icon, below ten
-       grade cards, so it is nothing a child is drawn towards; the gate on the
-       other side is what actually keeps them out. -->
+       grade cards, so it is nothing a child is drawn towards; the gate on
+       the other side is what actually keeps them out. -->
   <button type="button" class="grown-ups-link" (click)="openAdults()">
     {{ languageService.translate('for-grown-ups') }}
   </button>

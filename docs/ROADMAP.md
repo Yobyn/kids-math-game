@@ -3,7 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (spacing measured in days, added the same day)
+Last surveyed: 2026-09-22 (the grade screen fixed the same day)
 
 ## What works today
 
@@ -32,7 +32,7 @@ Last surveyed: 2026-09-22 (spacing measured in days, added the same day)
 - Sound and haptics switch in the header, remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
   respects `prefers-reduced-motion`.
-- 600 unit tests, run on every PR by GitHub Actions alongside the build.
+- 611 unit tests, run on every PR by GitHub Actions alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
 
@@ -311,8 +311,23 @@ a backend that currently keeps its users in memory (see Code health).
   The question screen has now been measured too, and it was spilling 17px off
   each side of a 390px phone: the card was 100% wide with 2rem of padding
   added on top of that. It is border-box now and fits.
-  Still outstanding on small screens: the grade cards are around 360px tall
-  each, so choosing a grade on a phone is most of a screen per option.
+  The grade screen has now been measured and fixed. It was ONE card per row
+  at 390px — the container's 2rem padding plus the grid's own 1rem left 294px,
+  which is not enough for two 150px tracks — so ten cards ran 183px each and
+  the page was 2522px, three screenfuls, with "For grown-ups" 2414px down.
+  Two columns of compact cards, with the description hidden on phones because
+  it only says the heading again in more words, brings that to 128px a card
+  and a 1073px page. The card's accessible label still carries the full name.
+  MORE TO THE POINT, A CHILD WHO HAS PLAYED BEFORE NO LONGER CHOOSES AT ALL.
+  The result screen deliberately clears the stored grade to force a fresh
+  selection, so every single round began with ten cards. Guidance on
+  children's interfaces lands on three to five options a screen, and this was
+  ten before a child could do anything. So the last grade played — read from
+  history rather than storage, because storage is what gets cleared — is
+  offered as one button at the top: "Carry on at Grade 3". The full list
+  stays directly below it, because this offers and does not decide.
+  Also fixed while measuring: the header's sign-in button was 43px tall, one
+  pixel under the minimum this project holds itself to.
 - **Installable, but the update prompt is missing.** The service worker takes
   over immediately on activation (`skipWaiting` + `clients.claim`); a child
   mid-round when a deploy lands gets the new shell on their next navigation

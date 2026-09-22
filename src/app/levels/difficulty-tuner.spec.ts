@@ -5,6 +5,7 @@ import {
   DIFFICULTY_ORDER,
   ROUNDS_CONSIDERED,
   isDifficulty,
+  lastGrade,
   lastPlayed,
   step,
   suggestDifficulty,
@@ -148,5 +149,41 @@ describe('describing a suggestion', () => {
     expect(step('easy', -1)).toBeUndefined();
     expect(step('medium', 1)).toBe('hard');
     expect(step('medium', -1)).toBe('easy');
+  });
+});
+
+describe('the grade last played', () => {
+  const round = (grade: number, date: string) => ({
+    date, correctAnswers: 7, total: 10, percentage: 70, score: 14, grade
+  });
+
+  it('is nothing before anything has been played', () => {
+    expect(lastGrade([])).toBeUndefined();
+    expect(lastGrade(null as any)).toBeUndefined();
+  });
+
+  it('is the grade of the newest round', () => {
+    // History is stored newest first
+    expect(lastGrade([
+      round(5, '2026-09-22T10:00:00.000Z'),
+      round(2, '2026-09-21T10:00:00.000Z')
+    ])).toBe(5);
+  });
+
+  it('ignores a round that cannot say which grade it was', () => {
+    expect(lastGrade([
+      { date: 'x', correctAnswers: 1, total: 10, percentage: 10, score: 1 } as any,
+      round(3, '2026-09-21T10:00:00.000Z')
+    ])).toBe(3);
+    expect(lastGrade([round(0, '2026-09-22T10:00:00.000Z')])).toBeUndefined();
+    expect(lastGrade([round(NaN, '2026-09-22T10:00:00.000Z')])).toBeUndefined();
+  });
+
+  it('hands back a whole grade for every grade the game offers', () => {
+    for (let grade = 1; grade <= 10; grade++) {
+      const found = lastGrade([round(grade, '2026-09-22T10:00:00.000Z')]);
+      expect(found).toBe(grade);
+      expect(Math.floor(found!)).toBe(found!);
+    }
   });
 });
