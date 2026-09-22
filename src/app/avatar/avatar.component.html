@@ -1,10 +1,20 @@
 <svg class="avatar"
      [attr.width]="size"
-     [attr.height]="size"
-     viewBox="0 0 100 100"
+     [attr.height]="height"
+     [attr.viewBox]="viewBox"
      role="img"
      aria-label="Your character"
      focusable="false">
+  <!-- The body is drawn first, so the chin always sits over the collar -->
+  <g *ngIf="showsBody">
+    <path class="neck" [attr.d]="neckPath" [attr.fill]="avatar.skin"></path>
+    <path class="torso" [attr.d]="torsoPath" [attr.fill]="shirtColour"></path>
+    <path class="top-decoration"
+          *ngIf="top && top.path"
+          [attr.d]="top.path"
+          [attr.fill]="top.decorationColour || top.colour"></path>
+  </g>
+
   <!-- Ears sit behind the face so the outline stays clean -->
   <circle class="ear" cx="22" cy="55" r="7" [attr.fill]="avatar.skin"></circle>
   <circle class="ear" cx="78" cy="55" r="7" [attr.fill]="avatar.skin"></circle>

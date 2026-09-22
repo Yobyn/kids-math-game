@@ -14,6 +14,8 @@ import {
   NO_ITEM,
   SKIN_TONES,
   WARDROBE,
+  FULL_VIEW_BOX,
+  PORTRAIT_VIEW_BOX,
   findItem
 } from './avatar-model';
 
@@ -219,6 +221,57 @@ describe('AvatarChooserComponent wardrobe', () => {
 
     expect(component.nextReward).toBeUndefined();
     expect(fixture.nativeElement.querySelector('.next-unlock')).toBeNull();
+  });
+
+  it('shows clothes on a body and faces on a face', () => {
+    openAtLevel(9);
+
+    const rows = fixture.nativeElement.querySelectorAll('.choice-row');
+    const tops = rows[rows.length - 1];
+    const hats = rows[4];
+
+    // A shirt swatch is useless without shoulders; a hat swatch does not
+    // want them, because they would shrink the head it sits on
+    expect(tops.querySelector('app-avatar svg').getAttribute('viewBox'))
+      .toBe(FULL_VIEW_BOX);
+    expect(hats.querySelector('app-avatar svg').getAttribute('viewBox'))
+      .toBe(PORTRAIT_VIEW_BOX);
+  });
+
+  it('shows the child their whole character on the stage', () => {
+    openAtLevel(9);
+
+    expect(fixture.nativeElement.querySelector('.stage app-avatar svg').getAttribute('viewBox'))
+      .toBe(FULL_VIEW_BOX);
+  });
+
+  it('wears a shirt the child has earned', () => {
+    openAtLevel(7);
+
+    component.wear('top', findItem('top', 'star-tee')!);
+
+    expect(component.avatar.top).toBe('star-tee');
+    expect(service.get().top).toBe('star-tee');
+  });
+
+  it('refuses a shirt above the level, like every other item', () => {
+    openAtLevel(5);
+
+    component.wear('top', findItem('top', 'hoodie')!);
+
+    expect(component.avatar.top).toBe(NO_ITEM);
+  });
+
+  it('keeps all three slots independent', () => {
+    openAtLevel(9);
+
+    component.wear('hat', findItem('hat', 'beanie')!);
+    component.wear('glasses', findItem('glasses', 'shades')!);
+    component.wear('top', findItem('top', 'hoodie')!);
+
+    expect(component.avatar.hat).toBe('beanie');
+    expect(component.avatar.glasses).toBe('shades');
+    expect(component.avatar.top).toBe('hoodie');
   });
 
   it('keeps both slots independent', () => {

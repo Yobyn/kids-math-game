@@ -65,7 +65,8 @@ describe('reading a stored character', () => {
       hairColour: HAIR_COLOURS[5],
       eyeColour: EYE_COLOURS[2],
       hat: NO_ITEM,
-      glasses: NO_ITEM
+      glasses: NO_ITEM,
+      top: NO_ITEM
     };
 
     expect(normaliseAvatar(chosen)).toEqual(chosen);
@@ -103,7 +104,7 @@ describe('reading a stored character', () => {
 
 describe('the wardrobe', () => {
   it('gives a slot an empty option that is never locked', () => {
-    (['hat', 'glasses'] as const).forEach(slot => {
+    (['hat', 'glasses', 'top'] as const).forEach(slot => {
       const empty = itemsForSlot(slot).filter(item => item.id === NO_ITEM);
 
       expect(empty.length).toBe(1);
@@ -140,7 +141,7 @@ describe('the wardrobe', () => {
   });
 
   it('keeps item ids unique within a slot', () => {
-    (['hat', 'glasses'] as const).forEach(slot => {
+    (['hat', 'glasses', 'top'] as const).forEach(slot => {
       const ids = itemsForSlot(slot).map(item => item.id);
       expect(new Set(ids).size).toBe(ids.length);
     });
@@ -151,7 +152,16 @@ describe('the wardrobe', () => {
 
     expect(atTwo.length).toBe(1);
     expect(atTwo[0].id).toBe('cap');
-    expect(itemsUnlockedAt(5)).toEqual([]);
+  });
+
+  it('hands over nothing at a level that wins nothing', () => {
+    // Found from the wardrobe rather than written down, so adding an item at
+    // some level does not quietly turn this test into a lie
+    const winning = new Set(WARDROBE.map(item => item.unlockLevel));
+    const barren = [3, 5, 7, 9, 11, 13, 15, 17].find(level => !winning.has(level));
+
+    expect(barren).toBeDefined();
+    expect(itemsUnlockedAt(barren!)).toEqual([]);
   });
 
   it('never counts the empty option as something a level unlocks', () => {
@@ -159,9 +169,21 @@ describe('the wardrobe', () => {
   });
 
   it('points at the next thing worth climbing for', () => {
-    expect(nextUnlock(1)!.unlockLevel).toBe(2);
-    expect(nextUnlock(2)!.unlockLevel).toBe(3);
-    expect(nextUnlock(8)!.unlockLevel).toBe(10);
+    const earned = WARDROBE.filter(item => item.id !== NO_ITEM);
+
+    for (let level = 1; level < 20; level++) {
+      const ahead = earned
+        .filter(item => item.unlockLevel > level)
+        .map(item => item.unlockLevel);
+      const next = nextUnlock(level);
+
+      if (!ahead.length) {
+        expect(next).toBeUndefined();
+      } else {
+        // Always the nearest one, never something further up the ladder
+        expect(next!.unlockLevel).toBe(Math.min(...ahead));
+      }
+    }
   });
 
   it('runs out of things to promise once everything is won', () => {

@@ -41,7 +41,8 @@ export class AvatarChooserComponent implements OnInit {
   /** The earned rows, kept as data so the template stays typed. */
   wardrobe: { slot: ItemSlot; heading: TranslationKeys; items: WardrobeItem[] }[] = [
     { slot: 'hat', heading: 'hats', items: itemsForSlot('hat') },
-    { slot: 'glasses', heading: 'glasses', items: itemsForSlot('glasses') }
+    { slot: 'glasses', heading: 'glasses', items: itemsForSlot('glasses') },
+    { slot: 'top', heading: 'tops', items: itemsForSlot('top') }
   ];
   level = 1;
   nextReward?: WardrobeItem;
@@ -69,7 +70,12 @@ export class AvatarChooserComponent implements OnInit {
   }
 
   wearing(slot: ItemSlot): string {
-    return slot === 'hat' ? this.avatar.hat : this.avatar.glasses;
+    return this.avatar[slot];
+  }
+
+  /** Clothes need the shoulders to be visible; hats and glasses do not. */
+  framingFor(slot: ItemSlot): 'portrait' | 'full' {
+    return slot === 'top' ? 'full' : 'portrait';
   }
 
   wear(slot: ItemSlot, item: WardrobeItem) {
