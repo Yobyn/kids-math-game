@@ -163,7 +163,10 @@ export type TranslationKeys =
   | 'hair-texture'
   | 'your-face'
   | 'your-hair'
-  | 'things-to-wear';
+  | 'things-to-wear'
+  | 'update-ready'
+  | 'update-now'
+  | 'update-later';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -331,6 +334,9 @@ export class LanguageService {
       'your-face': 'Your face',
       'your-hair': 'Your hair',
       'things-to-wear': 'Things to wear',
+      'update-ready': 'A new version of the game is ready.',
+      'update-now': 'Get it now',
+      'update-later': 'Later',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -495,6 +501,9 @@ export class LanguageService {
       'your-face': 'Jouw gezicht',
       'your-hair': 'Jouw haar',
       'things-to-wear': 'Om aan te doen',
+      'update-ready': 'Er is een nieuwe versie van het spel klaar.',
+      'update-now': 'Nu ophalen',
+      'update-later': 'Later',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -659,6 +668,9 @@ export class LanguageService {
       'your-face': 'Tu cara',
       'your-hair': 'Tu pelo',
       'things-to-wear': 'Para ponerte',
+      'update-ready': 'Hay una nueva versión del juego lista.',
+      'update-now': 'Obtenerla ahora',
+      'update-later': 'Más tarde',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',
