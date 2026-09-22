@@ -4,6 +4,8 @@ import { LanguageService } from '../services/language.service';
 import { ProgressService } from '../services/progress.service';
 import { lastGrade } from '../levels/difficulty-tuner';
 import { suggestGrade } from '../levels/grade-tuner';
+import { AvatarService } from '../services/avatar.service';
+import { Avatar } from '../avatar/avatar-model';
 
 @Component({
   selector: 'app-grade-select',
@@ -34,13 +36,18 @@ export class GradeSelectComponent implements OnInit {
    */
   suggestedGrade?: number;
 
+  /** Drawn on the way in, so the button looks like the thing it opens. */
+  avatar!: Avatar;
+
   constructor(
     private router: Router,
     private progressService: ProgressService,
+    private avatarService: AvatarService,
     public languageService: LanguageService
   ) {}
 
   ngOnInit() {
+    this.avatar = this.avatarService.get();
     const history = this.progressService.getHistory();
     this.carryOnGrade = lastGrade(history);
     if (this.carryOnGrade) {
@@ -51,6 +58,10 @@ export class GradeSelectComponent implements OnInit {
   get carryOnLabel(): string {
     return this.languageService.translate('carry-on')
       .replace('{grade}', `${this.languageService.translate('grade')} ${this.carryOnGrade}`);
+  }
+
+  openCharacter() {
+    this.router.navigate(['/avatar']);
   }
 
   /** The grown-ups' screen, which decides for itself whether to open. */

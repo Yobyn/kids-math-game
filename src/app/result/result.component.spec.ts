@@ -463,6 +463,47 @@ describe('ResultComponent naming the reward', () => {
     expect(TestBed.inject(ProgressService).getHistory()[0].difficulty).toBeUndefined();
   });
 
+  it('offers a way to the character, on every round', () => {
+    // It was reachable only from an unlabelled circle in the header: findable
+    // by anyone using a screen reader, invisible to everyone else
+    finishRoundAt(0, 50);
+
+    const door = fixture.nativeElement.querySelector('.see-character');
+    expect(door).toBeTruthy();
+    expect(door.textContent.trim().length).toBeGreaterThan(0);
+  });
+
+  it('goes to the character when it is taken', () => {
+    finishRoundAt(0, 50);
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+
+    fixture.nativeElement.querySelector('.see-character').click();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/avatar']);
+  });
+
+  it('says put it on when the round actually handed something over', () => {
+    // The screen says "Unlocked: Cap" and then, until now, offered no way to
+    // go and wear it
+    finishRoundAt(xpToReach(2) - ROUND_COMPLETION_XP, 0);
+
+    expect(component.unlocked.length).toBeGreaterThan(0);
+    expect(component.justEarnedSomething).toBe(true);
+    expect(fixture.nativeElement.querySelector('.see-character.earned')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.see-character').textContent)
+      .toContain(component.languageService.translate('put-it-on'));
+  });
+
+  it('is quieter on a round that handed nothing over', () => {
+    finishRoundAt(0, 50);
+
+    expect(component.justEarnedSomething).toBe(false);
+    expect(fixture.nativeElement.querySelector('.see-character.earned')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.see-character').textContent)
+      .toContain(component.languageService.translate('your-character'));
+  });
+
   it('says nothing about items on a level that hands none over', () => {
     // Derived, not written down: a level that wins nothing today may win
     // something tomorrow, and this test must not silently stop testing

@@ -36,6 +36,14 @@
     </div>
   </div>
 
+  <!-- The way to the character. Named and drawn, because the only route to it
+       used to be an unlabelled circle in the header: findable by anyone using
+       a screen reader, invisible to everyone else. -->
+  <button type="button" class="your-character" (click)="openCharacter()">
+    <app-avatar [avatar]="avatar" [size]="40"></app-avatar>
+    <span>{{ languageService.translate('your-character') }}</span>
+  </button>
+
   <!-- The way in for an adult. Plain text, no colour and no icon, below ten
        grade cards, so it is nothing a child is drawn towards; the gate on
        the other side is what actually keeps them out. -->
