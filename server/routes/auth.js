@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const jwt = require('jsonwebtoken');
+const { signToken } = require('../token');
 const User = require('../models/User');
 
 // Register
@@ -22,10 +22,9 @@ router.post('/register', async (req, res) => {
     await user.save();
 
     // Create and send token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '24h' }
+    const token = await signToken(
+      { userId: String(user._id) },
+      process.env.JWT_SECRET || 'your-secret-key'
     );
 
     res.status(201).json({ token });
@@ -52,10 +51,9 @@ router.post('/login', async (req, res) => {
     }
 
     // Create and send token
-    const token = jwt.sign(
-      { userId: user._id },
-      process.env.JWT_SECRET || 'your-secret-key',
-      { expiresIn: '24h' }
+    const token = await signToken(
+      { userId: String(user._id) },
+      process.env.JWT_SECRET || 'your-secret-key'
     );
 
     res.json({ token });
