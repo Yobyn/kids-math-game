@@ -3,7 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (the keypad lifted out the same day)
+Last surveyed: 2026-09-22 (accounts made to survive a restart the same day)
 
 ## What works today
 
@@ -32,7 +32,8 @@ Last surveyed: 2026-09-22 (the keypad lifted out the same day)
 - Sound and haptics switch in the header, remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
   respects `prefers-reduced-motion`.
-- 658 unit tests, run on every PR by GitHub Actions alongside the build.
+- 658 unit tests plus 16 server tests, run on every PR by GitHub Actions
+  alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
 
@@ -372,9 +373,59 @@ a backend that currently keeps its users in memory (see Code health).
   there is no right-to-left support if a language ever needs it.
 
 ### Code health
-- **Backend stores users in memory** (`server/server.js`) — every restart drops
-  all accounts. The Mongoose `User` model exists but is not wired up.
+- **Accounts survive a restart now.** `server/store.js` keeps them in one JSON
+  file and the routes read and write through it.
+  NOT THE MONGOOSE MODEL that has been sitting unwired in `models/User.js`,
+  and that is the decision rather than a shortcut. The server holds a
+  username, a password hash and an optional email — every scrap of a child's
+  actual progress is in their own browser and none of it is sent there.
+  Standing up a database server to keep three fields per account means nobody
+  can run the game without also running Mongo, which is a large part of why
+  the README could never say how to start it. If this ever has to scale past
+  one process, that is the moment to reach for it, and the model is still
+  there.
+  THE FAILURE THAT DESIGN HAS IS NOT SIZE, IT IS DURABILITY: a process that
+  dies part way through rewriting the file leaves it truncated, and truncated
+  here means every account is gone — the exact problem this was meant to fix.
+  So a save writes a temporary file, fsyncs it, and renames it over the real
+  one; rename is atomic on POSIX, so a reader sees the whole old file or the
+  whole new one and never half of either. A test replaces `fs.renameSync`
+  with a throw and asserts the file on disk is untouched.
+  A corrupt file throws on startup rather than quietly starting empty, which
+  would hand the next child to register somebody else's username and silently
+  drop the rest. Ids are never reused, so a stale token cannot start pointing
+  at a different person.
+  Registering and signing in also validate their input now: `bcrypt` throws on
+  `undefined`, which turned a missing field into a 500 with a stack trace in
+  the body.
+  THE SERVER IS IN CI FOR THE FIRST TIME — 16 tests with `node --test`, which
+  needs no dependencies. It was never covered, which is how an unwired
+  database model and a `const users = []` sat in it unnoticed.
+  `server/data/` is gitignored and must stay that way.
+  What is still missing, and deliberately: PROGRESS IS STILL NOT ON THE
+  SERVER. An account keeps a child's rounds under their own name on that
+  device, and the signup offer is worded to say exactly that and no more. A
+  progress API would mean a children's service holding what each child is bad
+  at, which needs a considered answer on retention, deletion and who can read
+  it — not an afternoon's work bolted onto a login. The account now survives
+  a restart, which is what "an account that cannot be logged back into is a
+  promise half kept" actually asked for.
 - **No lint setup.** Angular 12 dropped the default; nothing enforces style.
+- **`server/node_modules` is committed** — 1,935 files of dependencies in
+  version control. It is why the server's CI step skips installing: a fresh
+  checkout already has them, and everything the server actually requires
+  (express, cors, body-parser, jsonwebtoken, bcryptjs, nodemailer, dotenv)
+  loads from it on Linux.
+  MONGOOSE DOES NOT. It was committed from a case-insensitive filesystem, so
+  `lib/collection.js` asks for `./connectionstate` while the file on disk is
+  `connectionState.js`, and `require('mongoose')` throws on any Linux
+  checkout. Nothing requires it, so nothing notices — but it is a second
+  reason the unwired model was never going to be a five-minute job.
+  Untracking the directory is a large, mechanical diff that deserves a run of
+  its own rather than riding along with a behaviour change.
+- **`body-parser` is required but not declared** in `server/package.json`; it
+  resolves transitively through express today and would stop the moment that
+  changed.
 - **The keypad is its own component now** (`src/app/keypad/`), which was the
   fix for `question.component.css` sitting 280 bytes under the 6 kB
   per-component ERROR budget — the next thing added to that screen would have

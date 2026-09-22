@@ -6,14 +6,22 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const { AccountStore } = require('./store');
 
 const app = express();
 const port = process.env.PORT || 3000;
 const secretKey = process.env.JWT_SECRET;
 
-// In-memory storage (replace with database in production)
-const users = [];
-const passwordResetTokens = new Map(); // Store reset tokens
+// Accounts survive a restart now; see store.js for why it is a file rather
+// than a database server.
+const accounts = new AccountStore(process.env.ACCOUNTS_FILE);
+// Reset tokens stay in memory on purpose: they live for an hour, and a
+// restart making every outstanding link invalid is the safe way to fail.
+const passwordResetTokens = new Map();
+
+/** The least a username and password have to be to be worth storing. */
+const MIN_USERNAME = 3;
+const MIN_PASSWORD = 6;
 
 // Configure nodemailer with Gmail SMTP
 const transporter = nodemailer.createTransport({
@@ -51,8 +59,16 @@ app.post('/api/auth/register', async (req, res) => {
   try {
     const { username, password, email } = req.body;
 
-    // Check if user exists
-    if (users.find(u => u.username === username)) {
+    // Checked here rather than left to bcrypt, which throws on undefined and
+    // turns a missing field into a 500 with a stack trace in it
+    if (typeof username !== 'string' || username.trim().length < MIN_USERNAME) {
+      return res.status(400).json({ message: 'Username is too short' });
+    }
+    if (typeof password !== 'string' || password.length < MIN_PASSWORD) {
+      return res.status(400).json({ message: 'Password is too short' });
+    }
+
+    if (accounts.findByUsername(username.trim())) {
       return res.status(400).json({ message: 'Username already exists' });
     }
 
@@ -60,14 +76,13 @@ app.post('/api/auth/register', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new user
-    const user = {
-      id: users.length + 1,
-      username,
+    // Written to disk before the token is handed out, so an account that
+    // says it exists does
+    const user = accounts.add({
+      username: username.trim(),
       password: hashedPassword,
       email
-    };
-    users.push(user);
+    });
 
     // Create token
     const token = jwt.sign(
@@ -87,8 +102,11 @@ app.post('/api/auth/login', async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    // Find user
-    const user = users.find(u => u.username === username);
+    if (typeof username !== 'string' || typeof password !== 'string') {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const user = accounts.findByUsername(username.trim());
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
@@ -117,8 +135,7 @@ app.post('/api/auth/reset-password', async (req, res) => {
   try {
     const { email } = req.body;
 
-    // Find user by email
-    const user = users.find(u => u.email === email);
+    const user = accounts.findByEmail(email);
     if (!user) {
       // For security, don't reveal if email exists or not
       return res.json({ message: 'If the email exists, password reset instructions will be sent' });
@@ -171,18 +188,17 @@ app.post('/api/auth/reset-password/:token', async (req, res) => {
       return res.status(400).json({ message: 'Invalid or expired reset token' });
     }
 
-    // Find user
-    const user = users.find(u => u.id === resetData.userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+    if (typeof newPassword !== 'string' || newPassword.length < MIN_PASSWORD) {
+      return res.status(400).json({ message: 'Password is too short' });
     }
 
     // Hash new password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(newPassword, salt);
 
-    // Update password
-    user.password = hashedPassword;
+    if (!accounts.updatePassword(resetData.userId, hashedPassword)) {
+      return res.status(404).json({ message: 'User not found' });
+    }
 
     // Remove used token
     passwordResetTokens.delete(token);
@@ -195,5 +211,5 @@ app.post('/api/auth/reset-password/:token', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+  console.log(`Server is running on port ${port} with ${accounts.count} account(s)`);
 });

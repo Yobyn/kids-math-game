@@ -15,6 +15,10 @@
 # dependencies
 /node_modules
 
+# Accounts written by the server. Never committed: it holds usernames,
+# password hashes and, where one was given, a child's parent's email.
+/server/data
+
 # profiling files
 chrome-profiler-events*.json
 
