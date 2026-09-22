@@ -55,6 +55,14 @@ jobs:
           retention-days: 14
           if-no-files-found: warn
 
+      # The server was never covered by CI, which is how an unwired database
+      # model and a users array sat in it unnoticed. No install step: these
+      # run on node --test, which needs nothing, and server/node_modules is
+      # checked in anyway (see the roadmap).
+      - name: Server tests
+        run: npm test
+        working-directory: server
+
       - name: Upload production build
         uses: actions/upload-artifact@v4
         with:
