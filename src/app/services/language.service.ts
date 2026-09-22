@@ -98,7 +98,9 @@ export type TranslationKeys =
   | 'item-wizard'
   | 'item-round-glasses'
   | 'item-shades'
-  | 'item-goggles';
+  | 'item-goggles'
+  | 'try-harder'
+  | 'try-easier';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -199,6 +201,8 @@ export class LanguageService {
       'item-round-glasses': 'Round glasses',
       'item-shades': 'Sunglasses',
       'item-goggles': 'Goggles',
+      'try-harder': 'Ready for this one?',
+      'try-easier': 'Try this one today',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -298,6 +302,8 @@ export class LanguageService {
       'item-round-glasses': 'Ronde bril',
       'item-shades': 'Zonnebril',
       'item-goggles': 'Duikbril',
+      'try-harder': 'Klaar voor deze?',
+      'try-easier': 'Probeer deze vandaag',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -397,6 +403,8 @@ export class LanguageService {
       'item-round-glasses': 'Gafas redondas',
       'item-shades': 'Gafas de sol',
       'item-goggles': 'Gafas de buceo',
+      'try-harder': '¿Listo para este?',
+      'try-easier': 'Prueba este hoy',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',

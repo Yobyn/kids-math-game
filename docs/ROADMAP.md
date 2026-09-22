@@ -73,8 +73,19 @@ a backend that currently keeps its users in memory (see Code health).
 - **Money mode is a first pass only.** Whole euros, one shape of question per
   band, no coins to count and no decimal amounts — worth extending once the
   rest of the teaching gaps are closed.
-- **No adaptive difficulty.** Grade and difficulty are picked once and never
-  respond to how the child is actually doing.
+- **Difficulty advises, and stops short of adapting.** Rounds now record the
+  setting they were played at, and the difficulty screen marks a card when
+  recent play says the child is on the wrong rung: two rounds at 85% or better
+  suggests a step up, two at 50% or worse a step down, one step only, and
+  nothing at all for the wide middle in between. The child still chooses —
+  every card stays exactly as choosable, because a system that overrules what
+  a child picked produces the frustration adapting was meant to prevent.
+  The rules are in `src/app/levels/difficulty-tuner.ts`, DOM-free and tested.
+  What is missing is within a round: it still asks ten questions at one fixed
+  setting whatever happens, so a child who is drowning on question three
+  drowns for another seven. Grade is never revisited either, and the
+  suggestion only reads rounds at the current grade, so a child who has
+  outgrown their grade entirely is never told.
 - **Spacing is one session deep.** Missed facts carry to the *next* round, but
   the interval is "next time you play", whether that is a minute or a month.
   Expanding intervals (a day, then three, then a week) would need timestamps

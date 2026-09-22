@@ -109,3 +109,16 @@ p {
 .difficulty-card:hover {
   box-shadow: var(--glow), 0 14px 32px rgba(6, 4, 20, 0.5);
 }
+
+/* A suggestion, not a decision: the card is marked and given a line of
+   explanation, and every other card is exactly as choosable as before. */
+.difficulty-card.suggested {
+  border: 2px solid var(--accent-magenta);
+  box-shadow: 0 0 0 4px rgba(214, 51, 235, 0.22);
+}
+
+.difficulty-card .suggestion {
+  margin-top: 0.5rem;
+  font-weight: 700;
+  color: #8a2a9c;
+}
