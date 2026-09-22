@@ -139,7 +139,10 @@ export type TranslationKeys =
   | 'adults-how'
   | 'adults-trend'
   | 'adults-no-rounds'
-  | 'adults-trend-note';
+  | 'adults-trend-note'
+  | 'easier-ask'
+  | 'easier-yes'
+  | 'easier-no';
 
 export type Language = 'en' | 'nl' | 'es';
 
@@ -286,6 +289,9 @@ export class LanguageService {
       'adults-trend': 'Every round, oldest first',
       'adults-no-rounds': 'No rounds finished yet, so there is nothing to show.',
       'adults-trend-note': 'The player never sees this line. A score that can go down is discouraging to read about yourself, and useful to you.',
+      'easier-ask': 'Would you like the rest a bit easier?',
+      'easier-yes': 'Yes, easier',
+      'easier-no': 'No, keep going',
       'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
@@ -426,6 +432,9 @@ export class LanguageService {
       'adults-trend': 'Elke ronde, oudste eerst',
       'adults-no-rounds': 'Nog geen rondes afgerond, dus er is nog niets te zien.',
       'adults-trend-note': 'De speler ziet deze lijn nooit. Een score die omlaag kan gaan is ontmoedigend om over jezelf te lezen, en nuttig voor jou.',
+      'easier-ask': 'Wil je de rest wat makkelijker?',
+      'easier-yes': 'Ja, makkelijker',
+      'easier-no': 'Nee, ga door',
       'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
@@ -566,6 +575,9 @@ export class LanguageService {
       'adults-trend': 'Cada ronda, de la más antigua a la más reciente',
       'adults-no-rounds': 'Todavía no hay rondas terminadas, así que no hay nada que mostrar.',
       'adults-trend-note': 'Quien juega nunca ve esta línea. Una puntuación que puede bajar desanima si es sobre ti, y es útil para ti.',
+      'easier-ask': '¿Quieres que el resto sea un poco más fácil?',
+      'easier-yes': 'Sí, más fácil',
+      'easier-no': 'No, sigo así',
       'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',

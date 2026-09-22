@@ -9,6 +9,7 @@ import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
 import { ROUND_COMPLETION_XP, xpForRound, xpToReach } from '../levels/level-curve';
 import { NO_ITEM, levelItems } from '../avatar/avatar-model';
+import { EASED_KEY } from '../levels/in-round-tuner';
 
 describe('ResultComponent', () => {
   let fixture: ComponentFixture<ResultComponent>;
@@ -435,6 +436,25 @@ describe('ResultComponent naming the reward', () => {
     const latest = TestBed.inject(ProgressService).getHistory()[0];
     expect(latest.difficulty).toBe('hard');
     expect(latest.grade).toBe(3);
+  });
+
+  it('records no setting for a round whose difficulty changed part way through', () => {
+    // A half-easy round cannot answer "how hard was it", so it must not
+    // become evidence about which rung the child belongs on
+    localStorage.setItem('difficulty', 'hard');
+    localStorage.setItem('grade', '3');
+    localStorage.setItem(EASED_KEY, 'true');
+    finishRoundAt(0, 40);
+
+    expect(TestBed.inject(ProgressService).getHistory()[0].difficulty).toBeUndefined();
+  });
+
+  it('clears the mark, so the next round records its own setting again', () => {
+    localStorage.setItem('difficulty', 'hard');
+    localStorage.setItem(EASED_KEY, 'true');
+    finishRoundAt(0, 40);
+
+    expect(localStorage.getItem(EASED_KEY)).toBeNull();
   });
 
   it('records no setting rather than a wrong one when none was chosen', () => {

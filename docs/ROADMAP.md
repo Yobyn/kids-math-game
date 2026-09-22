@@ -3,7 +3,7 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (grown-ups' screen added the same day)
+Last surveyed: 2026-09-22 (the mid-round offer added the same day)
 
 ## What works today
 
@@ -31,7 +31,7 @@ Last surveyed: 2026-09-22 (grown-ups' screen added the same day)
 - Sound and haptics switch in the header, remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
   respects `prefers-reduced-motion`.
-- 528 unit tests, run on every PR by GitHub Actions alongside the build.
+- 563 unit tests, run on every PR by GitHub Actions alongside the build.
 
 ## Product direction (Yobyn, 2026-09-21)
 
@@ -81,11 +81,35 @@ a backend that currently keeps its users in memory (see Code health).
   every card stays exactly as choosable, because a system that overrules what
   a child picked produces the frustration adapting was meant to prevent.
   The rules are in `src/app/levels/difficulty-tuner.ts`, DOM-free and tested.
-  What is missing is within a round: it still asks ten questions at one fixed
-  setting whatever happens, so a child who is drowning on question three
-  drowns for another seven. Grade is never revisited either, and the
+  A ROUND NOW ADAPTS TOO, AND IT ASKS BEFORE IT DOES. After three questions
+  wrong in a row — with at least three left to play, and only where there is
+  a rung below the one being played — the game puts one question on the
+  screen: "Would you like the rest a bit easier?" Yes drops the remaining
+  questions one rung; no changes nothing. It is asked once a round at most,
+  whichever way it is answered.
+  THE OBVIOUS DESIGN WAS TO DO IT SILENTLY, and the research says not to. The
+  85% rule (Wilson et al., Nature Communications 2019) does say a child far
+  below the sweet spot is close to the worst place to learn, so something
+  should give. But quietly easing the remaining questions is rubber-banding,
+  and the games literature is consistent that it backfires: players notice
+  difficulty being adjusted for them even when nobody tells them, and once
+  noticed it makes the rest of the win feel unearned — it takes away the
+  sense of having overcome something, which is what a struggling child has
+  least of. The remedy that work converges on is visibility, not better
+  concealment. It would also break this game's own rule, that it advises and
+  never overrules: a silent mid-round change is overruling, invisibly.
+  Because the switch is announced and chosen, the child knows exactly which
+  questions were easier, and nothing after it is quietly discounted.
+  A round that changed part way through is recorded with NO difficulty at
+  all (`EASED_KEY` in `src/app/levels/in-round-tuner.ts`), because it cannot
+  answer "how hard was it" and must not become evidence about which rung the
+  child belongs on. The child's stored choice is left alone: the offer is
+  about the rest of this round, not about what they play next.
+  What is still missing: grade is never revisited, and the between-round
   suggestion only reads rounds at the current grade, so a child who has
-  outgrown their grade entirely is never told.
+  outgrown their grade entirely is never told. The offer also only goes one
+  way — there is no "shall we make it harder" for a child breezing through,
+  which is the same argument in reverse and worth its own run.
 - **Spacing is one session deep.** Missed facts carry to the *next* round, but
   the interval is "next time you play", whether that is a minute or a month.
   Expanding intervals (a day, then three, then a week) would need timestamps
@@ -277,6 +301,12 @@ a backend that currently keeps its users in memory (see Code health).
 - **Backend stores users in memory** (`server/server.js`) — every restart drops
   all accounts. The Mongoose `User` model exists but is not wired up.
 - **No lint setup.** Angular 12 dropped the default; nothing enforces style.
+- **`question.component.css` is the biggest stylesheet in the app** and sits
+  just under the 6 kB per-component error budget. A pass folded each themed
+  override into the rule it overrode and dropped declarations that were being
+  overridden unconditionally anyway, which bought some room back — but the
+  next thing added to that screen will hit the ceiling again. The keypad is
+  the obvious thing to lift out into a component of its own.
 - **Dead code**: `src/app/app/` (a leftover scaffold, not in any module),
   `src/app/types/translation-keys.ts` (a second, unused `TranslationKeys`
   union), and `profile-creation` + `pokemon.service`, which no route reaches.

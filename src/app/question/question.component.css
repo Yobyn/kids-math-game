@@ -17,9 +17,11 @@
   max-width: 600px;
   margin-bottom: 2rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.9);
   border-radius: 12px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  /* Reads against the dark backdrop */
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--edge);
+  box-shadow: 0 8px 24px rgba(6, 4, 20, 0.45);
 }
 
 .score {
@@ -55,7 +57,12 @@
   background: white;
   padding: 2rem;
   border-radius: 16px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+  /* Theme the chrome, not the reading surface. Positive polarity — dark text
+     on a light card — measurably beats the reverse for reading speed and
+     accuracy, so the card faces stay light and the theme lives on their
+     edges. */
+  border: 1px solid var(--edge);
+  box-shadow: var(--glow), 0 12px 32px rgba(6, 4, 20, 0.5);
   width: 100%;
   /* Without this the padding is added to the full width and the card spills
      off both sides of a phone, taking whatever is inside it with them. */
@@ -160,19 +167,9 @@ input[type="number"].incorrect {
   font-weight: 500;
 }
 
-.check-button {
-  background-color: #2196f3;
-  color: white;
-}
-
 .check-button:hover {
   background-color: #1976d2;
   transform: translateY(-2px);
-}
-
-.next-button {
-  background-color: #4caf50;
-  color: white;
 }
 
 .next-button:hover {
@@ -187,9 +184,7 @@ input[type="number"].incorrect {
 .back-button {
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
-  background-color: transparent;
-  border: 2px solid #2196f3;
-  color: #2196f3;
+  border: 2px solid;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -294,8 +289,9 @@ input[type="number"].incorrect {
   font-weight: 700;
   color: #2c3e50;
   background: #ffffff;
-  border: 2px solid #dfe6e9;
+  border: 2px solid rgba(120, 100, 200, 0.35);
   border-radius: 14px;
+  box-shadow: 0 2px 6px rgba(6, 4, 20, 0.18);
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
@@ -306,13 +302,8 @@ input[type="number"].incorrect {
 
 .keypad .key:active {
   transform: scale(0.94);
-  background: #eef4ff;
-}
-
-.keypad .key-action {
-  color: #e17055;
-  background: #fff5f2;
-  border-color: #ffd7cc;
+  background: #eef0ff;
+  box-shadow: 0 0 14px rgba(56, 128, 255, 0.55);
 }
 
 .keypad .key:disabled {
@@ -357,7 +348,7 @@ input[type="number"].incorrect {
   border: 1px solid transparent;
   height: 12px;
   margin: 1rem auto 1.25rem;
-  background: rgba(223, 230, 233, 0.9);
+  background: rgba(255, 255, 255, 0.22);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -365,7 +356,7 @@ input[type="number"].incorrect {
 .progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #74b9ff, #0984e3);
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-magenta));
   transition: width 0.45s ease-out;
 }
 
@@ -394,42 +385,6 @@ input[type="number"].incorrect {
   .money-prompt {
     font-size: 1rem;
   }
-}
-
-/* The score bar reads against the dark backdrop now */
-.score-display {
-  background: rgba(255, 255, 255, 0.92);
-}
-
-.progress-track {
-  background: rgba(255, 255, 255, 0.22);
-}
-
-/* Theme the chrome, not the reading surface. Positive polarity — dark text on
-   a light card — measurably beats the reverse for reading speed and accuracy,
-   so the card faces stay light and the theme lives on their edges. */
-.question-box {
-  border: 1px solid var(--edge);
-  box-shadow: var(--glow), 0 12px 32px rgba(6, 4, 20, 0.5);
-}
-
-.score-display {
-  border: 1px solid var(--edge);
-  box-shadow: 0 8px 24px rgba(6, 4, 20, 0.45);
-}
-
-.progress-fill {
-  background: linear-gradient(90deg, var(--accent-blue), var(--accent-magenta));
-}
-
-.keypad .key {
-  border-color: rgba(120, 100, 200, 0.35);
-  box-shadow: 0 2px 6px rgba(6, 4, 20, 0.18);
-}
-
-.keypad .key:active {
-  background: #eef0ff;
-  box-shadow: 0 0 14px rgba(56, 128, 255, 0.55);
 }
 
 .keypad .key-action {
@@ -474,4 +429,47 @@ input[type="number"].incorrect {
   font-size: 1.15rem;
   font-weight: 700;
   color: #1c2b45;
+}
+
+/* The mid-round offer. Sits below the feedback and above Next, so it reads as
+   part of what just happened rather than an interruption of it. Deliberately
+   plain: this is a question, not a verdict on the child. */
+.easier-offer {
+  margin: 0.75rem auto 0;
+  padding: 0.9rem;
+  max-width: 600px;
+  box-sizing: border-box;
+  /* Light, like the rest of the card face: this is something to read, and
+     the theme lives on the card's edges rather than inside it. */
+  background: #f4f6fb;
+  border: 1px solid #dfe6e9;
+  border-radius: 12px;
+}
+
+.easier-ask {
+  margin: 0 0 0.7rem;
+  text-align: center;
+  color: #2c3e50;
+}
+
+.easier-choices {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.easier-yes,
+.easier-no {
+  flex: 1;
+  min-height: 48px;
+  font-size: 1rem;
+  border: 2px solid #b6c2d9;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #2c3e50;
+  cursor: pointer;
+}
+
+/* Neither choice is the "right" one, so neither is the loud one. */
+.easier-yes {
+  border-color: #6b8bd6;
 }
