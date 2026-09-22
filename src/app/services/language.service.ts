@@ -143,6 +143,10 @@ export type TranslationKeys =
   | 'easier-ask'
   | 'easier-yes'
   | 'easier-no'
+  | 'welcome-back'
+  | 'resume-progress'
+  | 'resume-carry-on'
+  | 'resume-start-again'
   | 'adults-right-so-far'
   | 'adults-waiting'
   | 'adults-spacing'
@@ -300,6 +304,10 @@ export class LanguageService {
       'easier-ask': 'Would you like the rest a bit easier?',
       'easier-yes': 'Yes, easier',
       'easier-no': 'No, keep going',
+      'welcome-back': 'Welcome back!',
+      'resume-progress': 'You were on question {number} of {total}.',
+      'resume-carry-on': 'Carry on',
+      'resume-start-again': 'Start again',
       'adults-right-so-far': 'Right so far:',
       'adults-waiting': '{count} more are waiting for their day to come round.',
       'adults-spacing': 'Facts come back a day apart, not the same afternoon — the gap is what makes them stick. One answered right on three separate days is done with and drops off this list.',
@@ -451,6 +459,10 @@ export class LanguageService {
       'easier-ask': 'Wil je de rest wat makkelijker?',
       'easier-yes': 'Ja, makkelijker',
       'easier-no': 'Nee, ga door',
+      'welcome-back': 'Welkom terug!',
+      'resume-progress': 'Je was bij vraag {number} van {total}.',
+      'resume-carry-on': 'Ga verder',
+      'resume-start-again': 'Opnieuw beginnen',
       'adults-right-so-far': 'Tot nu toe goed:',
       'adults-waiting': 'Er wachten er nog {count} op hun beurt.',
       'adults-spacing': 'Sommen komen een dag later terug, niet dezelfde middag — die tussentijd zorgt dat ze blijven hangen. Een som die op drie verschillende dagen goed gaat, is klaar en verdwijnt van deze lijst.',
@@ -602,6 +614,10 @@ export class LanguageService {
       'easier-ask': '¿Quieres que el resto sea un poco más fácil?',
       'easier-yes': 'Sí, más fácil',
       'easier-no': 'No, sigo así',
+      'welcome-back': '¡Bienvenido de nuevo!',
+      'resume-progress': 'Ibas por la pregunta {number} de {total}.',
+      'resume-carry-on': 'Continuar',
+      'resume-start-again': 'Empezar de nuevo',
       'adults-right-so-far': 'Aciertos hasta ahora:',
       'adults-waiting': 'Quedan {count} esperando su turno.',
       'adults-spacing': 'Las operaciones vuelven un día después, no la misma tarde: ese intervalo es lo que hace que se fijen. La que se acierta en tres días distintos ya está lista y sale de esta lista.',

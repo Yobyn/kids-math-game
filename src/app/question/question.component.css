@@ -367,7 +367,14 @@ input[type="number"].incorrect {
 /* The mid-round offer. Sits below the feedback and above Next, so it reads as
    part of what just happened rather than an interruption of it. Deliberately
    plain: this is a question, not a verdict on the child. */
-.easier-offer {
+/* The card that asks the child something — used by the "a bit easier?" offer
+   and by the offer to pick an interrupted round back up. One look, because
+   they are one thing: a question about the round, with two even answers. */
+.ask-panel {
+  /* The container centres its children, so without this the panel shrinks to
+     its own text — which on a phone wrapped one button's label and not the
+     other's, making two equal choices look unequal. */
+  width: 100%;
   margin: 0.75rem auto 0;
   padding: 0.9rem;
   max-width: 600px;
@@ -379,19 +386,19 @@ input[type="number"].incorrect {
   border-radius: 12px;
 }
 
-.easier-ask {
+.ask-text {
   margin: 0 0 0.7rem;
   text-align: center;
   color: #2c3e50;
 }
 
-.easier-choices {
+.ask-choices {
   display: flex;
   gap: 0.6rem;
 }
 
-.easier-yes,
-.easier-no {
+.ask-yes,
+.ask-no {
   flex: 1;
   min-height: 48px;
   font-size: 1rem;
@@ -403,6 +410,16 @@ input[type="number"].incorrect {
 }
 
 /* Neither choice is the "right" one, so neither is the loud one. */
-.easier-yes {
+.ask-yes {
   border-color: #6b8bd6;
+}
+
+/* The resume card is the only thing on the screen, so it sits where the
+   question box would, rather than tucked under one. */
+.resume-offer {
+  margin-top: 2rem;
+}
+
+.resume-hello {
+  font-weight: 700;
 }
