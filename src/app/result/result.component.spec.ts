@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { ROUND_COMPLETION_XP, xpForRound, xpToReach } from '../levels/level-curve';
 import { NO_ITEM, levelItems } from '../avatar/avatar-model';
 import { EASED_KEY } from '../levels/in-round-tuner';
+import { SEASONAL_EVENTS } from '../events/seasonal-events';
 
 describe('ResultComponent', () => {
   let fixture: ComponentFixture<ResultComponent>;
@@ -496,6 +497,14 @@ describe('ResultComponent naming the reward', () => {
   });
 
   it('is quieter on a round that handed nothing over', () => {
+    // "Handed nothing over" has to be arranged, not assumed. Finishing a round
+    // while a seasonal event is on wins the event's item whatever the score,
+    // so on about forty-five days of the year this round DOES hand something
+    // over — and this test, written on an ordinary day, would have gone red
+    // every winter, spring and autumn for nobody's mistake. Claiming the
+    // events first makes the premise true on all 365.
+    SEASONAL_EVENTS.forEach(event => progress.earnEvent(event.id));
+
     finishRoundAt(0, 50);
 
     expect(component.justEarnedSomething).toBe(false);

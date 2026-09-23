@@ -4,11 +4,12 @@
   "scripts": {
     "ng": "ng",
     "start": "NODE_OPTIONS=--openssl-legacy-provider ng serve",
-    "build": "ng build && node scripts/stamp-service-worker.js",
+    "build": "NODE_OPTIONS=--openssl-legacy-provider ng build && node scripts/stamp-service-worker.js",
     "test:scripts": "node --test scripts/*.test.js",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadlessCI"
+    "watch": "NODE_OPTIONS=--openssl-legacy-provider ng build --watch --configuration development",
+    "test": "NODE_OPTIONS=--openssl-legacy-provider ng test",
+    "test:ci": "NODE_OPTIONS=--openssl-legacy-provider ng test --watch=false --browsers=ChromeHeadlessCI",
+    "test:future": "NODE_OPTIONS=--openssl-legacy-provider ng test --watch=false --browsers=ChromeHeadlessCI --configuration=future"
   },
   "private": true,
   "dependencies": {

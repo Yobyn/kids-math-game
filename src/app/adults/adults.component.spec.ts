@@ -219,18 +219,30 @@ describe('AdultsComponent', () => {
     });
 
     it('says how far each fact has got, and what is still waiting', () => {
-      progress.recordMissed({ num1: 8, num2: 7, operation: '+' }, new Date(2026, 8, 22));
-      progress.recordMissed({ num1: 9, num2: 6, operation: '*' }, new Date(2026, 8, 22));
-      open();
-      passGate();
+      // The clock has to hold still for this one. A fact missed today is due
+      // TOMORROW, and the component asks the real clock what day it is — so
+      // writing "22 September 2026" here as the day they were missed made the
+      // test pass on the 22nd and fail on the 23rd, on a branch nobody had
+      // touched. Freezing the clock is what makes "today" mean today.
+      // See src/testing/shift-clock.ts for the run that catches the rest.
+      jasmine.clock().install();
+      try {
+        jasmine.clock().mockDate(new Date(2026, 8, 22, 12));
+        progress.recordMissed({ num1: 8, num2: 7, operation: '+' });
+        progress.recordMissed({ num1: 9, num2: 6, operation: '*' });
+        open();
+        passGate();
 
-      expect(fixture.nativeElement.querySelectorAll('.fact-reviews').length).toBe(2);
-      expect(fixture.nativeElement.querySelector('.fact-reviews').textContent)
-        .toContain('0 / ' + component.plan.facts[0].toGraduate);
-      // Both were missed today, so both are waiting for tomorrow
-      expect(component.plan.waiting).toBe(2);
-      expect(component.waitingLine).not.toContain('{count}');
-      expect(fixture.nativeElement.querySelector('.waiting')).toBeTruthy();
+        expect(fixture.nativeElement.querySelectorAll('.fact-reviews').length).toBe(2);
+        expect(fixture.nativeElement.querySelector('.fact-reviews').textContent)
+          .toContain('0 / ' + component.plan.facts[0].toGraduate);
+        // Both were missed today, so both are waiting for tomorrow
+        expect(component.plan.waiting).toBe(2);
+        expect(component.waitingLine).not.toContain('{count}');
+        expect(fixture.nativeElement.querySelector('.waiting')).toBeTruthy();
+      } finally {
+        jasmine.clock().uninstall();
+      }
     });
 
     it('explains why facts are not coming back the same afternoon', () => {
