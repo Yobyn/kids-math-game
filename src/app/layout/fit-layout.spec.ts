@@ -1,7 +1,6 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { RouterTestingModule } from '@angular/router/testing';
 import { QuestionComponent } from '../question/question.component';
 import { KeypadComponent } from '../keypad/keypad.component';
@@ -35,7 +34,7 @@ describe('the layout on a screen that is not a phone held upright', () => {
     localStorage.setItem('difficulty', 'medium');
     localStorage.setItem('grade', '3');
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
+      imports: [FormsModule, RouterTestingModule],
       declarations: [QuestionComponent, KeypadComponent, CoinsComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();

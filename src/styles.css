@@ -48,3 +48,43 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
   box-sizing: border-box;
 }
+
+/* The two entrances that used to cost 65 kB of @angular/animations, in CSS.
+   Worth saying what they actually were: a fade-and-slide on the feedback
+   line and a fade-and-scale on the Check/Next button. The feedback one was
+   bound with `:enter`/`:leave` on an element that has no *ngIf, so it ran
+   ONCE on first render and never again — 65 kB of framework for that.
+
+   GLOBAL RATHER THAN IN question.component.css, which sits 0.7 kB under a
+   6 kB ERROR budget and is the stylesheet this project keeps having to move
+   things out of. Keyframes are global in effect anyway: a component's
+   @keyframes is not scoped by emulated encapsulation, only its selectors
+   are, so keeping the pair here is where they already half lived. */
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: scale(0.8); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.feedback-container {
+  animation: rise-in 300ms ease-out;
+}
+
+.check-button,
+.next-button {
+  animation: pop-in 200ms ease-out;
+}
+
+/* The project's own rule, and the one thing Angular's animations respected
+   for free. In CSS it has to be asked for. */
+@media (prefers-reduced-motion: reduce) {
+  .feedback-container,
+  .check-button,
+  .next-button {
+    animation: none;
+  }
+}

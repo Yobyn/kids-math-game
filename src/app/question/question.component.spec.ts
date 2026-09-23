@@ -1,7 +1,6 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
-import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { QuestionComponent } from './question.component';
@@ -18,7 +17,7 @@ describe('QuestionComponent', () => {
     localStorage.setItem('grade', '3');
 
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
+      imports: [FormsModule, RouterTestingModule],
       declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -730,7 +729,7 @@ describe('QuestionComponent sums for the youngest players', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
+      imports: [FormsModule, RouterTestingModule],
       declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -784,7 +783,7 @@ describe('QuestionComponent showing how', () => {
     localStorage.setItem('difficulty', 'medium');
 
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
+      imports: [FormsModule, RouterTestingModule],
       declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -938,7 +937,7 @@ describe('QuestionComponent offering an easier rest of the round', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
+      imports: [FormsModule, RouterTestingModule],
       declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -1182,7 +1181,7 @@ describe('QuestionComponent: a round that survives the real world', () => {
     localStorage.setItem('difficulty', 'medium');
     localStorage.setItem('grade', '3');
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule, NoopAnimationsModule],
+      imports: [FormsModule, RouterTestingModule],
       declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
