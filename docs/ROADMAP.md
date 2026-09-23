@@ -62,8 +62,9 @@ back. What that cost is recorded under "What the audit found", at the end.
 - The character has a face of its own: six skin tones, four face shapes, four
   eye shapes, four mouths, nine hair styles and three hair textures that
   compose with all of them, plus hair and eye colour. The page is three
-  sections a child moves between rather than one long scroll.
-- 1,214 unit tests, 23 build-script tests and 39 server tests, run on every
+  sections a child moves between rather than one long scroll. It is drawn
+  from an SVG sprite, shaded, and the hair is fitted to every face shape.
+- 1,208 unit tests, 195 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -178,7 +179,7 @@ white box on a dark page, and its "Deleted" confirmation was dark green
 `#1f6b3a` on a dark panel — nearly invisible. Both fixed. That is the
 argument for the guard.
 
-WHAT IS STILL OUTSTANDING HERE: the tap. The field does not yet answer a
+WHAT IS STILL OUTSTANDING HERE: the tap. It is next. The field does not yet answer a
 touch — see the next section, whose resolution (two vocabularies) stands and
 is unbuilt. And the question card is still the largest light area on screen,
 on purpose; that is the reading-face rule working, not something left
@@ -201,25 +202,67 @@ stay that way, or it swallows every tap in the game. The field cannot listen
 for clicks — interaction has to be pushed to it, by extending
 `FieldPulseService` so a pulse can carry a point.
 
-**THE CHARACTER'S HAIR PROBLEM IS STRUCTURAL**, so it cannot be fixed by
-editing path strings. In `avatar/avatar-model.ts`, `HAIR_PATHS` is keyed only
-by hair style and `FACE_PATHS` only by face shape, and both are absolute
-coordinates over the same 100x100 box — so the hair silhouette is identical
-whatever face is under it. Nine hair styles times four face shapes is 36
-combinations and only `round` was ever tuned; on `square` and `heart` the
-hair floats above the skull or cuts into it, and even on `round` it reads as
-a cap sitting on top, because the hairline is a straight-ish chord across a
-curved crown. The ears are fixed circles (cx 22/78, cy 55, r 7) that no hair
-style knows about. What this needs is a head geometry the parts share — a
-scalp curve and a hairline per face shape that hair styles are expressed
-against — so hair is drawn ON a head rather than NEAR one. That is testable:
-every one of the 36 combinations should be provably seated, with no gap above
-the crown and no hair inside the face outline.
+**THE CHARACTER IS REDRAWN, AND THE HAIR SITS ON THE HEAD — DONE
+(2026-09-23).** The problem was structural: hair paths were keyed only by
+hair style and face paths only by face shape, as absolute coordinates over
+the same box, so the hair was the same shape whatever face was under it. Of
+36 face x hair combinations only `round` had ever been tuned; on `square`
+and `heart` the hair floated or cut in, and the afro was a floating arch.
 
-The character is also flat: every fill is one solid colour, there is no
-shading, no outline on the silhouette, one hard white glint per eye, and the
-torso is a single blob. "A lot more graphics" means depth. Keep it SVG and
-keep it cheap — no raster art, no animation library.
+The art now lives in an SVG sprite, `src/assets/avatar/parts.svg`, drawn by
+a script rather than by hand. The component places parts from it with
+`<use href="assets/avatar/parts.svg#id">`, and the child's colours reach
+those parts as CSS custom properties (`--skin`, `--hair`, `--eye`, and a
+shade and a light for each). The sprite never contains a child's colour, and
+a test makes sure of that.
+
+- `scripts/avatar-art/geometry.js` is the shared head: an outline function
+  per face shape. Hair is an offset shell around that outline, closed by a
+  hairline pinned to it, so it fits every face BY CONSTRUCTION instead of by
+  tuning. Ears, eyes, brows, hat brims and glasses arms are all placed
+  against the same outline.
+- `scripts/avatar-art/build-sprite.js` draws the parts and writes the
+  sprite. There are 122 parts: every hair style per face shape, and every hat
+  and pair of glasses per face shape. The art has depth now: a shade band,
+  a highlight and a rim line on the hair, shading on the face, a
+  two-colour eye with two glints, and folds on the tops.
+- Two levels of detail. Under 64px (`SMALL_BELOW`) the strands, curls and
+  second glint switch off and the lines get heavier, so the 44px header
+  portrait and the chooser tiles read as a face rather than a smudge.
+- A hat worn over the head clips the hair above its brim (`HAT_LINE` per
+  face), so it sits ON the head instead of on top of the hair. The crown
+  does not clip, because it sits in the hair.
+- `scripts/avatar-art.test.js` (172 tests) proves each of the 36
+  combinations is seated: the hair covers the scalp with no gap, keeps clear
+  of the eyes and brows, and its hairline ends on the face outline. It also
+  checks that the sprite on disk matches its generator, that every part the
+  app can ask for exists, and that the sprite is precached. A mutation sweep
+  caught all 16 deliberate breakages. One of them was the old bug,
+  round-face hair on every face, which fails 59 tests.
+
+Saved characters are unchanged: the model's fields and palettes are the
+same, only how they are drawn moved. Identity is still free at level 1.
+
+The sprite is 189.3 kB, or 42.6 kB gzipped. It is fetched once and is not in
+the JS bundle. Moving the drawing data out of the JS SHRANK the initial
+bundle by 3.24 kB, to 491.71 kB. The service worker precaches the sprite. It was
+checked offline against a production build, and the character draws.
+
+**Known limits, stated plainly.** External `<use>`, custom properties
+inheriting into it, and the hat clip were verified in Chromium ONLY. Safari
+is the one most likely to differ, and it is what an iPad runs. Checking a
+real iPad is the next thing a person with one should do. The drawing is also
+limited by what a generator of curves can do: it is a clean, shaded
+cartoon, not hand-painted indie art. A future run that wants more should add
+detail to the parts in `build-sprite.js` (the geometry tests will say if a
+change breaks the fit), not go back to editing path strings in TypeScript.
+
+Traps met on the way, so nobody meets them twice: two `style` attributes on
+one element make the XML invalid, and the browser then drops the WHOLE
+sprite silently. The number packer has to track whether the LAST number had
+a decimal point, or "1.5", "-2", ".4" packs to "1.5-2.4" and draws shards.
+The sprite and its generator must be changed together, and the test fails
+if they are not.
 
 **THE GRADE SCREEN WAS TEN IDENTICAL CARDS — DONE (2026-09-23).** Each was
 the same white box with the same 📚 emoji, told apart only by a rainbow
@@ -255,10 +298,11 @@ never locked: skin, face, hair and their colours stay free at level 1 however
 the art changes. Per-tap work must be bounded, so a child mashing the keypad
 cannot allocate without limit.
 
-**And art costs bytes.** The initial bundle has **5.05 kB** of headroom
-(494.95 kB against a 500 kB error budget, measured 2026-09-23 after the theme
-migration, which cost 1.61 kB: a `var(--token)` is longer than the hex it
-replaces). The particle field is eager, so anything added there lands in the
+**And art costs bytes.** The initial bundle has **8.29 kB** of headroom
+(491.71 kB against a 500 kB error budget, measured 2026-09-23 after the
+character moved into the sprite, which freed 3.24 kB). Images do not count
+against that budget, but they still cost a download: the sprite is 42.6 kB
+gzipped. The particle field is eager, so anything added there lands in the
 first load. `question.component.css` is 5.23 kB against a 6 kB ERROR, so
 0.77 kB of room.
 
@@ -560,8 +604,10 @@ order; a single screenshot cannot show whether a tap did anything.
   the level they cost, and the chooser names the next one to climb for. A
   level up now says what it handed over. An item above the child's level comes
   off when the character is read, so a hand-edited store cannot wear a crown.
-  The parts live in `src/app/avatar/avatar-model.ts`, DOM-free and tested,
-  including that every hair style actually covers the crown.
+  The choices live in `src/app/avatar/avatar-model.ts`, DOM-free and tested;
+  the drawing lives in the sprite `src/assets/avatar/parts.svg` (see "Art
+  direction"), with a test that every hair style covers the crown of every
+  face.
   The character now has shoulders and wears clothes: three shirts at levels 5,
   7 and 9, plus a plain one nobody has to earn — a bare chest is not a
   sensible default. It is drawn in two framings from one model rather than one

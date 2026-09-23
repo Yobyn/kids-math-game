@@ -1,15 +1,6 @@
+/* Parts can reach past the box — an afro, a wizard's hat — and must not be
+   cut off by it. The outline and every colour come from the sprite. */
 .avatar {
   display: block;
   overflow: visible;
-}
-
-/* A thin dark edge keeps the character readable against both the light cards
-   and the near-black particle backdrop, without a second set of colours. */
-.face,
-.ear,
-.hair,
-.torso,
-.neck {
-  stroke: rgba(24, 16, 48, 0.55);
-  stroke-width: 1.5;
 }

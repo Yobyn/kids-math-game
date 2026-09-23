@@ -2,18 +2,13 @@ import {
   Avatar,
   EVENT_ITEMS,
   EYE_COLOURS,
-  EYE_PATHS,
   EYE_SHAPES,
   HAIR_COLOURS,
-  HAIR_PATHS,
   HAIR_STYLES,
   HAIR_TEXTURES,
-  MOUTH_PATHS,
   MOUTH_SHAPES,
   NO_ITEM,
   SKIN_TONES,
-  TEXTURE_DASHES,
-  TEXTURE_WIDTH,
   WARDROBE,
   itemById,
   defaultAvatar,
@@ -27,6 +22,7 @@ import {
   nextUnlock,
   normaliseAvatar
 } from './avatar-model';
+import { TEXTURE, avatarLayers } from './avatar-parts';
 import { SEASONAL_EVENTS } from '../events/seasonal-events';
 
 describe('the character a child can make', () => {
@@ -46,10 +42,12 @@ describe('the character a child can make', () => {
     expect(brightness[0] - brightness[brightness.length - 1]).toBeGreaterThan(300);
   });
 
-  it('has a drawable shape for every hair style offered', () => {
+  it('names a part to draw for every hair style offered', () => {
+    // That the part is actually DRAWN is checked against the real sprite in
+    // scripts/avatar-art.test.js, which reads parts.svg
     HAIR_STYLES.forEach(style => {
-      expect(HAIR_PATHS[style]).toBeTruthy();
-      expect(HAIR_PATHS[style]).toMatch(/^M/);
+      expect(avatarLayers({ ...defaultAvatar(), hairStyle: style }, 'portrait').hair)
+        .toBe(`hair-${style}-round`);
     });
   });
 
@@ -148,8 +146,6 @@ describe('the wardrobe', () => {
 
   it('has something to draw for every item that is not the empty one', () => {
     WARDROBE.filter(item => item.id !== NO_ITEM).forEach(item => {
-      expect(item.path).toBeTruthy();
-      expect(item.path).toMatch(/^M/);
       expect(item.colour).toMatch(/^#[0-9a-f]{6}$/i);
     });
   });
@@ -310,53 +306,49 @@ describe('items won by being there', () => {
 
   it('has something to draw for every event item', () => {
     EVENT_ITEMS.forEach(item => {
-      expect(item.path).toMatch(/^M/);
       expect(item.colour).toMatch(/^#[0-9a-f]{6}$/i);
     });
   });
 });
 
+const eyesFor = (eyeShape: any) => avatarLayers({ ...defaultAvatar(), eyeShape }, 'portrait').eyes;
+const mouthFor = (mouthShape: any) => avatarLayers({ ...defaultAvatar(), mouthShape }, 'portrait').mouth;
+
 describe('the parts of a face that skin tone cannot stand in for', () => {
   it('offers a shape for the eyes, which used to be one pair of circles', () => {
     expect(EYE_SHAPES.length).toBeGreaterThan(1);
-    EYE_SHAPES.forEach(shape => expect(EYE_PATHS[shape]).toBeTruthy());
+    EYE_SHAPES.forEach(shape => expect(eyesFor(shape)).toBe(`eyes-${shape}`));
   });
 
   it('offers a shape for the mouth, which used to be one curve', () => {
     expect(MOUTH_SHAPES.length).toBeGreaterThan(1);
-    MOUTH_SHAPES.forEach(shape => expect(MOUTH_PATHS[shape].d).toBeTruthy());
+    MOUTH_SHAPES.forEach(shape => expect(mouthFor(shape)).toBe(`mouth-${shape}`));
   });
 
   it('draws every eye shape differently from every other', () => {
-    const drawn = EYE_SHAPES.map(shape => EYE_PATHS[shape]);
+    const drawn = EYE_SHAPES.map(eyesFor);
 
     expect(new Set(drawn).size).toBe(EYE_SHAPES.length);
   });
 
   it('draws every mouth shape differently from every other', () => {
-    const drawn = MOUTH_SHAPES.map(shape => MOUTH_PATHS[shape].d);
+    const drawn = MOUTH_SHAPES.map(mouthFor);
 
     expect(new Set(drawn).size).toBe(MOUTH_SHAPES.length);
   });
 
-  it('draws both eyes in every shape, not one', () => {
-    // One path holds the pair, so they cannot drift apart. Two subpaths.
-    EYE_SHAPES.forEach(shape => {
-      const starts = (EYE_PATHS[shape].match(/M/g) || []).length;
-      expect(starts).toBe(2, shape);
-    });
-  });
-
-  it('leaves the default character exactly as it was drawn before', () => {
-    // A child who saved a character last week must find the same one
+  it('keeps every saved character\'s choices exactly as they were', () => {
+    // A child who saved a character last week must find the same one. The
+    // DRAWING was redone on purpose — hair now sits on the head — so what
+    // must not move is what they chose, and the parts those choices name.
     const fresh = defaultAvatar();
 
     expect(fresh.eyeShape).toBe('round');
     expect(fresh.mouthShape).toBe('smile');
     expect(fresh.hairTexture).toBe('smooth');
-    expect(EYE_PATHS.round).toContain('4.5');
-    expect(MOUTH_PATHS.smile.d).toBe('M40 66 Q50 74 60 66');
-    expect(TEXTURE_DASHES.smooth).toBe('');
+    const saved = JSON.parse(JSON.stringify(fresh));
+    expect(normaliseAvatar(saved)).toEqual(fresh);
+    expect(avatarLayers(normaliseAvatar(saved), 'portrait')).toEqual(avatarLayers(fresh, 'portrait'));
   });
 
   it('reads a character saved before any of these existed as the old one', () => {
@@ -406,19 +398,18 @@ describe('hair texture, separate from the shape the hair is cut into', () => {
   });
 
   it('draws nothing at all for smooth hair', () => {
-    expect(TEXTURE_DASHES.smooth).toBe('');
-    expect(TEXTURE_WIDTH.smooth).toBe(0);
+    expect(TEXTURE.smooth.width).toBe(0);
+    expect(TEXTURE.smooth.dash).toBe('none');
   });
 
   it('draws something, and something different, for each of the others', () => {
     const textured = HAIR_TEXTURES.filter(texture => texture !== 'smooth');
 
     textured.forEach(texture => {
-      expect(TEXTURE_DASHES[texture]).toBeTruthy();
-      expect(TEXTURE_WIDTH[texture]).toBeGreaterThan(0);
+      expect(TEXTURE[texture].dash).not.toBe('none');
+      expect(TEXTURE[texture].width).toBeGreaterThan(0);
     });
-    expect(new Set(textured.map(texture => TEXTURE_DASHES[texture])).size)
-      .toBe(textured.length);
+    expect(new Set(textured.map(texture => TEXTURE[texture].dash)).size).toBe(textured.length);
   });
 });
 

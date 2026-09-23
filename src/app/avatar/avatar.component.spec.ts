@@ -2,519 +2,275 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AvatarComponent } from './avatar.component';
 import {
   Avatar,
-  DEFAULT_TOP_COLOUR,
-  EYE_PATHS,
   EYE_SHAPES,
   FACE_SHAPES,
-  FULL_VIEW_BOX,
-  FaceShape,
   HAIR_COLOURS,
-  HAIR_PATHS,
   HAIR_STYLES,
   HAIR_TEXTURES,
   MOUTH_SHAPES,
   NO_ITEM,
-  PORTRAIT_VIEW_BOX,
   SKIN_TONES,
-  defaultAvatar,
-  findItem
+  EYE_COLOURS,
+  defaultAvatar
 } from './avatar-model';
+import { HAT_LINE, SPRITE } from './avatar-parts';
 
+/**
+ * The component chooses WHICH parts to draw, in which colours, framing and
+ * level of detail. How each part is drawn — and that every hair style fits
+ * every face — is checked against the real sprite and its geometry in
+ * scripts/avatar-art.test.js, for all 36 combinations.
+ */
 describe('AvatarComponent', () => {
   let fixture: ComponentFixture<AvatarComponent>;
   let component: AvatarComponent;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [AvatarComponent]
-    }).compileComponents();
-
+    await TestBed.configureTestingModule({ declarations: [AvatarComponent] }).compileComponents();
     fixture = TestBed.createComponent(AvatarComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
-  it('paints the face in the chosen skin tone', () => {
-    component.avatar = { ...defaultAvatar(), skin: SKIN_TONES[5] };
+  function draw(avatar: Partial<Avatar> = {}, size = 120, framing: 'portrait' | 'full' = 'portrait') {
+    component.avatar = { ...defaultAvatar(), ...avatar };
+    component.size = size;
+    component.framing = framing;
     fixture.detectChanges();
+    return fixture.nativeElement.querySelector('svg') as SVGSVGElement;
+  }
 
-    const face = fixture.nativeElement.querySelector('.face');
-    expect(face.getAttribute('fill')).toBe(SKIN_TONES[5]);
+  const partOf = (svg: SVGSVGElement, cls: string) => {
+    const use = svg.querySelector(`use.${cls}, .${cls} use`);
+    return use ? (use.getAttribute('href') || '').replace(`${SPRITE}#`, '') : null;
+  };
+  const cssVar = (svg: SVGSVGElement, name: string) =>
+    (new RegExp(`${name}:([^;]+)`).exec(svg.getAttribute('style') || '') || [])[1];
+
+  it('draws every part from the one sprite the service worker caches', () => {
+    const svg = draw();
+    const hrefs = Array.from(svg.querySelectorAll('use')).map(u => u.getAttribute('href') || '');
+    expect(hrefs.length).toBeGreaterThan(5);
+    hrefs.forEach(h => expect(h.startsWith(`${SPRITE}#`)).toBe(true, h));
   });
 
-  it('paints the ears to match the face, not some fixed tone', () => {
-    component.avatar = { ...defaultAvatar(), skin: SKIN_TONES[0] };
-    fixture.detectChanges();
-
-    const fills = Array.from(fixture.nativeElement.querySelectorAll('.ear, .face'))
-      .map((el: any) => el.getAttribute('fill'));
-
-    expect(new Set(fills).size).toBe(1);
+  it('paints the face, ears and neck in the chosen skin tone, through one variable', () => {
+    const svg = draw({ skin: SKIN_TONES[5] });
+    expect(cssVar(svg, '--skin')).toBe(SKIN_TONES[5]);
+    // Its shade is DERIVED, so it follows whatever tone is chosen
+    expect(cssVar(svg, '--skin-shade')).not.toBe(SKIN_TONES[5]);
   });
 
-  it('draws the hair shape the child picked', () => {
-    component.avatar = { ...defaultAvatar(), hairStyle: 'curly' };
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('.hair').getAttribute('d'))
-      .toBe(HAIR_PATHS.curly);
+  it('keeps hair colour and eye colour on their own variables', () => {
+    const svg = draw({ hairColour: HAIR_COLOURS[4], eyeColour: EYE_COLOURS[2] });
+    expect(cssVar(svg, '--hair')).toBe(HAIR_COLOURS[4]);
+    expect(cssVar(svg, '--eye')).toBe(EYE_COLOURS[2]);
   });
 
-  it('changes the drawing when the style changes', () => {
-    component.avatar = { ...defaultAvatar(), hairStyle: 'short' };
-    fixture.detectChanges();
-    const before = fixture.nativeElement.querySelector('.hair').getAttribute('d');
-
-    component.avatar = { ...component.avatar, hairStyle: 'bun' };
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('.hair').getAttribute('d')).not.toBe(before);
+  it('draws the hair style the child picked, fitted to the face they picked', () => {
+    FACE_SHAPES.forEach(faceShape => {
+      HAIR_STYLES.forEach(hairStyle => {
+        const svg = draw({ faceShape, hairStyle });
+        expect(partOf(svg, 'hair')).toBe(`hair-${hairStyle}-${faceShape}`);
+        expect(partOf(svg, 'face')).toBe(`face-${faceShape}`);
+        expect(partOf(svg, 'ears')).toBe(`ears-${faceShape}`);
+      });
+    });
   });
 
-  it('keeps hair colour and eye colour on their own parts', () => {
-    component.avatar = { ...defaultAvatar(), hairColour: HAIR_COLOURS[5] };
-    fixture.detectChanges();
+  it('draws what hangs behind the head only for the styles that have it', () => {
+    expect(partOf(draw({ hairStyle: 'long' }), 'back')).toBe('hair-back-long-round');
+    expect(partOf(draw({ hairStyle: 'short' }), 'back')).toBeNull();
+    expect(partOf(draw({ hairStyle: 'buzz' }), 'back')).toBeNull();
+  });
 
-    const hair = fixture.nativeElement.querySelector('.hair').getAttribute('fill');
-    const eye = fixture.nativeElement.querySelector('.eye').getAttribute('fill');
+  it('draws the eyes and mouth the child picked', () => {
+    EYE_SHAPES.forEach(eyeShape => expect(partOf(draw({ eyeShape }), 'eyes')).toBe(`eyes-${eyeShape}`));
+    MOUTH_SHAPES.forEach(mouthShape => expect(partOf(draw({ mouthShape }), 'mouth')).toBe(`mouth-${mouthShape}`));
+  });
 
-    expect(hair).toBe(HAIR_COLOURS[5]);
-    expect(eye).toBe(component.avatar.eyeColour);
+  it('falls back to a real face for a shape it does not know', () => {
+    const svg = draw({ faceShape: 'triangle' as any });
+    expect(partOf(svg, 'face')).toBe('face-round');
+    expect(partOf(svg, 'hair')).toBe('hair-short-round');
   });
 
   it('draws at whatever size it is asked for, from one set of artwork', () => {
-    component.size = 180;
-    fixture.detectChanges();
-
-    const svg = fixture.nativeElement.querySelector('svg');
-    expect(svg.getAttribute('width')).toBe('180');
+    const svg = draw({}, 44);
+    expect(svg.getAttribute('width')).toBe('44');
     expect(svg.getAttribute('viewBox')).toBe('0 0 100 100');
   });
 
-  it('covers the crown with hair, in every style on every face', () => {
-    // The face is drawn first, so hair that starts too low leaves a bare dome
-    // of scalp poking out above the fringe. Measured, not eyeballed — and
-    // swept over both axes now, because a style that covered the round face
-    // can still leave the taller oval one bare.
-    FACE_SHAPES.forEach(faceShape => {
-      HAIR_STYLES.forEach(hairStyle => {
-        component.avatar = { ...defaultAvatar(), faceShape, hairStyle };
-        fixture.detectChanges();
-
-        const hair = fixture.nativeElement.querySelector('.hair').getBBox();
-        const face = fixture.nativeElement.querySelector('.face').getBBox();
-
-        expect(hair.y)
-          .withContext(`${hairStyle} on a ${faceShape} face`)
-          .toBeLessThan(face.y);
-      });
-    });
-  });
-
-  /** How wide the face actually is at a given height, sampled from the fill. */
-  function widthAt(face: SVGGeometryElement, y: number): number {
-    const svg = face.ownerSVGElement!;
-    let inside = 0;
-    for (let x = 0; x <= 100; x++) {
-      const point = svg.createSVGPoint();
-      point.x = x;
-      point.y = y;
-      if (face.isPointInFill(point)) {
-        inside++;
-      }
-    }
-    return inside;
-  }
-
-  function faceFor(faceShape: FaceShape): SVGGeometryElement {
-    component.avatar = { ...defaultAvatar(), faceShape };
-    fixture.detectChanges();
-    return fixture.nativeElement.querySelector('.face');
-  }
-
-  /** The silhouette: how wide the face is at the brow, the cheek and the chin. */
-  function profileOf(shape: FaceShape): number[] {
-    const face = faceFor(shape);
-    return [40, 54, 78].map(y => widthAt(face, y));
-  }
-
-  it('gives each face a shape of its own, not just a size of its own', () => {
-    // A bounding box cannot see a jaw, and the first version of these shapes
-    // passed a bounds check while looking identical at swatch size. Two faces
-    // are different when their silhouettes are, so measure the silhouette.
-    const profiles = FACE_SHAPES.map(profileOf);
-
-    FACE_SHAPES.forEach((shape, i) => {
-      FACE_SHAPES.slice(i + 1).forEach((other, j) => {
-        const mine = profiles[i];
-        const theirs = profiles[i + 1 + j];
-        const apart = mine.reduce((sum, width, at) => sum + Math.abs(width - theirs[at]), 0);
-
-        expect(apart)
-          .withContext(`${shape} vs ${other}, widths ${mine} against ${theirs}`)
-          .toBeGreaterThan(6);
-      });
-    });
-  });
-
-  it('tapers the heart face and squares off the square one', () => {
-    const chinOf = (shape: FaceShape) => widthAt(faceFor(shape), 78);
-
-    expect(chinOf('heart')).toBeLessThan(chinOf('round'));
-    expect(chinOf('square')).toBeGreaterThan(chinOf('round'));
-  });
-
-  it('keeps every face wider at the cheek than at the chin', () => {
-    // A face that is widest at the jaw is not a face
-    FACE_SHAPES.forEach(shape => {
-      const face = faceFor(shape);
-      expect(widthAt(face, 54)).withContext(shape).toBeGreaterThan(widthAt(face, 80));
-    });
-  });
-
-  it('keeps every face inside the box it is drawn in', () => {
-    FACE_SHAPES.forEach(faceShape => {
-      component.avatar = { ...defaultAvatar(), faceShape };
-      fixture.detectChanges();
-
-      const box = fixture.nativeElement.querySelector('.face').getBBox();
-      expect(box.x).withContext(faceShape).toBeGreaterThanOrEqual(0);
-      expect(box.y).withContext(faceShape).toBeGreaterThanOrEqual(0);
-      expect(box.x + box.width).withContext(faceShape).toBeLessThanOrEqual(100);
-      expect(box.y + box.height).withContext(faceShape).toBeLessThanOrEqual(100);
-    });
-  });
-
-  it('keeps the eyes and mouth on the face, whatever its shape', () => {
-    // They are drawn at fixed points; a face narrow or short enough would
-    // leave them floating off it
-    FACE_SHAPES.forEach(faceShape => {
-      component.avatar = { ...defaultAvatar(), faceShape };
-      fixture.detectChanges();
-
-      const face = fixture.nativeElement.querySelector('.face').getBBox();
-      const eyes = Array.from(
-        fixture.nativeElement.querySelectorAll('.eye') as NodeListOf<SVGGraphicsElement>);
-      const mouth = fixture.nativeElement.querySelector('.mouth').getBBox();
-
-      eyes.forEach(eye => {
-        const box = eye.getBBox();
-        expect(box.x).withContext(`eye on ${faceShape}`).toBeGreaterThan(face.x);
-        expect(box.x + box.width).toBeLessThan(face.x + face.width);
-        expect(box.y).toBeGreaterThan(face.y);
-      });
-      expect(mouth.y + mouth.height)
-        .withContext(`mouth on ${faceShape}`)
-        .toBeLessThan(face.y + face.height);
-    });
-  });
-
-  it('keeps every style inside the canvas it is drawn in', () => {
-    HAIR_STYLES.forEach(style => {
-      component.avatar = { ...defaultAvatar(), hairStyle: style };
-      fixture.detectChanges();
-
-      const hair = fixture.nativeElement.querySelector('.hair').getBBox();
-
-      expect(hair.x).toBeGreaterThanOrEqual(0);
-      expect(hair.y).toBeGreaterThanOrEqual(0);
-      expect(hair.x + hair.width).toBeLessThanOrEqual(100);
-      expect(hair.y + hair.height).toBeLessThanOrEqual(100);
-    });
-  });
-
-  it('gives each style a visibly different silhouette', () => {
-    const shapes = HAIR_STYLES.map(style => {
-      component.avatar = { ...defaultAvatar(), hairStyle: style };
-      fixture.detectChanges();
-      const box = fixture.nativeElement.querySelector('.hair').getBBox();
-      return `${Math.round(box.width)}x${Math.round(box.height)}`;
-    });
-
-    // Not a strict requirement that all four differ in size, but at least
-    // three distinct silhouettes or the choice is not really a choice
-    expect(new Set(shapes).size).toBeGreaterThanOrEqual(3);
-  });
-
   it('is announced as a picture rather than read out as shapes', () => {
-    const svg = fixture.nativeElement.querySelector('svg');
-
+    const svg = draw();
     expect(svg.getAttribute('role')).toBe('img');
     expect(svg.getAttribute('aria-label')).toBeTruthy();
   });
 });
 
-describe('AvatarComponent framing', () => {
+describe('AvatarComponent: detail that reads at the size it is drawn', () => {
   let fixture: ComponentFixture<AvatarComponent>;
-  let component: AvatarComponent;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [AvatarComponent]
-    }).compileComponents();
-
+    await TestBed.configureTestingModule({ declarations: [AvatarComponent] }).compileComponents();
     fixture = TestBed.createComponent(AvatarComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
-  it('shows the head alone by default', () => {
-    // The default is what the header uses, inside a circular clip
-    const svg = fixture.nativeElement.querySelector('svg');
+  function styleAt(size: number) {
+    fixture.componentInstance.size = size;
+    fixture.detectChanges();
+    return fixture.nativeElement.querySelector('svg').getAttribute('style') as string;
+  }
 
-    expect(svg.getAttribute('viewBox')).toBe(PORTRAIT_VIEW_BOX);
-    expect(fixture.nativeElement.querySelector('.torso')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.neck')).toBeNull();
+  it('drops fine detail at the small sizes where it would turn to mud', () => {
+    // 32, 40 and 44px are where five of the seven appearances are drawn
+    for (const size of [32, 40, 44]) {
+      expect(styleAt(size)).toContain('--detail:none');
+      expect(styleAt(size)).toContain('--small:inline');
+    }
   });
 
-  it('reaches the shoulders when asked to', () => {
-    component.framing = 'full';
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('svg').getAttribute('viewBox')).toBe(FULL_VIEW_BOX);
-    expect(fixture.nativeElement.querySelector('.torso')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('.neck')).toBeTruthy();
+  it('keeps it where there is room for it', () => {
+    for (const size of [140, 180]) {
+      expect(styleAt(size)).toContain('--detail:inline');
+      expect(styleAt(size)).toContain('--small:none');
+    }
   });
 
-  it('keeps the head the same size in both framings', () => {
-    // The whole reason for two framings: a torso must not shrink the face
-    component.framing = 'portrait';
-    fixture.detectChanges();
-    const portrait = fixture.nativeElement.querySelector('.face').getBBox();
-
-    component.framing = 'full';
-    fixture.detectChanges();
-    const full = fixture.nativeElement.querySelector('.face').getBBox();
-
-    expect(full.width).toBe(portrait.width);
-    expect(full.y).toBe(portrait.y);
-  });
-
-  it('grows taller rather than wider for the extra body', () => {
-    component.size = 100;
-    component.framing = 'full';
-    fixture.detectChanges();
-
-    const svg = fixture.nativeElement.querySelector('svg');
-    expect(Number(svg.getAttribute('width'))).toBe(100);
-    expect(Number(svg.getAttribute('height'))).toBeGreaterThan(100);
-  });
-
-  it('keeps the whole body inside the canvas it draws in', () => {
-    component.framing = 'full';
-    fixture.detectChanges();
-
-    const [, , boxWidth, boxHeight] = FULL_VIEW_BOX.split(' ').map(Number);
-    ['.torso', '.neck', '.face'].forEach(selector => {
-      const box = fixture.nativeElement.querySelector(selector).getBBox();
-      expect(box.x).toBeGreaterThanOrEqual(0);
-      expect(box.x + box.width).toBeLessThanOrEqual(boxWidth);
-      expect(box.y + box.height).toBeLessThanOrEqual(boxHeight);
-    });
-  });
-
-  it('tucks the neck behind the chin rather than beside it', () => {
-    component.framing = 'full';
-    fixture.detectChanges();
-
-    const neck = fixture.nativeElement.querySelector('.neck').getBBox();
-    const face = fixture.nativeElement.querySelector('.face').getBBox();
-
-    expect(neck.width).toBeLessThan(face.width);
-    expect(neck.y).toBeLessThan(face.y + face.height);
-  });
-
-  it('dresses the shirt in the colour of the top being worn', () => {
-    component.avatar = { ...defaultAvatar(), top: 'star-tee' };
-    component.framing = 'full';
-    fixture.detectChanges();
-
-    const shirt = fixture.nativeElement.querySelector('.torso').getAttribute('fill');
-    expect(shirt).toBe(findItem('top', 'star-tee')!.colour);
-  });
-
-  it('still wears a shirt when nothing has been earned', () => {
-    // A bare chest is not a sensible default for a character
-    component.avatar = { ...defaultAvatar(), top: NO_ITEM };
-    component.framing = 'full';
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('.torso').getAttribute('fill'))
-      .toBe(DEFAULT_TOP_COLOUR);
-    expect(fixture.nativeElement.querySelector('.top-decoration')).toBeNull();
-  });
-
-  it('draws a top’s decoration over its shirt, in its own colour', () => {
-    const striped = findItem('top', 'striped')!;
-    component.avatar = { ...defaultAvatar(), top: 'striped' };
-    component.framing = 'full';
-    fixture.detectChanges();
-
-    const decoration = fixture.nativeElement.querySelector('.top-decoration');
-    expect(decoration.getAttribute('d')).toBe(striped.path);
-    expect(decoration.getAttribute('fill')).toBe(striped.decorationColour);
-    expect(decoration.getAttribute('fill')).not.toBe(striped.colour);
-  });
-
-  it('shows no clothes at all in the portrait framing', () => {
-    // Nothing to see below the chin, so nothing is drawn there
-    component.avatar = { ...defaultAvatar(), top: 'hoodie' };
-    component.framing = 'portrait';
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('.torso')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.top-decoration')).toBeNull();
+  it('draws a heavier line when small, so the silhouette stays crisp', () => {
+    const lineAt = (size: number) => Number(/--line-w:([\d.]+)/.exec(styleAt(size))![1]);
+    expect(lineAt(44)).toBeGreaterThan(lineAt(180));
   });
 });
 
-describe('AvatarComponent: the face a child actually gets', () => {
+describe('AvatarComponent: what is worn', () => {
   let fixture: ComponentFixture<AvatarComponent>;
   let component: AvatarComponent;
-
-  /** Whether a point in the 100x100 box falls inside a drawn shape. */
-  function inside(selector: string, x: number, y: number): boolean {
-    const svg = fixture.nativeElement.querySelector('svg') as SVGSVGElement;
-    const shape = fixture.nativeElement.querySelector(selector) as SVGGeometryElement;
-    const point = svg.createSVGPoint();
-    point.x = x;
-    point.y = y;
-    return shape.isPointInFill(point);
-  }
-
-  function draw(parts: Partial<Avatar>) {
-    component.avatar = { ...defaultAvatar(), ...parts } as Avatar;
-    fixture.detectChanges();
-  }
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({ declarations: [AvatarComponent] }).compileComponents();
     fixture = TestBed.createComponent(AvatarComponent);
     component = fixture.componentInstance;
+  });
+
+  function draw(avatar: Partial<Avatar>, framing: 'portrait' | 'full' = 'portrait') {
+    component.avatar = { ...defaultAvatar(), ...avatar };
+    component.framing = framing;
     fixture.detectChanges();
-  });
+    return fixture.nativeElement.querySelector('svg') as SVGSVGElement;
+  }
+  const href = (svg: Element, sel: string) => {
+    const use = svg.querySelector(sel);
+    return use ? (use.getAttribute('href') || '').replace(`${SPRITE}#`, '') : null;
+  };
 
-  describe('eyes', () => {
-    it('draws every shape as a pair, both of them filled', () => {
-      EYE_SHAPES.forEach(eyeShape => {
-        draw({ eyeShape });
-        expect(inside('.eye', 39, 52)).toBe(true, `${eyeShape} left`);
-        expect(inside('.eye', 61, 52)).toBe(true, `${eyeShape} right`);
-      });
-    });
-
-    it('never leaves the glint outside the eye it belongs to', () => {
-      // A white dot on a cheek is a freckle, not a highlight
-      EYE_SHAPES.forEach(eyeShape => {
-        draw({ eyeShape });
-        expect(inside('.eye', 40.5, 50.5)).toBe(true, `${eyeShape} left glint`);
-        expect(inside('.eye', 62.5, 50.5)).toBe(true, `${eyeShape} right glint`);
-      });
-    });
-
-    it('keeps the eyes on the face, whichever face it is', () => {
-      // Both axes: a shape that fits a round face can hang off a heart one
-      FACE_SHAPES.forEach(faceShape => {
-        EYE_SHAPES.forEach(eyeShape => {
-          draw({ faceShape, eyeShape });
-          [[39, 52], [61, 52]].forEach(([x, y]) => {
-            expect(inside('.face', x, y)).toBe(true, `${faceShape} + ${eyeShape}`);
-          });
-        });
-      });
-    });
-
-    it('gives the shapes different silhouettes, not just different sizes', () => {
-      // Sampled above and below the centre line, where a round eye and a
-      // narrow one differ and a bounding box does not
-      const profiles = EYE_SHAPES.map(eyeShape => {
-        draw({ eyeShape });
-        return [48.5, 52, 55.5].map(y => (inside('.eye', 39, y) ? 1 : 0)).join('');
-      });
-
-      expect(new Set(profiles).size).toBeGreaterThan(1);
+  it('fits a hat to the face it is on', () => {
+    FACE_SHAPES.forEach(faceShape => {
+      expect(href(draw({ faceShape, hat: 'beanie' }), 'use.hat')).toBe(`hat-beanie-${faceShape}`);
     });
   });
 
-  describe('mouths', () => {
-    it('draws every shape', () => {
-      MOUTH_SHAPES.forEach(mouthShape => {
-        draw({ mouthShape });
-        const mouth = fixture.nativeElement.querySelector('.mouth');
-        expect(mouth.getAttribute('d')).toBeTruthy(mouthShape);
-      });
-    });
-
-    it('traces a line but fills an open mouth', () => {
-      draw({ mouthShape: 'smile' });
-      expect(fixture.nativeElement.querySelector('.mouth').getAttribute('fill')).toBe('none');
-
-      draw({ mouthShape: 'open' });
-      expect(fixture.nativeElement.querySelector('.mouth').getAttribute('fill')).not.toBe('none');
-    });
-
-    it('keeps the mouth on the face, whichever face it is', () => {
-      FACE_SHAPES.forEach(faceShape => {
-        MOUTH_SHAPES.forEach(mouthShape => {
-          draw({ faceShape, mouthShape });
-          // The centre of the mouth, and both corners
-          [[41, 66], [50, 68], [59, 66]].forEach(([x, y]) => {
-            expect(inside('.face', x, y)).toBe(true, `${faceShape} + ${mouthShape}`);
-          });
-        });
-      });
+  it('hides the hair above the brim of a hat worn over the head, at that face\'s brim', () => {
+    FACE_SHAPES.forEach(faceShape => {
+      const svg = draw({ faceShape, hairStyle: 'afro', hat: 'beanie' });
+      const clip = svg.querySelector('clipPath')!;
+      expect(clip).toBeTruthy();
+      expect(Number(clip.querySelector('rect')!.getAttribute('y'))).toBe(HAT_LINE[faceShape]);
+      const ref = `url(#${clip.id})`;
+      expect(svg.querySelector('g.front')!.getAttribute('clip-path')).toBe(ref);
+      expect(svg.querySelector('g.back')!.getAttribute('clip-path')).toBe(ref);
     });
   });
 
-  describe('hair texture', () => {
-    it('draws no rim at all on smooth hair, so nothing anybody saved moves', () => {
-      draw({ hairTexture: 'smooth' });
+  it('hides nothing for a crown, which is worn in the hair rather than over it', () => {
+    const svg = draw({ hairStyle: 'afro', hat: 'crown' });
+    expect(svg.querySelector('clipPath')).toBeNull();
+    expect(svg.querySelector('g.front')!.getAttribute('clip-path')).toBeNull();
+  });
 
-      expect(fixture.nativeElement.querySelector('.hair-texture')).toBeNull();
-    });
+  it('hides nothing when no hat is worn', () => {
+    const svg = draw({ hat: NO_ITEM });
+    expect(svg.querySelector('use.hat')).toBeNull();
+    expect(svg.querySelector('clipPath')).toBeNull();
+  });
 
-    it('draws a rim on the others', () => {
-      ['wavy', 'coily'].forEach((hairTexture: any) => {
-        draw({ hairTexture });
-        const rim = fixture.nativeElement.querySelector('.hair-texture');
-        expect(rim).toBeTruthy(hairTexture);
-        expect(rim.getAttribute('stroke-dasharray')).toBeTruthy(hairTexture);
-      });
-    });
+  it('gives every character on a page its own clip, so two hats never share one', () => {
+    const a = TestBed.createComponent(AvatarComponent);
+    const b = TestBed.createComponent(AvatarComponent);
+    a.componentInstance.avatar = { ...defaultAvatar(), hat: 'cap' };
+    b.componentInstance.avatar = { ...defaultAvatar(), hat: 'cap' };
+    a.detectChanges();
+    b.detectChanges();
+    expect(a.nativeElement.querySelector('clipPath').id).not.toBe(b.nativeElement.querySelector('clipPath').id);
+  });
 
-    it('follows the hair it is drawn on, in shape and in colour', () => {
-      HAIR_STYLES.forEach(hairStyle => {
-        draw({ hairStyle, hairTexture: 'coily', hairColour: HAIR_COLOURS[0] });
-        const hair = fixture.nativeElement.querySelector('.hair');
-        const rim = fixture.nativeElement.querySelector('.hair-texture');
+  it('fits glasses to the face they are on', () => {
+    expect(href(draw({ faceShape: 'heart', glasses: 'goggles' }), 'use.glasses')).toBe('glasses-goggles-heart');
+  });
 
-        // Same path, so it composes with every style without a new silhouette
-        expect(rim.getAttribute('d')).toBe(hair.getAttribute('d'), hairStyle);
-        expect(rim.getAttribute('stroke')).not.toBe(HAIR_COLOURS[0]);
-      });
-    });
+  it('refuses to draw an item that does not exist', () => {
+    const svg = draw({ hat: 'jetpack', glasses: 'monocle' });
+    expect(svg.querySelector('use.hat')).toBeNull();
+    expect(svg.querySelector('use.glasses')).toBeNull();
+  });
 
-    it('composes with every style and every colour without throwing', () => {
-      HAIR_STYLES.forEach(hairStyle => {
-        HAIR_TEXTURES.forEach((hairTexture: any) => {
-          HAIR_COLOURS.forEach(hairColour => {
-            expect(() => draw({ hairStyle, hairTexture, hairColour })).not.toThrow();
-          });
-        });
-      });
-    });
+  it('shows no clothes at all in the portrait framing', () => {
+    expect(draw({ top: 'hoodie' }).querySelector('use.body')).toBeNull();
+  });
+
+  it('dresses the body in the top being worn, and a plain one when nothing is', () => {
+    expect(href(draw({ top: 'hoodie' }, 'full'), 'use.body')).toBe('body-hoodie');
+    expect(href(draw({ top: NO_ITEM }, 'full'), 'use.body')).toBe('body-none');
+  });
+
+  it('grows taller rather than wider for the extra body', () => {
+    component.size = 100;
+    const portrait = draw({}, 'portrait');
+    const pw = portrait.getAttribute('width');
+    const ph = Number(portrait.getAttribute('height'));
+    const full = draw({}, 'full');
+    expect(full.getAttribute('width')).toBe(pw);
+    expect(Number(full.getAttribute('height'))).toBeGreaterThan(ph);
+    expect(full.getAttribute('viewBox')).toBe('0 0 100 132');
   });
 
   it('draws a character with every axis set at once', () => {
-    // The combination that was impossible: long hair, coily, on a deep skin
-    // tone, with almond eyes
-    draw({
-      skin: SKIN_TONES[5], faceShape: 'oval', hairStyle: 'long',
-      hairTexture: 'coily', eyeShape: 'almond', mouthShape: 'grin'
-    });
+    const svg = draw({
+      skin: SKIN_TONES[3], faceShape: 'square', hairStyle: 'braids', hairTexture: 'coily',
+      hairColour: HAIR_COLOURS[5], eyeShape: 'almond', eyeColour: EYE_COLOURS[3], mouthShape: 'open',
+      hat: 'wizard', glasses: 'round-glasses', top: 'striped'
+    }, 'full');
+    const drawn = Array.from(svg.querySelectorAll('use')).map(u => u.getAttribute('href')!.split('#')[1]);
+    expect(drawn).toEqual([
+      'hair-back-braids-square', 'body-striped', 'ears-square', 'face-square', 'brows',
+      'eyes-almond', 'mouth-open', 'hair-braids-square', 'glasses-round-glasses-square', 'hat-wizard-square'
+    ]);
+  });
+});
 
-    expect(fixture.nativeElement.querySelector('.hair-texture')).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('.eye').getAttribute('d'))
-      .toBe(EYE_PATHS.almond);
-    expect(inside('.face', 39, 52)).toBe(true);
+describe('AvatarComponent: hair texture', () => {
+  let fixture: ComponentFixture<AvatarComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({ declarations: [AvatarComponent] }).compileComponents();
+    fixture = TestBed.createComponent(AvatarComponent);
+  });
+
+  function styleFor(hairTexture: any) {
+    fixture.componentInstance.avatar = { ...defaultAvatar(), hairTexture };
+    fixture.detectChanges();
+    return fixture.nativeElement.querySelector('svg').getAttribute('style') as string;
+  }
+
+  it('draws no rim at all on smooth hair', () => {
+    expect(styleFor('smooth')).toContain('--tex-w:0');
+  });
+
+  it('draws a different rim for each of the others', () => {
+    const dashes = HAIR_TEXTURES.filter(t => t !== 'smooth').map(t => {
+      const style = styleFor(t);
+      expect(Number(/--tex-w:([\d.]+)/.exec(style)![1])).toBeGreaterThan(0);
+      return /--tex-dash:([^;]+)/.exec(style)![1];
+    });
+    expect(new Set(dashes).size).toBe(dashes.length);
   });
 });

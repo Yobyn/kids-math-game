@@ -1,27 +1,15 @@
 import { Component, Input } from '@angular/core';
-import {
-  Avatar,
-  EYE_PATHS,
-  FACE_PATHS,
-  FULL_VIEW_BOX,
-  HAIR_PATHS,
-  MOUTH_PATHS,
-  Mouth,
-  NECK_PATH,
-  PORTRAIT_VIEW_BOX,
-  TEXTURE_DASHES,
-  TEXTURE_WIDTH,
-  TORSO_PATH,
-  WardrobeItem,
-  defaultAvatar,
-  findItem,
-  lighten,
-  topColour
-} from './avatar-model';
+import { Avatar, FULL_VIEW_BOX, PORTRAIT_VIEW_BOX, defaultAvatar } from './avatar-model';
+import { AvatarLayers, SPRITE, avatarLayers, avatarVars } from './avatar-parts';
+
+let instances = 0;
 
 /**
- * Draws the child's character from primitives — no images, so it stays sharp
- * at any size and costs nothing to ship.
+ * Draws the child's character from the parts sprite. Every part is a <use>
+ * of a shape fitted to this face, coloured through CSS variables — so the
+ * detail lives in an asset the service worker caches, not in the JavaScript
+ * every screen loads. See avatar-parts.ts for the rules, and
+ * scripts/avatar-art/ for the drawing.
  */
 @Component({
   selector: 'app-avatar',
@@ -39,8 +27,8 @@ export class AvatarComponent {
    */
   @Input() framing: 'portrait' | 'full' = 'portrait';
 
-  readonly neckPath = NECK_PATH;
-  readonly torsoPath = TORSO_PATH;
+  /** Unique per character on the page, so two hats never share one clip. */
+  readonly clipId = `avatar-hat-${instances++}`;
 
   get viewBox(): string {
     return this.framing === 'full' ? FULL_VIEW_BOX : PORTRAIT_VIEW_BOX;
@@ -51,63 +39,19 @@ export class AvatarComponent {
     return this.framing === 'full' ? Math.round(this.size * 1.32) : this.size;
   }
 
-  get showsBody(): boolean {
-    return this.framing === 'full';
+  get layers(): AvatarLayers {
+    return avatarLayers(this.avatar || defaultAvatar(), this.framing);
   }
 
-  get shirtColour(): string {
-    return topColour(this.avatar);
+  get vars(): string {
+    return avatarVars(this.avatar || defaultAvatar(), this.size);
   }
 
-  get top(): WardrobeItem | undefined {
-    return this.wornItem('top', this.avatar.top);
+  get clipRef(): string | null {
+    return this.layers.coversHair ? `url(#${this.clipId})` : null;
   }
 
-  /** The face outline, which used to be a circle nobody could change. */
-  get facePath(): string {
-    return FACE_PATHS[this.avatar.faceShape] || FACE_PATHS.round;
-  }
-
-  get hairPath(): string {
-    return HAIR_PATHS[this.avatar.hairStyle];
-  }
-
-  /** The eyes, which used to be one pair of circles on every child. */
-  get eyePath(): string {
-    return EYE_PATHS[this.avatar.eyeShape] || EYE_PATHS.round;
-  }
-
-  get mouth(): Mouth {
-    return MOUTH_PATHS[this.avatar.mouthShape] || MOUTH_PATHS.smile;
-  }
-
-  /**
-   * The texture rim, or nothing at all for smooth hair — which is what every
-   * character had before texture was a choice, so they all look unchanged.
-   */
-  get textureDashes(): string {
-    return TEXTURE_DASHES[this.avatar.hairTexture] || '';
-  }
-
-  get textureWidth(): number {
-    return TEXTURE_WIDTH[this.avatar.hairTexture] || 0;
-  }
-
-  /** Follows the hair colour: a fixed highlight would read as grey hair. */
-  get textureColour(): string {
-    return lighten(this.avatar.hairColour);
-  }
-
-  get glasses(): WardrobeItem | undefined {
-    return this.wornItem('glasses', this.avatar.glasses);
-  }
-
-  get hat(): WardrobeItem | undefined {
-    return this.wornItem('hat', this.avatar.hat);
-  }
-
-  private wornItem(slot: 'hat' | 'glasses' | 'top', id: string): WardrobeItem | undefined {
-    const item = findItem(slot, id);
-    return item && item.path ? item : undefined;
+  part(id: string): string {
+    return `${SPRITE}#${id}`;
   }
 }
