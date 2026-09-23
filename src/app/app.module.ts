@@ -17,6 +17,7 @@ import { ProgressComponent } from './progress/progress.component';
 import { AdultsComponent } from './adults/adults.component';
 import { KeypadComponent } from './keypad/keypad.component';
 import { CoinsComponent } from './money/coins.component';
+import { CoinPickerComponent } from './money/coin-picker.component';
 import { ScrapbookComponent } from './scrapbook/scrapbook.component';
 import { AvatarComponent } from './avatar/avatar.component';
 import { AvatarChooserComponent } from './avatar/avatar-chooser.component';
@@ -40,6 +41,7 @@ import { AuthInterceptor } from './auth.interceptor';
     AdultsComponent,
     KeypadComponent,
     CoinsComponent,
+    CoinPickerComponent,
     ScrapbookComponent
   ],
   imports: [

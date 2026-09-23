@@ -1,0 +1,22 @@
+<div class="pick">
+  <div class="purse" [class.filled]="picked.length">
+    <span class="purse-label">{{ languageService.translate('money-purse') }}</span>
+    <app-coins [pieces]="picked"
+               [decimal]="decimal"
+               [tappable]="!disabled"
+               [actionLabel]="languageService.translate('money-take-back')"
+               (take)="putBack.emit($event)"></app-coins>
+    <!-- Read out as it changes: a child who cannot see the coins still has
+         to know what they have put down. -->
+    <p class="so-far" aria-live="polite">
+      {{ languageService.translate('money-so-far') }} {{ soFar }}
+    </p>
+  </div>
+
+  <span class="tray-label">{{ languageService.translate('money-tray') }}</span>
+  <app-coins [pieces]="tray"
+             [decimal]="decimal"
+             [tappable]="!disabled"
+             [actionLabel]="languageService.translate('money-purse')"
+             (take)="take.emit($event)"></app-coins>
+</div>

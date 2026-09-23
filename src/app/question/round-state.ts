@@ -1,3 +1,4 @@
+import { MAX_PICKED } from '../teaching/coin-pick';
 import { MissedFact } from '../services/progress.service';
 import { MoneyQuestion } from '../teaching/money';
 
@@ -97,6 +98,13 @@ export interface SavedRound {
   missed: SavedReplay[];
   offerSpent: boolean;
   /**
+   * Coins already put down on a picking question. A child interrupted four
+   * coins into making €1.35 comes back to those four coins; losing them
+   * would be the same kind of quiet loss the whole round save exists to
+   * prevent, only smaller and more annoying.
+   */
+  picked?: number[];
+  /**
    * True when `question` had already been answered and the child was looking
    * at the answer. Restoring that state would re-ask a question already
    * counted, so a round saved this way resumes at the NEXT question instead.
@@ -159,11 +167,32 @@ function readMoney(raw: any): MoneyQuestion | undefined {
       }
     });
   }
+  // The tray is what makes a picking question answerable at all. Read back
+  // without it, the question would come back as a box to type a number into
+  // — for a question whose answer is a handful of coins. So a tray that is
+  // there must be whole, and one that is not there is simply a question of
+  // another shape. (No migration is needed for rounds saved before this
+  // existed: the shape did not exist either, so none of them carry one.)
+  let tray: number[] | undefined;
+  if (raw.tray !== undefined) {
+    if (!Array.isArray(raw.tray) || !raw.tray.length) {
+      return undefined;
+    }
+    tray = raw.tray.map((piece: any) => Number(piece));
+    if (tray!.some(piece => !Number.isFinite(piece) || piece <= 0)) {
+      return undefined;
+    }
+  }
+
+  // Spread into place rather than assigned afterwards, so the key lands
+  // where the interface declares it and a round read and written back out
+  // again is byte for byte what it came from
   return {
     shape: raw.shape,
     prompt: raw.prompt,
     values,
     pile: raw.pile.map((piece: any) => Number(piece)),
+    ...(tray ? { tray } : {}),
     answer,
     unit: raw.unit,
     answerCents,
@@ -250,6 +279,7 @@ export function parseRound(raw: string | null | undefined): SavedRound | null {
     : [];
 
   const reviewing = readFact(parsed.reviewing);
+  const picked = readPicked(parsed.picked);
 
   const round: SavedRound = {
     version: ROUND_VERSION,
@@ -268,6 +298,9 @@ export function parseRound(raw: string | null | undefined): SavedRound | null {
     isReplay: parsed.isReplay === true,
     missed: readReplays(parsed.missed),
     offerSpent: parsed.offerSpent === true,
+    // In place rather than assigned afterwards, so a round written by the
+    // question screen and read back is byte for byte what it came from
+    ...(picked.length ? { picked } : {}),
     answered: parsed.answered === true,
     wrongAttempts: whole(parsed.wrongAttempts)
   };
@@ -279,6 +312,22 @@ export function parseRound(raw: string | null | undefined): SavedRound | null {
   }
 
   return round;
+}
+
+/**
+ * Coins already put down, from a store that may hold anything. Nothing here
+ * is trusted: a value that is not a positive whole number of cents is
+ * dropped, and the whole thing is capped, so a hand-edited store cannot put
+ * a thousand coins on the screen.
+ */
+function readPicked(raw: any): number[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw
+    .map((entry: any) => Number(entry))
+    .filter((value: number) => Number.isFinite(value) && value > 0 && value === Math.floor(value))
+    .slice(0, MAX_PICKED);
 }
 
 /** How old a saved round is. A clock moved backwards reads as brand new. */

@@ -1,3 +1,4 @@
+import { MAX_PICKED } from '../teaching/coin-pick';
 import {
   QUESTIONS_IN_ROUND,
   RESUME_WINDOW_MS,
@@ -267,5 +268,105 @@ describe('round-state', () => {
         expect(shown).toBeLessThanOrEqual(QUESTIONS_IN_ROUND);
       }
     });
+  });
+});
+
+describe('round-state: a picking question and the coins already down', () => {
+  const pickMoney = {
+    shape: 'pick', prompt: 'money-pick', values: { target: '75c' },
+    pile: [], tray: [50, 20, 10, 5], answer: 75, unit: 'pieces',
+    answerCents: 75, worked: '50c + 20c + 5c = 75c',
+    answerText: '75c', summary: '75c = 50c + 20c + 5c'
+  };
+
+  /**
+   * Built in the order the question screen writes it, so the round-trip
+   * check below is testing the parser rather than the fixture.
+   */
+  const picking = (picked?: number[]) => {
+    const base: any = round({
+      question: { num1: 0, num2: 0, operation: 'money', money: pickMoney as any }
+    });
+    if (!picked) {
+      return base;
+    }
+    const ordered: any = {};
+    Object.keys(base).forEach(key => {
+      ordered[key] = base[key];
+      if (key === 'offerSpent') {
+        ordered.picked = picked;
+      }
+    });
+    return ordered;
+  };
+
+  it('brings the tray back, or the question cannot be answered at all', () => {
+    // Read back without its tray, a picking question returns as a box to
+    // type a number into — for a question whose answer is a handful of coins
+    const back = parseRound(serialiseRound(picking()));
+
+    expect(back!.question.money!.tray).toEqual([50, 20, 10, 5]);
+  });
+
+  it('brings the coins already put down back with it', () => {
+    const back = parseRound(serialiseRound(picking([20, 20, 5])));
+
+    expect(back!.picked).toEqual([20, 20, 5]);
+  });
+
+  it('survives being written out and read back unchanged', () => {
+    const first = serialiseRound(picking([50, 20]));
+
+    expect(serialiseRound(parseRound(first)!)).toBe(first);
+  });
+
+  it('leaves the field off entirely when nothing is down', () => {
+    const back = parseRound(serialiseRound(picking()));
+
+    expect('picked' in back!).toBe(false);
+  });
+
+  it('drops a question whose tray is rubbish rather than showing an empty one', () => {
+    const broken = JSON.parse(serialiseRound(picking()));
+    broken.question.money.tray = [];
+
+    expect(parseRound(JSON.stringify(broken))!.question.money).toBeUndefined();
+  });
+
+  it('drops a question whose tray holds something that is not a coin', () => {
+    ['nonsense', -5, 0, null].forEach(bad => {
+      const broken = JSON.parse(serialiseRound(picking()));
+      broken.question.money.tray = [50, bad];
+
+      expect(parseRound(JSON.stringify(broken))!.question.money).toBeUndefined();
+    });
+  });
+
+  it('throws away coins a hand-edited store put there', () => {
+    const edited = JSON.parse(serialiseRound(picking()));
+    edited.picked = [20, 'free money', -100, 0, 5.5, 5];
+
+    expect(parseRound(JSON.stringify(edited))!.picked).toEqual([20, 5]);
+  });
+
+  it('never returns more coins than a child could have put down', () => {
+    const edited = JSON.parse(serialiseRound(picking()));
+    edited.picked = new Array(500).fill(1);
+
+    expect(parseRound(JSON.stringify(edited))!.picked!.length).toBe(MAX_PICKED);
+  });
+
+  it('ignores a picked field that is not a list', () => {
+    const edited = JSON.parse(serialiseRound(picking()));
+    edited.picked = { fifty: 1 };
+
+    expect(parseRound(JSON.stringify(edited))!.picked).toBeUndefined();
+  });
+
+  it('leaves an ordinary typed question exactly as it was', () => {
+    const back = parseRound(serialiseRound(round()));
+
+    expect(back!.question.money).toBeUndefined();
+    expect(back!.picked).toBeUndefined();
   });
 });

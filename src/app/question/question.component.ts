@@ -13,6 +13,7 @@ import {
   unitPrefix,
   unitSuffix
 } from '../teaching/money';
+import { MAX_PICKED, addPiece, pickMatches, removeAt } from '../teaching/coin-pick';
 import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
 import { trigger, state, style, animate, transition } from '@angular/animations';
@@ -110,6 +111,11 @@ export class QuestionComponent implements OnInit, OnDestroy {
   readonly totalQuestions = TOTAL_QUESTIONS;
   streakCount: number = 0;
   useKeypad: boolean = false;
+  /**
+   * The coins a child has put down, for the one money shape whose answer is
+   * a handful rather than a number. Empty for every other question.
+   */
+  picked: number[] = [];
   /**
    * Every finished question this round, in order, so the offer below can read
    * a run of misses rather than a single bad question.
@@ -299,6 +305,12 @@ export class QuestionComponent implements OnInit, OnDestroy {
       this.wrongAttempts = round.wrongAttempts;
       this.isSecondAttempt = round.wrongAttempts > 0;
       this.userAnswer = '';
+      // Only for the question actually being restored, and only what it can
+      // hold: a store hand-edited to carry coins for a typed question must
+      // not put a purse on the screen
+      this.picked = round.question.money && round.question.money.tray
+        ? (round.picked || []).slice(0, MAX_PICKED)
+        : [];
       this.workedLine = '';
       this.inputPlaceholder = '?';
       this.showOkButton = false;
@@ -354,6 +366,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
         reviewOf: item.reviewOf
       })),
       offerSpent: this.offerSpent,
+      picked: this.picked.slice(),
       answered: this.showOkButton,
       wrongAttempts: this.wrongAttempts
     });
@@ -515,6 +528,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
       this.isReplay = true;
       this.reviewing = due.reviewOf;
       this.userAnswer = '';
+      this.picked = [];
       this.feedback = '';
       this.workedLine = '';
       this.inputPlaceholder = '?';
@@ -524,6 +538,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
 
     if (this.shouldAskAboutMoney() && this.generateMoneyQuestion()) {
       this.userAnswer = '';
+      this.picked = [];
       this.feedback = '';
       this.workedLine = '';
       this.inputPlaceholder = '?';
@@ -572,6 +587,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     }
 
     this.userAnswer = '';
+    this.picked = [];
     this.feedback = '';
     this.workedLine = '';
     this.inputPlaceholder = '?';
@@ -608,7 +624,60 @@ export class QuestionComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** True when this question wants coins put down rather than a number typed. */
+  get isPicking(): boolean {
+    return !!(this.currentQuestion.money && this.currentQuestion.money.tray);
+  }
+
+  /** The denominations on offer, or none when the question is not that shape. */
+  get tray(): number[] {
+    return (this.currentQuestion.money && this.currentQuestion.money.tray) || [];
+  }
+
+  /**
+   * Take a coin from the tray. The tray is not consumed — a child making 60c
+   * from three 20s needs the same coin three times, and a real purse is not
+   * the constraint being taught here.
+   */
+  takeFromTray(index: number) {
+    if (this.showOkButton || index < 0 || index >= this.tray.length) {
+      return;
+    }
+    this.picked = addPiece(this.picked, this.tray[index]);
+    this.vibrate(10);
+    this.saveRound();
+  }
+
+  /** Put one back. Every tap is undoable, exactly as on the keypad. */
+  putBack(index: number) {
+    if (this.showOkButton) {
+      return;
+    }
+    this.picked = removeAt(this.picked, index);
+    this.vibrate(10);
+    this.saveRound();
+  }
+
   checkAnswer() {
+    const picking = this.currentQuestion.money;
+    if (picking && picking.tray) {
+      if (!this.picked.length) {
+        this.showShakeAnimation = true;
+        setTimeout(() => this.showShakeAnimation = false, 500);
+        return;
+      }
+      this.correctAnswer = picking.answer;
+      this.correctAnswerText = picking.answerText;
+      // Any handful that comes to the amount. Which coins, how many, and in
+      // what order are all beside the point — see teaching/coin-pick.ts.
+      if (pickMatches(this.picked, picking.answerCents)) {
+        this.handleCorrectAnswer();
+      } else {
+        this.handleWrongAnswer();
+      }
+      return;
+    }
+
     if (this.userAnswer === null || this.userAnswer === undefined || this.userAnswer === '') {
       this.showShakeAnimation = true;
       setTimeout(() => this.showShakeAnimation = false, 500);
@@ -700,6 +769,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
       this.feedback = this.languageService.translate('try-again');
       this.isSecondAttempt = true;
       this.userAnswer = '';
+      this.picked = [];
       if (!this.useKeypad) {
         setTimeout(() => this.focusAnswer(), 100);
       }
@@ -845,6 +915,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     this.feedback = '';
     this.answerWasCorrect = null;
     this.userAnswer = '';
+    this.picked = [];
     this.isSecondAttempt = false;
     this.showOkButton = false;
     this.wrongAttempts = 0;

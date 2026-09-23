@@ -38,7 +38,7 @@
     <div class="progress-fill" [style.width.%]="progressPercent"></div>
   </div>
 
-  <div class="question-box" [class.shake]="showShakeAnimation">
+  <div class="question-box" [class.shake]="showShakeAnimation" [class.picking]="isPicking">
     <p class="money-prompt" *ngIf="currentQuestion.money">{{ moneyText }}</p>
 
     <!-- The pieces on the table, for the shapes that put any there. -->
@@ -46,7 +46,17 @@
                [pieces]="currentQuestion.money.pile"
                [decimal]="needsDecimalKey"></app-coins>
 
-    <div class="math-problem">
+    <!-- The one shape whose answer is a handful of coins rather than a
+         number. Any combination that comes to the amount is right. -->
+    <app-coin-picker *ngIf="isPicking"
+                     [tray]="tray"
+                     [picked]="picked"
+                     [decimal]="needsDecimalKey"
+                     [disabled]="showOkButton"
+                     (take)="takeFromTray($event)"
+                     (putBack)="putBack($event)"></app-coin-picker>
+
+    <div class="math-problem" *ngIf="!isPicking">
       <span class="number" *ngIf="!currentQuestion.money">{{ currentQuestion.num1 }}</span>
       <span class="operation" *ngIf="!currentQuestion.money">{{ currentQuestion.operation }}</span>
       <span class="number" *ngIf="!currentQuestion.money">{{ currentQuestion.num2 }}</span>
@@ -68,7 +78,7 @@
       <span class="currency unit-after" *ngIf="answerSuffix">{{ answerSuffix }}</span>
     </div>
 
-    <app-keypad *ngIf="useKeypad"
+    <app-keypad *ngIf="useKeypad && !isPicking"
                 [disabled]="showOkButton"
                 [decimal]="needsDecimalKey"
                 (press)="onKeypadPress($event)"></app-keypad>

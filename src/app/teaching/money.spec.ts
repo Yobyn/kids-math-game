@@ -256,9 +256,37 @@ describe('money: every question a child can be asked', () => {
     GRADES.forEach(grade => {
       const band = bandFor(grade);
       sample(grade).forEach(question => {
+        // The separation rule is about what a child TYPES. Nothing is typed
+        // on a picking question, so "€1 and 25c" is available to it below
+        // the decimal band — which is exactly the mixed-unit recording Year
+        // 3 does, and the one thing the answer box could never ask for.
+        if (question.unit === 'pieces') {
+          expect(question.answerText).toBeTruthy();
+          return;
+        }
         expect(unitFor(question.answerCents, band)).not.toBeNull();
       });
     });
+  });
+
+  it('asks a picking question for amounts the box could not have asked for', () => {
+    // Without this the new shape would only be a new way to enter answers
+    // the old one already accepted, which would not have been worth a screen
+    const mixed: MoneyQuestion[] = [];
+    GRADES.forEach(grade => {
+      const band = bandFor(grade);
+      if (band.decimal || band.maxCents <= 100) {
+        return;
+      }
+      sample(grade, 400).forEach(question => {
+        if (question.unit === 'pieces' && unitFor(question.answerCents, band) === null) {
+          mixed.push(question);
+        }
+      });
+    });
+
+    expect(mixed.length).toBeGreaterThan(0);
+    mixed.forEach(question => expect(question.answerText).toContain('and'));
   });
 
   it('never asks a child for a number they cannot type', () => {
@@ -348,6 +376,7 @@ describe('money: every question a child can be asked', () => {
     const needed: { [prompt: string]: string[] } = {
       'money-count': [],
       'money-make': ['coin', 'target'],
+      'money-pick': ['target'],
       'money-total': ['first', 'second'],
       'money-change': ['price', 'paid']
     };

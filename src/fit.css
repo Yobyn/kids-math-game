@@ -109,6 +109,35 @@ html[data-fit='short'] .question-box > app-keypad {
   align-self: center;
 }
 
+/* A picking question has no keypad — a tray of coins takes its place — so
+   the 168px column held for one would be an empty gutter. The card goes
+   back to a single column and the PICKER splits itself instead: the purse
+   on the left, the tray to take from on the right, which is the pair a
+   child looks between. */
+html[data-fit='short'] .question-box.picking {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html[data-fit='short'] .pick {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0 0.75rem;
+  align-items: start;
+  margin: 0.2rem 0;
+}
+
+html[data-fit='short'] .purse {
+  grid-row: 1 / span 2;
+  min-height: 64px;
+  margin-bottom: 0;
+}
+
+/* The coins themselves are never shrunk: 56px is above the 44px floor and a
+   coin a child taps is the last thing to compress. They wrap instead. */
+html[data-fit='short'] .pick .coins {
+  margin-bottom: 0.4rem;
+}
+
 html[data-fit='short'] .question-box .keypad {
   max-width: 168px;
   gap: 6px;

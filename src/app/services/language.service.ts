@@ -47,6 +47,12 @@ export type TranslationKeys =
   | 'money-change'
   | 'money-count'
   | 'money-make'
+  | 'money-pick'
+  | 'money-purse'
+  | 'money-tray'
+  | 'money-so-far'
+  | 'money-take-back'
+  | 'money-another-way'
   | 'money-and'
   | 'new-best'
   | 'your-best'
@@ -369,6 +375,12 @@ export class LanguageService {
       'money-change': 'A toy costs {price}. You pay with {paid}. How much change do you get?',
       'money-count': 'How much money is this?',
       'money-make': 'How many {coin} coins make {target}?',
+      'money-pick': 'Put down coins to make {target}.',
+      'money-purse': 'Your coins',
+      'money-tray': 'Coins you can use',
+      'money-so-far': 'So far',
+      'money-take-back': 'Take back',
+      'money-another-way': 'There is more than one way to make it.',
       'money-and': 'and',
       'new-best': 'Your best round yet!',
       'your-best': 'Your best so far',
@@ -548,6 +560,12 @@ export class LanguageService {
       'money-change': 'Speelgoed kost {price}. Je betaalt met {paid}. Hoeveel krijg je terug?',
       'money-count': 'Hoeveel geld is dit?',
       'money-make': 'Hoeveel munten van {coin} maken {target}?',
+      'money-pick': 'Leg munten neer om {target} te maken.',
+      'money-purse': 'Jouw munten',
+      'money-tray': 'Munten die je kunt gebruiken',
+      'money-so-far': 'Tot nu toe',
+      'money-take-back': 'Terugnemen',
+      'money-another-way': 'Er is meer dan één manier om het te maken.',
       'money-and': 'en',
       'new-best': 'Je beste ronde tot nu toe!',
       'your-best': 'Je beste tot nu toe',
@@ -727,6 +745,12 @@ export class LanguageService {
       'money-change': 'Un juguete cuesta {price}. Pagas con {paid}. ¿Cuánto cambio recibes?',
       'money-count': '¿Cuánto dinero hay aquí?',
       'money-make': '¿Cuántas monedas de {coin} hacen {target}?',
+      'money-pick': 'Pon monedas para hacer {target}.',
+      'money-purse': 'Tus monedas',
+      'money-tray': 'Monedas que puedes usar',
+      'money-so-far': 'Hasta ahora',
+      'money-take-back': 'Quitar',
+      'money-another-way': 'Hay más de una manera de hacerlo.',
       'money-and': 'y',
       'new-best': '¡Tu mejor ronda hasta ahora!',
       'your-best': 'Tu mejor resultado',
