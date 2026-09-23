@@ -2,7 +2,7 @@
   max-width: 400px;
   margin: 2rem auto;
   padding: 2rem;
-  background: white;
+  background: var(--surface);
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -10,7 +10,7 @@
 
 .login-container h2 {
   text-align: center;
-  color: #333;
+  color: var(--text);
   margin-bottom: 2rem;
   font-size: 1.8rem;
 }
@@ -23,7 +23,7 @@
 input {
   width: 100%;
   padding: 12px;
-  border: 2px solid #e0e0e0;
+  border: 2px solid var(--edge);
   border-radius: 6px;
   font-size: 1rem;
   transition: all 0.3s ease;
@@ -31,17 +31,17 @@ input {
 }
 
 input:focus {
-  border-color: #4a90e2;
+  border-color: var(--accent-blue);
   box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
 }
 
 input.invalid {
-  border-color: #dc3545;
-  background-color: #fff8f8;
+  border-color: var(--bad);
+  background-color: rgba(168, 38, 29, 0.16);
 }
 
 .validation-message {
-  color: #dc3545;
+  color: var(--bad-on-dark);
   font-size: 0.8rem;
   margin-top: 0.5rem;
   opacity: 0;
@@ -60,22 +60,22 @@ input.invalid {
 }
 
 .error-message {
-  background-color: #fff8f8;
-  color: #dc3545;
-  border: 1px solid #dc3545;
+  background-color: rgba(168, 38, 29, 0.16);
+  color: var(--bad-on-dark);
+  border: 1px solid var(--bad);
 }
 
 .success-message {
-  background-color: #f8fff8;
-  color: #28a745;
-  border: 1px solid #28a745;
+  background-color: rgba(29, 111, 64, 0.2);
+  color: var(--good-on-dark);
+  border: 1px solid var(--good);
 }
 
 .submit-btn {
   width: 100%;
   padding: 12px;
-  background-color: #4a90e2;
-  color: white;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
+  color: #ffffff;
   border: none;
   border-radius: 6px;
   font-size: 1rem;
@@ -86,11 +86,12 @@ input.invalid {
 }
 
 .submit-btn:hover:not(:disabled) {
-  background-color: #357abd;
+  filter: brightness(1.1);
 }
 
 .submit-btn:disabled {
-  background-color: #cccccc;
+  background: var(--surface-raised);
+  color: var(--text-dim);
   cursor: not-allowed;
 }
 
@@ -101,7 +102,7 @@ input.invalid {
      reach registration or a password reset, and the rule this project keeps
      is that a target is 44px whatever it looks like. */
   min-height: 44px;
-  color: #4a90e2;
+  color: var(--accent-blue-text);
   font-size: 0.9rem;
   padding: 8px 16px;
   cursor: pointer;
@@ -115,22 +116,22 @@ input.invalid {
 
 .toggle-btn:hover:not(:disabled),
 .forgot-password-btn:hover:not(:disabled) {
-  color: #357abd;
+  color: var(--text);
 }
 
 .toggle-btn:disabled,
 .forgot-password-btn:disabled,
 .cancel-btn:disabled {
-  color: #cccccc;
+  color: var(--text-dim);
   cursor: not-allowed;
 }
 
 .cancel-btn {
-  color: #dc3545;
+  color: var(--bad-on-dark);
 }
 
 .cancel-btn:hover:not(:disabled) {
-  color: #c82333;
+  color: var(--bad-on-dark);
 }
 
 .loader {

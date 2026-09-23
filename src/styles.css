@@ -19,9 +19,51 @@ app-root > *:not(app-particles) {
   --text-dim: #bcb6e0;
   --accent-blue: #3880ff;
   --accent-magenta: #d633eb;
+  /* The field's magenta, lifted until it reads as TEXT on the dark chrome.
+     The accent itself is a glow colour and fails AA as a line of words. */
+  --accent-magenta-text: #ec9bf6;
+  /* The same lift for the blue: a link or a quiet action on the dark chrome */
+  --accent-blue-text: #92b8ff;
+  /* Right and wrong on the dark chrome — a sign-in error, a saved message */
+  --good-on-dark: #8fdca8;
+  --bad-on-dark: #ffb0a8;
   /* Glow lives on edges and surfaces, never behind text: a halo around
      letters is painful to read for anyone with astigmatism. */
   --glow: 0 0 24px rgba(120, 80, 220, 0.45);
+  --shadow-deep: 0 12px 32px rgba(6, 4, 20, 0.5);
+
+  /* READING FACES. The surfaces a child reads a sum on and types an answer
+     into — the question card, the answer box, the keypad — stay LIGHT, on
+     purpose: dark text on a light face is the most legible thing there is,
+     and legibility of the sum outranks the theme. But light does not mean
+     the raw #ffffff every one of them used to be. That glared against the
+     dark field like paper stuck to a window. These are tinted toward the
+     field's violet, so they belong to it and still read at full contrast.
+     `scripts/theme-tokens.test.js` holds every pair here to WCAG AA. */
+  --surface-read: #f4f2fc;
+  --surface-read-press: #e4def9;
+  --text-read: #221c3f;
+  --text-read-dim: #4d4674;
+  --edge-read: rgba(120, 100, 200, 0.34);
+  /* The keys that are not digits (minus, delete) — magenta like the field,
+     but deep enough to be read as a symbol on a light face. The field's own
+     magenta is about 3.9:1 there, which only scrapes through as large text. */
+  --surface-read-action: #f6ebfb;
+  --accent-magenta-read: #8f1ea3;
+
+  /* Right and wrong, on a reading face. Colour is never the only signal —
+     the feedback line says it in words — but where colour is used it must
+     still clear AA on the face it sits on. */
+  --good: #1d6f40;
+  --bad: #a8261d;
+  --good-read-surface: #e2f1e7;
+  --bad-read-surface: #fbe6e3;
+
+  /* THE SUM ITSELF is written in the ring's two ends — blue numbers, a
+     magenta operator — deepened until they read as text. Before this the
+     operator was orange at 3.16:1 and the equals sign green at 2.78:1: the
+     most important line in the game failed WCAG AA even as large text. */
+  --accent-blue-read: #1d4fbf;
 }
 
 /* The particle backdrop is dark, so the page behind it must be too —

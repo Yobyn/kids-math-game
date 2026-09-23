@@ -14,6 +14,10 @@ import {
   resumeQuestionNumber
 } from '../question/round-state';
 import { SavedResult, isUnseen } from '../result/result-state';
+import { stepColour } from '../theme/palette';
+
+/** Ten year groups, the ring walked from one end to the other. */
+const GRADE_COUNT = 10;
 
 @Component({
   selector: 'app-grade-select',
@@ -21,11 +25,19 @@ import { SavedResult, isUnseen } from '../result/result-state';
   styleUrls: ['./grade-select.component.css']
 })
 export class GradeSelectComponent implements OnInit {
-  grades = Array.from({ length: 10 }, (_, i) => ({
+  /**
+   * Each grade takes its colour from the particle ring (theme/palette.ts),
+   * so the ten read as one journey from the field's blue to its magenta.
+   *
+   * The description used to be built as "Mathematics for" + the number +
+   * "students", which rendered "Maths for 1 students" — counting children
+   * instead of naming a year group, and wrong in all three languages.
+   */
+  grades = Array.from({ length: GRADE_COUNT }, (_, i) => ({
     level: i + 1,
     name: `${this.languageService.translate('grade')} ${i + 1}`,
-    description: `${this.languageService.translate('mathematics-for')} ${i + 1} ${this.languageService.translate('students')}`,
-    icon: '📚'
+    description: `${this.languageService.translate('maths-for-grade')} ${i + 1}`,
+    colour: stepColour(i + 1, GRADE_COUNT)
   }));
 
   /**

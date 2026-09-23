@@ -24,10 +24,15 @@
   transition: all 0.2s;
 }
 
+/* The chosen language was a white tile in a dark header — the brightest
+   thing on every screen, for the least important choice on it. Now it is
+   lit the way everything chosen in this game is lit: a glow from the ring. */
 .lang-btn:hover,
 .lang-btn.active {
-  background-color: white;
-  color: #007bff;
+  background-color: var(--surface-raised);
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 12px rgba(56, 128, 255, 0.55);
+  color: var(--text);
 }
 
 .flag {
@@ -41,13 +46,13 @@
 
 /* Login screen specific styles */
 :host-context(.login-container) .lang-btn {
-  border-color: #007bff;
-  color: #007bff;
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
 }
 
 :host-context(.login-container) .lang-btn:hover,
 :host-context(.login-container) .lang-btn.active {
-  background-color: #007bff;
+  background-color: var(--accent-blue);
   color: white;
 }
 /* In the header there is no room for three names beside the sound and account

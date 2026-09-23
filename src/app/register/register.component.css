@@ -2,14 +2,14 @@
   max-width: 400px;
   margin: 2rem auto;
   padding: 2rem;
-  background-color: white;
+  background-color: var(--surface);
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 h2 {
   text-align: center;
-  color: #333;
+  color: var(--text);
   margin-bottom: 2rem;
 }
 
@@ -20,7 +20,7 @@ h2 {
 label {
   display: block;
   margin-bottom: 0.5rem;
-  color: #666;
+  color: var(--text-dim);
 }
 
 input {
@@ -57,7 +57,7 @@ button:disabled {
 }
 
 .error-message {
-  color: #dc3545;
+  color: var(--bad-on-dark);
   margin-bottom: 1rem;
 }
 

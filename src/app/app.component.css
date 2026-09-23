@@ -1,13 +1,20 @@
+/* Frosted glass over the field rather than a slab on top of it. This was a
+   92%-opaque blue-to-purple gradient from an earlier design: it hid the
+   particle field on every screen, and its cyan edge was not a colour the
+   field has. Now the field shows faintly through, and the edge below is the
+   ring itself, blue to magenta. */
 .app-header {
-  background: linear-gradient(135deg, rgba(58, 96, 200, 0.92) 0%, rgba(126, 58, 194, 0.92) 100%);
-  backdrop-filter: blur(6px);
+  background: rgba(27, 23, 51, 0.62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   padding: 0.8rem;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-deep);
   position: relative;
   z-index: 1000;
   width: 100%;
   box-sizing: border-box;
-  border-bottom: 3px solid #4facfe;
+  border-bottom: 2px solid transparent;
+  border-image: linear-gradient(90deg, var(--accent-blue), var(--accent-magenta)) 1;
 }
 
 .header-content {
@@ -30,7 +37,9 @@
 
 .welcome-icon {
   font-size: 2.2rem;
-  background-color: #ffffff;
+  /* A portrait frame in the theme rather than a white disc */
+  background-color: var(--surface-raised);
+  border: 2px solid var(--accent-blue);
   border-radius: 50%;
   width: 45px;
   height: 45px;
@@ -200,9 +209,9 @@
   padding: 0.6rem 1rem;
   position: relative;
   z-index: 999;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--surface-raised);
   border-bottom: 2px solid var(--accent-blue);
-  color: #2c3e50;
+  color: var(--text);
 }
 
 .update-text {
@@ -219,9 +228,9 @@
   min-height: 44px;
   padding: 0.4rem 1rem;
   border-radius: 10px;
-  border: 2px solid #b6c2d9;
-  background: #ffffff;
-  color: #2c3e50;
+  border: 2px solid var(--edge);
+  background: var(--surface);
+  color: var(--text);
   font-size: 1rem;
   cursor: pointer;
 }

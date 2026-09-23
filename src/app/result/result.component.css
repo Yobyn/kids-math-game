@@ -3,19 +3,20 @@
   margin: 2rem auto;
   padding: 2rem;
   text-align: center;
-  background-color: white;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  /* Transparent, so the field shows through. This is the screen where the
+     field fires its full surge for a finished round — a white card here hid
+     the one celebration the whole particle system exists for. */
   background: transparent;
 }
 
 h1 {
-  color: #333;
+  color: var(--text);
   margin-bottom: 2rem;
 }
 
 .score-card {
-  background-color: #f8f9fa;
+  background-color: var(--surface-raised);
   padding: 2rem;
   border-radius: 8px;
   margin-bottom: 2rem;
@@ -26,7 +27,7 @@ h1 {
 }
 
 h2 {
-  color: #666;
+  color: var(--text-dim);
   margin-bottom: 1.5rem;
 }
 
@@ -41,7 +42,7 @@ h2 {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #f0f0f0;
+  background-color: var(--surface);
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -49,36 +50,36 @@ h2 {
 
 .score-label {
   font-size: 1.1rem;
-  color: #666;
+  color: var(--text-dim);
   font-weight: 500;
 }
 
 .score-value {
   font-size: 1.3rem;
   font-weight: bold;
-  color: #007bff;
+  color: var(--accent-blue-text);
 }
 
 .score-value.percentage {
-  color: #28a745;
+  color: var(--good-on-dark);
 }
 
 .message {
   font-size: 1.2rem;
-  color: #666;
+  color: var(--text);
   line-height: 1.5;
   margin-top: 1rem;
   padding: 1rem;
-  background-color: #e9f7ef;
+  background-color: rgba(29, 111, 64, 0.2);
   border-radius: 6px;
-  border-left: 4px solid #28a745;
+  border-left: 4px solid var(--good);
 }
 
 .play-again {
   padding: 1rem 2rem;
   font-size: 1.2rem;
-  background-color: #007bff;
-  color: white;
+  background-color: var(--accent-blue);
+  color: #ffffff;
   border: none;
   border-radius: 4px;
   cursor: pointer;
@@ -86,7 +87,7 @@ h2 {
 }
 
 .play-again:hover {
-  background-color: #0056b3;
+  filter: brightness(1.1);
 }
 
 /* Star reward — pops in one star at a time when the quiz ends */
@@ -100,7 +101,8 @@ h2 {
 .stars .star {
   font-size: 3rem;
   line-height: 1;
-  color: #dfe6e9;
+  /* An unearned star is a dim outline of what could be, not a grey blob */
+  color: rgba(188, 182, 224, 0.28);
   transform: scale(0.7);
   transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.35s ease;
 }
@@ -130,15 +132,15 @@ h2 {
   border-radius: 12px;
   font-size: 1.15rem;
   font-weight: 700;
-  color: #b7791f;
-  background: #fffaf0;
+  color: #f6c56a;
+  background: rgba(253, 203, 110, 0.14);
 }
 
 .personal-best.quiet {
   font-size: 1rem;
   font-weight: 500;
-  color: #636e72;
-  background: #f5f6fa;
+  color: var(--text-dim);
+  background: var(--surface);
 }
 
 /* Title over the dark backdrop */
@@ -228,19 +230,20 @@ h2 {
 .level-badge {
   font-size: 1.1rem;
   font-weight: 700;
-  color: #2d3436;
+  color: var(--text);
 }
 
 .xp-earned {
   font-size: 1rem;
   font-weight: 700;
-  color: #0a7d3f;
+  color: var(--good-on-dark);
 }
 
 .level-track {
   height: 14px;
   border-radius: 999px;
-  background: #e4e6f0;
+  /* A groove cut into the card, so the fill reads as filling something */
+  background: var(--surface-input);
   overflow: hidden;
 }
 
@@ -254,7 +257,7 @@ h2 {
 .level-remaining {
   margin-top: 0.5rem;
   font-size: 0.9rem;
-  color: #636e72;
+  color: var(--text-dim);
   text-align: right;
 }
 
@@ -265,8 +268,8 @@ h2 {
   padding: 0.75rem;
   border-radius: 8px;
   border-left: 4px solid var(--accent-magenta);
-  background: #faf2ff;
-  color: #5a2170;
+  background: rgba(214, 51, 235, 0.16);
+  color: var(--accent-magenta-text);
   font-weight: 700;
   text-align: center;
 }
@@ -289,9 +292,9 @@ h2 {
   margin-top: 1rem;
   padding: 0.75rem;
   border-radius: 8px;
-  border-left: 4px solid #2e7d32;
-  background: #edf7ee;
-  color: #1b4d20;
+  border-left: 4px solid var(--good);
+  background: rgba(29, 111, 64, 0.2);
+  color: var(--good-on-dark);
   font-weight: 700;
   text-align: center;
 }

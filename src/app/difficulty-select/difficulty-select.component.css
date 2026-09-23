@@ -7,7 +7,7 @@
 }
 
 h1 {
-  color: #333;
+  color: var(--text);
   margin-bottom: 2rem;
   font-size: 2.5rem;
 }
@@ -20,10 +20,10 @@ h1 {
 }
 
 .difficulty-card {
-  background-color: white;
+  background-color: var(--surface-raised);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-deep);
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px solid transparent;
@@ -40,13 +40,13 @@ h1 {
 }
 
 h2 {
-  color: #333;
+  color: var(--text);
   margin-bottom: 1rem;
   font-size: 1.25rem;
 }
 
 p {
-  color: #666;
+  color: var(--text-dim);
   line-height: 1.5;
   font-size: 0.9rem;
 }
@@ -103,7 +103,10 @@ p {
    on the edge and the focus ring. */
 .difficulty-card {
   border: 1px solid var(--edge);
-  box-shadow: 0 10px 28px rgba(6, 4, 20, 0.45);
+  /* Easy, medium, hard are three points on the particle ring — the same
+     walk from blue to magenta the grade cards take, so an ordered choice
+     looks like one everywhere in the game. */
+  border-top: 4px solid var(--level-colour, var(--edge));
 }
 
 .difficulty-card:hover {
@@ -120,5 +123,5 @@ p {
 .difficulty-card .suggestion {
   margin-top: 0.5rem;
   font-weight: 700;
-  color: #8a2a9c;
+  color: var(--accent-magenta-text);
 }

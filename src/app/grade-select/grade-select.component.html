@@ -49,8 +49,11 @@
               : '')"
          (click)="selectGrade(grade.level)"
          (keydown.enter)="selectGrade(grade.level)"
-         (keydown.space)="selectGrade(grade.level)">
-      <div class="grade-icon">{{ grade.icon }}</div>
+         (keydown.space)="selectGrade(grade.level)"
+         [style.--grade-colour]="grade.colour">
+      <!-- The number, in its place on the ring. Decorative: the heading below
+           already says it, so a screen reader is not told twice. -->
+      <div class="grade-badge" aria-hidden="true">{{ grade.level }}</div>
       <h2>{{ grade.name }}</h2>
       <p>{{ grade.description }}</p>
       <p class="suggestion" *ngIf="grade.level === suggestedGrade">

@@ -249,9 +249,12 @@
 .copy {
   margin-top: 1.5rem;
   padding: 1rem;
-  border: 1px solid #d5d5e0;
+  border: 1px solid var(--edge);
   border-radius: 12px;
-  background: #fbfbfe;
+  /* The same recessed panel as the rest of this screen. The first version
+     was a white box on a dark page — built in the same session that wrote
+     the theme guard, which is the argument for the guard. */
+  background: var(--surface-input);
 }
 
 .copy h2 {
@@ -266,7 +269,7 @@
 }
 
 .copy-not {
-  color: #4a4a58;
+  color: var(--text-dim);
 }
 
 /* Deliberately not the loudest thing on the screen: deleting is easy to
@@ -281,16 +284,16 @@
 }
 
 .forget-btn {
-  border: 1px solid #b03a3a;
-  background: #fff;
-  color: #b03a3a;
+  border: 1px solid var(--bad-on-dark);
+  background: transparent;
+  color: var(--bad-on-dark);
 }
 
 .keep-btn {
   margin-left: 0.5rem;
-  border: 1px solid #6b6b7b;
-  background: #fff;
-  color: #35354a;
+  border: 1px solid var(--edge);
+  background: transparent;
+  color: var(--text);
 }
 
 .forget-btn[disabled],
@@ -302,5 +305,5 @@
 .forget-done {
   margin: 0;
   font-weight: 600;
-  color: #1f6b3a;
+  color: var(--good-on-dark);
 }

@@ -63,7 +63,7 @@ back. What that cost is recorded under "What the audit found", at the end.
   eye shapes, four mouths, nine hair styles and three hair textures that
   compose with all of them, plus hair and eye colour. The page is three
   sections a child moves between rather than one long scroll.
-- 1,203 unit tests, 11 build-script tests and 39 server tests, run on every
+- 1,214 unit tests, 23 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -129,13 +129,60 @@ rendered once at the root — so the field is ALREADY behind every screen.
 `pulse(0..1)` without knowing particles exist.
 
 So "throughout the game as a theme" is **not about the backdrop**, which is
-everywhere already. It is about everything drawn ON TOP of it. The cards,
-buttons and panels are plain white boxes that do not belong to the
-blue-magenta ring they sit on, and that mismatch is most of why the game
-reads as a form rather than a game. The work is to derive the whole surface
-palette FROM the field — card fills, borders, button states, focus rings, the
-grade stripes, the avatar's default colours — so one system explains every
-colour on screen.
+everywhere already. It is about everything drawn ON TOP of it.
+
+**DONE (2026-09-23): THE THEME REACHES EVERY SCREEN, AND A TEST KEEPS IT
+THERE.** Measuring first changed the job. The brief above said to *derive* a
+palette from the field — but one already existed. `src/styles.css` had dark
+surface tokens whose accents were the field's exact blue and magenta. The
+theme had been DESIGNED and then only half ADOPTED: six stylesheets used the
+tokens, fourteen ignored them, and between them they hard-coded 73 light
+fills. That is why a phone showed white forms on a starfield. Building a new
+palette would have duplicated one that was right all along.
+
+So the work was to finish the migration, and then make it impossible to
+un-finish. `scripts/theme-tokens.test.js` reads the REAL stylesheets and
+fails if any component hard-codes a light background or dark text — the only
+way the next run cannot quietly reintroduce a white card. It also holds every
+text/surface pair the tokens define to WCAG AA, so "prettier must never mean
+harder to read" is now a test rather than a promise.
+
+**Two surface families, named so the choice is not re-argued every run.**
+CHROME — headers, selection cards, panels, the score bar, the result screen —
+is dark (`--surface`, `--surface-raised`). READING FACES — the question card,
+the answer box, the keypad, where a child SOLVES something — stay light,
+because dark text on a light face is the most legible thing there is and the
+sum outranks the theme. But light no longer means the raw `#ffffff` they all
+used: `--surface-read` is tinted toward the field's violet, so it belongs to
+the field instead of glaring against it. The grade cards used to be kept
+light too, on the reasoning that "they carry the words a child reads". That
+reasoning is about legibility, which the test now proves directly, and what a
+grade card carries is a label to tap, not a sum to solve.
+
+The header was a 92%-opaque blue-to-purple slab from an earlier design that
+hid the field on every screen, edged in a cyan the field does not have. It is
+frosted glass over the field now, edged with the ring itself.
+
+**THE SUM FAILED ACCESSIBILITY, AND NOBODY KNEW.** Found while moving the
+question card onto its tokens: the operator was orange at 3.16:1 and the
+equals sign green at **2.78:1 — below WCAG AA even as large text**, on the
+most important line in the game. It is written in the ring's two ends now,
+blue numbers and a magenta operator, each deepened until it clears AA, and a
+test pins all three. The field's own magenta is only 3.9:1 as text on a light
+face, so it could not simply be reused; a test records that too, so nobody
+"simplifies" back to it.
+
+**The theme guard caught a bug of mine from the same day.** The "copy on the
+account" panel added to the grown-ups' screen by the progress-sync run was a
+white box on a dark page, and its "Deleted" confirmation was dark green
+`#1f6b3a` on a dark panel — nearly invisible. Both fixed. That is the
+argument for the guard.
+
+WHAT IS STILL OUTSTANDING HERE: the tap. The field does not yet answer a
+touch — see the next section, whose resolution (two vocabularies) stands and
+is unbuilt. And the question card is still the largest light area on screen,
+on purpose; that is the reading-face rule working, not something left
+undone.
 
 **Making it answer a tap overturns an earlier decision, and the roadmap
 should say so rather than pretend otherwise.** `field-pulse.service.ts`
@@ -174,16 +221,28 @@ shading, no outline on the silhouette, one hard white glint per eye, and the
 torso is a single blob. "A lot more graphics" means depth. Keep it SVG and
 keep it cheap — no raster art, no animation library.
 
-**THE GRADE SCREEN IS TEN IDENTICAL CARDS**, each the same white box with the
-same 📚 emoji, distinguished only by a rainbow stripe that reads as
-decoration rather than meaning. Nothing tells a child what Groep 1 is versus
-Groep 10.
+**THE GRADE SCREEN WAS TEN IDENTICAL CARDS — DONE (2026-09-23).** Each was
+the same white box with the same 📚 emoji, told apart only by a rainbow
+stripe that meant nothing. Now each grade is a point on the particle ring:
+`theme/palette.ts` walks from the field's blue (grade 1, `#3880ff`) to its
+magenta (grade 10, `#d633eb`), using the SAME colour function the field
+draws with (`fieldColour`, exported from `particle-field.ts` for this), so
+the grades are literally on the ring behind them rather than lookalikes. A
+glowing numbered badge in that colour replaced the emoji. The difficulty
+screen walks the same ring in three steps, so an ordered choice looks like
+one everywhere in the game.
 
-And its copy is a bug in all three languages, not a preference:
-`grade-select.component.ts` builds the description as
-`${'mathematics-for'} ${i+1} ${'students'}`, which renders "Wiskunde voor 1
-leerlingen" — "Maths for 1 students". It is meant to name the year group, not
-count children. English and Spanish are equally wrong.
+The copy is fixed in all three languages: it rendered "Maths for 1 students"
+— counting children rather than naming a year group — and now reads "Maths
+for grade 1" / "Wiskunde voor groep 1" / "Matemáticas para el grado 1". The
+two keys that built the broken sentence, `mathematics-for` and `students`,
+are deleted rather than left for someone to reassemble.
+
+Still outstanding: the card does not say what is IN each grade. That needs
+the question generator's content per grade written down in one place, which
+it is not — money is the only strand with explicit bands — so writing ten
+descriptions per language now would mean guessing, and a wrong one is worse
+than none.
 
 **What does not bend for any of this.** Prettier must never mean harder to
 read: question and answer surfaces stay high-contrast, and a decorative
@@ -196,12 +255,20 @@ never locked: skin, face, hair and their colours stay free at level 1 however
 the art changes. Per-tap work must be bounded, so a child mashing the keypad
 cannot allocate without limit.
 
-**And art costs bytes.** The initial bundle has 6.66 kB of headroom (493.34
-kB against a 500 kB error budget, measured 2026-09-23) and the particle field
-is eager, so anything added there lands in the first load. Pay for it by
-moving something off the eager path — dead code (`src/app/app/`,
-`src/app/types/translation-keys.ts`, profile-creation, `pokemon.service`) is
-still being compiled. Never raise the budget.
+**And art costs bytes.** The initial bundle has **5.05 kB** of headroom
+(494.95 kB against a 500 kB error budget, measured 2026-09-23 after the theme
+migration, which cost 1.61 kB: a `var(--token)` is longer than the hex it
+replaces). The particle field is eager, so anything added there lands in the
+first load. `question.component.css` is 5.23 kB against a 6 kB ERROR, so
+0.77 kB of room.
+
+CORRECTION to what this section said this morning: deleting the dead code
+does NOT pay for anything. `src/app/app/`, `translation-keys.ts`,
+profile-creation and `pokemon.service` are imported by nothing, so webpack
+already tree-shakes them out of the bundle — removing them saves ZERO bytes.
+It is worth doing for clarity, not for budget. What actually frees room is
+something that IS in the first load, measured first with `mapsize.js`. Never
+raise the budget.
 
 **How to know whether any of this worked.** A green suite has never once told
 anyone this game is ugly. Screenshot before, screenshot after, and read both
@@ -1001,6 +1068,8 @@ order; a single screenshot cannot show whether a tap did anything.
   build, and that is the budget working as intended rather than a problem
   with it — so the next feature of any size has to start by moving something
   off the initial bundle, not by raising the ceiling.
+  (Superseded 2026-09-23: the theme run spent 1.61 kB of it; 5.05 kB is left.
+  See Art direction.)
 
   Verified in two real browsers against a real server: device A pushes, a
   brand-new device B signs in and has the rounds, level, keepsake and
@@ -1120,6 +1189,11 @@ order; a single screenshot cannot show whether a tap did anything.
   `src/app/types/translation-keys.ts` (a second `TranslationKeys` union that
   nothing imports), and `profile-creation` + `pokemon.service`, which no route
   reaches and which `AppModule` does not declare.
+  NONE OF IT IS IN THE BUNDLE — checked 2026-09-23 by searching the
+  production build for `pokemon`, `PokemonService` and `profile-creation`:
+  zero hits. Nothing imports it, so webpack drops it. Deleting it is worth
+  doing for clarity and saves exactly zero bytes; an earlier version of this
+  file suggested it as a way to pay for art, which was wrong.
   `profile-creation` was listed as a headline FEATURE in the README until this
   run — "allow children to create their own profiles" — for a component no
   child can reach. Dead code is cheap; dead code a document promises is not.

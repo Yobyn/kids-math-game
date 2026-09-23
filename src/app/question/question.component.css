@@ -18,8 +18,8 @@
   margin-bottom: 2rem;
   padding: 1rem;
   border-radius: 12px;
-  /* Reads against the dark backdrop */
-  background: rgba(255, 255, 255, 0.92);
+  /* Chrome, so dark: it is a status line, not something a child solves */
+  background: var(--surface-raised);
   border: 1px solid var(--edge);
   box-shadow: 0 8px 24px rgba(6, 4, 20, 0.45);
 }
@@ -27,14 +27,15 @@
 .score {
   font-size: 1.5rem;
   font-weight: bold;
-  color: #2196f3;
+  color: var(--text);
 }
 
 .question-counter {
   font-size: 1.2rem;
   font-weight: bold;
-  color: #3f51b5;
-  background-color: rgba(255, 255, 255, 0.7);
+  color: var(--text);
+  background-color: var(--surface);
+  border: 1px solid var(--edge);
   padding: 0.5rem 1rem;
   border-radius: 20px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -54,7 +55,7 @@
 }
 
 .question-box {
-  background: white;
+  background: var(--surface-read);
   padding: 2rem;
   border-radius: 16px;
   /* Theme the chrome, not the reading surface. Positive polarity — dark text
@@ -87,16 +88,16 @@
 
 .number {
   font-weight: bold;
-  color: #1976d2;
+  color: var(--accent-blue-read);
 }
 
 .operation {
-  color: #ff5722;
+  color: var(--accent-magenta-read);
   font-weight: bold;
 }
 
 .equals {
-  color: #4caf50;
+  color: var(--text-read-dim);
   font-weight: bold;
 }
 
@@ -105,25 +106,25 @@ input[type="number"] {
   height: 60px;
   font-size: 2rem;
   text-align: center;
-  border: 3px solid #e0e0e0;
+  border: 3px solid var(--edge-read);
   border-radius: 8px;
   transition: all 0.3s ease;
 }
 
 input[type="number"]:focus {
   outline: none;
-  border-color: #2196f3;
+  border-color: var(--accent-blue);
   box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.3);
 }
 
 input[type="number"].correct {
-  border-color: #4caf50;
-  background-color: #e8f5e9;
+  border-color: var(--good);
+  background-color: var(--good-read-surface);
 }
 
 input[type="number"].incorrect {
-  border-color: #f44336;
-  background-color: #ffebee;
+  border-color: var(--bad);
+  background-color: var(--bad-read-surface);
 }
 
 .feedback-container {
@@ -141,13 +142,13 @@ input[type="number"].incorrect {
 }
 
 .feedback.correct {
-  background-color: #e8f5e9;
-  color: #2e7d32;
+  background-color: var(--good-read-surface);
+  color: var(--good);
 }
 
 .feedback.incorrect {
-  background-color: #ffebee;
-  color: #c62828;
+  background-color: var(--bad-read-surface);
+  color: var(--bad);
 }
 
 .button-container {
@@ -310,7 +311,7 @@ input[type="number"].incorrect {
   margin: 0 0 1.25rem;
   font-size: 1.15rem;
   line-height: 1.5;
-  color: #2c3e50;
+  color: var(--text-read);
   text-align: center;
 }
 
@@ -352,14 +353,14 @@ input[type="number"].incorrect {
   padding: 0.6rem 0.9rem;
   border-radius: 8px;
   border-left: 4px solid var(--accent-blue);
-  background: #eef3fb;
+  background: var(--surface-read-press);
   text-align: left;
 }
 
 .worked-label {
   display: block;
   font-size: 0.85rem;
-  color: #4a5568;
+  color: var(--text-read-dim);
 }
 
 .worked-line {
@@ -367,7 +368,7 @@ input[type="number"].incorrect {
   margin-top: 0.2rem;
   font-size: 1.15rem;
   font-weight: 700;
-  color: #1c2b45;
+  color: var(--text-read);
 }
 
 /* The mid-round offer. Sits below the feedback and above Next, so it reads as
@@ -387,15 +388,15 @@ input[type="number"].incorrect {
   box-sizing: border-box;
   /* Light, like the rest of the card face: this is something to read, and
      the theme lives on the card's edges rather than inside it. */
-  background: #f4f6fb;
-  border: 1px solid #dfe6e9;
+  background: var(--surface-read);
+  border: 1px solid var(--edge-read);
   border-radius: 12px;
 }
 
 .ask-text {
   margin: 0 0 0.7rem;
   text-align: center;
-  color: #2c3e50;
+  color: var(--text-read);
 }
 
 .ask-choices {
@@ -408,16 +409,16 @@ input[type="number"].incorrect {
   flex: 1;
   min-height: 48px;
   font-size: 1rem;
-  border: 2px solid #b6c2d9;
+  border: 2px solid var(--edge-read);
   border-radius: 10px;
-  background: #ffffff;
-  color: #2c3e50;
+  background: var(--surface-read-press);
+  color: var(--text-read);
   cursor: pointer;
 }
 
 /* Neither choice is the "right" one, so neither is the loud one. */
 .ask-yes {
-  border-color: #6b8bd6;
+  border-color: var(--accent-blue);
 }
 
 /* The resume card is the only thing on the screen, so it sits where the
