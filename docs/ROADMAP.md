@@ -3,7 +3,10 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-22 (the game given a memory of itself, the same day)
+Last surveyed: 2026-09-23 — and that survey was the work of the day. Every
+claim below was checked against the code, and every number in it re-measured.
+Sixteen runs had written into this file and none had ever gone back; what that
+cost is recorded under "What the audit found", at the end.
 
 ## What works today
 
@@ -49,9 +52,13 @@ Last surveyed: 2026-09-22 (the game given a memory of itself, the same day)
   eye shapes, four mouths, nine hair styles and three hair textures that
   compose with all of them, plus hair and eye colour. The page is three
   sections a child moves between rather than one long scroll.
-- 990 unit tests, 7 build-script tests and 16 server tests, run on every PR
-  by GitHub Actions
-  alongside the build.
+- 990 unit tests, 11 build-script tests and 16 server tests, run on every PR
+  by GitHub Actions alongside the build.
+- THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
+  `Date` moved on more than a year (`npm run test:future`). A test that writes
+  today's date down passes on the day it is written and fails weeks later on a
+  branch nobody has touched — which is not hypothetical, see the audit.
+- 91.8% of statements covered (85.5% of branches).
 
 ## Product direction (Yobyn, 2026-09-21)
 
@@ -297,7 +304,7 @@ a backend that currently keeps its users in memory (see Code health).
   keeps its progress in `localStorage` like a guest's, so it still does not
   follow a child to another device — the thing the offer implies. That needs
   a progress API and a backend that survives a restart (see Code health).
-- **Levels exist; nothing hangs off them yet.** Rounds earn experience and
+- **Levels exist, and the wardrobe hangs off them.** Rounds earn experience and
   experience earns levels, shown on the result screen as a badge, a bar and a
   "Level up!" on the round that crosses. A round always pays — ten for
   finishing plus two per correct answer — so a child who scores nothing still
@@ -306,13 +313,17 @@ a backend that currently keeps its users in memory (see Code health).
   becomes a grind. Experience is stored per player (`xp:<owner>`), not derived
   from history, which is capped at twenty rounds. The curve lives in
   `src/app/levels/level-curve.ts`, DOM-free and tested directly.
-  What is missing is the reward: a level up says "Level up!" and nothing else
-  happens. Until the avatar and wardrobe exist there is nothing to unlock, and
-  the product direction is explicit that a reward at every level only works if
-  the levels take real practice — worth re-checking the curve against real
-  play once there is something to win. Level is also not shown anywhere
-  outside the result screen; the header is the obvious home for it.
-- **The avatar and its wardrobe exist; events do not.** A child has a
+  WHAT THIS BULLET USED TO SAY — that a level up says "Level up!" and nothing
+  else happens — stopped being true two runs later, when the wardrobe landed,
+  and nobody came back to say so. Levels now hand over hats, glasses and
+  shirts, and the result screen names what was won.
+  What is genuinely missing: the product direction is explicit that a reward
+  at every level only works if the levels take real practice, and the curve
+  has never been checked against a real child's pace now that there is
+  something to win. Level is shown on the result screen, on the progress
+  screen and, as a price, in the chooser — but not in the header, which is
+  still the obvious home for it.
+- **The avatar, its wardrobe and its events all exist.** A child has a
   character they can make theirs from the first visit — skin tone, hair style,
   hair colour and eye colour — reached by tapping the character in the header,
   and it is drawn from SVG primitives with no image assets, so it stays sharp
@@ -405,13 +416,13 @@ a backend that currently keeps its users in memory (see Code health).
   `round` is exactly the circle the face used to be, and a character saved
   before any of this has no `faceShape` at all, so it reads as round and looks
   identical to what its owner left.
-  What remains: the research names FOUR characteristics and this did two. Eye
-  shape and mouth shape are still fixed — one pair of circles and one curve,
-  the same on every child. Hair texture is approximated by the style rather
-  than being its own choice, so a child cannot have long coily hair. The page
-  is also one long scroll and got longer: 1687px to 1862px at 390px. And
-  there is still no way to see which events a child has been present for as a
-  set, which is the closest thing the game would have to a scrapbook.
+  EVERYTHING THIS BULLET ONCE LISTED AS REMAINING IS DONE, and it took the
+  audit to notice. Eye shape and mouth shape became choices, hair texture
+  became its own axis, the long scroll became three sections, and the set of
+  events a child has been present for became `/scrapbook` — all in later
+  runs, none of which came back to strike the lines out here. Four paragraphs
+  of "what remains" that a reader would have believed. See "the character,
+  finished" below for what is actually left of it.
 - **A child can see how far they have come.** "How far you have come", from
   the result screen, shows their character, the level they have climbed to,
   and four numbers: rounds finished, questions answered, answers right, and
@@ -467,19 +478,28 @@ a backend that currently keeps its users in memory (see Code health).
   matters more than being good at it. `src/app/adults/practice-plan.ts` is
   DOM-free and tested, including that it never hands back more than three.
 
-  What remains: the way in is a plain link, which is discreet (2400px down a
-  390px phone) but not private — a determined older sibling passes the gate.
-  There is no per-fact history, so an adult cannot see whether last week's
-  three facts stuck. And there is no teacher shape at all: one child per
-  device, no class, no export.
+  What remains: the way in is a plain link, which is discreet but not private
+  — a determined older sibling passes the gate. (It is no longer 2400px down a
+  390px phone: the grade screen is 1267px in total now, so the link sits
+  within the second screenful.)
+  A fact's progress IS visible — "Right so far: 1 / 3", added with the spacing
+  work — so this file's "no per-fact history" is half wrong. What is missing
+  is the PAST tense: a fact that graduated leaves the queue and is never
+  mentioned again, so an adult still cannot see whether last week's three
+  stuck, only which three are live now.
+  And there is no teacher shape at all: one child per device, no class, no
+  export.
 
 ### Platform
 - **The header fits a phone now.** It used to be 598px across at 390px wide,
   so every screen scrolled sideways. On phones the language buttons show the
   flag alone with the name moved to the accessible label, the controls row
   wraps, and the strapline is dropped: 154px of header at 360, 375 and 390px,
-  no overflow from 360px to 1112px, and every control still at least 44px in
-  both directions — the label shrinks, the target does not.
+  no overflow and every control still at least 44px in both directions — the
+  label shrinks, the target does not. Re-swept 2026-09-23 across eleven
+  widths from 320px to 1180px and seven screens: no horizontal overflow
+  anywhere, and nothing tappable under 44px at 360px wide. The range this
+  file claimed (360 to 1112) was narrower than what actually holds.
   The question screen has now been measured too, and it was spilling 17px off
   each side of a 390px phone: the card was 100% wide with 2rem of padding
   added on top of that. It is border-box now and fits.
@@ -490,6 +510,11 @@ a backend that currently keeps its users in memory (see Code health).
   Two columns of compact cards, with the description hidden on phones because
   it only says the heading again in more words, brings that to 128px a card
   and a 1073px page. The card's accessible label still carries the full name.
+  Re-measured 2026-09-23 with six rounds of history behind it, the grade
+  screen is 1267px — 1.5 screenfuls. The difference is the "Carry on at
+  Grade 3" button and its heading, which a child who has never played does
+  not see: the 1073px figure was measured on an empty slate and is the
+  first-visit number, not the usual one.
   MORE TO THE POINT, A CHILD WHO HAS PLAYED BEFORE NO LONGER CHOOSES AT ALL.
   The result screen deliberately clears the stored grade to force a fresh
   selection, so every single round began with ten cards. Guidance on
@@ -546,7 +571,10 @@ a backend that currently keeps its users in memory (see Code health).
   preprint: 48 children aged 8-13, interviews and observed play) put
   SELF-REPRESENTATION first among four reasons children make avatars, so the
   parts that make a face look like a particular child do not belong at the
-  bottom of a scroll. After: 1.4-1.6 screenfuls in portrait, 1.0 on a tablet.
+  bottom of a scroll. After: 1.4-1.6 screenfuls in portrait (re-measured
+  2026-09-23 at 1.57), and 1.43 on a tablet — this file said 1.0 there, which
+  was either measured on a different tablet size or written from hope. The
+  avatar page is the longest screen in the game on every viewport measured.
   Everything earned is in the third section and nothing earned is anywhere
   else, so two of the three can be opened without ever meeting a lock — a
   test pins that, along with "every part of the character is in exactly one
@@ -594,10 +622,6 @@ a backend that currently keeps its users in memory (see Code health).
   tab may not be told for a while. Nothing polls for it, deliberately: a
   background check every few minutes to tell a child about a deploy is a lot
   of machinery for very little.
-- **Installable, and it says so when there is something new.** The service worker takes
-  over immediately on activation (`skipWaiting` + `clients.claim`); a child
-  mid-round when a deploy lands gets the new shell on their next navigation
-  with no warning. A "refresh for the new version" prompt is the usual fix.
 - **Offline is shell-only.** The app works offline because everything it needs
   is static, but login needs the backend, so an offline child cannot sign in.
 - **It fits a phone on its side now, and a large tablet.** It was portrait-
@@ -628,6 +652,12 @@ a backend that currently keeps its users in memory (see Code health).
   `max-width: 600px`, and a phone in landscape is 844 WIDE — so the smallest
   screen the game ever sees got the tablet header, strapline and all, for
   about 150 of its 390 pixels.
+  RE-MEASURED 2026-09-23, and these held: question 1.24 screenfuls in
+  landscape (claimed 1.3), grade 1.55 (1.6), difficulty 1.08 (1.1), login
+  1.58 (1.6), scrapbook 2.27 (2.3). Progress came out at 1.67 against a
+  claimed 1.6, which is the seeded history rather than drift. The result
+  screen was not re-measured — reaching it means finishing a round — so its
+  1.9 is the one landscape number here still taken on trust.
   STILL OUTSTANDING: the login screen is 1.6 screenfuls in landscape and its
   secondary links sit below the fold; the result screen is 1.9; the avatar
   page is 3.7, and that is the page's shape rather than the layout's — see
@@ -649,8 +679,12 @@ a backend that currently keeps its users in memory (see Code health).
   iOS zooming when an input under 16px is focused; every input here is
   already 1rem, so there was nothing being protected. A test pins the
   viewport string against both flags coming back.
-  What is NOT pinned: `index.html` itself. The constant is asserted, but no
-  test reads the file, so the two could drift.
+  `index.html` IS PINNED NOW. The constant was asserted and no test read the
+  file, so the two could drift silently — this file said so for three runs and
+  no run closed it. `scripts/index-html.test.js` reads the real file, checks
+  the meta tag against `VIEWPORT_CONTENT`, and fails on `user-scalable`,
+  `maximum-scale` or a second viewport tag appearing. It runs in CI with the
+  other script tests and needs no browser.
 
 ### Reach
 - **Three languages, all reachable and remembered** (English, Dutch, Spanish).
@@ -697,11 +731,12 @@ a backend that currently keeps its users in memory (see Code health).
   a restart, which is what "an account that cannot be logged back into is a
   promise half kept" actually asked for.
 - **No lint setup.** Angular 12 dropped the default; nothing enforces style.
-- **`server/node_modules` is committed** — 1,935 files of dependencies in
+- **`server/node_modules` is committed** — 1,888 files of dependencies in
   version control. It is why the server's CI step skips installing: a fresh
   checkout already has them, and everything the server actually requires
-  (express, cors, body-parser, jsonwebtoken, bcryptjs, nodemailer, dotenv)
-  loads from it on Linux.
+  (express, cors, body-parser, jose, bcryptjs, nodemailer, dotenv) loads from
+  it on Linux. It said `jsonwebtoken` here until the audit; the server has
+  used `jose` since before that line was written.
   MONGOOSE DOES NOT. It was committed from a case-insensitive filesystem, so
   `lib/collection.js` asks for `./connectionstate` while the file on disk is
   `connectionState.js`, and `require('mongoose')` throws on any Linux
@@ -732,14 +767,116 @@ a backend that currently keeps its users in memory (see Code health).
   key from every state of the box — and holds three invariants the old code
   only implied: never more than six digits, never a minus anywhere but the
   front, and always undoable back to empty.
-  What remains: `question.component.css` is still over the 4 kB WARNING
-  budget at 4.81 kB. The progress bar and the score display are the next
-  candidates if it creeps back up.
-- **Dead code**: `src/app/app/` (a leftover scaffold, not in any module),
-  `src/app/types/translation-keys.ts` (a second, unused `TranslationKeys`
-  union), and `profile-creation` + `pokemon.service`, which no route reaches.
-- **Coverage is ~50% of statements.** Login, register and the language
-  selector have only smoke tests.
-- **README has no run instructions** — notably that Node 17+ needs
-  `NODE_OPTIONS=--openssl-legacy-provider`, and that the backend must be
-  running before login will work.
+  What remains, re-measured 2026-09-23: `question.component.css` is 4.91 kB,
+  over the 4 kB WARNING budget and 1.09 kB under the 6 kB error. The progress
+  bar and the score display are the next candidates if it creeps back up.
+  `result.component.css` has quietly joined it at 4.29 kB, which this file
+  never recorded.
+  A THIRD BUDGET IS OVER AND WAS NEVER MENTIONED HERE AT ALL: the `initial`
+  bundle is 555.65 kB against a 500 kB warning and a 1 MB error. Every build
+  for many runs has printed that warning and no run has written it down. It
+  is a long way from the error ceiling, but it is the one budget that decides
+  what a child on a slow connection waits for.
+- **Dead code**, all four confirmed still dead on 2026-09-23: `src/app/app/`
+  (a leftover scaffold — `AppModule` imports `./app.component`, not this one),
+  `src/app/types/translation-keys.ts` (a second `TranslationKeys` union that
+  nothing imports), and `profile-creation` + `pokemon.service`, which no route
+  reaches and which `AppModule` does not declare.
+  `profile-creation` was listed as a headline FEATURE in the README until this
+  run — "allow children to create their own profiles" — for a component no
+  child can reach. Dead code is cheap; dead code a document promises is not.
+- **Coverage is 91.8% of statements** (85.5% of branches, 91.6% of lines),
+  re-measured 2026-09-23. It was recorded here as "~50%" for sixteen runs,
+  which is what a number written once and never re-read is worth.
+  The thin files are real, though, and they are the two this file has always
+  named: `register.component.ts` at 14.3% and `login.component.ts` at 36%.
+  The language selector, the third name on that list, is now above 96% and
+  should come off it.
+- **The README is rewritten, and what it used to say is the point.** This
+  file recorded it as having "no run instructions". It had them. They told a
+  new contributor to install MongoDB, listed it as a prerequisite, and gave
+  `MONGODB_URI` as an environment variable to set — for a server that has
+  kept its accounts in a JSON file since the store landed, and whose vendored
+  `mongoose` cannot even be required on Linux. It also offered `npm run e2e`,
+  which is not a script in this project, and `npm run dev` for the server,
+  which needs a `nodemon` that is not installed.
+  Wrong instructions are worse than missing ones: missing instructions make
+  somebody ask, and wrong ones make them spend an afternoon installing a
+  database the game has no use for.
+  Every build and test script now carries
+  `NODE_OPTIONS=--openssl-legacy-provider` itself, as `start` already did, so
+  the flag is no longer something a reader has to know. What remains: the
+  README describes the game rather than the code's shape, and there is still
+  no contributing note about where a change belongs.
+
+## What the audit found (2026-09-23)
+
+Sixteen runs had written into this file. None had ever read it back. This run
+checked every claim against the code and re-measured every number in it, and
+the result is worth recording, because the failure is structural rather than
+careless: each run corrected the part of the file it was working on and left
+the rest exactly as it found it, including the paragraphs its own change had
+just made false.
+
+**A test had already broken the build, and the clock did it.** The suite was
+red on `main` at the start of this run, on a commit nobody had touched since
+it went green. A test in `adults.component.spec.ts` recorded two facts as
+missed on `new Date(2026, 8, 22)` and asserted both were "waiting for
+tomorrow" — but the component asks the REAL clock what day it is, so the
+assertion held on the 22nd of September and failed on the 23rd. It was written
+on the day it describes.
+
+**A second one would have gone red for about forty-five days a year**, and
+only a browser on a different date could have found it. `result.component.spec.ts`
+asserted that a round which crossed no level "handed nothing over" — true on an
+ordinary day, false during every winter, spring and autumn event, because
+finishing a round while an event is on wins the event's item whatever the
+score. It would have started failing on 25 October and stopped on 2 November,
+for nobody's mistake, and the obvious diagnosis — a flake — would have been
+wrong twice over.
+
+**So the suite now runs twice**, the second time with `Date` moved on more
+than a year (`src/testing/shift-clock.ts`, `npm run test:future`, and a step
+in CI). A test may read the clock; plenty do and should. What it may not do is
+assume what the clock says. Running the same specs on a different day is what
+tells those two apart, and it is the only thing that can: the failure is
+invisible on the day the test is written, which is the day it is run. Both
+bugs above were caught by its first execution. The whole suite was then swept
+across ten future dates — every event window, both sides of a leap day, a year
+end and a month end — and is green on all of them.
+
+The shift is 400 days, not a round year, so a test cannot survive by landing
+on the same date in a later year. It costs about four seconds.
+
+**What else was wrong, in rough order of how badly:**
+
+| This file said | The truth on 2026-09-23 |
+| --- | --- |
+| Coverage ~50% of statements | 91.8% |
+| README has no run instructions | It had them; they told you to install MongoDB |
+| The service worker takes over immediately on activation | It waits to be let in — two bullets, opposite claims |
+| Events do not exist; eye shape, mouth shape and hair texture are fixed; the character page is one long scroll; there is no way to see the events a child was present for | All six were done in later runs that never came back to strike them out |
+| Levels: "nothing hangs off them yet" | The whole wardrobe hangs off them |
+| Level is shown only on the result screen | Also on the progress screen |
+| The server requires `jsonwebtoken` | It requires `jose` |
+| `server/node_modules` is 1,935 files | 1,888 |
+| `question.component.css` is 4.81 kB | 4.91 kB — and `result.component.css` is over the warning budget too, which was never recorded |
+| (nothing) | The `initial` bundle has been 55 kB over its warning budget for many runs, printed on every build, written down by none |
+| No overflow from 360px to 1112px | No overflow from 320px to 1180px — the claim was narrower than the truth |
+| The character page is 1.0 screenfuls on a tablet | 1.43 |
+| `index.html` is not pinned by any test | It is now — that line had been a standing item for three runs |
+
+Three of those (the two date bombs and the budget warning) were live defects,
+not documentation drift. The rest were false statements that a person reading
+this file to decide what to work on would have acted on.
+
+**What this changes about how the file is kept.** Two of the corrections above
+are now machine-checked rather than promised: `scripts/index-html.test.js`
+pins what `index.html` must say, and `npm run test:future` pins the suite's
+independence from the calendar. That is the only kind of claim that stays
+true on its own. Everything else here is prose, and prose rots — so a run that
+changes behaviour should strike out the lines its change makes false, in the
+same commit, rather than adding a new paragraph below them.
+
+The numbers above have a date on them for the same reason. A number without
+one reads as current forever.

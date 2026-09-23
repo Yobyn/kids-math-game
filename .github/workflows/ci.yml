@@ -48,6 +48,13 @@ jobs:
       - name: Unit tests
         run: npm run test:ci -- --code-coverage
 
+      # The same suite again with the clock moved on more than a year. A test
+      # that hard-codes today's date passes the run above and fails days or
+      # months later on a branch nobody touched — which is exactly how this
+      # step came to exist. See src/testing/shift-clock.ts.
+      - name: Unit tests on a future clock
+        run: npm run test:future
+
       # Kept even when the tests fail — that is when the report is worth reading
       - name: Upload coverage report
         if: always()
