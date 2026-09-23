@@ -47,6 +47,10 @@ export type TranslationKeys =
   | 'money-change'
   | 'money-count'
   | 'money-make'
+  | 'adults-stuck-title'
+  | 'adults-stuck-none'
+  | 'adults-stuck-one'
+  | 'adults-stuck-many'
   | 'see-result'
   | 'see-result-line'
   | 'money-pick'
@@ -377,6 +381,10 @@ export class LanguageService {
       'money-change': 'A toy costs {price}. You pay with {paid}. How much change do you get?',
       'money-count': 'How much money is this?',
       'money-make': 'How many {coin} coins make {target}?',
+      'adults-stuck-title': 'What stuck',
+      'adults-stuck-none': 'Nothing has finished this week yet. A fact counts as stuck once it has come back right on three separate days, so this fills up slowly on purpose.',
+      'adults-stuck-one': 'One fact stuck this week:',
+      'adults-stuck-many': '{count} facts stuck this week:',
       'see-result': 'See how your last round went',
       'see-result-line': 'You got {correct} of {total}',
       'money-pick': 'Put down coins to make {target}.',
@@ -564,6 +572,10 @@ export class LanguageService {
       'money-change': 'Speelgoed kost {price}. Je betaalt met {paid}. Hoeveel krijg je terug?',
       'money-count': 'Hoeveel geld is dit?',
       'money-make': 'Hoeveel munten van {coin} maken {target}?',
+      'adults-stuck-title': 'Wat is blijven hangen',
+      'adults-stuck-none': 'Deze week is er nog niets afgerond. Een som telt pas als hij op drie verschillende dagen goed is teruggekomen, dus dit vult zich met opzet langzaam.',
+      'adults-stuck-one': 'Eén som is deze week blijven hangen:',
+      'adults-stuck-many': '{count} sommen zijn deze week blijven hangen:',
       'see-result': 'Kijk hoe je laatste ronde ging',
       'see-result-line': 'Je had er {correct} van {total} goed',
       'money-pick': 'Leg munten neer om {target} te maken.',
@@ -751,6 +763,10 @@ export class LanguageService {
       'money-change': 'Un juguete cuesta {price}. Pagas con {paid}. ¿Cuánto cambio recibes?',
       'money-count': '¿Cuánto dinero hay aquí?',
       'money-make': '¿Cuántas monedas de {coin} hacen {target}?',
+      'adults-stuck-title': 'Lo que se ha aprendido',
+      'adults-stuck-none': 'Esta semana aún no se ha completado nada. Una operación solo cuenta cuando ha vuelto bien en tres días distintos, así que esto se llena despacio a propósito.',
+      'adults-stuck-one': 'Una operación se aprendió esta semana:',
+      'adults-stuck-many': '{count} operaciones se aprendieron esta semana:',
       'see-result': 'Mira cómo te fue en tu última ronda',
       'see-result-line': 'Acertaste {correct} de {total}',
       'money-pick': 'Pon monedas para hacer {target}.',

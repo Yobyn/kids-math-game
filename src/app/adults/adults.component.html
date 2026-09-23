@@ -71,6 +71,31 @@
       <p class="spacing-note">{{ languageService.translate('adults-spacing') }}</p>
     </section>
 
+    <!-- The past tense this screen never had. It sits after the three facts
+         to practise and before the note on how to do it, because it is the
+         answer to "does this work" that the practice itself raises. -->
+    <section class="stuck">
+      <h2>{{ languageService.translate('adults-stuck-title') }}</h2>
+
+      <p class="nothing" *ngIf="!plan.stuck.length">
+        {{ languageService.translate('adults-stuck-none') }}
+      </p>
+
+      <ng-container *ngIf="plan.stuck.length">
+        <p class="stuck-line">{{ stuckLine }}</p>
+        <ul class="stuck-facts">
+          <li class="stuck-fact" *ngFor="let fact of plan.stuck">
+            <span class="fact-question">{{ fact.question }}</span>
+            <!-- Labelled exactly as in the list above, so a bare number
+                 under a sum is never left to be guessed at -->
+            <span class="fact-answer">
+              {{ languageService.translate('adults-answer') }}: {{ fact.answer }}
+            </span>
+          </li>
+        </ul>
+      </ng-container>
+    </section>
+
     <section class="how">
       <h2>{{ languageService.translate('adults-how-title') }}</h2>
       <p>{{ languageService.translate('adults-how') }}</p>

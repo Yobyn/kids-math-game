@@ -1,6 +1,7 @@
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
 import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
+import { LearnedFact, learnedSince } from '../teaching/learned';
 
 /**
  * What an adult is shown about a child's practice, and — more importantly —
@@ -62,10 +63,16 @@ export interface PracticePlan {
   /** The operation missed most often, when there is enough to call it that. */
   weakest?: string;
   /**
-   * Facts that are not due yet. The honest answer to "is it working": one
-   * that stuck is not on this list at all any more.
+   * Facts that are not due yet. Part of the honest answer to "is it
+   * working": one that stuck is not on this list at all any more.
    */
   waiting: number;
+  /**
+   * The rest of that answer, and the part this screen never had: the facts
+   * that DID stick recently, newest first. Written out the same way the ones
+   * to practise are, so an adult reads the same thing in both places.
+   */
+  stuck: PracticeItem[];
 }
 
 const SYMBOLS: { [operation: string]: string } = {
@@ -97,7 +104,8 @@ export function factAnswer(fact: MissedFact): number {
 export function practicePlan(
   history: RoundResult[],
   missed: MissedFact[],
-  now: Date = new Date()
+  now: Date = new Date(),
+  learned: LearnedFact[] = []
 ): PracticePlan {
   const rounds = (history || []).filter(round => round && Number.isFinite(round.percentage));
 
@@ -106,7 +114,8 @@ export function practicePlan(
     facts: factsToPractise(missed || []),
     accuracy: accuracyOf(rounds),
     weakest: weakestOf(missed || []),
-    waiting: waitingFacts(missed || [], now).length
+    waiting: waitingFacts(missed || [], now).length,
+    stuck: learnedSince(learned || [], now).map(entry => toItem(entry.fact))
   };
 }
 

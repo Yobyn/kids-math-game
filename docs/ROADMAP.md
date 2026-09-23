@@ -63,7 +63,7 @@ back. What that cost is recorded under "What the audit found", at the end.
   eye shapes, four mouths, nine hair styles and three hair textures that
   compose with all of them, plus hair and eye colour. The page is three
   sections a child moves between rather than one long scroll.
-- 1,120 unit tests, 11 build-script tests and 16 server tests, run on every
+- 1,166 unit tests, 11 build-script tests and 16 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -528,11 +528,30 @@ a backend that currently keeps its users in memory (see Code health).
   — a determined older sibling passes the gate. (It is no longer 2400px down a
   390px phone: the grade screen is 1267px in total now, so the link sits
   within the second screenful.)
-  A fact's progress IS visible — "Right so far: 1 / 3", added with the spacing
-  work — so this file's "no per-fact history" is half wrong. What is missing
-  is the PAST tense: a fact that graduated leaves the queue and is never
-  mentioned again, so an adult still cannot see whether last week's three
-  stuck, only which three are live now.
+  THE PAST TENSE EXISTS NOW. "What stuck" lists the facts learned in the last
+  seven days, with the same wording and the same answers as the three to
+  practise. `src/app/teaching/learned.ts` is DOM-free and `learned:<owner>`
+  holds it; the record is written at the exact moment `afterReview` returns
+  nothing, which is the moment a fact leaves the queue and used to be the
+  moment the only trace of it disappeared.
+  WHY IT BELONGS ON THIS SCREEN rather than being a nice extra: the whole
+  design rests on an adult keeping to a small, bounded, scripted activity
+  instead of improvising, because Maloney et al. (Psychological Science,
+  2015) found the harm travelling through anxious, frequent, unstructured
+  helping. A plan whose results you never see is a plan you stop doing, and
+  the thing that would decay is precisely the structure. There is a 2022
+  Early Childhood Research Quarterly paper on parent practice WITH FEEDBACK
+  being the instructional strategy that actually moves parent behaviour
+  (10.1016/j.ecresq.2022.09.010), but its abstract was not readable from
+  here — it is named rather than leaned on.
+  IT IS NOT A SCORE, A STREAK OR A TARGET, and a test asserts all three: no
+  percentage, no chart, no goal. It is a short list that empties itself as
+  the days age out, and a quiet week says so plainly — "nothing has finished
+  this week yet", with the reason — rather than showing a zero.
+  A fact learned, missed and learned again counts ONCE, with the later day;
+  two entries would read as two different facts and overstate a week.
+  STILL OPEN: the window is a fixed seven days and nothing compares one week
+  to the next, deliberately — a comparison is the first step to a target.
   And there is no teacher shape at all: one child per device, no class, no
   export.
 
@@ -913,13 +932,23 @@ a backend that currently keeps its users in memory (see Code health).
   500 kB — the line this app had already crossed — with a warning at 460 kB
   that still fires today and is meant to. Lowering a budget is the opposite
   of the rule this file keeps repeating about never raising one.
-  STILL THE LARGEST SINGLE FILE IN THE APP, and the obvious next lever:
-  `src/app/services/language.service.ts` at 22.2 kB, which is every string in
-  English, Dutch AND Spanish shipped to every child so they can read one of
-  them. Splitting it would mean an async load on language change and a
-  `translate()` that is no longer synchronous, which is a real refactor with
-  a real risk of a flash of missing text — so it is written down here rather
-  than half-done.
+  THE TRANSLATION TABLE WAS MEASURED AND DELIBERATELY LEFT ALONE (2026-09-23).
+  `src/app/services/language.service.ts` is 22.2 kB and holds every string in
+  English, Dutch AND Spanish, which looks like the obvious next lever. It is
+  not. Compressed — the number a child on a slow connection actually waits
+  for — the two unread languages come to 4.9 kB: the three blocks together
+  gzip to 7.8 kB and English alone to 3.0 kB, because they share keys and
+  structure and compress against each other.
+  AND THE GAME WORKS OFFLINE, which is what settles it. A lazily fetched
+  locale would have to be precached by the service worker for a Dutch or
+  Spanish child to keep playing on a train — so the bytes would be
+  downloaded anyway and only the parse cost would move. The cost of the
+  change is a `translate()` that is no longer synchronous, or a bootstrap
+  that waits on a second request, and a flash of missing text for exactly
+  the children who are not reading the default language.
+  3.5% of the first load, against a new offline hazard for two thirds of the
+  languages. If this is ever revisited it should be because the app has many
+  more languages, not because 22.2 kB looks large in a source file.
 - **A console error on a page whose service worker is unregistered and
   reloaded underneath it**: `Cannot read properties of undefined (reading
   'skin')`, from the character in the header. Seen 2026-09-23 while measuring

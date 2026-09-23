@@ -263,3 +263,59 @@ describe('a store that cannot be read', () => {
     expect(plan.accuracy).toBeNull();
   });
 });
+
+describe('practicePlan: what stuck', () => {
+  const today = new Date(2026, 8, 22, 12);
+  const learnedOn = (num1: number, num2: number, on: string) => ({
+    fact: { num1, num2, operation: '+' }, on, key: `${num1}+${num2}`
+  });
+
+  it('says nothing stuck when nothing has', () => {
+    expect(practicePlan([], [], today).stuck).toEqual([]);
+  });
+
+  it('is empty rather than undefined when no record is passed at all', () => {
+    // Every existing caller passed three arguments before this existed
+    expect(practicePlan([], [], today).stuck).toEqual([]);
+  });
+
+  it('writes a learned fact out the same way a fact to practise is written', () => {
+    const plan = practicePlan([], [], today, [learnedOn(8, 7, '2026-09-22')]);
+
+    expect(plan.stuck.length).toBe(1);
+    expect(plan.stuck[0].question).toBe('8 + 7');
+    expect(plan.stuck[0].answer).toBe('15');
+  });
+
+  it('carries the worked line, so an adult sees the same method twice', () => {
+    const plan = practicePlan([], [], today, [learnedOn(8, 7, '2026-09-22')]);
+
+    expect(plan.stuck[0].worked).toBeTruthy();
+  });
+
+  it('leaves out anything learned longer ago than the window', () => {
+    const plan = practicePlan([], [], today, [
+      learnedOn(8, 7, '2026-09-22'),
+      learnedOn(9, 6, '2026-01-01')
+    ]);
+
+    expect(plan.stuck.map(item => item.question)).toEqual(['8 + 7']);
+  });
+
+  it('is separate from what is still being practised', () => {
+    // The two lists answer different questions and must not bleed
+    const missed = [{ num1: 5, num2: 5, operation: '+' }];
+    const plan = practicePlan([], missed, today, [learnedOn(8, 7, '2026-09-22')]);
+
+    expect(plan.facts.map(item => item.question)).toEqual(['5 + 5']);
+    expect(plan.stuck.map(item => item.question)).toEqual(['8 + 7']);
+  });
+
+  it('is not capped at three the way the practice list is', () => {
+    // Three is a bounded ASK. This is a report of what happened, and
+    // truncating it would understate a good week
+    const many = [1, 2, 3, 4, 5].map(n => learnedOn(n, n, '2026-09-22'));
+
+    expect(practicePlan([], [], today, many).stuck.length).toBe(5);
+  });
+});

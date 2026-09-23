@@ -325,3 +325,130 @@ describe('AdultsComponent', () => {
     });
   });
 });
+
+describe('AdultsComponent telling an adult what stuck', () => {
+  let fixture: ComponentFixture<AdultsComponent>;
+  let component: AdultsComponent;
+
+  function open() {
+    fixture = TestBed.createComponent(AdultsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    component.typed = String(component.challenge.value);
+    component.tryGate();
+    fixture.detectChanges();
+  }
+
+  /** Puts facts straight into the store, dated relative to today. */
+  function stuckDaysAgo(...daysAgo: number[]) {
+    const entries = daysAgo.map((ago, i) => {
+      const day = new Date();
+      day.setDate(day.getDate() - ago);
+      const on = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}`
+        + `-${String(day.getDate()).padStart(2, '0')}`;
+      return { fact: { num1: 8 + i, num2: 7, operation: '+' }, on, key: `k${i}` };
+    });
+    localStorage.setItem('learned:guest', JSON.stringify(entries));
+  }
+
+  const section = () => fixture.nativeElement.querySelector('.stuck');
+  const facts = () => Array.from(fixture.nativeElement.querySelectorAll('.stuck-fact'));
+
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, FormsModule],
+      declarations: [AdultsComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('has a section for it at all, which this screen never had', () => {
+    open();
+
+    expect(section()).toBeTruthy();
+  });
+
+  it('says plainly that nothing has finished yet, rather than showing an empty list', () => {
+    open();
+
+    expect(facts().length).toBe(0);
+    expect(section().querySelector('.nothing')).toBeTruthy();
+    expect(section().textContent.trim().length).toBeGreaterThan(20);
+  });
+
+  it('names the facts that stuck this week', () => {
+    stuckDaysAgo(0, 2);
+    open();
+
+    expect(facts().length).toBe(2);
+    expect(section().textContent).toContain('8 + 7');
+    expect(section().textContent).toContain('9 + 7');
+  });
+
+  it('shows the answer beside each one, labelled as in the list above', () => {
+    // A bare "15" under "8 + 7" is a number an adult has to guess the job of
+    stuckDaysAgo(1);
+    open();
+
+    const answer = section().querySelector('.fact-answer').textContent;
+    expect(answer).toContain('15');
+    expect(answer.trim().length).toBeGreaterThan(3);
+  });
+
+  it('leaves out what stuck longer ago than the window', () => {
+    stuckDaysAgo(0, 40);
+    open();
+
+    expect(facts().length).toBe(1);
+  });
+
+  it('counts them in words a parent would use, singular and plural', () => {
+    stuckDaysAgo(0);
+    open();
+    expect(component.stuckLine).toContain('One');
+    expect(component.stuckLine).not.toContain('{count}');
+
+    localStorage.clear();
+    stuckDaysAgo(0, 1, 2);
+    open();
+    expect(component.stuckLine).toContain('3');
+    expect(component.stuckLine).not.toContain('{count}');
+  });
+
+  it('never turns it into a score, a streak or a target', () => {
+    // This screen exists to keep an adult doing a short scripted thing, not
+    // to give them a number to chase
+    stuckDaysAgo(0, 1);
+    open();
+
+    const text = section().textContent;
+    expect(text).not.toMatch(/\bstreak\b/i);
+    expect(text).not.toMatch(/\d+\s*%/);
+    expect(text).not.toMatch(/\bgoal\b|\btarget\b/i);
+    expect(section().querySelector('svg')).toBeNull();
+  });
+
+  it('keeps it apart from the facts still being practised', () => {
+    localStorage.setItem('missedFacts:guest',
+      JSON.stringify([{ num1: 5, num2: 5, operation: '+' }]));
+    stuckDaysAgo(0);
+    open();
+
+    const practise = fixture.nativeElement.querySelector('.practise');
+    expect(practise.textContent).toContain('5 + 5');
+    expect(practise.textContent).not.toContain('8 + 7');
+    expect(section().textContent).toContain('8 + 7');
+    expect(section().textContent).not.toContain('5 + 5');
+  });
+
+  it('survives a store with rubbish in it', () => {
+    localStorage.setItem('learned:guest', '{not json');
+    open();
+
+    expect(section()).toBeTruthy();
+    expect(facts().length).toBe(0);
+  });
+});

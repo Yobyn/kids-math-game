@@ -39,7 +39,7 @@ export class AdultsComponent implements OnInit {
   typed = '';
 
   totals: PlayTotals = { rounds: 0, questions: 0, correct: 0 };
-  plan: PracticePlan = { trend: [], facts: [], accuracy: null, waiting: 0 };
+  plan: PracticePlan = { trend: [], facts: [], accuracy: null, waiting: 0, stuck: [] };
 
   readonly chartWidth = CHART_WIDTH;
   readonly chartHeight = CHART_HEIGHT;
@@ -78,8 +78,22 @@ export class AdultsComponent implements OnInit {
     this.totals = this.progressService.getTotals();
     this.plan = practicePlan(
       this.progressService.getHistory(),
-      this.progressService.getMissedFacts()
+      this.progressService.getMissedFacts(),
+      new Date(),
+      this.progressService.getLearned()
     );
+  }
+
+  /**
+   * What stuck this week, in words. Plural-aware, because "1 facts" in front
+   * of a parent reads as a machine talking rather than a report about their
+   * child.
+   */
+  get stuckLine(): string {
+    const count = this.plan.stuck.length;
+    return this.languageService
+      .translate(count === 1 ? 'adults-stuck-one' : 'adults-stuck-many')
+      .replace('{count}', String(count));
   }
 
   /** Who this is about, so an adult sharing a tablet knows which child. */
