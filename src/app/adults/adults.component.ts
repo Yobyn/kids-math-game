@@ -5,6 +5,8 @@ import { ProgressService, PlayTotals } from '../services/progress.service';
 import { GateChallenge, isGatePassed, newChallenge } from './parent-gate';
 import { spellNumber } from './number-words';
 import { PracticePlan, practicePlan } from './practice-plan';
+import { AuthService } from '../services/auth.service';
+import { ProgressSyncService } from '../services/progress-sync.service';
 
 /** Where the honest trend is drawn, in its own coordinate space. */
 const CHART_WIDTH = 300;
@@ -44,10 +46,15 @@ export class AdultsComponent implements OnInit {
   readonly chartWidth = CHART_WIDTH;
   readonly chartHeight = CHART_HEIGHT;
 
+  /** The states of asking the account to forget its copy. */
+  forgetState: 'idle' | 'asking' | 'working' | 'done' = 'idle';
+
   constructor(
     private progressService: ProgressService,
     private router: Router,
-    public languageService: LanguageService
+    public languageService: LanguageService,
+    private authService: AuthService,
+    private progressSync: ProgressSyncService
   ) {}
 
   ngOnInit() {
@@ -165,6 +172,37 @@ export class AdultsComponent implements OnInit {
   get weakestLine(): string {
     return this.languageService.translate('adults-weakest')
       .replace('{operation}', this.weakestName || '');
+  }
+
+  /**
+   * Only an account has a copy anywhere but this device, so a guest is never
+   * shown a control for deleting something that does not exist.
+   */
+  get canForget(): boolean {
+    return this.authService.isLoggedIn();
+  }
+
+  /**
+   * Deleting is one click plus a confirmation, not a support request — an
+   * adult who wants the copy gone should be able to make it gone. It is also
+   * worded so nobody is tricked into thinking it wipes the child's game: what
+   * is on this device stays, and only the account's copy is forgotten.
+   */
+  askToForget(): void {
+    this.forgetState = 'asking';
+  }
+
+  cancelForget(): void {
+    this.forgetState = 'idle';
+  }
+
+  confirmForget(): void {
+    this.forgetState = 'working';
+    // It says done either way: a server that cannot be reached is holding
+    // nothing this adult can act on, and a spinner that never stops is worse
+    this.progressSync.forget().subscribe(() => {
+      this.forgetState = 'done';
+    });
   }
 
   back() {

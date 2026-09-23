@@ -76,6 +76,28 @@ export class AvatarService {
     this.refresh();
   }
 
+  /**
+   * The stored character, or null when this player has never chosen one.
+   * For syncing: a device with no character of its own is the case where
+   * taking the account's is right.
+   */
+  exportAvatar(): any {
+    return this.stored(this.currentOwner());
+  }
+
+  /**
+   * Takes a character that came back from the account. Only ever called with
+   * the result of a merge that already decided this device has none of its
+   * own — see synced-progress.ts.
+   */
+  importAvatar(avatar: any): void {
+    if (avatar === null || avatar === undefined) {
+      return;
+    }
+    this.write(this.currentOwner(), normaliseAvatar(avatar, this.level(), this.earned()));
+    this.refresh();
+  }
+
   private currentOwner(): string {
     try {
       const username = localStorage.getItem('username');

@@ -2,6 +2,7 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AdultsComponent } from './adults.component';
 import { ProgressService } from '../services/progress.service';
 import { LanguageService } from '../services/language.service';
@@ -34,7 +35,7 @@ describe('AdultsComponent', () => {
   beforeEach(async () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
-      imports: [RouterTestingModule, FormsModule],
+      imports: [RouterTestingModule, FormsModule, HttpClientTestingModule],
       declarations: [AdultsComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -357,7 +358,7 @@ describe('AdultsComponent telling an adult what stuck', () => {
   beforeEach(async () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
-      imports: [RouterTestingModule, FormsModule],
+      imports: [RouterTestingModule, FormsModule, HttpClientTestingModule],
       declarations: [AdultsComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -450,5 +451,115 @@ describe('AdultsComponent telling an adult what stuck', () => {
 
     expect(section()).toBeTruthy();
     expect(facts().length).toBe(0);
+  });
+});
+
+/**
+ * The one control in the game that deletes something. Its own describe
+ * because who is signed in has to be in storage before the services read it.
+ */
+describe('AdultsComponent and the copy kept on the account', () => {
+  let fixture: ComponentFixture<AdultsComponent>;
+  let component: AdultsComponent;
+  let http: HttpTestingController;
+
+  async function arrive(signedIn: boolean) {
+    localStorage.clear();
+    if (signedIn) {
+      localStorage.setItem('username', 'ada');
+      localStorage.setItem('token', 'a-token');
+    }
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, FormsModule, HttpClientTestingModule],
+      declarations: [AdultsComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+
+    http = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(AdultsComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    // Through the door
+    component.typed = String(component.challenge.value);
+    component.tryGate();
+    fixture.detectChanges();
+  }
+
+  afterEach(() => localStorage.clear());
+
+  it('is not shown to a guest, who has no copy anywhere to delete', async () => {
+    await arrive(false);
+
+    expect(component.canForget).toBe(false);
+    expect(fixture.nativeElement.querySelector('.copy')).toBeNull();
+  });
+
+  it('says what is kept and, more importantly, what is not', async () => {
+    await arrive(true);
+
+    const text = fixture.nativeElement.querySelector('.copy').textContent;
+    expect(text).toContain(component.languageService.translate('adults-copy-what'));
+    expect(text).toContain(component.languageService.translate('adults-copy-not'));
+  });
+
+  it('asks before deleting, rather than deleting on one tap', async () => {
+    await arrive(true);
+
+    fixture.nativeElement.querySelector('.forget-btn').click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.forget-sure')).toBeTruthy();
+    http.verify();
+  });
+
+  it('lets an adult change their mind without anything happening', async () => {
+    await arrive(true);
+    component.askToForget();
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('.keep-btn').click();
+    fixture.detectChanges();
+
+    expect(component.forgetState).toBe('idle');
+    http.verify();
+  });
+
+  it('deletes the copy and says so', async () => {
+    await arrive(true);
+    component.askToForget();
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('.forget-btn').click();
+
+    const request = http.expectOne(r => r.method === 'DELETE');
+    expect(request.request.url).toContain('/api/progress');
+    request.flush({ deleted: true });
+    fixture.detectChanges();
+
+    expect(component.forgetState).toBe('done');
+    expect(fixture.nativeElement.querySelector('.forget-done')).toBeTruthy();
+  });
+
+  it('leaves the game on this device completely alone', async () => {
+    await arrive(true);
+    const progress = TestBed.inject(ProgressService);
+    progress.addXp(240);
+    progress.record({ correctAnswers: 8, total: 10, percentage: 80, score: 16, grade: 2 });
+
+    component.confirmForget();
+    http.expectOne(r => r.method === 'DELETE').flush({ deleted: true });
+
+    expect(progress.getXp()).toBe(240);
+    expect(progress.getHistory().length).toBe(1);
+  });
+
+  it('does not leave an adult watching a spinner when the server is unreachable', async () => {
+    await arrive(true);
+
+    component.confirmForget();
+    http.expectOne(r => r.method === 'DELETE').error(new ErrorEvent('offline'));
+    fixture.detectChanges();
+
+    expect(component.forgetState).toBe('done');
   });
 });

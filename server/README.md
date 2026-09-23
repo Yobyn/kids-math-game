@@ -1,8 +1,8 @@
 # Math Game Server
 
-Holds accounts, and nothing else. Every scrap of a child's actual progress —
-rounds, levels, missed facts, their character — lives in their own browser,
-and none of it is sent here.
+Holds accounts, and a deliberately short copy of what a signed-in child has
+earned, so it is there when they play on another phone or tablet. Nothing
+else. A child playing as a guest sends nothing here at all.
 
 ## Running it
 
@@ -13,6 +13,43 @@ JWT_SECRET=<a long random string> npm start
 
 The game itself works without this server: a child can play as a guest. The
 server is only needed for registering and signing in.
+
+## What a signed-in child's copy contains, and what it never contains
+
+**Kept:** the last twenty rounds, experience, lifetime totals, the events they
+were here for, the things they won, and their character. That is the list of
+what a child would notice missing on a new phone.
+
+**Never kept:** the sums they keep getting wrong (`missedFacts`), the ones
+that have stuck (`learned`), the round in play and the last result. The
+practice queue is working state that rebuilds itself from a few days' play,
+and "what this child is bad at" is the most sensitive thing this game knows —
+it does not leave the device. The reasoning, and the ICO Age Appropriate
+Design Code wording it follows, is written out in `progress-store.js`.
+
+`data/progress.json`, alongside the accounts and written the same way. Set
+`PROGRESS_FILE` to move it. Like the accounts file it is gitignored and must
+stay that way.
+
+Three routes, all behind the token, all scoped to the account the token names:
+
+| | |
+|---|---|
+| `GET /api/progress` | what this account has, or `null` |
+| `PUT /api/progress` | replace it; 400 if the body is not a usable object or is over 64 kB |
+| `DELETE /api/progress` | forget it |
+
+The account id comes from the token and never from the request, so asking for
+another child's progress is not something the API can express — there is a
+test for each of those, because that is the part worth being sure about.
+
+The device is the authority: the client merges and then puts the result, so a
+pull can never take away something a child earned somewhere else. The merge
+rule lives in `src/app/services/synced-progress.ts`.
+
+Deleting is a first-class operation, not a support request — an adult can do
+it from the grown-ups' screen in the game. It removes this server's copy only;
+what is on the device stays. Retention is the account's lifetime and no more.
 
 ## Where accounts are kept
 

@@ -9,6 +9,7 @@ import { LevelProgress, levelProgress, xpForRound } from '../levels/level-curve'
 import { WardrobeItem, itemById, itemForEvent, itemsUnlockedAt } from '../avatar/avatar-model';
 import { activeEvent } from '../events/seasonal-events';
 import { AvatarService } from '../services/avatar.service';
+import { ProgressSyncService } from '../services/progress-sync.service';
 import { Avatar } from '../avatar/avatar-model';
 import { EASED_KEY } from '../levels/in-round-tuner';
 import { RESULT_VERSION, SavedResult, isShowable } from './result-state';
@@ -71,7 +72,8 @@ export class ResultComponent implements OnInit, OnDestroy {
     private progressService: ProgressService,
     private fieldPulse: FieldPulseService,
     private authService: AuthService,
-    private avatarService: AvatarService
+    private avatarService: AvatarService,
+    private progressSync: ProgressSyncService
   ) {}
 
   ngOnInit() {
@@ -121,6 +123,11 @@ export class ResultComponent implements OnInit, OnDestroy {
 
     this.showKeepOffer = this.shouldOfferToKeepProgress();
     this.progressService.saveResult(this.asSavedResult());
+
+    // A round is the moment something new exists to keep. It goes to the
+    // account in the background: nothing on this screen waits for it, and a
+    // child with no signal never learns it was tried.
+    this.progressSync.push().subscribe();
   }
 
   /**

@@ -1,7 +1,7 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ResultComponent } from './result.component';
 import { ScoreService } from '../services/score.service';
 import { ProgressService } from '../services/progress.service';
@@ -186,10 +186,10 @@ describe('ResultComponent offering an account', () => {
     render();
 
     const body = fixture.nativeElement.querySelector('.keep-offer-body').textContent;
-    // Account progress still lives in localStorage, so it does NOT follow a
-    // child to another device. The copy must not imply that it does.
-    expect(body).not.toMatch(/another device|somewhere else|anywhere/i);
-    expect(body).toContain('your own name');
+    // An account now really does carry progress between devices, so the offer
+    // is allowed to say so. The test below is the other half of this one: it
+    // checks the promise is kept, not just made.
+    expect(body).toMatch(/phone or tablet/i);
   });
 
   it('never offers to a child who already has an account', () => {
@@ -814,5 +814,75 @@ describe('ResultComponent showing a round that was never seen', () => {
     component.playAgain();
 
     expect(stored()).toBeNull();
+  });
+});
+
+/**
+ * The other half of the offer above: it promises a child's progress is theirs
+ * on another phone, and this is where that promise is kept or broken. Its own
+ * describe because who is signed in has to be in storage BEFORE the services
+ * wake up and read it, which is also how it happens in the real app.
+ */
+describe('ResultComponent sending a finished round to the account', () => {
+  let scoreService: ScoreService;
+  let http: HttpTestingController;
+
+  function render() {
+    spyOn(scoreService, 'getFinalScore').and.returnValue({
+      score: 20, total: 10, correctAnswers: 9, percentage: 90
+    });
+    const fixture = TestBed.createComponent(ResultComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  async function signedInAs(username: string | null) {
+    localStorage.clear();
+    if (username) {
+      localStorage.setItem('username', username);
+      localStorage.setItem('token', 'a-token');
+    }
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+
+    scoreService = TestBed.inject(ScoreService);
+    http = TestBed.inject(HttpTestingController);
+  }
+
+  afterEach(() => localStorage.clear());
+
+  it('sends it, so it is there on the child\'s other device', async () => {
+    await signedInAs('ada');
+
+    render();
+
+    const pushed = http.expectOne(request => request.method === 'PUT');
+    expect(pushed.request.url).toContain('/api/progress');
+    expect(pushed.request.body.progress.roundHistory.length).toBe(1);
+    expect(pushed.request.headers.get('Authorization')).toBe('Bearer a-token');
+    pushed.flush({ updatedAt: 'now' });
+  });
+
+  it('sends nothing for a guest, because there is nowhere to send it', async () => {
+    await signedInAs(null);
+    TestBed.inject(AuthService).playAsGuest();
+
+    render();
+
+    http.verify();
+  });
+
+  it('shows the score even when the account cannot be reached', async () => {
+    await signedInAs('ada');
+
+    const fixture = render();
+    http.expectOne(request => request.method === 'PUT').error(new ErrorEvent('offline'));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.score-card')).toBeTruthy();
+    expect(fixture.componentInstance.percentage).toBe(90);
   });
 });
