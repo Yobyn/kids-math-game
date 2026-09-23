@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { afterMiss, afterReview, dueFacts } from '../teaching/review-schedule';
+import { afterMiss, afterReview, dayKey, dueFacts } from '../teaching/review-schedule';
 import { SavedRound, parseRound, serialiseRound } from '../question/round-state';
 import { SavedResult, parseResult, serialiseResult } from '../result/result-state';
+import { LearnedFact, parseLearned, rememberLearned } from '../teaching/learned';
 import { MoneyQuestion } from '../teaching/money';
 import {
   EarnedEvent,
@@ -65,6 +66,7 @@ const TOTALS_KEY = 'totals';
 /** The one round still in play, if any. At most one per owner. */
 const ROUND_KEY = 'round';
 const RESULT_KEY = 'result';
+const LEARNED_KEY = 'learned';
 /** Items won, with the day they were won. See scrapbook/scrapbook.ts. */
 const KEEPSAKES_KEY = 'keepsakes';
 /** Enough to carry a round's mistakes forward without burying the next one. */
@@ -213,6 +215,43 @@ export class ProgressService {
       .filter(f => factSignature(f) !== factSignature(fact));
     const again = afterReview(fact, now);
     this.writeMissed(owner, again ? [...rest, again].slice(0, MAX_MISSED) : rest);
+
+    // `afterReview` returning nothing IS the moment a fact is learned, and
+    // until now it was the moment the only record of it disappeared
+    if (!again) {
+      this.rememberLearned(owner, fact, now);
+    }
+  }
+
+  /** The facts that stuck, newest first. See teaching/learned.ts. */
+  getLearned(): LearnedFact[] {
+    return parseLearned(this.readJson(this.key(LEARNED_KEY, this.currentOwner())));
+  }
+
+  private rememberLearned(owner: string, fact: MissedFact, now: Date): void {
+    const entry: LearnedFact = { fact, on: dayKey(now), key: factSignature(fact) };
+    this.writeLearned(owner, rememberLearned(this.getLearnedFor(owner), entry));
+  }
+
+  private getLearnedFor(owner: string): LearnedFact[] {
+    return parseLearned(this.readJson(this.key(LEARNED_KEY, owner)));
+  }
+
+  private writeLearned(owner: string, learned: LearnedFact[]): void {
+    try {
+      localStorage.setItem(this.key(LEARNED_KEY, owner), JSON.stringify(learned));
+    } catch {
+      // A record of what stuck is worth less than the round being played
+    }
+  }
+
+  /** Whatever JSON is under a key, or null for anything unreadable. */
+  private readJson(key: string): any {
+    try {
+      return JSON.parse(this.item(key) || 'null');
+    } catch {
+      return null;
+    }
   }
 
   /**

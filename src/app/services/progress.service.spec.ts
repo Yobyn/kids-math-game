@@ -816,3 +816,97 @@ describe('ProgressService: writing down when things happened', () => {
     expect(service.getKeepsakes()[0]).toEqual({ id: 'crown', date: '2026-02-01T00:00:00.000Z' });
   });
 });
+
+describe('ProgressService remembering what stuck', () => {
+  let service: ProgressService;
+
+  const fact = (num1: number, num2: number, operation = '+') => ({ num1, num2, operation });
+  const stored = () => JSON.parse(localStorage.getItem('learned:guest') || '[]');
+
+  /**
+   * Answers the fact right on enough separate days to graduate it, starting
+   * from the day it was missed. The days really do come from `from`: the
+   * first draft of this hard-coded them and quietly made two tests assert
+   * the same date whatever they passed in.
+   */
+  function learn(f: any, from = new Date(2026, 8, 20)) {
+    service.recordMissed(f, from);
+    let current = f;
+    for (let day = 1; day <= REVIEWS_TO_GRADUATE; day++) {
+      const on = new Date(from.getFullYear(), from.getMonth(), from.getDate() + day);
+      const [taken] = service.takeMissedFacts(1, on);
+      current = taken || current;
+      service.passedReview(current, on);
+    }
+    return current;
+  }
+
+  beforeEach(() => {
+    localStorage.clear();
+    service = new ProgressService();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('writes nothing down while a fact is still being practised', () => {
+    service.recordMissed(fact(8, 7), new Date(2026, 8, 20));
+    const [taken] = service.takeMissedFacts(1, new Date(2026, 8, 21));
+    service.passedReview(taken, new Date(2026, 8, 21));
+
+    expect(service.getLearned()).toEqual([]);
+    expect(service.getMissedFacts().length).toBe(1);
+  });
+
+  it('writes it down at the moment it leaves the queue', () => {
+    // The graduation moment used to be the moment the only record vanished
+    learn(fact(8, 7));
+
+    expect(service.getMissedFacts()).toEqual([]);
+    expect(service.getLearned().length).toBe(1);
+    expect(service.getLearned()[0].fact.num1).toBe(8);
+    expect(service.getLearned()[0].on).toBe('2026-09-23');
+  });
+
+  it('keeps the day it actually happened, not today', () => {
+    // Missed on 1 August, and right on the three days after it
+    learn(fact(9, 6), new Date(2026, 7, 1));
+
+    expect(service.getLearned()[0].on).toBe('2026-08-04');
+  });
+
+  it('files it under the child who learned it', () => {
+    learn(fact(8, 7));
+    localStorage.setItem('username', 'robin');
+    localStorage.setItem('token', 'x');
+
+    expect(service.getLearned()).toEqual([]);
+    expect(stored().length).toBe(1);
+  });
+
+  it('remembers several, newest first', () => {
+    learn(fact(8, 7), new Date(2026, 8, 1));
+    learn(fact(9, 6), new Date(2026, 8, 10));
+
+    expect(service.getLearned().map(item => item.fact.num1)).toEqual([9, 8]);
+  });
+
+  it('counts a fact learned twice only once', () => {
+    learn(fact(8, 7), new Date(2026, 8, 1));
+    learn(fact(8, 7), new Date(2026, 8, 12));
+
+    expect(service.getLearned().length).toBe(1);
+    expect(service.getLearned()[0].on).toBe('2026-09-15');
+  });
+
+  it('survives a store somebody has edited', () => {
+    localStorage.setItem('learned:guest', '{not json');
+
+    expect(service.getLearned()).toEqual([]);
+  });
+
+  it('survives a store holding something that is not a list', () => {
+    localStorage.setItem('learned:guest', '"nonsense"');
+
+    expect(service.getLearned()).toEqual([]);
+  });
+});
