@@ -3,8 +3,9 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-23. Three things landed that day: an audit of this
-whole file, the coin-picking question, and the result screen's own memory.
+Last surveyed: 2026-09-23. Four things landed that day: an audit of this
+whole file, the coin-picking question, the result screen's own memory, and
+the first load being cut by 85 kB.
 Every claim here was checked against the code that day and every number in it
 re-measured — sixteen runs had written into this file and none had ever gone
 back. What that cost is recorded under "What the audit found", at the end.
@@ -39,7 +40,12 @@ back. What that cost is recorded under "What the audit found", at the end.
   counted-up percentage.
 - Sound and haptics switch in the header, remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
-  respects `prefers-reduced-motion`.
+  respects `prefers-reduced-motion` — in CSS now, with no animation
+  framework in the bundle at all.
+- The screens that are not the game — the character, progress, the
+  scrapbook, the grown-ups' screen and registration — are fetched when a
+  child opens them. The game itself is in the first load, so nothing is ever
+  waited for between one question and the next.
 - A round survives being interrupted: it is written down after every
   question and whenever the page goes away, and offered back — never
   restored silently — for four hours. So does the END of a round: a result
@@ -57,7 +63,7 @@ back. What that cost is recorded under "What the audit found", at the end.
   eye shapes, four mouths, nine hair styles and three hair textures that
   compose with all of them, plus hair and eye colour. The page is three
   sections a child moves between rather than one long scroll.
-- 1,110 unit tests, 11 build-script tests and 16 server tests, run on every
+- 1,120 unit tests, 11 build-script tests and 16 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -876,11 +882,53 @@ a backend that currently keeps its users in memory (see Code health).
   bar and the score display are the next candidates if it creeps back up.
   `result.component.css` has quietly joined it at 4.29 kB, which this file
   never recorded.
-  A THIRD BUDGET IS OVER AND WAS NEVER MENTIONED HERE AT ALL: the `initial`
-  bundle is 555.65 kB against a 500 kB warning and a 1 MB error. Every build
-  for many runs has printed that warning and no run has written it down. It
-  is a long way from the error ceiling, but it is the one budget that decides
-  what a child on a slow connection waits for.
+  THE `initial` BUDGET IS MET NOW, and getting there meant finally looking at
+  what was in the bundle. It had been over for many runs, printed on every
+  build, and written down by none until the audit; it reached 569.28 kB.
+  569.28 kB → 484.22 kB (2026-09-23), in two moves.
+  FIRST, `@angular/animations` WAS 65 kB OF THE BUNDLE — 12.3% — and it
+  bought two entrance effects: a fade-and-slide on the feedback line and a
+  fade-and-scale on the Check button. The feedback one was bound with
+  `:enter`/`:leave` on an element that has no `*ngIf`, so it ran ONCE on
+  first render and never again. Both are four lines of CSS keyframes in
+  `src/styles.css`, and dropping `BrowserAnimationsModule` took 72 kB off the
+  first load on its own. The one thing Angular's animations did for free was
+  respect `prefers-reduced-motion`; in CSS that has to be asked for, and it
+  is, and a browser check confirms the rules really do turn off.
+  SECOND, THE SCREENS THAT ARE NOT THE GAME ARE FETCHED WHEN THEY ARE OPENED.
+  `/register`, `/avatar`, `/progress`, `/scrapbook` and `/grown-ups` are
+  lazy routes with their own modules; sign in, grade, difficulty, question
+  and result stay in the first load, because a child who is playing must
+  never wait for a network fetch between one question and the next. That
+  moved another 43 kB into five chunks, and a browser confirms the game loop
+  fetches none of them while the five screens each fetch exactly one.
+  THE HONEST NUMBER IS THE COMPRESSED ONE. Angular's budget counts raw bytes;
+  what a child on a slow connection waits for is the transfer. Initial
+  JavaScript went from 158.3 kB to 140.0 kB gzipped. The commonly cited
+  mobile guidance (web.dev / Addy Osmani, platform documentation rather than
+  a study) is under ~170 kB compressed for interactive-in-five-seconds on
+  slow 3G; this was 12 kB inside that and is now 30 kB inside it.
+  THE BUDGET WAS TIGHTENED RATHER THAN LEFT SLACK: the `initial` error was
+  1 MB, which nothing was ever going to hit, so it now stops the build at
+  500 kB — the line this app had already crossed — with a warning at 460 kB
+  that still fires today and is meant to. Lowering a budget is the opposite
+  of the rule this file keeps repeating about never raising one.
+  STILL THE LARGEST SINGLE FILE IN THE APP, and the obvious next lever:
+  `src/app/services/language.service.ts` at 22.2 kB, which is every string in
+  English, Dutch AND Spanish shipped to every child so they can read one of
+  them. Splitting it would mean an async load on language change and a
+  `translate()` that is no longer synchronous, which is a real refactor with
+  a real risk of a flash of missing text — so it is written down here rather
+  than half-done.
+- **A console error on a page whose service worker is unregistered and
+  reloaded underneath it**: `Cannot read properties of undefined (reading
+  'skin')`, from the character in the header. Seen 2026-09-23 while measuring
+  the bundle, and CONFIRMED PRE-EXISTING by running the same probe against
+  `origin/main`, which produces it identically. It does not reproduce on a
+  cold load or on direct navigation to any of the nine screens, so it is
+  written down rather than guessed at: something renders the header with no
+  avatar while the worker is being swapped, and `[avatar]="avatar"` passes
+  `undefined` over the component's own default.
 - **Dead code**, all four confirmed still dead on 2026-09-23: `src/app/app/`
   (a leftover scaffold — `AppModule` imports `./app.component`, not this one),
   `src/app/types/translation-keys.ts` (a second `TranslationKeys` union that

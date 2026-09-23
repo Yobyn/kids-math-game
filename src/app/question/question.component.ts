@@ -16,7 +16,6 @@ import {
 import { MAX_PICKED, addPiece, pickMatches, removeAt } from '../teaching/coin-pick';
 import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
-import { trigger, state, style, animate, transition } from '@angular/animations';
 import {
   QUESTIONS_IN_ROUND,
   RESUME_CHOICE_KEY,
@@ -59,23 +58,6 @@ interface PendingReplay {
   selector: 'app-question',
   templateUrl: './question.component.html',
   styleUrls: ['./question.component.css'],
-  animations: [
-    trigger('feedbackAnimation', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'translateY(-20px)' }),
-        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
-      ]),
-      transition(':leave', [
-        animate('200ms ease-in', style({ opacity: 0, transform: 'translateY(-20px)' }))
-      ])
-    ]),
-    trigger('buttonAnimation', [
-      transition(':enter', [
-        style({ opacity: 0, transform: 'scale(0.8)' }),
-        animate('200ms ease-out', style({ opacity: 1, transform: 'scale(1)' }))
-      ])
-    ])
-  ]
 })
 export class QuestionComponent implements OnInit, OnDestroy {
   @ViewChild('answerInput') answerInput!: ElementRef;

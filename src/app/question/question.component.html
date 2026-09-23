@@ -83,7 +83,7 @@
                 [decimal]="needsDecimalKey"
                 (press)="onKeypadPress($event)"></app-keypad>
 
-    <div class="feedback-container" [@feedbackAnimation]="feedback !== ''">
+    <div class="feedback-container">
       <div class="feedback" [class.correct]="answerWasCorrect === true"
                            [class.incorrect]="answerWasCorrect === false"
                            role="status"
@@ -114,15 +114,13 @@
     <div class="button-container">
       <button *ngIf="!showOkButton" 
               class="check-button" 
-              (click)="checkAnswer()"
-              [@buttonAnimation]>
+              (click)="checkAnswer()">
         {{ languageService.translate('check') }}
       </button>
       <button *ngIf="showOkButton" 
               class="next-button" 
               #nextButton
-              (click)="moveToNextQuestion()"
-              [@buttonAnimation]>
+              (click)="moveToNextQuestion()">
         {{ languageService.translate('next') }}
       </button>
     </div>
