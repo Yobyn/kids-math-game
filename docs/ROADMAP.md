@@ -105,6 +105,111 @@ at every level only works if the levels themselves take real practice. And an
 avatar means per-child data: guest state in `localStorage`, account state on
 a backend that currently keeps its users in memory (see Code health).
 
+## Art direction (Yobyn, 2026-09-23)
+
+Every item under "Product direction" has shipped. Seventeen runs built
+behaviour and proved it with tests, and nobody once asked whether the result
+looked good. It does not. **Look and feel is the priority now**, and this
+section is the brief.
+
+Yobyn's words, with two screenshots: the character should "look more like an
+indie game, a lot more graphics", and "the hair does not sit great". And:
+"I love the background, the particles — if we can incorporate throughout the
+game as a theme and also make it interactive when clicking buttons."
+
+**THE PARTICLE FIELD IS THE THEME.** It is the one piece of art in this game
+anyone has praised, so it is what the rest of the look should be built out
+from. Most of the machinery already exists and a run should read it before
+designing anything: `particles/particle-field.ts` is DOM-free maths (a ring
+of points, blue `#3880ff` through magenta `#d633eb` by angle, a pulse spent
+within ~450ms), `particles.component.ts` draws it on a canvas outside
+Angular's zone with `mix-blend-mode: screen`, and `<app-particles>` is
+rendered once at the root — so the field is ALREADY behind every screen.
+`FieldPulseService` is already the decoupled hook: anything can call
+`pulse(0..1)` without knowing particles exist.
+
+So "throughout the game as a theme" is **not about the backdrop**, which is
+everywhere already. It is about everything drawn ON TOP of it. The cards,
+buttons and panels are plain white boxes that do not belong to the
+blue-magenta ring they sit on, and that mismatch is most of why the game
+reads as a form rather than a game. The work is to derive the whole surface
+palette FROM the field — card fills, borders, button states, focus rings, the
+grade stripes, the avatar's default colours — so one system explains every
+colour on screen.
+
+**Making it answer a tap overturns an earlier decision, and the roadmap
+should say so rather than pretend otherwise.** `field-pulse.service.ts`
+carries the note "Deliberately not fired on every tap: a celebration for a
+trivial action stops meaning anything", and only three things pulse today: a
+correct answer (0.5), a three-streak (0.85), a finished round (1.0). Yobyn
+has asked for tap feedback, so that decision is superseded — but its
+reasoning still holds. The way to have both is TWO VOCABULARIES: a tap gets a
+small, local, immediate scatter at the point of contact, which reads as the
+surface being physical; a reward keeps the full-field surge, which stays
+rare. Same field, different gesture. If the two cannot be told apart in a
+screen recording, they have been collapsed and the point is lost.
+
+One implementation trap: the particle host is `pointer-events: none` and must
+stay that way, or it swallows every tap in the game. The field cannot listen
+for clicks — interaction has to be pushed to it, by extending
+`FieldPulseService` so a pulse can carry a point.
+
+**THE CHARACTER'S HAIR PROBLEM IS STRUCTURAL**, so it cannot be fixed by
+editing path strings. In `avatar/avatar-model.ts`, `HAIR_PATHS` is keyed only
+by hair style and `FACE_PATHS` only by face shape, and both are absolute
+coordinates over the same 100x100 box — so the hair silhouette is identical
+whatever face is under it. Nine hair styles times four face shapes is 36
+combinations and only `round` was ever tuned; on `square` and `heart` the
+hair floats above the skull or cuts into it, and even on `round` it reads as
+a cap sitting on top, because the hairline is a straight-ish chord across a
+curved crown. The ears are fixed circles (cx 22/78, cy 55, r 7) that no hair
+style knows about. What this needs is a head geometry the parts share — a
+scalp curve and a hairline per face shape that hair styles are expressed
+against — so hair is drawn ON a head rather than NEAR one. That is testable:
+every one of the 36 combinations should be provably seated, with no gap above
+the crown and no hair inside the face outline.
+
+The character is also flat: every fill is one solid colour, there is no
+shading, no outline on the silhouette, one hard white glint per eye, and the
+torso is a single blob. "A lot more graphics" means depth. Keep it SVG and
+keep it cheap — no raster art, no animation library.
+
+**THE GRADE SCREEN IS TEN IDENTICAL CARDS**, each the same white box with the
+same 📚 emoji, distinguished only by a rainbow stripe that reads as
+decoration rather than meaning. Nothing tells a child what Groep 1 is versus
+Groep 10.
+
+And its copy is a bug in all three languages, not a preference:
+`grade-select.component.ts` builds the description as
+`${'mathematics-for'} ${i+1} ${'students'}`, which renders "Wiskunde voor 1
+leerlingen" — "Maths for 1 students". It is meant to name the year group, not
+count children. English and Spanish are equally wrong.
+
+**What does not bend for any of this.** Prettier must never mean harder to
+read: question and answer surfaces stay high-contrast, and a decorative
+change that costs contrast is not an improvement. Do not darken the card or
+keypad faces. Everything that moves respects `prefers-reduced-motion`, and
+for tap feedback that means OFF, not smaller. Decoration may not eat a 44px
+touch target. Nothing interrupts a question — a burst under a keypad key is
+fine, a full-screen surge mid-question is not. Identity is never earned and
+never locked: skin, face, hair and their colours stay free at level 1 however
+the art changes. Per-tap work must be bounded, so a child mashing the keypad
+cannot allocate without limit.
+
+**And art costs bytes.** The initial bundle has 6.66 kB of headroom (493.34
+kB against a 500 kB error budget, measured 2026-09-23) and the particle field
+is eager, so anything added there lands in the first load. Pay for it by
+moving something off the eager path — dead code (`src/app/app/`,
+`src/app/types/translation-keys.ts`, profile-creation, `pokemon.service`) is
+still being compiled. Never raise the budget.
+
+**How to know whether any of this worked.** A green suite has never once told
+anyone this game is ugly. Screenshot before, screenshot after, and read both
+images. For the character, render a contact sheet of many combinations at
+once — one avatar in isolation hides exactly the fitting problem Yobyn saw.
+For motion, take a burst of frames a few milliseconds apart and read them in
+order; a single screenshot cannot show whether a tap did anything.
+
 ## Outstanding — roughly in the order a real product would need them
 
 ### Content and teaching
@@ -664,7 +769,12 @@ a backend that currently keeps its users in memory (see Code health).
   STILL OPEN: an interrupted round is not carried into an account at signup —
   it is deliberately let go, on the grounds that the child is in the middle of
   it right now under whichever name.
-- **The character is finished, and the page that makes it is navigable.**
+- **The character is FEATURE-complete, and the page that makes it is
+  navigable — but it does not look good, and "finished" was the wrong
+  word (struck 2026-09-23; see Art direction).** Every option below
+  exists and works; the art they are drawn with does not hold up, and the
+  hair does not sit on the head at all. Read the Art direction section
+  before touching any of it.
   The inclusive-avatar work (Mack et al., CHI 2023) names four physical
   characteristics that skin tone cannot stand in for; two were done and two
   were not. EYE SHAPE was one pair of circles on every child and MOUTH SHAPE
