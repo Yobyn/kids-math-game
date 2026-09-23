@@ -15,6 +15,7 @@ import {
   TEXTURE_DASHES,
   TEXTURE_WIDTH,
   WARDROBE,
+  itemById,
   defaultAvatar,
   findItem,
   isUnlocked,
@@ -451,5 +452,47 @@ describe('the lighter tint the texture rim is drawn in', () => {
     expect(lighten('')).toBe('');
     expect(lighten('rebeccapurple')).toBe('rebeccapurple');
     expect(lighten(null as any)).toBe(null as any);
+  });
+});
+
+describe('avatar-model: finding an item by its id alone', () => {
+  it('finds one in every slot', () => {
+    ['cap', 'crown', 'glasses'].forEach(id => {
+      const found = itemById(id);
+      if (found) {
+        expect(found.id).toBe(id);
+      }
+    });
+    expect(itemById('cap')).toBeTruthy();
+  });
+
+  it('has a unique id for everything anyone can earn', () => {
+    // itemById could not exist otherwise, and a result or a keepsake that
+    // kept only an id would come back as the wrong thing
+    const earnable = WARDROBE.filter(item => item.id !== NO_ITEM);
+    const ids = earnable.map(item => item.id);
+
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('never hands back "wearing nothing", which every slot has', () => {
+    // The one id that is deliberately repeated across slots, and the one
+    // nobody ever earned
+    expect(itemById(NO_ITEM)).toBeUndefined();
+  });
+
+  it('finds every earnable item by its own id, and gets the same one back', () => {
+    WARDROBE.filter(item => item.id !== NO_ITEM).forEach(item => {
+      const found = itemById(item.id);
+
+      expect(found).toBeTruthy();
+      expect(found!.id).toBe(item.id);
+      expect(found!.slot).toBe(item.slot);
+    });
+  });
+
+  it('hands back nothing for an id that is not there', () => {
+    expect(itemById('sombrero')).toBeUndefined();
+    expect(itemById('')).toBeUndefined();
   });
 });

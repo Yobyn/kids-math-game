@@ -3,11 +3,11 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-23 (the coin-picking question landed the same day).
-The audit below was the work of that day. Every
-claim below was checked against the code, and every number in it re-measured.
-Sixteen runs had written into this file and none had ever gone back; what that
-cost is recorded under "What the audit found", at the end.
+Last surveyed: 2026-09-23. Three things landed that day: an audit of this
+whole file, the coin-picking question, and the result screen's own memory.
+Every claim here was checked against the code that day and every number in it
+re-measured — sixteen runs had written into this file and none had ever gone
+back. What that cost is recorded under "What the audit found", at the end.
 
 ## What works today
 
@@ -42,7 +42,9 @@ cost is recorded under "What the audit found", at the end.
   respects `prefers-reduced-motion`.
 - A round survives being interrupted: it is written down after every
   question and whenever the page goes away, and offered back — never
-  restored silently — for four hours.
+  restored silently — for four hours. So does the END of a round: a result
+  the child never got to see is shown again, and offered from the grade
+  screen, without paying for the round twice.
 - Fits a phone on its side, a large tablet, and a device with a notch;
   pinch zoom works.
 - A new version never takes over unannounced: it waits, the child is told
@@ -55,7 +57,7 @@ cost is recorded under "What the audit found", at the end.
   eye shapes, four mouths, nine hair styles and three hair textures that
   compose with all of them, plus hair and eye colour. The page is three
   sections a child moves between rather than one long scroll.
-- 1,059 unit tests, 11 build-script tests and 16 server tests, run on every
+- 1,110 unit tests, 11 build-script tests and 16 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -113,9 +115,10 @@ a backend that currently keeps its users in memory (see Code health).
   decimal £.p form is introduced formally. Practitioner guidance on counting
   coins adds the prerequisite — a mixed pile rests on SKIP COUNTING, so a
   child meets one denomination before two and two before a handful.
-  So `src/app/teaching/money.ts` holds a band per grade, four question shapes
-  (count a pile, make an amount from one coin, total two prices, give
-  change), and the rule that decides how an amount is written. Grade 1 gets
+  So `src/app/teaching/money.ts` holds a band per grade, five question shapes
+  (count a pile, make an amount from one coin, PUT COINS DOWN to make an
+  amount, total two prices, give change), and the rule that decides how an
+  amount is written. Grade 1 gets
   one denomination and nothing else; grade 2 gets a second and "how many 20c
   coins make €1"; grade 3 gets mixed units, totals and change written as
   "€4 and 15c"; grade 4 writes "€4.15".
@@ -552,6 +555,11 @@ a backend that currently keeps its users in memory (see Code health).
   Grade 3" button and its heading, which a child who has never played does
   not see: the 1073px figure was measured on an empty slate and is the
   first-visit number, not the usual one.
+  The screen now carries up to three offers above the cards — an unfinished
+  round, an unseen result, and the grade last played — and each costs about
+  77px: 1344px (1.59 screenfuls) in portrait and 683px (1.75) in landscape
+  with the result offer showing. None of them is permanent; each appears only
+  when there is something behind it, and a first visit still sees none.
   MORE TO THE POINT, A CHILD WHO HAS PLAYED BEFORE NO LONGER CHOOSES AT ALL.
   The result screen deliberately clears the stored grade to force a fresh
   selection, so every single round began with ten cards. Guidance on
@@ -592,11 +600,44 @@ a backend that currently keeps its users in memory (see Code health).
   that are not positive whole numbers are dropped, the list is capped, and a
   tray that is present but broken voids the whole question rather than
   showing an empty one.
-  STILL OPEN: a round interrupted after the tenth answer is not offered back,
-  because a finished round belongs on the result screen and nothing yet
-  persists the result screen itself. And an interrupted round is not carried
-  into an account at signup — it is deliberately let go, on the grounds that
-  the child is in the middle of it right now under whichever name.
+  THE END OF A ROUND SURVIVES NOW TOO, which is what this file had been
+  calling "a round interrupted after the tenth answer is not offered back".
+  `src/app/result/result-state.ts` is DOM-free and `result:<owner>` holds it.
+  WHAT WAS BEING LOST WAS NOT PROGRESS, IT WAS ACKNOWLEDGEMENT, and that
+  distinction is the research rather than a turn of phrase. Everything a
+  finished round earned was already safe — the round went into history, the
+  experience was added, a level's items and an event's item were recorded —
+  and if the phone took the screen away between the last answer and the
+  result, none of it was ever SHOWN. Poeller et al. (Proceedings of the ACM
+  on Human-Computer Interaction / CHI PLAY 2024, "Disengagement From Games",
+  peer-reviewed) find that satisfying exits happen at STRUCTURAL ENDPOINTS —
+  a level completed, a round finished — and that the exits players describe
+  as bad are the ones where effort went UNACKNOWLEDGED; avoidance of progress
+  loss was the strongest single facilitator of a good exit in their survey.
+  A finished round whose result was never seen is exactly that bad case.
+  IT IS PAID FOR ONCE, and that is the whole engineering risk of it. What is
+  stored is what to SAY, never what to give: showing the result again reads
+  the history, the experience, the level's items and the event, and writes
+  none of them. A test asserts every one of those is unchanged after a second
+  showing, and removing the branch that separates the two paths fails six.
+  IT IS OFFERED ONLY IF IT WAS NEVER SEEN. Once a child has read their
+  result, putting it back in front of them is not closure, it is a repeat —
+  so the grade screen's offer disappears the moment the screen has been
+  opened, or the moment the child picks a grade. The result itself stays
+  readable at `/result` for four hours, the same window a round is offered
+  back for.
+  THE ACCOUNT OFFER IS SUPPRESSED on a result being shown again. It belongs
+  to the moment a round is finished; an hour later, on a screen a child is
+  seeing because something interrupted them, it is an ambush.
+  A BUG THIS UNCOVERED, and it had been there the whole time: a bare visit to
+  `/result` — a reload with nothing in memory — rendered `NaN%` AND recorded
+  a round with no questions in it, which inflated "rounds finished" on the
+  progress screen. That screen's numbers only ever go up by design; one of
+  them was going up for rounds nobody played. The screen now leaves for the
+  grade cards instead.
+  STILL OPEN: an interrupted round is not carried into an account at signup —
+  it is deliberately let go, on the grounds that the child is in the middle of
+  it right now under whichever name.
 - **The character is finished, and the page that makes it is navigable.**
   The inclusive-avatar work (Mack et al., CHI 2023) names four physical
   characteristics that skin tone cannot stand in for; two were done and two

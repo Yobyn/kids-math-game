@@ -138,7 +138,11 @@ p {
    thing you have to scroll to is not a shortcut. */
 /* The unfinished round sits above "carry on at Grade 3" and looks like it —
    same shape, two lines, because it has something to say as well as offer. */
-.resume-round {
+/* The two offers are the same object: a card that takes a child back to
+   something that was interrupted. Sharing the rule rather than copying it
+   also keeps this stylesheet (6.35 kB raw) off the per-component budget. */
+.resume-round,
+.see-result {
   display: block;
   width: 100%;
   max-width: 420px;
@@ -150,6 +154,12 @@ p {
   background: #ffffff;
   color: #2c3e50;
   cursor: pointer;
+}
+
+/* Quieter than the unfinished round: that one is unfinished work, this one
+   is news. Same size and the same tap target, a softer edge. */
+.see-result {
+  border-color: #b9c6d8;
 }
 
 .resume-title {

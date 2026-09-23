@@ -12,6 +12,18 @@
     <span class="resume-line">{{ unfinishedLine }}</span>
   </button>
 
+  <!-- A round that finished while the screen was away, and whose result the
+       child never saw. Below the unfinished round, because a round still in
+       play is the more urgent of the two, and above the grade cards because
+       it is about what just happened rather than what to do next. -->
+  <button type="button"
+          class="see-result"
+          *ngIf="unseenResult"
+          (click)="seeResult()">
+    <span class="resume-title">{{ languageService.translate('see-result') }}</span>
+    <span class="resume-line">{{ unseenResultLine }}</span>
+  </button>
+
   <!-- One tap for a child who has already answered this question once. The
        ten cards stay below it: this offers, it does not decide. -->
   <button type="button"
