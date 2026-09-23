@@ -3,7 +3,8 @@
 A working note for whoever (or whatever) picks this up next. The improvement
 routine reads this before each run, picks from it, and updates it afterwards.
 
-Last surveyed: 2026-09-23 — and that survey was the work of the day. Every
+Last surveyed: 2026-09-23 (the coin-picking question landed the same day).
+The audit below was the work of that day. Every
 claim below was checked against the code, and every number in it re-measured.
 Sixteen runs had written into this file and none had ever gone back; what that
 cost is recorded under "What the audit found", at the end.
@@ -21,7 +22,9 @@ cost is recorded under "What the audit found", at the end.
 - Money is a taught strand, not a themed sum: coins and notes on the table to
   count from grade 1, combining coins into an amount, totals and change, and
   the decimal €.p form from grade 4 — with a decimal point on the keypad to
-  type it. Money questions carry their own worked line.
+  type it. Money questions carry their own worked line. From grade 2 a child
+  is also asked to PUT COINS DOWN to make an amount, tapping them from a
+  tray, where any combination that comes to the amount is right.
 - English, Dutch and Spanish, chosen in the header and remembered between
   visits.
 - Installs to a home screen (manifest, maskable icons, standalone display) and
@@ -52,8 +55,8 @@ cost is recorded under "What the audit found", at the end.
   eye shapes, four mouths, nine hair styles and three hair textures that
   compose with all of them, plus hair and eye colour. The page is three
   sections a child moves between rather than one long scroll.
-- 990 unit tests, 11 build-script tests and 16 server tests, run on every PR
-  by GitHub Actions alongside the build.
+- 1,059 unit tests, 11 build-script tests and 16 server tests, run on every
+  PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
   today's date down passes on the day it is written and fails weeks later on a
@@ -116,12 +119,18 @@ a backend that currently keeps its users in memory (see Code health).
   one denomination and nothing else; grade 2 gets a second and "how many 20c
   coins make €1"; grade 3 gets mixed units, totals and change written as
   "€4 and 15c"; grade 4 writes "€4.15".
-  THE ONE RULE THAT SHAPES THE REST: below the decimal band every answer must
-  be a whole number in ONE unit — so many cents, or so many euros, never
-  "3 euros 40". That is the curriculum's own separation rule rather than a
-  workaround, and questions are BUILT to satisfy it rather than generated and
-  rejected. The unit sits on the answer box (`c` after, or `€` in front), so
-  a child is never left guessing whether 75 or 0.75 is wanted.
+  THE ONE RULE THAT SHAPES THE TYPED SHAPES: below the decimal band every
+  TYPED answer must be a whole number in ONE unit — so many cents, or so many
+  euros, never "3 euros 40". That is the curriculum's own separation rule
+  rather than a workaround, and questions are BUILT to satisfy it rather than
+  generated and rejected. The unit sits on the answer box (`c` after, or `€`
+  in front), so a child is never left guessing whether 75 or 0.75 is wanted.
+  THE PICKING SHAPE IS EXEMPT, and that is the point of it rather than a
+  loophole: nothing is typed, so nothing has to be typeable. "Put down coins
+  to make €1 and 26c" is a question the answer box could not ask at all
+  below grade 4, and it is exactly the mixed-unit recording Year 3 does. A
+  test asserts such questions really are generated, so the new shape cannot
+  quietly decay into a second way of entering what the box already accepted.
   The keypad grew a decimal point for the bands that need one — the minus
   key swapped for it rather than a thirteenth key added, because no money
   answer here is ever negative and a thirteenth key narrows all the others on
@@ -135,11 +144,39 @@ a backend that currently keeps its users in memory (see Code health).
   and the real euro set does not even agree with that — a 5c coin is
   physically larger than a 10c. Colour and the printed value separate them,
   and the €1 and €2 are drawn the way round they really are.
+  A CHILD PUTS COINS DOWN NOW — the shape this file called "the one practical
+  shape the curriculum names that a number pad cannot express". From grade 2,
+  a question asks for an amount and gives a tray to tap from, a purse that
+  fills, and a running total. `src/app/teaching/coin-pick.ts` is DOM-free and
+  holds the rules; `src/app/money/coin-picker.component.*` draws it.
+  ANY COMBINATION THAT COMES TO THE AMOUNT IS RIGHT, which is the whole
+  design rather than a leniency. The Year 2 objective, in the curriculum's
+  own words, is to "combine amounts to make a particular value" and to "find
+  different combinations of coins that equal the same amounts of money", so a
+  child who makes 75c as 50+20+5 and one who makes it as 20+20+20+10+5 have
+  both done exactly what was asked. Marking one canonical set right would
+  teach the opposite of the objective.
+  THE FEWEST-COINS VERSION IS THE WORKED LINE, NOT THE MARK SCHEME. The NCETM
+  unit does raise fewest coins — "what do the children notice about making
+  88p in the fewest number of coins?" — as something to notice. So it is what
+  the screen shows after two honest attempts, along the same rule every other
+  worked line follows, and never what decides whether a child was right.
+  NO COUNT OF COINS APPEARS ANYWHERE, deliberately: a count invites hunting
+  for a shorter answer, which is a different lesson from the one being
+  taught. A test pins that too.
+  An amount one coin makes on its own is never asked. Two 10s make 20c and
+  20c is a coin, so a child could have answered by finding the single 20 and
+  combined nothing; those roll again. The tray also leaves out any coin
+  bigger than the amount, which could never be part of a right answer.
+  THE SAME UNIT TEST CANNOT SEE A BORDER THAT IS INVISIBLE. The empty purse
+  was first drawn with a white dashed edge copied from a rule written for a
+  dark surface — on the white question card it simply was not there, and
+  every test passed. A browser found it in one screenshot. It is dark now,
+  and a test reads the computed border's luminance against the card.
   STILL OPEN: the pieces are drawn, not photographed, so a child does not
-  meet the real faces; there is no "show me the coins that make this amount"
-  where the child picks pieces rather than typing a number, which is the one
-  practical shape the curriculum names that a number pad cannot express; and
-  nothing adapts the currency — see Reach, below.
+  meet the real faces; nothing adapts the currency — see Reach, below; and
+  the picking screen is 1.44 screenfuls in landscape against the typed
+  screen's 1.24, so "Check Answer" sits just below the fold there.
 - **Difficulty advises, and stops short of adapting.** Rounds now record the
   setting they were played at, and the difficulty screen marks a card when
   recent play says the child is on the wrong rung: two rounds at 85% or better
@@ -544,6 +581,17 @@ a backend that currently keeps its users in memory (see Code health).
   Grounded in the disengagement research (Poeller et al., CHI PLAY / CHI):
   children struggle to leave a session they have not reached CLOSURE in, and
   a round torn away at question six has none at all.
+  COINS ALREADY PUT DOWN COME BACK TOO. A child four coins into making an
+  amount gets those four coins back, not an empty purse. That took two fixes
+  in the same parser, and both were found by a test rather than by reading:
+  `parseRound` rebuilds its object field by field and silently dropped
+  `picked`, and one level down `readMoney` did the same to the question's
+  TRAY — which is worse, because a picking question read back without its
+  tray returns as a box to type a number into, for a question whose answer is
+  a handful of coins. Anything a store hands back is still distrusted: coins
+  that are not positive whole numbers are dropped, the list is capped, and a
+  tray that is present but broken voids the whole question rather than
+  showing an empty one.
   STILL OPEN: a round interrupted after the tenth answer is not offered back,
   because a finished round belongs on the result screen and nothing yet
   persists the result screen itself. And an interrupted round is not carried
@@ -652,9 +700,17 @@ a backend that currently keeps its users in memory (see Code health).
   `max-width: 600px`, and a phone in landscape is 844 WIDE — so the smallest
   screen the game ever sees got the tablet header, strapline and all, for
   about 150 of its 390 pixels.
+  A PICKING QUESTION HAS NO KEYPAD, so the 168px column held open for one
+  would have been an empty gutter beside a single narrow column. The card
+  drops to one column for that shape and the PICKER splits itself instead:
+  the purse on the left, the tray on the right, which is the pair a child
+  looks between. The coins are never shrunk to fit — 56px is above the 44px
+  floor and a coin a child taps is the last thing to compress.
   RE-MEASURED 2026-09-23, and these held: question 1.24 screenfuls in
   landscape (claimed 1.3), grade 1.55 (1.6), difficulty 1.08 (1.1), login
-  1.58 (1.6), scrapbook 2.27 (2.3). Progress came out at 1.67 against a
+  1.58 (1.6), scrapbook 2.27 (2.3). The picking question measures 1.22 in
+  portrait and 1.44 in landscape, where "Check Answer" falls just below the
+  fold. Progress came out at 1.67 against a
   claimed 1.6, which is the seeded history rather than drift. The result
   screen was not re-measured — reaching it means finishing a round — so its
   1.9 is the one landscape number here still taken on trust.
@@ -767,6 +823,13 @@ a backend that currently keeps its users in memory (see Code health).
   key from every state of the box — and holds three invariants the old code
   only implied: never more than six digits, never a minus anywhere but the
   front, and always undoable back to empty.
+  THE SAME TRAP CAUGHT THE SAME WAY AGAIN, and the precedent held: the
+  coin-picking UI's rules took `question.component.css` to 5.23 kB, over its
+  warning and heading for the 6 kB error. It became
+  `src/app/money/coin-picker.component.*` instead, exactly as the keypad did,
+  and the screen's stylesheet went back to 4.91 kB. The rule this file has
+  been repeating is worth stating plainly: when the question screen grows a
+  new piece of furniture, the furniture becomes a component.
   What remains, re-measured 2026-09-23: `question.component.css` is 4.91 kB,
   over the 4 kB WARNING budget and 1.09 kB under the 6 kB error. The progress
   bar and the score display are the next candidates if it creeps back up.

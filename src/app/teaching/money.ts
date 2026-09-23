@@ -32,6 +32,8 @@
  * it rather than generated and then rejected.
  */
 
+import { MIN_PIECES, fewestPieces, trayFor } from './coin-pick';
+
 /** The euro pieces, in cents. Notes appear only in the upper bands. */
 export const MONEY_PIECES = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000];
 
@@ -56,10 +58,13 @@ export function pieceKind(cents: number): PieceKind {
   return cents >= 10 ? 'gold' : 'copper';
 }
 
-/** What the child types: which number, read how. */
-export type MoneyUnit = 'cents' | 'euros' | 'decimal' | 'count';
+/**
+ * What the child types: which number, read how — or `pieces`, which means
+ * they type nothing at all and put coins down instead.
+ */
+export type MoneyUnit = 'cents' | 'euros' | 'decimal' | 'count' | 'pieces';
 
-export type MoneyShape = 'count' | 'make' | 'total' | 'change';
+export type MoneyShape = 'count' | 'make' | 'total' | 'change' | 'pick';
 
 export interface MoneyBand {
   shapes: MoneyShape[];
@@ -77,13 +82,15 @@ const BANDS: { upTo: number; band: MoneyBand }[] = [
   // Year 1: one coin at a time, counted by skip counting. Nothing to add up
   // from two different piles yet, and nothing over 20c.
   { upTo: 1, band: { shapes: ['count'], pieces: [1, 2, 5, 10], kinds: 1, maxCents: 20, decimal: false } },
-  // Year 2: a second denomination, and making a given amount from one coin.
-  { upTo: 2, band: { shapes: ['count', 'make'], pieces: [1, 2, 5, 10, 20, 50], kinds: 2, maxCents: 100, decimal: false } },
+  // Year 2: a second denomination, making a given amount from one coin, and
+  // PICKING coins to make an amount — the curriculum's own "combine amounts
+  // to make a particular value", which starts here.
+  { upTo: 2, band: { shapes: ['count', 'make', 'pick'], pieces: [1, 2, 5, 10, 20, 50], kinds: 2, maxCents: 100, decimal: false } },
   // Year 3: mixed units, totals and change — still recorded separately.
-  { upTo: 3, band: { shapes: ['count', 'make', 'total', 'change'], pieces: [1, 2, 5, 10, 20, 50, 100, 200], kinds: 3, maxCents: 500, decimal: false } },
+  { upTo: 3, band: { shapes: ['count', 'make', 'pick', 'total', 'change'], pieces: [1, 2, 5, 10, 20, 50, 100, 200], kinds: 3, maxCents: 500, decimal: false } },
   // Year 4 onwards: the decimal form, and notes to pay with.
-  { upTo: 6, band: { shapes: ['count', 'make', 'total', 'change'], pieces: [1, 2, 5, 10, 20, 50, 100, 200, 500], kinds: 3, maxCents: 1000, decimal: true } },
-  { upTo: 10, band: { shapes: ['count', 'make', 'total', 'change'], pieces: [5, 10, 20, 50, 100, 200, 500, 1000], kinds: 3, maxCents: 2000, decimal: true } }
+  { upTo: 6, band: { shapes: ['count', 'make', 'pick', 'total', 'change'], pieces: [1, 2, 5, 10, 20, 50, 100, 200, 500], kinds: 3, maxCents: 1000, decimal: true } },
+  { upTo: 10, band: { shapes: ['count', 'make', 'pick', 'total', 'change'], pieces: [5, 10, 20, 50, 100, 200, 500, 1000], kinds: 3, maxCents: 2000, decimal: true } }
 ];
 
 /** The band a grade plays at. Every grade from 1 has money now. */
@@ -153,6 +160,12 @@ export interface MoneyQuestion {
   values: { [name: string]: string };
   /** Pieces to draw, largest first. Empty for the shapes that show none. */
   pile: number[];
+  /**
+   * The denominations a child may TAP to build their answer, largest first.
+   * Present only on the picking shape; its presence is what tells the screen
+   * that the answer here is a handful of coins rather than a typed number.
+   */
+  tray?: number[];
   /** What the child types. */
   answer: number;
   /** How to read that number — what goes beside the answer box. */
@@ -287,6 +300,75 @@ function makeQuestion(band: MoneyBand, random: Random, words: MoneyWords): Money
   };
 }
 
+/**
+ * Put the coins on the counter that make this amount.
+ *
+ * The target is BUILT by summing a real handful rather than picked and then
+ * checked, which is how the rest of this module works: a question that can
+ * be made is never generated and rejected. That also guarantees the tray can
+ * always make it, whatever denominations the band happens to hold.
+ */
+function pickQuestion(band: MoneyBand, random: Random, words: MoneyWords): MoneyQuestion | null {
+  const usable = band.pieces.filter(piece => piece <= band.maxCents);
+  if (usable.length < 2) {
+    return null;
+  }
+
+  // Two to four coins: enough to be a combination, few enough that a child
+  // holds the running total in their head rather than losing count
+  const wanted = between(MIN_PIECES, 4, random);
+  const handful: number[] = [];
+  let target = 0;
+  for (let i = 0; i < wanted; i++) {
+    const affordable = usable.filter(piece => target + piece <= band.maxCents);
+    if (!affordable.length) {
+      break;
+    }
+    const piece = pick(affordable, random);
+    handful.push(piece);
+    target += piece;
+  }
+
+  if (handful.length < MIN_PIECES || !target) {
+    return null;
+  }
+
+  const tray = trayFor(band.pieces, target);
+  if (!tray.length) {
+    return null;
+  }
+
+  const fewest = fewestPieces(target, tray);
+  // A handful that adds up to a coin is not a combining question. Two 10s
+  // make 20c, and 20c is a coin — so a child could answer by finding the
+  // single 20 and never combine anything. The objective is "combine amounts
+  // to make a particular value", so an amount one coin makes on its own is
+  // rolled again rather than asked.
+  if (fewest.length < MIN_PIECES) {
+    return null;
+  }
+  const amount = formatCents(target, band.decimal, words);
+
+  return {
+    shape: 'pick',
+    prompt: 'money-pick',
+    values: { target: amount },
+    pile: [],
+    tray,
+    // Nothing is typed here; the amount itself is the honest thing to carry,
+    // and `unit: 'pieces'` is what tells every screen downstream not to put a
+    // box in front of it
+    answer: target,
+    unit: 'pieces',
+    answerCents: target,
+    worked: fewest.length > 1
+      ? `${fewest.map(piece => formatCents(piece, band.decimal, words)).join(' + ')} = ${amount}`
+      : '',
+    answerText: amount,
+    summary: `${amount} = ${fewest.map(piece => formatCents(piece, band.decimal, words)).join(' + ')}`
+  };
+}
+
 /** Two prices added. */
 function totalQuestion(band: MoneyBand, random: Random, words: MoneyWords): MoneyQuestion | null {
   const wholeEuros = tierPieces(band, true).length > 0 && (!band.decimal || random() < 0.5);
@@ -412,6 +494,7 @@ type Builder = (band: MoneyBand, random: Random, words: MoneyWords) => MoneyQues
 const BUILDERS: { [shape in MoneyShape]: Builder } = {
   count: countQuestion,
   make: makeQuestion,
+  pick: pickQuestion,
   total: totalQuestion,
   change: changeQuestion
 };

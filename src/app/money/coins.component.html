@@ -1,11 +1,13 @@
-<div class="coins" *ngIf="pieces && pieces.length">
-  <span class="piece"
-        *ngFor="let piece of pieces"
-        [class.copper]="kind(piece) === 'copper'"
-        [class.gold]="kind(piece) === 'gold'"
-        [class.silver-centre]="kind(piece) === 'silverCentre'"
-        [class.gold-centre]="kind(piece) === 'goldCentre'"
-        [class.note]="kind(piece) === 'note'">
-    {{ face(piece) }}
-  </span>
+<div class="coins" [class.tappable]="tappable" *ngIf="pieces && pieces.length">
+  <ng-container *ngFor="let piece of pieces; index as i">
+    <!-- A tray coin is a real button: a child taps it, so it has to be one
+         for a keyboard and a screen reader too. -->
+    <button *ngIf="tappable"
+            type="button"
+            class="piece"
+            [ngClass]="classFor(piece)"
+            [attr.aria-label]="actionLabel + ' ' + face(piece)"
+            (click)="take.emit(i)">{{ face(piece) }}</button>
+    <span *ngIf="!tappable" class="piece" [ngClass]="classFor(piece)">{{ face(piece) }}</span>
+  </ng-container>
 </div>

@@ -5,6 +5,7 @@ import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { QuestionComponent } from './question.component';
+import { MAX_PICKED, fewestPieces } from '../teaching/coin-pick';
 import { KeypadComponent } from '../keypad/keypad.component';
 
 describe('QuestionComponent', () => {
@@ -296,6 +297,160 @@ describe('QuestionComponent', () => {
       return component.currentQuestion.money!;
     };
 
+    /** Keeps asking until the shape that wants coins turns up. */
+    const askPick = (grade = 3) => {
+      component.grade = grade;
+      for (let i = 0; i < 200; i++) {
+        (component as any).generateMoneyQuestion();
+        if (component.isPicking) {
+          component.picked = [];
+          component.showOkButton = false;
+          component.wrongAttempts = 0;
+          component.answerWasCorrect = null;
+          fixture.detectChanges();
+          return component.currentQuestion.money!;
+        }
+      }
+      throw new Error('no picking question was generated');
+    };
+
+    it('puts a tray in front of the child instead of a box to type in', () => {
+      askPick();
+
+      expect(component.isPicking).toBe(true);
+      expect(component.tray.length).toBeGreaterThan(0);
+      expect(fixture.nativeElement.querySelector('.math-problem')).toBeNull();
+      expect(fixture.nativeElement.querySelector('app-keypad')).toBeNull();
+    });
+
+    it('picks a coin up when it is tapped, and puts it back when it is tapped again', () => {
+      askPick();
+      const first = component.tray[0];
+
+      component.takeFromTray(0);
+      component.takeFromTray(0);
+      expect(component.picked).toEqual([first, first]);
+
+      component.putBack(0);
+      expect(component.picked).toEqual([first]);
+    });
+
+    it('lets the same coin be taken as often as it is needed', () => {
+      // The tray is a supply, not a purse: three 20s make 60c
+      askPick();
+      const smallest = component.tray.length - 1;
+      component.takeFromTray(smallest);
+      component.takeFromTray(smallest);
+      component.takeFromTray(smallest);
+
+      expect(component.picked.length).toBe(3);
+    });
+
+    it('never lets a child put down more than the cap', () => {
+      askPick();
+      for (let i = 0; i < MAX_PICKED * 2; i++) {
+        component.takeFromTray(component.tray.length - 1);
+      }
+
+      expect(component.picked.length).toBe(MAX_PICKED);
+    });
+
+    it('marks the fewest-coins answer right', () => {
+      const money = askPick();
+      fewestPieces(money.answerCents, component.tray).forEach(piece =>
+        component.takeFromTray(component.tray.indexOf(piece)));
+
+      component.checkAnswer();
+
+      expect(component.answerWasCorrect).toBe(true);
+    });
+
+    it('marks a DIFFERENT right combination right too', () => {
+      // The objective is finding combinations that make the same value, so a
+      // child who makes 75c the long way has done exactly what was asked.
+      // A question built by hand, because the point is the SECOND way and a
+      // generated tray does not always have one.
+      askPick();
+      component.currentQuestion = {
+        num1: 0, num2: 0, operation: 'money',
+        money: {
+          shape: 'pick', prompt: 'money-pick', values: { target: '75c' },
+          pile: [], tray: [50, 20, 10, 5], answer: 75, unit: 'pieces',
+          answerCents: 75, worked: '50c + 20c + 5c = 75c',
+          answerText: '75c', summary: '75c = 50c + 20c + 5c'
+        }
+      };
+      component.picked = [];
+
+      // 20 + 20 + 20 + 10 + 5, which is not the fewest and is not wrong
+      [1, 1, 1, 2, 3].forEach(index => component.takeFromTray(index));
+      expect(component.picked).toEqual([20, 20, 20, 10, 5]);
+
+      component.checkAnswer();
+
+      expect(component.answerWasCorrect).toBe(true);
+    });
+
+    it('gives a second try on a handful that is short, and empties the purse', () => {
+      askPick();
+      component.takeFromTray(component.tray.length - 1);
+
+      component.checkAnswer();
+
+      expect(component.answerWasCorrect).toBe(false);
+      expect(component.wrongAttempts).toBe(1);
+      expect(component.picked).toEqual([]);
+    });
+
+    it('does nothing at all on an empty purse — it is not a wrong answer', () => {
+      askPick();
+
+      component.checkAnswer();
+
+      expect(component.wrongAttempts).toBe(0);
+      expect(component.answerWasCorrect).toBeNull();
+    });
+
+    it('shows the fewest-coins way only after two honest tries', () => {
+      const money = askPick();
+
+      component.takeFromTray(component.tray.length - 1);
+      component.checkAnswer();
+      expect(component.workedLine).toBe('');
+
+      component.takeFromTray(component.tray.length - 1);
+      component.checkAnswer();
+
+      expect(component.workedLine).toBe(money.worked);
+      expect(component.correctAnswerText).toBe(money.answerText);
+    });
+
+    it('will not let coins be moved once the question is answered', () => {
+      const money = askPick();
+      fewestPieces(money.answerCents, component.tray).forEach(piece =>
+        component.takeFromTray(component.tray.indexOf(piece)));
+      component.checkAnswer();
+      const settled = component.picked.slice();
+
+      component.takeFromTray(0);
+      component.putBack(0);
+
+      expect(component.picked).toEqual(settled);
+    });
+
+    it('never tells a child how many coins they have used', () => {
+      // A count invites hunting for a shorter answer, which is a different
+      // lesson from the one being taught
+      askPick();
+      component.takeFromTray(0);
+      component.takeFromTray(0);
+      fixture.detectChanges();
+
+      const text = fixture.nativeElement.textContent;
+      expect(text).not.toContain('2 coins');
+      expect(fixture.nativeElement.querySelector('.coin-count')).toBeNull();
+    });
+
     it('asks a grade 1 child about money, which it never used to', () => {
       // The curriculum puts coin recognition and combining coins in Year 1;
       // the old code started money at grade 2 and never showed a coin at all
@@ -351,7 +506,9 @@ describe('QuestionComponent', () => {
         const shown = component.answerPrefix + component.answerSuffix;
         if (money.unit === 'cents') {
           expect(shown).toBe('c');
-        } else if (money.unit === 'count') {
+        } else if (money.unit === 'count' || money.unit === 'pieces') {
+          // Nothing is typed on a picking question, so there is no box for a
+          // unit to sit on
           expect(shown).toBe('');
         } else {
           expect(shown).toBe('€');
@@ -364,7 +521,16 @@ describe('QuestionComponent', () => {
         const money = askMoney(5);
         component.wrongAttempts = 0;
         component.answerWasCorrect = null;
-        component.userAnswer = String(money.answer);
+        // Coins cannot be moved once a question is answered, which is what
+        // moveToNextQuestion clears in the real flow
+        component.showOkButton = false;
+        component.picked = [];
+        if (money.tray) {
+          fewestPieces(money.answerCents, component.tray).forEach(piece =>
+            component.takeFromTray(component.tray.indexOf(piece)));
+        } else {
+          component.userAnswer = String(money.answer);
+        }
         component.checkAnswer();
 
         expect(component.answerWasCorrect as boolean | null).toBe(true);
@@ -958,9 +1124,44 @@ describe('QuestionComponent: a round that survives the real world', () => {
 
   /** Answer the question on screen correctly and move on. */
   function answerRight() {
-    component.userAnswer = String(solve(component));
-    component.checkAnswer();
+    answerRightAndStay();
     component.moveToNextQuestion();
+  }
+
+  /**
+   * Answers correctly and leaves the child looking at the answer, for the
+   * tests about coming back to a question already answered. Whichever shape
+   * is on the screen: setting `userAnswer` does nothing at all to a picking
+   * question, which was how this test came to fail one run in five.
+   */
+  function answerRightAndStay() {
+    if (component.isPicking) {
+      putDownFewest();
+    } else {
+      component.userAnswer = String(solve(component));
+    }
+    component.checkAnswer();
+  }
+
+  /**
+   * One wrong attempt, whichever shape is on the screen. On a picking
+   * question the smallest coin on the tray is ALWAYS short: the amount was
+   * built from at least two pieces, each of them at least that big.
+   */
+  function answerWrongOnce() {
+    if (component.isPicking) {
+      component.takeFromTray(component.tray.length - 1);
+    } else {
+      component.userAnswer = String(solve(component) + 1);
+    }
+    component.checkAnswer();
+  }
+
+  /** The fewest-coins answer to the picking question on the screen. */
+  function putDownFewest() {
+    const money = component.currentQuestion.money!;
+    fewestPieces(money.answerCents, component.tray).forEach(piece =>
+      component.takeFromTray(component.tray.indexOf(piece)));
   }
 
   function solve(c: QuestionComponent): number {
@@ -1210,8 +1411,7 @@ describe('QuestionComponent: a round that survives the real world', () => {
       open();
       answerRight();
       answerRight();
-      component.userAnswer = String(solve(component));
-      component.checkAnswer();
+      answerRightAndStay();
       expect(component.showOkButton).toBe(true);
       fixture.destroy();
       expect(saved().answered).toBe(true);
@@ -1227,11 +1427,57 @@ describe('QuestionComponent: a round that survives the real world', () => {
       expect(component.userAnswer).toBe('');
     });
 
+    it('comes back to the coins already put down', () => {
+      // Four coins into making an amount, then the screen locks. Starting
+      // that purse again from empty is the same quiet loss the whole round
+      // save exists to prevent, only smaller and more irritating.
+      open();
+      answerRight();
+      for (let i = 0; i < 200 && !component.isPicking; i++) {
+        (component as any).generateMoneyQuestion();
+      }
+      if (!component.isPicking) {
+        pending('no picking question was generated');
+        return;
+      }
+      component.picked = [];
+      component.takeFromTray(0);
+      component.takeFromTray(component.tray.length - 1);
+      const held = component.picked.slice();
+      expect(saved().picked).toEqual(held);
+      fixture.destroy();
+
+      open();
+      component.takeResume();
+
+      expect(component.picked).toEqual(held);
+    });
+
+    it('does not put coins on a question that has no purse', () => {
+      // A hand-edited store must not grow a purse on a typed question
+      open();
+      answerRight();
+      // Destroy FIRST: ngOnDestroy saves the round again, so a store edited
+      // before this point is written straight back over. That ordering made
+      // this test fail about one run in twenty, whenever the question the
+      // component happened to be holding was itself a picking one.
+      fixture.destroy();
+      const round = saved();
+      round.picked = [50, 20];
+      round.question = { num1: 7, num2: 5, operation: '+' };
+      localStorage.setItem(KEY, JSON.stringify(round));
+
+      open();
+      component.takeResume();
+
+      expect(component.picked).toEqual([]);
+      expect(component.isPicking).toBe(false);
+    });
+
     it('gives back the try they still had in hand, and says so', () => {
       open();
       answerRight();
-      component.userAnswer = String(solve(component) + 1);
-      component.checkAnswer();
+      answerWrongOnce();
       expect(component.wrongAttempts).toBe(1);
       const question = { ...component.currentQuestion };
       fixture.destroy();

@@ -46,6 +46,11 @@ describe('the layout on a screen that is not a phone held upright', () => {
     // After the first change detection, because ngOnInit decides this from
     // whether the runner looks like a touch device.
     fixture.componentInstance.useKeypad = true;
+    // And the question has to be one that HAS a keypad. The coin-picking
+    // shape deliberately has none — a tray of coins takes its place — so a
+    // generated question that happened to be that one left these tests
+    // measuring an element that was not there.
+    fixture.componentInstance.currentQuestion = { num1: 7, num2: 5, operation: '+' };
     fixture.detectChanges();
   });
 

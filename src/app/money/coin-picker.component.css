@@ -1,0 +1,46 @@
+.pick {
+  margin: 0.5rem 0 1rem;
+}
+
+/* Holds its height while empty, so the tray does not jump up the screen the
+   moment a child puts down their first coin.
+
+   THE BORDER IS DARK ON PURPOSE. The first version of this was white at 35%
+   opacity, copied from a rule written for a dark surface — and the question
+   card is white. In a browser the empty purse was simply not there: a label,
+   a total and a void where the thing a child puts coins INTO should be. No
+   unit test could see it, because a border that exists and is invisible
+   passes everything. `#e0e0e0`, the answer box's own border, is the colour
+   this card already uses for "an empty thing that takes input". */
+.purse {
+  min-height: 96px;
+  padding: 0.5rem 0.5rem 0.25rem;
+  border: 3px dashed #cfcfd8;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+}
+
+/* Dashed while empty, solid once it holds something: the same "waiting for
+   you" to "has something in it" the answer box makes with its focus ring */
+.purse.filled {
+  border-style: solid;
+  border-color: #8a8fa8;
+}
+
+.purse-label,
+.tray-label {
+  display: block;
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin-bottom: 0.4rem;
+}
+
+.tray-label {
+  margin-top: 0.25rem;
+}
+
+.so-far {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+}

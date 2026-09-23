@@ -49,3 +49,38 @@
   background: linear-gradient(145deg, #cfe3f5, #9dc0e0);
   color: #1d3550;
 }
+
+/* A tray coin is a button, so the browser's own button styling has to be
+   undone before the disc above shows through. Nothing here changes the
+   SIZE: 56px is already above the 44px floor this project holds, and a
+   coin a child taps is the last place to start shaving pixels. */
+.tappable .piece {
+  padding: 0;
+  font-family: inherit;
+  cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+
+.tappable .piece:hover {
+  box-shadow: 0 4px 8px rgba(6, 4, 20, 0.35);
+}
+
+/* Pressed reads as picked up rather than merely clicked */
+.tappable .piece:active {
+  transform: translateY(2px) scale(0.96);
+  box-shadow: 0 1px 2px rgba(6, 4, 20, 0.3);
+}
+
+.tappable .piece:focus-visible {
+  outline: 3px solid #ffd166;
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tappable .piece {
+    transition: none;
+  }
+  .tappable .piece:active {
+    transform: none;
+  }
+}
