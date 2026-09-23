@@ -8,7 +8,11 @@
 // placeholder is replaced after `ng build`; if it is still here, the build
 // script did not run.
 const CACHE_VERSION = 'math-game-__BUILD_VERSION__';
-const SHELL = ['./', './index.html', './assets/icon-192.png', './assets/icon-512.png'];
+// The character's parts are precached at install, not on first use: a child
+// who installs and goes offline before seeing their character would otherwise
+// get one with no hair, no eyes and no clothes.
+const SHELL = ['./', './index.html', './assets/icon-192.png', './assets/icon-512.png',
+  './assets/avatar/parts.svg'];
 
 // NO skipWaiting HERE, on purpose. A new worker that takes over the moment
 // it installs swaps the cache under a page that is still running the old

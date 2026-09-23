@@ -2,61 +2,30 @@
      [attr.width]="size"
      [attr.height]="height"
      [attr.viewBox]="viewBox"
+     [attr.style]="vars"
      role="img"
      aria-label="Your character"
      focusable="false">
-  <!-- The body is drawn first, so the chin always sits over the collar -->
-  <g *ngIf="showsBody">
-    <path class="neck" [attr.d]="neckPath" [attr.fill]="avatar.skin"></path>
-    <path class="torso" [attr.d]="torsoPath" [attr.fill]="shirtColour"></path>
-    <path class="top-decoration"
-          *ngIf="top && top.path"
-          [attr.d]="top.path"
-          [attr.fill]="top.decorationColour || top.colour"></path>
+  <!-- A hat worn over the head hides the hair above its brim, so it sits on
+       the head instead of floating on top of the hair -->
+  <clipPath *ngIf="layers.coversHair" [attr.id]="clipId">
+    <rect x="-60" [attr.y]="layers.hatLine" width="220" height="220"></rect>
+  </clipPath>
+
+  <!-- Back to front: what hangs behind the head, the body, the head, the
+       hair over it, then what is worn -->
+  <g class="back" [attr.clip-path]="clipRef">
+    <use *ngIf="layers.back" [attr.href]="part(layers.back)"></use>
   </g>
-
-  <!-- Ears sit behind the face so the outline stays clean -->
-  <circle class="ear" cx="22" cy="55" r="7" [attr.fill]="avatar.skin"></circle>
-  <circle class="ear" cx="78" cy="55" r="7" [attr.fill]="avatar.skin"></circle>
-
-  <path class="face" [attr.d]="facePath" [attr.fill]="avatar.skin"></path>
-
-  <path class="hair" [attr.d]="hairPath" [attr.fill]="avatar.hairColour"></path>
-
-  <!-- Texture as a rim along the hair's own outline, so it composes with
-       every style instead of needing a silhouette per style per texture.
-       Smooth hair draws no rim at all. -->
-  <path class="hair-texture"
-        *ngIf="textureDashes"
-        [attr.d]="hairPath"
-        fill="none"
-        [attr.stroke]="textureColour"
-        [attr.stroke-width]="textureWidth"
-        [attr.stroke-dasharray]="textureDashes"
-        stroke-linecap="round"></path>
-
-  <path class="eye" [attr.d]="eyePath" [attr.fill]="avatar.eyeColour"></path>
-  <circle class="glint" cx="40.5" cy="50.5" r="1.4" fill="#ffffff"></circle>
-  <circle class="glint" cx="62.5" cy="50.5" r="1.4" fill="#ffffff"></circle>
-
-  <!-- Glasses sit over the eyes, the hat over the hair: both are worn, so
-       both are drawn last -->
-  <path class="item glasses"
-        *ngIf="glasses"
-        [attr.d]="glasses.path"
-        [attr.fill]="glasses.outline ? 'none' : glasses.colour"
-        [attr.stroke]="glasses.outline ? glasses.colour : null"
-        [attr.stroke-width]="glasses.outline ? 2.5 : null"></path>
-
-  <path class="item hat"
-        *ngIf="hat"
-        [attr.d]="hat.path"
-        [attr.fill]="hat.colour"></path>
-
-  <path class="mouth"
-        [attr.d]="mouth.d"
-        [attr.fill]="mouth.filled ? '#7a3b2e' : 'none'"
-        [attr.stroke]="mouth.filled ? null : '#7a3b2e'"
-        [attr.stroke-width]="mouth.filled ? null : 3"
-        stroke-linecap="round"></path>
+  <use *ngIf="layers.body" class="body" [attr.href]="part(layers.body)"></use>
+  <use class="ears" [attr.href]="part(layers.ears)"></use>
+  <use class="face" [attr.href]="part(layers.face)"></use>
+  <use class="brows" [attr.href]="part(layers.brows)"></use>
+  <use class="eyes" [attr.href]="part(layers.eyes)"></use>
+  <use class="mouth" [attr.href]="part(layers.mouth)"></use>
+  <g class="front" [attr.clip-path]="clipRef">
+    <use class="hair" [attr.href]="part(layers.hair)"></use>
+  </g>
+  <use *ngIf="layers.glasses" class="glasses" [attr.href]="part(layers.glasses)"></use>
+  <use *ngIf="layers.hat" class="hat" [attr.href]="part(layers.hat)"></use>
 </svg>
