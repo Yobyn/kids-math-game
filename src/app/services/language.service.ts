@@ -155,6 +155,14 @@ export type TranslationKeys =
   | 'adults-trend'
   | 'adults-no-rounds'
   | 'adults-trend-note'
+  | 'adults-copy-title'
+  | 'adults-copy-what'
+  | 'adults-copy-not'
+  | 'adults-forget'
+  | 'adults-forget-sure'
+  | 'adults-forget-yes'
+  | 'adults-forget-no'
+  | 'adults-forget-done'
   | 'easier-ask'
   | 'easier-yes'
   | 'easier-no'
@@ -272,7 +280,7 @@ export class LanguageService {
       'guest-player': 'Player',
       'sign-in': 'Sign in',
       'keep-progress-title': 'Want to keep your scores?',
-      'keep-progress-body': 'Right now they are saved on this device. An account keeps them under your own name.',
+      'keep-progress-body': 'Right now they are only on this device. With an account they are yours on any phone or tablet you sign in on.',
       'create-account': 'Create an account',
       'not-now': 'Not now',
       'xp': 'XP',
@@ -337,6 +345,14 @@ export class LanguageService {
       'adults-trend': 'Every round, oldest first',
       'adults-no-rounds': 'No rounds finished yet, so there is nothing to show.',
       'adults-trend-note': 'The player never sees this line. A score that can go down is discouraging to read about yourself, and useful to you.',
+      'adults-copy-title': 'The copy on the account',
+      'adults-copy-what': 'Signing in keeps a copy of scores, levels, events and the character, so they are there on another phone or tablet.',
+      'adults-copy-not': 'The sums the player gets wrong are never part of that copy. Those stay on this device, and so does anything played without signing in.',
+      'adults-forget': 'Delete the copy',
+      'adults-forget-sure': 'Delete the copy kept on the account? The game on this device keeps everything — only the copy goes.',
+      'adults-forget-yes': 'Yes, delete it',
+      'adults-forget-no': 'Keep it',
+      'adults-forget-done': 'Deleted. Nothing is kept on the account. Playing while signed in will start a new copy.',
       'easier-ask': 'Would you like the rest a bit easier?',
       'easier-yes': 'Yes, easier',
       'easier-no': 'No, keep going',
@@ -463,7 +479,7 @@ export class LanguageService {
       'guest-player': 'Speler',
       'sign-in': 'Inloggen',
       'keep-progress-title': 'Wil je je scores bewaren?',
-      'keep-progress-body': 'Nu staan ze op dit apparaat. Met een account blijven ze onder je eigen naam bewaard.',
+      'keep-progress-body': 'Nu staan ze alleen op dit apparaat. Met een account zijn ze van jou op elke telefoon of tablet waarop je inlogt.',
       'create-account': 'Account aanmaken',
       'not-now': 'Niet nu',
       'xp': 'XP',
@@ -528,6 +544,14 @@ export class LanguageService {
       'adults-trend': 'Elke ronde, oudste eerst',
       'adults-no-rounds': 'Nog geen rondes afgerond, dus er is nog niets te zien.',
       'adults-trend-note': 'De speler ziet deze lijn nooit. Een score die omlaag kan gaan is ontmoedigend om over jezelf te lezen, en nuttig voor jou.',
+      'adults-copy-title': 'De kopie bij het account',
+      'adults-copy-what': 'Bij inloggen wordt een kopie van scores, niveaus, evenementen en het figuur bewaard, zodat die er ook zijn op een andere telefoon of tablet.',
+      'adults-copy-not': 'De sommen die fout gaan horen nooit bij die kopie. Die blijven op dit apparaat, net als alles wat zonder inloggen is gespeeld.',
+      'adults-forget': 'Kopie verwijderen',
+      'adults-forget-sure': 'De kopie bij het account verwijderen? Het spel op dit apparaat houdt alles — alleen de kopie gaat weg.',
+      'adults-forget-yes': 'Ja, verwijderen',
+      'adults-forget-no': 'Bewaren',
+      'adults-forget-done': 'Verwijderd. Er staat niets meer bij het account. Ingelogd spelen begint een nieuwe kopie.',
       'easier-ask': 'Wil je de rest wat makkelijker?',
       'easier-yes': 'Ja, makkelijker',
       'easier-no': 'Nee, ga door',
@@ -654,7 +678,7 @@ export class LanguageService {
       'guest-player': 'Jugador',
       'sign-in': 'Iniciar sesión',
       'keep-progress-title': '¿Quieres guardar tus puntuaciones?',
-      'keep-progress-body': 'Ahora se guardan en este dispositivo. Con una cuenta se conservan a tu propio nombre.',
+      'keep-progress-body': 'Ahora solo están en este dispositivo. Con una cuenta son tuyas en cualquier móvil o tableta donde inicies sesión.',
       'create-account': 'Crear una cuenta',
       'not-now': 'Ahora no',
       'xp': 'XP',
@@ -719,6 +743,14 @@ export class LanguageService {
       'adults-trend': 'Cada ronda, de la más antigua a la más reciente',
       'adults-no-rounds': 'Todavía no hay rondas terminadas, así que no hay nada que mostrar.',
       'adults-trend-note': 'Quien juega nunca ve esta línea. Una puntuación que puede bajar desanima si es sobre ti, y es útil para ti.',
+      'adults-copy-title': 'La copia de la cuenta',
+      'adults-copy-what': 'Al iniciar sesión se guarda una copia de las puntuaciones, los niveles, los eventos y el personaje, para que estén también en otro móvil o tableta.',
+      'adults-copy-not': 'Las cuentas que se fallan nunca forman parte de esa copia. Se quedan en este dispositivo, igual que todo lo jugado sin iniciar sesión.',
+      'adults-forget': 'Borrar la copia',
+      'adults-forget-sure': '¿Borrar la copia guardada en la cuenta? El juego de este dispositivo lo conserva todo: solo se va la copia.',
+      'adults-forget-yes': 'Sí, bórrala',
+      'adults-forget-no': 'Conservarla',
+      'adults-forget-done': 'Borrada. No queda nada en la cuenta. Jugar con la sesión iniciada empezará una copia nueva.',
       'easier-ask': '¿Quieres que el resto sea un poco más fácil?',
       'easier-yes': 'Sí, más fácil',
       'easier-no': 'No, sigo así',

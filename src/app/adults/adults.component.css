@@ -243,3 +243,64 @@
   background: var(--surface-input);
   border: 1px solid var(--edge);
 }
+
+/* What leaves the device, and the way to stop it leaving. Set apart from the
+   plan above it: this is the adult's own business rather than the child's. */
+.copy {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border: 1px solid #d5d5e0;
+  border-radius: 12px;
+  background: #fbfbfe;
+}
+
+.copy h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+}
+
+.copy p {
+  margin: 0 0 0.6rem;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.copy-not {
+  color: #4a4a58;
+}
+
+/* Deliberately not the loudest thing on the screen: deleting is easy to
+   reach, not easy to hit by accident. */
+.forget-btn,
+.keep-btn {
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.forget-btn {
+  border: 1px solid #b03a3a;
+  background: #fff;
+  color: #b03a3a;
+}
+
+.keep-btn {
+  margin-left: 0.5rem;
+  border: 1px solid #6b6b7b;
+  background: #fff;
+  color: #35354a;
+}
+
+.forget-btn[disabled],
+.keep-btn[disabled] {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.forget-done {
+  margin: 0;
+  font-weight: 600;
+  color: #1f6b3a;
+}

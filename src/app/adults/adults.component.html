@@ -131,6 +131,36 @@
       </p>
     </section>
 
+    <!-- An adult who wants to know what leaves the device should not have to
+         read the source to find out, and should not have to write in to have
+         it deleted. -->
+    <section class="copy" *ngIf="canForget">
+      <h2>{{ languageService.translate('adults-copy-title') }}</h2>
+      <p>{{ languageService.translate('adults-copy-what') }}</p>
+      <p class="copy-not">{{ languageService.translate('adults-copy-not') }}</p>
+
+      <button type="button" class="forget-btn" *ngIf="forgetState === 'idle'"
+              (click)="askToForget()">
+        {{ languageService.translate('adults-forget') }}
+      </button>
+
+      <div class="forget-sure" *ngIf="forgetState === 'asking' || forgetState === 'working'">
+        <p>{{ languageService.translate('adults-forget-sure') }}</p>
+        <button type="button" class="forget-btn"
+                [disabled]="forgetState === 'working'" (click)="confirmForget()">
+          {{ languageService.translate('adults-forget-yes') }}
+        </button>
+        <button type="button" class="keep-btn"
+                [disabled]="forgetState === 'working'" (click)="cancelForget()">
+          {{ languageService.translate('adults-forget-no') }}
+        </button>
+      </div>
+
+      <p class="forget-done" *ngIf="forgetState === 'done'" role="status">
+        {{ languageService.translate('adults-forget-done') }}
+      </p>
+    </section>
+
     <button type="button" class="back-btn" (click)="back()">
       {{ languageService.translate('back') }}
     </button>

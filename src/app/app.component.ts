@@ -7,6 +7,7 @@ import { AvatarService } from './services/avatar.service';
 import { Avatar } from './avatar/avatar-model';
 import { LayoutService } from './services/layout.service';
 import { PwaService } from './services/pwa.service';
+import { ProgressSyncService } from './services/progress-sync.service';
 import { environment } from '../environments/environment';
 import { DECLINED_KEY, mayOffer } from './pwa/update-offer';
 
@@ -36,6 +37,7 @@ export class AppComponent implements OnInit, OnDestroy {
     private avatarService: AvatarService,
     private layoutService: LayoutService,
     private pwaService: PwaService,
+    private progressSync: ProgressSyncService,
     private router: Router
   ) {}
 
@@ -46,6 +48,9 @@ export class AppComponent implements OnInit, OnDestroy {
     // Registered through the injector, so the instance that watches for a new
     // version is the same one this component asks about it
     this.pwaService.register(navigator, environment.production);
+    // Signing in is the moment a new device has an account to ask what this
+    // child earned. Nothing on screen waits for the answer.
+    this.progressSync.start();
     this.authService.getCurrentUser().subscribe(username => {
       this.username = username;
     });

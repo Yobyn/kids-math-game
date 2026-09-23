@@ -63,7 +63,7 @@ back. What that cost is recorded under "What the audit found", at the end.
   eye shapes, four mouths, nine hair styles and three hair textures that
   compose with all of them, plus hair and eye colour. The page is three
   sections a child moves between rather than one long scroll.
-- 1,166 unit tests, 11 build-script tests and 16 server tests, run on every
+- 1,203 unit tests, 11 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -346,10 +346,11 @@ a backend that currently keeps its users in memory (see Code health).
   is waved away. Signing up moves their rounds and missed facts into the
   account and empties the guest slot. Progress is now filed per player
   (`roundHistory:guest`, `roundHistory:user:<name>`), so two children on one
-  tablet no longer share a history. What remains is server-side: the account
-  keeps its progress in `localStorage` like a guest's, so it still does not
-  follow a child to another device — the thing the offer implies. That needs
-  a progress API and a backend that survives a restart (see Code health).
+  tablet no longer share a history. AND AN ACCOUNT NOW REALLY DOES FOLLOW A
+  CHILD TO ANOTHER DEVICE — see the next bullet. The signup offer, which for
+  sixteen runs was worded carefully not to promise that, now says it, and a
+  test on the result screen holds both halves: that it says it, and that a
+  finished round really is sent.
 - **Levels exist, and the wardrobe hangs off them.** Rounds earn experience and
   experience earns levels, shown on the result screen as a badge, a bar and a
   "Level up!" on the round that crosses. A round always pays — ten for
@@ -840,18 +841,64 @@ a backend that currently keeps its users in memory (see Code health).
   Registering and signing in also validate their input now: `bcrypt` throws on
   `undefined`, which turned a missing field into a 500 with a stack trace in
   the body.
-  THE SERVER IS IN CI FOR THE FIRST TIME — 16 tests with `node --test`, which
+  THE SERVER IS IN CI — 39 tests with `node --test`, which
   needs no dependencies. It was never covered, which is how an unwired
   database model and a `const users = []` sat in it unnoticed.
   `server/data/` is gitignored and must stay that way.
-  What is still missing, and deliberately: PROGRESS IS STILL NOT ON THE
-  SERVER. An account keeps a child's rounds under their own name on that
-  device, and the signup offer is worded to say exactly that and no more. A
-  progress API would mean a children's service holding what each child is bad
-  at, which needs a considered answer on retention, deletion and who can read
-  it — not an afternoon's work bolted onto a login. The account now survives
-  a restart, which is what "an account that cannot be logged back into is a
-  promise half kept" actually asked for.
+  The account now survives a restart, which is what "an account that cannot
+  be logged back into is a promise half kept" actually asked for.
+- **PROGRESS FOLLOWS A CHILD BETWEEN DEVICES NOW** (2026-09-23). For sixteen
+  runs this was the one thing an account was for and the one thing it did not
+  do. `server/progress-store.js` and three routes on `server/server.js` do it.
+
+  **The considered answer this was waiting on is the work, and it is a short
+  list rather than a long one.** KEPT: the last twenty rounds, experience,
+  lifetime totals, events the child was here for, the things they won, and
+  their character — what a child would notice missing on a new phone. NEVER
+  KEPT: `missedFacts`, `learned`, the round in play and the last result. The
+  practice queue rebuilds itself from a few days' play, and "what this child
+  is bad at" is the most sensitive thing this game knows; a child getting 8+7
+  wrong is not knowingly engaging a server. That line is the ICO Age
+  Appropriate Design Code's standard 8, quoted in the file it governs. A guest
+  syncs nothing at all. Retention is the account's lifetime. Deleting is a
+  button on the grown-ups' screen, not a support request, and it removes the
+  server's copy only — what is on the device is the child's.
+
+  **The rule that makes it safe is that the device is the authority.** The
+  client merges and puts the result; the server never merges. A pull fills
+  gaps and takes the higher of numbers that only rise, so it can add but never
+  take away. The subtle part, which would have quietly doubled every child's
+  experience: this is NOT the guest-adoption merge. Adopting a guest SUMS xp
+  and totals, because that is two identities' separate earnings being
+  combined. Two devices are two copies of ONE identity, so summing counts the
+  same round twice, and again on every sync — here numbers take the maximum.
+  Rounds are deduplicated by their timestamp for the same reason; without it
+  ten syncs mean ten copies of every round and the real history falls off the
+  end of the twenty-round cap. Both of those have a test that fails if the
+  rule is changed back.
+
+  **The account id comes from the token and never from the request**, so
+  asking for another child's progress is not something the API can express.
+  There is a test per verb for that, and they were written twice: the first
+  pair passed against a server that happily read `?userId=` off the query
+  string, because the test named the other child by username and the store
+  keys by numeric id. Real account ids are small numbers and trivial to guess.
+
+  **It costs 6.84 kB of the initial bundle** — measured, by building
+  `origin/main` in a worktree and comparing: 486.50 kB before, 493.34 kB
+  after, against a 460 kB warning and a 500 kB ERROR budget. That leaves
+  6.66 kB. The next run that adds anything to the eager path breaks the
+  build, and that is the budget working as intended rather than a problem
+  with it — so the next feature of any size has to start by moving something
+  off the initial bundle, not by raising the ceiling.
+
+  Verified in two real browsers against a real server: device A pushes, a
+  brand-new device B signs in and has the rounds, level, keepsake and
+  character, B earns more and A picks it up without losing its own missed
+  facts, and deleting empties the server while the device keeps everything.
+  That run also caught something no unit test had: an avatar arriving from the
+  server goes through the same level gate as one chosen here, so a hand-edited
+  store is not a way to arrive wearing a crown.
 - **No lint setup.** Angular 12 dropped the default; nothing enforces style.
 - **`server/node_modules` is committed** — 1,888 files of dependencies in
   version control. It is why the server's CI step skips installing: a fresh

@@ -23,9 +23,12 @@ commands dies with `ERR_OSSL_EVP_UNSUPPORTED`. Running `ng` directly means
 setting it yourself.
 
 **The game runs without the server.** A child can play a full round as a
-guest, and everything they do is kept in their own browser. The server is only
-needed to register an account and sign in — take "Play without an account" on
-the login screen and none of the rest of this matters.
+guest, and everything they do is kept in their own browser. Signing in also
+keeps a short copy of what they earned on the server, so it is there on their
+other phone or tablet — never the sums they get wrong, which stay on the
+device. The server is only needed to register an account and sign in — take
+"Play without an account" on the login screen and none of the rest of this
+matters.
 
 To run it anyway:
 
@@ -34,7 +37,8 @@ cd server
 JWT_SECRET=<a long random string> npm start    # http://localhost:3000/
 ```
 
-There is no database to install. Accounts live in `server/data/accounts.json`;
+There is no database to install. Accounts live in `server/data/accounts.json`
+and a signed-in child's copy in `server/data/progress.json`;
 see [the server's own README](./server/README.md), which is the accurate one
 for anything server-side.
 

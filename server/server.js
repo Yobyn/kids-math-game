@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const { AccountStore } = require('./store');
+const { ProgressStore } = require('./progress-store');
 const { signToken, verifyToken } = require('./token');
 
 const app = express();
@@ -15,6 +16,7 @@ const secretKey = process.env.JWT_SECRET;
 // Accounts survive a restart now; see store.js for why it is a file rather
 // than a database server.
 const accounts = new AccountStore(process.env.ACCOUNTS_FILE);
+const progress = new ProgressStore(process.env.PROGRESS_FILE);
 // Reset tokens stay in memory on purpose: they live for an hour, and a
 // restart making every outstanding link invalid is the safe way to fail.
 const passwordResetTokens = new Map();
@@ -202,6 +204,51 @@ app.post('/api/auth/reset-password/:token', async (req, res) => {
   }
 });
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port} with ${accounts.count} account(s)`);
+/**
+ * A child's progress, so it follows them to another device.
+ *
+ * All three are behind the token: an account's progress is only ever read,
+ * written or deleted by that account. There is no endpoint that lists
+ * anyone, and none that reads somebody else's — the id comes from the token
+ * rather than from the request, so asking for another child's is not a
+ * thing the API can express.
+ *
+ * What is kept and what is deliberately NOT kept is written up in
+ * progress-store.js; the short version is that the sums a child gets wrong
+ * never leave their device.
+ */
+app.get('/api/progress', authenticateToken, (req, res) => {
+  const stored = progress.get(req.user.userId);
+  res.json({ progress: stored, updatedAt: progress.updatedAt(req.user.userId) });
 });
+
+app.put('/api/progress', authenticateToken, (req, res) => {
+  try {
+    progress.put(req.user.userId, req.body && req.body.progress);
+    res.json({ updatedAt: progress.updatedAt(req.user.userId) });
+  } catch (error) {
+    // A payload this server cannot use is the client's mistake, not a fault
+    res.status(400).json({ message: error.message });
+  }
+});
+
+/**
+ * Deleting is a first-class operation rather than a support request. It
+ * removes the server's copy ONLY: what is on the device is the child's and
+ * is not the server's to take.
+ */
+app.delete('/api/progress', authenticateToken, (req, res) => {
+  const had = progress.remove(req.user.userId);
+  res.json({ deleted: had });
+});
+
+// Only when started directly. Requiring this file gives you the app without
+// binding a port, which is what lets the routes above be tested for real
+// rather than by reading them.
+if (require.main === module) {
+  app.listen(port, () => {
+    console.log(`Server is running on port ${port} with ${accounts.count} account(s)`);
+  });
+}
+
+module.exports = { app };

@@ -124,6 +124,11 @@ export class AuthService {
     return this.usernameSubject.asObservable();
   }
 
+  /** The token as it stands, for a request being built right now. */
+  currentToken(): string | null {
+    return this.tokenSubject.value;
+  }
+
   isLoggedIn(): boolean {
     return !!this.tokenSubject.value;
   }

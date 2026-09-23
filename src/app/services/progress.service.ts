@@ -5,6 +5,12 @@ import { SavedResult, parseResult, serialiseResult } from '../result/result-stat
 import { LearnedFact, parseLearned, rememberLearned } from '../teaching/learned';
 import { MoneyQuestion } from '../teaching/money';
 import {
+  SYNCED_VERSION,
+  SyncedProgress,
+  SyncedRound,
+  worthSyncing
+} from './synced-progress';
+import {
   EarnedEvent,
   EarnedItem,
   readEarnedEvents,
@@ -436,6 +442,47 @@ export class ProgressService {
     // A half-finished round is not progress to carry over: the child is in
     // the middle of it right now, under whichever name they are playing.
     this.remove(this.key(ROUND_KEY, GUEST_OWNER));
+  }
+
+  /**
+   * What this device would send to the account, or null when there is
+   * nothing worth sending. Deliberately NOT everything: the facts a child
+   * keeps getting wrong, the ones that have stuck, the round in play and the
+   * last result all stay here. See server/progress-store.js for why.
+   */
+  exportSynced(): SyncedProgress | null {
+    const owner = this.currentOwner();
+    if (owner === GUEST_OWNER) {
+      // A guest has no account to sync with, so there is nothing to send and
+      // nowhere to send it
+      return null;
+    }
+    const progress: SyncedProgress = {
+      version: SYNCED_VERSION,
+      roundHistory: this.readHistory(owner) as SyncedRound[],
+      xp: this.readXp(owner),
+      totals: this.readTotals(owner),
+      events: this.readEvents(owner),
+      keepsakes: readEarnedItems(this.readList(KEEPSAKES_KEY, owner))
+    };
+    return worthSyncing(progress) ? progress : null;
+  }
+
+  /**
+   * Writes a merged copy back to this device. Takes the already-merged
+   * result rather than merging here, so the rule about what beats what lives
+   * in one place that can be read on its own.
+   */
+  importSynced(progress: SyncedProgress): void {
+    const owner = this.currentOwner();
+    if (owner === GUEST_OWNER) {
+      return;
+    }
+    this.writeHistory(owner, (progress.roundHistory || []) as RoundResult[]);
+    this.writeXp(owner, whole(progress.xp));
+    this.writeTotals(owner, progress.totals || { rounds: 0, questions: 0, correct: 0 });
+    this.write(this.key(EVENTS_KEY, owner), progress.events || []);
+    this.write(this.key(KEEPSAKES_KEY, owner), progress.keepsakes || []);
   }
 
   private currentOwner(): string {
