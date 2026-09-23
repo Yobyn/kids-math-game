@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { ROUND_COMPLETION_XP, xpForRound, xpToReach } from '../levels/level-curve';
 import { NO_ITEM, levelItems } from '../avatar/avatar-model';
 import { EASED_KEY } from '../levels/in-round-tuner';
+import { RESULT_WINDOW_MS } from './result-state';
 import { SEASONAL_EVENTS } from '../events/seasonal-events';
 
 describe('ResultComponent', () => {
@@ -627,5 +628,191 @@ describe('ResultComponent and seasonal events', () => {
     finishRoundOn(new Date(2027, 0, 2));
 
     expect(progress.getEarnedEvents()).toEqual(['winter']);
+  });
+});
+
+describe('ResultComponent showing a round that was never seen', () => {
+  let fixture: ComponentFixture<ResultComponent>;
+  let component: ResultComponent;
+  let progress: ProgressService;
+  let router: Router;
+
+  /** Plays a round through the screen, exactly as finishing one does. */
+  function finish(percentage = 80) {
+    spyOn(TestBed.inject(ScoreService), 'getFinalScore').and.returnValue({
+      score: 20, total: 10, correctAnswers: Math.round(percentage / 10), percentage
+    });
+    fixture = TestBed.createComponent(ResultComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    return component;
+  }
+
+  /** Comes back to the screen with nothing in memory, as a reload does. */
+  function reopen() {
+    spyOn(TestBed.inject(ScoreService), 'getFinalScore').and.returnValue({
+      score: 0, total: 0, correctAnswers: 0, percentage: NaN
+    });
+    fixture = TestBed.createComponent(ResultComponent);
+    component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    fixture.detectChanges();
+    return component;
+  }
+
+  const stored = () => JSON.parse(localStorage.getItem('result:guest') || 'null');
+
+  beforeEach(async () => {
+    localStorage.clear();
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+
+    progress = TestBed.inject(ProgressService);
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('writes the result down when the round finishes', () => {
+    finish(80);
+
+    expect(stored().total).toBe(10);
+    expect(stored().correctAnswers).toBe(8);
+    expect(stored().percentage).toBe(80);
+    expect(stored().seen).toBe(true);
+  });
+
+  it('shows it again to a child who never got to see it', () => {
+    finish(80);
+    const banked = stored();
+    banked.seen = false;
+    localStorage.setItem('result:guest', JSON.stringify(banked));
+    TestBed.resetTestingModule();
+
+    // A fresh screen with nothing behind it, which is what a reload is
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    });
+    reopen();
+
+    expect(component.showingAgain).toBe(true);
+    expect(component.total).toBe(10);
+    expect(component.correctAnswers).toBe(8);
+    expect(component.percentage).toBe(80);
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('PAYS FOR THE ROUND ONCE, however many times the screen is shown', () => {
+    // The whole risk of this feature in one test: the round was banked when
+    // it finished, so showing it again must add nothing at all
+    finish(80);
+    const afterFirst = {
+      history: progress.getHistory().length,
+      xp: progress.getXp(),
+      totals: JSON.stringify(progress.getTotals()),
+      keepsakes: JSON.stringify(progress.getKeepsakes()),
+      events: JSON.stringify(progress.getEarnedEvents())
+    };
+
+    const banked = stored();
+    banked.seen = false;
+    localStorage.setItem('result:guest', JSON.stringify(banked));
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    });
+    reopen();
+    const after = TestBed.inject(ProgressService);
+
+    expect(after.getHistory().length).toBe(afterFirst.history);
+    expect(after.getXp()).toBe(afterFirst.xp);
+    expect(JSON.stringify(after.getTotals())).toBe(afterFirst.totals);
+    expect(JSON.stringify(after.getKeepsakes())).toBe(afterFirst.keepsakes);
+    expect(JSON.stringify(after.getEarnedEvents())).toBe(afterFirst.events);
+  });
+
+  it('marks it read, so nothing offers it back again', () => {
+    finish(80);
+    const banked = stored();
+    banked.seen = false;
+    localStorage.setItem('result:guest', JSON.stringify(banked));
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    });
+    reopen();
+
+    expect(stored().seen).toBe(true);
+  });
+
+  it('never asks a returning child for an account', () => {
+    // The offer belongs to the moment a round is finished. An hour later, on
+    // a screen they are seeing because something interrupted them, it is an
+    // ambush rather than an offer.
+    finish(80);
+    const banked = stored();
+    banked.seen = false;
+    banked.roundsPlayed = 9;
+    localStorage.setItem('result:guest', JSON.stringify(banked));
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    });
+    reopen();
+
+    expect(component.showKeepOffer).toBe(false);
+  });
+
+  it('goes back to the grades when there is nothing to show at all', () => {
+    reopen();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/grade']);
+  });
+
+  it('writes no round of nothing into the history on the way', () => {
+    // It used to render NaN% and record a round with no questions in it
+    reopen();
+
+    expect(progress.getHistory().length).toBe(0);
+    expect(component.percentage).toBe(0);
+  });
+
+  it('goes back to the grades when the result has aged out', () => {
+    finish(80);
+    const banked = stored();
+    banked.seen = false;
+    banked.savedAt = Date.now() - (RESULT_WINDOW_MS + 60000);
+    localStorage.setItem('result:guest', JSON.stringify(banked));
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    });
+    reopen();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/grade']);
+  });
+
+  it('forgets the result when the child chooses to play again', () => {
+    finish(80);
+    TestBed.inject(Router);
+    spyOn(TestBed.inject(Router), 'navigate');
+
+    component.playAgain();
+
+    expect(stored()).toBeNull();
   });
 });

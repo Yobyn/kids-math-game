@@ -428,3 +428,142 @@ describe('GradeSelectComponent: the round they left half finished', () => {
     expect(parseFloat(getComputedStyle(button).minHeight)).toBeGreaterThanOrEqual(44);
   });
 });
+
+describe('GradeSelectComponent offering a result the child never saw', () => {
+  let fixture: ComponentFixture<GradeSelectComponent>;
+  let component: GradeSelectComponent;
+  let router: Router;
+
+  const banked = (overrides: any = {}) => JSON.stringify({
+    version: 1,
+    savedAt: Date.now(),
+    seen: false,
+    score: 16,
+    total: 10,
+    correctAnswers: 8,
+    percentage: 80,
+    previousBest: 70,
+    isPersonalBest: true,
+    roundsPlayed: 4,
+    xpEarned: 26,
+    xpAfter: 140,
+    leveledUp: false,
+    unlockedIds: [],
+    eventJustEarned: false,
+    ...overrides
+  });
+
+  function open(result?: string) {
+    if (result) {
+      localStorage.setItem('result:guest', result);
+    }
+    fixture = TestBed.createComponent(GradeSelectComponent);
+    component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    fixture.detectChanges();
+  }
+
+  const card = () => fixture.nativeElement.querySelector('.see-result');
+
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [GradeSelectComponent, AvatarComponent]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('offers nothing when no round has finished', () => {
+    open();
+
+    expect(component.unseenResult).toBeNull();
+    expect(card()).toBeNull();
+  });
+
+  it('offers a finished round whose result was never seen', () => {
+    open(banked());
+
+    expect(component.unseenResult).toBeTruthy();
+    expect(card()).toBeTruthy();
+  });
+
+  it('says how it went, rather than making a child open it to find out', () => {
+    open(banked());
+
+    expect(card().textContent).toContain('8');
+    expect(card().textContent).toContain('10');
+    expect(component.unseenResultLine).not.toContain('{');
+  });
+
+  it('never offers a result the child has already read', () => {
+    open(banked({ seen: true }));
+
+    expect(component.unseenResult).toBeNull();
+    expect(card()).toBeNull();
+  });
+
+  it('never offers one that has gone cold', () => {
+    open(banked({ savedAt: Date.now() - (5 * 60 * 60 * 1000) }));
+
+    expect(component.unseenResult).toBeNull();
+  });
+
+  it('never offers a result with nothing in it', () => {
+    open(banked({ total: 0 }));
+
+    expect(component.unseenResult).toBeNull();
+  });
+
+  it('opens the result screen when it is taken', () => {
+    open(banked());
+
+    card().click();
+
+    expect(router.navigate).toHaveBeenCalledWith(['/result']);
+  });
+
+  it('goes to a route the app actually has', () => {
+    // The same check the resume card carries: the argument passing a test
+    // proves nothing about whether the wildcard bounces a child straight out
+    open(banked());
+    card().click();
+
+    const target = (router.navigate as jasmine.Spy).calls.mostRecent().args[0][0];
+    expect(routes.some(route => '/' + route.path === target)).toBe(true);
+  });
+
+  it('gives the offer a target a child can hit', () => {
+    open(banked());
+
+    const rect = card().getBoundingClientRect();
+    expect(Math.min(rect.width, rect.height)).toBeGreaterThanOrEqual(44);
+  });
+
+  it('stops offering it once the child starts something new', () => {
+    // Choosing a grade is an answer to the offer too
+    open(banked());
+
+    component.selectGrade(3);
+
+    expect(component.unseenResult).toBeNull();
+    expect(JSON.parse(localStorage.getItem('result:guest')!).seen).toBe(true);
+  });
+
+  it('puts an unfinished round above it, because that one is still in play', () => {
+    localStorage.setItem('round:guest', JSON.stringify({
+      version: 2, savedAt: Date.now(), grade: 3, difficulty: 'medium', eased: false,
+      questionsAnswered: 4, correctAnswers: 3, score: 6, streak: 1,
+      results: [true, true, false, true],
+      question: { num1: 7, num2: 8, operation: '+' },
+      isReplay: false, missed: [], offerSpent: false, answered: false, wrongAttempts: 0
+    }));
+    open(banked());
+
+    const cards = Array.from(fixture.nativeElement.querySelectorAll('.resume-round, .see-result'));
+    expect(cards.length).toBe(2);
+    expect((cards[0] as HTMLElement).className).toContain('resume-round');
+  });
+});

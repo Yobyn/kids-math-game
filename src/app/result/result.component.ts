@@ -6,11 +6,12 @@ import { ProgressService } from '../services/progress.service';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { AuthService } from '../services/auth.service';
 import { LevelProgress, levelProgress, xpForRound } from '../levels/level-curve';
-import { WardrobeItem, itemForEvent, itemsUnlockedAt } from '../avatar/avatar-model';
+import { WardrobeItem, itemById, itemForEvent, itemsUnlockedAt } from '../avatar/avatar-model';
 import { activeEvent } from '../events/seasonal-events';
 import { AvatarService } from '../services/avatar.service';
 import { Avatar } from '../avatar/avatar-model';
 import { EASED_KEY } from '../levels/in-round-tuner';
+import { RESULT_VERSION, SavedResult, isShowable } from './result-state';
 
 /**
  * How many rounds a guest plays before the game mentions an account. Guidance
@@ -50,10 +51,18 @@ export class ResultComponent implements OnInit, OnDestroy {
   /** An event item earned by having played while the event was on. */
   eventItem?: WardrobeItem;
   eventJustEarned = false;
+  /** Which event it was, for writing the result down. */
+  private eventId?: string;
   /** Where the bar starts before it fills, so the round's gain is visible. */
   levelFillPercent = 0;
   /** Drawn on the way in to the character, so it reads as a door to it. */
   avatar!: Avatar;
+  /**
+   * True when this screen is showing a round that FINISHED earlier and was
+   * never seen — a reload, or the app reopened. Everything on it was already
+   * banked at the time; nothing here is awarded again.
+   */
+  showingAgain = false;
 
   constructor(
     private scoreService: ScoreService,
@@ -67,6 +76,28 @@ export class ResultComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     const finalScore = this.scoreService.getFinalScore();
+
+    // A round that has just been played, a round played earlier and never
+    // seen, or nothing at all — and the three are not the same screen.
+    if (finalScore.total > 0) {
+      this.bankRound(finalScore);
+    } else if (!this.showBanked()) {
+      // Nothing behind this screen. It used to render `NaN%` and write a
+      // round of nothing into the history.
+      this.router.navigate(['/grade']);
+      return;
+    }
+
+    this.avatar = this.avatarService.get();
+    this.starsEarned = this.getStarsEarned();
+    this.fieldPulse.pulse(1);
+    this.celebrate();
+    // Read now, so nothing offers it back from anywhere else
+    this.progressService.markResultSeen();
+  }
+
+  /** The round that has just been played: counted, awarded, written down. */
+  private bankRound(finalScore: { score: number; total: number; correctAnswers: number; percentage: number }) {
     this.score = finalScore.score;
     this.total = finalScore.total;
     this.correctAnswers = finalScore.correctAnswers;
@@ -89,11 +120,66 @@ export class ResultComponent implements OnInit, OnDestroy {
     this.awardEventItem();
 
     this.showKeepOffer = this.shouldOfferToKeepProgress();
+    this.progressService.saveResult(this.asSavedResult());
+  }
 
-    this.avatar = this.avatarService.get();
-    this.starsEarned = this.getStarsEarned();
-    this.fieldPulse.pulse(1);
-    this.celebrate();
+  /**
+   * A round finished earlier whose result was never shown. Everything here
+   * is READ: the history entry, the experience, the level's items and the
+   * event's item were all written the first time round, and writing any of
+   * them again would pay a child twice for one round.
+   */
+  private showBanked(): boolean {
+    const banked = this.progressService.readResult();
+    if (!isShowable(banked, Date.now())) {
+      return false;
+    }
+
+    const result = banked as SavedResult;
+    this.showingAgain = true;
+    this.score = result.score;
+    this.total = result.total;
+    this.correctAnswers = result.correctAnswers;
+    this.percentage = result.percentage;
+    this.setMessage();
+    this.previousBest = result.previousBest;
+    this.isPersonalBest = result.isPersonalBest;
+    this.roundsPlayed = result.roundsPlayed;
+    this.xpEarned = result.xpEarned;
+    this.level = levelProgress(result.xpAfter);
+    this.leveledUp = result.leveledUp;
+    this.unlocked = result.unlockedIds
+      .map(id => itemById(id))
+      .filter((item): item is WardrobeItem => !!item);
+    this.eventJustEarned = result.eventJustEarned;
+    this.eventItem = result.eventId ? itemForEvent(result.eventId) : undefined;
+    // Deliberately NOT offered here. The offer is about the moment a child
+    // finishes a round; an hour later, on a screen they are being shown
+    // because something interrupted them, it is an ambush.
+    this.showKeepOffer = false;
+    return true;
+  }
+
+  /** What to SAY about this round, which is all that is worth keeping. */
+  private asSavedResult(): SavedResult {
+    return {
+      version: RESULT_VERSION,
+      savedAt: Date.now(),
+      seen: false,
+      score: this.score,
+      total: this.total,
+      correctAnswers: this.correctAnswers,
+      percentage: this.percentage,
+      previousBest: this.previousBest,
+      isPersonalBest: this.isPersonalBest,
+      roundsPlayed: this.roundsPlayed,
+      xpEarned: this.xpEarned,
+      xpAfter: this.progressService.getXp(),
+      leveledUp: this.leveledUp,
+      unlockedIds: this.unlocked.map(item => item.id),
+      ...(this.eventItem && this.eventId ? { eventId: this.eventId } : {}),
+      eventJustEarned: this.eventJustEarned
+    };
   }
 
   ngOnDestroy() {
@@ -225,6 +311,7 @@ export class ResultComponent implements OnInit, OnDestroy {
     if (!event) {
       return;
     }
+    this.eventId = event.id;
 
     this.eventJustEarned = this.progressService.getEarnedEvents().indexOf(event.id) < 0;
     this.progressService.earnEvent(event.id);
@@ -283,6 +370,9 @@ export class ResultComponent implements OnInit, OnDestroy {
 
   playAgain() {
     this.scoreService.resetScore();
+    // Read and done with: a child choosing to play again has had their
+    // closure, and nothing should offer this round back to them
+    this.progressService.clearResult();
     // Clear the stored grade and difficulty to force new selection
     localStorage.removeItem('grade');
     localStorage.removeItem('difficulty');

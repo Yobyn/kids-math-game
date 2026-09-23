@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { afterMiss, afterReview, dueFacts } from '../teaching/review-schedule';
 import { SavedRound, parseRound, serialiseRound } from '../question/round-state';
+import { SavedResult, parseResult, serialiseResult } from '../result/result-state';
 import { MoneyQuestion } from '../teaching/money';
 import {
   EarnedEvent,
@@ -63,6 +64,7 @@ const EVENTS_KEY = 'events';
 const TOTALS_KEY = 'totals';
 /** The one round still in play, if any. At most one per owner. */
 const ROUND_KEY = 'round';
+const RESULT_KEY = 'result';
 /** Items won, with the day they were won. See scrapbook/scrapbook.ts. */
 const KEEPSAKES_KEY = 'keepsakes';
 /** Enough to carry a round's mistakes forward without burying the next one. */
@@ -302,6 +304,36 @@ export class ProgressService {
 
   clearRound(): void {
     this.remove(this.key(ROUND_KEY, this.currentOwner()));
+  }
+
+  /**
+   * The end of a round, so a child who never got to see it still can. What
+   * the round EARNED is already written down elsewhere; this holds only what
+   * to say about it. See result/result-state.ts.
+   */
+  saveResult(result: SavedResult): void {
+    try {
+      localStorage.setItem(this.key(RESULT_KEY, this.currentOwner()), serialiseResult(result));
+    } catch {
+      // A result that cannot be written down is a result not shown twice,
+      // which is a smaller failure than a round that cannot be finished
+    }
+  }
+
+  readResult(): SavedResult | null {
+    return parseResult(this.item(this.key(RESULT_KEY, this.currentOwner())));
+  }
+
+  /** Marks it read, so nothing offers it again. Silent if there is none. */
+  markResultSeen(): void {
+    const result = this.readResult();
+    if (result && !result.seen) {
+      this.saveResult({ ...result, seen: true });
+    }
+  }
+
+  clearResult(): void {
+    this.remove(this.key(RESULT_KEY, this.currentOwner()));
   }
 
   /** True when a guest has anything an account would be worth keeping for. */

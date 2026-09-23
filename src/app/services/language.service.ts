@@ -47,6 +47,8 @@ export type TranslationKeys =
   | 'money-change'
   | 'money-count'
   | 'money-make'
+  | 'see-result'
+  | 'see-result-line'
   | 'money-pick'
   | 'money-purse'
   | 'money-tray'
@@ -375,6 +377,8 @@ export class LanguageService {
       'money-change': 'A toy costs {price}. You pay with {paid}. How much change do you get?',
       'money-count': 'How much money is this?',
       'money-make': 'How many {coin} coins make {target}?',
+      'see-result': 'See how your last round went',
+      'see-result-line': 'You got {correct} of {total}',
       'money-pick': 'Put down coins to make {target}.',
       'money-purse': 'Your coins',
       'money-tray': 'Coins you can use',
@@ -560,6 +564,8 @@ export class LanguageService {
       'money-change': 'Speelgoed kost {price}. Je betaalt met {paid}. Hoeveel krijg je terug?',
       'money-count': 'Hoeveel geld is dit?',
       'money-make': 'Hoeveel munten van {coin} maken {target}?',
+      'see-result': 'Kijk hoe je laatste ronde ging',
+      'see-result-line': 'Je had er {correct} van {total} goed',
       'money-pick': 'Leg munten neer om {target} te maken.',
       'money-purse': 'Jouw munten',
       'money-tray': 'Munten die je kunt gebruiken',
@@ -745,6 +751,8 @@ export class LanguageService {
       'money-change': 'Un juguete cuesta {price}. Pagas con {paid}. ¿Cuánto cambio recibes?',
       'money-count': '¿Cuánto dinero hay aquí?',
       'money-make': '¿Cuántas monedas de {coin} hacen {target}?',
+      'see-result': 'Mira cómo te fue en tu última ronda',
+      'see-result-line': 'Acertaste {correct} de {total}',
       'money-pick': 'Pon monedas para hacer {target}.',
       'money-purse': 'Tus monedas',
       'money-tray': 'Monedas que puedes usar',

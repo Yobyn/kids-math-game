@@ -434,6 +434,16 @@ export function findItem(slot: ItemSlot, id: string): WardrobeItem | undefined {
 }
 
 /**
+ * An item by id alone, for the places that have kept an id and not the slot
+ * it came from — a result written down, a keepsake in the scrapbook. Ids are
+ * unique across slots apart from the "wearing nothing" option each slot has,
+ * which is never a thing anyone earned; a test holds both halves of that.
+ */
+export function itemById(id: string): WardrobeItem | undefined {
+  return id === NO_ITEM ? undefined : WARDROBE.find(item => item.id === id);
+}
+
+/**
  * An event item is earned by having been there, not by climbing — so the
  * level says nothing about it either way.
  */

@@ -13,6 +13,7 @@ import {
   isResumable,
   resumeQuestionNumber
 } from '../question/round-state';
+import { SavedResult, isUnseen } from '../result/result-state';
 
 @Component({
   selector: 'app-grade-select',
@@ -56,6 +57,16 @@ export class GradeSelectComponent implements OnInit {
   /** The question they had got to, for saying it rather than implying it. */
   unfinishedAt = 0;
 
+  /**
+   * A round that FINISHED and whose result the child never got to see,
+   * because something took the screen away between the last answer and the
+   * celebration. Offered here for the same reason the unfinished round is:
+   * this is where a child lands when the app is opened again.
+   * Only ever offered UNSEEN — a result already read is a screen they have
+   * finished with, and putting it back would be the game deciding otherwise.
+   */
+  unseenResult: SavedResult | null = null;
+
   constructor(
     private router: Router,
     private progressService: ProgressService,
@@ -76,6 +87,26 @@ export class GradeSelectComponent implements OnInit {
       this.unfinished = saved;
       this.unfinishedAt = resumeQuestionNumber(saved, QUESTIONS_IN_ROUND);
     }
+
+    const result = this.progressService.readResult();
+    if (isUnseen(result, Date.now())) {
+      this.unseenResult = result;
+    }
+  }
+
+  /** How the round they never saw went, in the words the offer uses. */
+  get unseenResultLine(): string {
+    return this.languageService.translate('see-result-line')
+      .replace('{correct}', String(this.unseenResult ? this.unseenResult.correctAnswers : 0))
+      .replace('{total}', String(this.unseenResult ? this.unseenResult.total : 0));
+  }
+
+  /**
+   * Go and look at it. Nothing is awarded by doing so — the round was banked
+   * when it finished — so this only ever opens a screen.
+   */
+  seeResult() {
+    this.router.navigate(['/result']);
   }
 
   /** What they were part way through, in words they can check against. */
@@ -125,6 +156,11 @@ export class GradeSelectComponent implements OnInit {
     // screen with a round they have just decided against.
     this.progressService.clearRound();
     this.unfinished = null;
+    // Starting something new is an answer to the old round's offer too. The
+    // result stays readable at /result until it ages out; what goes is the
+    // offer, because a child who has chosen a grade has moved on.
+    this.progressService.markResultSeen();
+    this.unseenResult = null;
     localStorage.setItem('grade', grade.toString());
     this.router.navigate(['/difficulty']);
   }
