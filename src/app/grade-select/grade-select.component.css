@@ -7,7 +7,7 @@
 }
 
 h1 {
-  color: #333;
+  color: var(--text);
   margin-bottom: 2rem;
   font-size: 2.5rem;
 }
@@ -20,10 +20,10 @@ h1 {
 }
 
 .grade-card {
-  background-color: white;
+  background-color: var(--surface-raised);
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-deep);
   cursor: pointer;
   transition: all 0.3s ease;
   border: 2px solid transparent;
@@ -31,37 +31,40 @@ h1 {
 
 .grade-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
-.grade-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
+/* Each grade is a point on the particle ring: the first grade is the field's
+   blue, the last its magenta, and the ones between sit in order. It replaced
+   ten rainbow colours that had nothing to do with the field and meant
+   nothing. The colour arrives as --grade-colour from theme/palette.ts, so
+   the stripe and the badge can never disagree. */
+.grade-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  margin: 0 auto 0.9rem;
+  border-radius: 50%;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: radial-gradient(circle at 35% 30%,
+    rgba(255, 255, 255, 0.35), transparent 55%), var(--grade-colour);
+  box-shadow: 0 0 18px var(--grade-colour);
 }
 
 h2 {
-  color: #333;
+  color: var(--text);
   margin-bottom: 1rem;
   font-size: 1.25rem;
 }
 
 p {
-  color: #666;
+  color: var(--text-dim);
   line-height: 1.5;
   font-size: 0.9rem;
 }
-
-/* Grade colors - rainbow gradient */
-.grade-card:nth-child(1) { border-top: 4px solid #ff0000; }
-.grade-card:nth-child(2) { border-top: 4px solid #ff4500; }
-.grade-card:nth-child(3) { border-top: 4px solid #ffa500; }
-.grade-card:nth-child(4) { border-top: 4px solid #ffd700; }
-.grade-card:nth-child(5) { border-top: 4px solid #32cd32; }
-.grade-card:nth-child(6) { border-top: 4px solid #008000; }
-.grade-card:nth-child(7) { border-top: 4px solid #40e0d0; }
-.grade-card:nth-child(8) { border-top: 4px solid #0000ff; }
-.grade-card:nth-child(9) { border-top: 4px solid #4b0082; }
-.grade-card:nth-child(10) { border-top: 4px solid #800080; }
 
 @media (max-width: 768px) {
   .grade-cards {
@@ -72,10 +75,7 @@ p {
     font-size: 2rem;
   }
 
-  .grade-icon {
-    font-size: 2rem;
-  }
-} 
+ }
 /* Children have an adult-sized contact patch with less motor control, so these
    cards are kept well above the 48px adult minimum and never shrink below it. */
 .grade-card {
@@ -106,11 +106,17 @@ p {
   text-shadow: 0 2px 12px rgba(10, 8, 30, 0.6);
 }
 
-/* Card faces stay light — they carry the words a child reads. The theme is
-   on the edge and the focus ring. */
+/* THESE USED TO STAY LIGHT, on the reasoning that "they carry the words a
+   child reads". That reasoning is about legibility, and legibility is what
+   scripts/theme-tokens.test.js now holds every surface to: --text on
+   --surface-raised clears WCAG AA with room to spare. What a grade card
+   carries is a label to tap, not a sum to solve — the surfaces a child
+   SOLVES on (the question card, the answer box, the keypad) stay light, and
+   those are what "do not darken the card faces" is protecting. A white card
+   here was paper stuck to the window the particle field is. */
 .grade-card {
   border: 1px solid var(--edge);
-  box-shadow: 0 10px 28px rgba(6, 4, 20, 0.45);
+  border-top: 4px solid var(--grade-colour, var(--edge));
 }
 
 .grade-card:hover {
@@ -151,15 +157,15 @@ p {
   padding: 0.7rem 1.25rem;
   border: 2px solid var(--accent-blue);
   border-radius: 12px;
-  background: #ffffff;
-  color: #2c3e50;
+  background: var(--surface-raised);
+  color: var(--text);
   cursor: pointer;
 }
 
 /* Quieter than the unfinished round: that one is unfinished work, this one
    is news. Same size and the same tap target, a softer edge. */
 .see-result {
-  border-color: #b9c6d8;
+  border-color: var(--edge);
 }
 
 .resume-title {
@@ -210,7 +216,7 @@ p {
   margin-top: 0.4rem;
   font-weight: 700;
   font-size: 0.85rem;
-  color: #8a2a9c;
+  color: var(--accent-magenta-text);
 }
 
 /* On a phone the list used to be one card per row, 183px each, and three
@@ -235,9 +241,11 @@ p {
     padding: 0.85rem 0.5rem;
   }
 
-  .grade-icon {
-    font-size: 1.5rem;
-    margin-bottom: 0.35rem;
+  .grade-badge {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.2rem;
+    margin-bottom: 0.4rem;
   }
 
   .grade-card h2 {

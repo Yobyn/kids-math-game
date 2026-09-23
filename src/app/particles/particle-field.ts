@@ -67,11 +67,23 @@ export function angleToHueMix(angle: number): number {
   return half <= 1 ? half : 2 - half;
 }
 
+/**
+ * A point on the ring's colour, 0 at the blue end and 1 at the magenta end.
+ * Exported so the rest of the game can take its colours FROM the field rather
+ * than from a lookalike: `theme/palette.ts` builds on this, which is what makes
+ * the grade stripes literally points on the ring behind them.
+ */
+export function fieldColour(mix: number): { r: number; g: number; b: number } {
+  const t = Math.min(Math.max(mix, 0), 1);
+  return {
+    r: Math.round(BLUE.r + (MAGENTA.r - BLUE.r) * t),
+    g: Math.round(BLUE.g + (MAGENTA.g - BLUE.g) * t),
+    b: Math.round(BLUE.b + (MAGENTA.b - BLUE.b) * t)
+  };
+}
+
 export function particleColour(particle: FieldParticle): string {
-  const mix = Math.min(Math.max(particle.hueMix, 0), 1);
-  const r = Math.round(BLUE.r + (MAGENTA.r - BLUE.r) * mix);
-  const g = Math.round(BLUE.g + (MAGENTA.g - BLUE.g) * mix);
-  const b = Math.round(BLUE.b + (MAGENTA.b - BLUE.b) * mix);
+  const { r, g, b } = fieldColour(particle.hueMix);
   return `rgba(${r}, ${g}, ${b}, ${particle.alpha.toFixed(3)})`;
 }
 

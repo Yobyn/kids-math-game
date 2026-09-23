@@ -21,8 +21,7 @@ export type TranslationKeys =
   | 'need-account'
   | 'login-failed'
   | 'select-grade'
-  | 'mathematics-for'
-  | 'students'
+  | 'maths-for-grade'
   | 'select-difficulty'
   | 'level'
   | 'easy-desc'
@@ -249,8 +248,7 @@ export class LanguageService {
       'login-failed': 'Login failed',
       'grade': 'Grade',
       'select-grade': 'Select Grade',
-      'mathematics-for': 'Mathematics for',
-      'students': 'students',
+      'maths-for-grade': 'Maths for grade',
       'difficulty': 'Select Difficulty',
       'select-difficulty': 'Select Difficulty Level',
       'level': 'Level',
@@ -448,8 +446,7 @@ export class LanguageService {
       'login-failed': 'Inloggen mislukt',
       'grade': 'Groep',
       'select-grade': 'Kies Groep',
-      'mathematics-for': 'Wiskunde voor',
-      'students': 'leerlingen',
+      'maths-for-grade': 'Wiskunde voor groep',
       'difficulty': 'Kies Moeilijkheidsgraad',
       'select-difficulty': 'Kies Moeilijkheidsgraad',
       'level': 'Niveau',
@@ -647,8 +644,7 @@ export class LanguageService {
       'login-failed': 'Inicio de sesión fallido',
       'grade': 'Grado',
       'select-grade': 'Seleccione Grado',
-      'mathematics-for': 'Matemáticas para',
-      'students': 'estudiantes',
+      'maths-for-grade': 'Matemáticas para el grado',
       'difficulty': 'Seleccione Dificultad',
       'select-difficulty': 'Seleccione Nivel de Dificultad',
       'level': 'Nivel',

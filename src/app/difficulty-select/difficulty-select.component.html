@@ -3,6 +3,7 @@
   <div class="difficulty-cards">
     <div class="difficulty-card"
          *ngFor="let difficulty of difficulties"
+         [style.--level-colour]="difficulty.colour"
          role="button"
          tabindex="0"
          [class.suggested]="difficulty.level === suggested"
