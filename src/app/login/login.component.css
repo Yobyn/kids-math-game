@@ -1,18 +1,36 @@
+/* The front door: title and Play first, signing in beneath */
+.title-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 1rem 1rem 2rem;
+}
+
+.title-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+/* For grown-ups with an account: a quieter card, below the way to play */
 .login-container {
-  max-width: 400px;
-  margin: 2rem auto;
-  padding: 2rem;
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 1.25rem 1.5rem 1.5rem;
   background: var(--surface);
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  border: 1px solid var(--edge);
+  border-radius: 16px;
 }
 
 .login-container h2 {
   text-align: center;
   color: var(--text);
-  margin-bottom: 2rem;
-  font-size: 1.8rem;
+  margin: 0 0 1rem;
+  font-size: 1.3rem;
 }
 
 .form-group {
@@ -21,6 +39,7 @@
 }
 
 input {
+  box-sizing: border-box;
   width: 100%;
   padding: 12px;
   border: 2px solid var(--edge);
@@ -71,12 +90,13 @@ input.invalid {
   border: 1px solid var(--good);
 }
 
+/* Second to Play: outlined, so the two never compete */
 .submit-btn {
   width: 100%;
   padding: 12px;
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
-  color: #ffffff;
-  border: none;
+  background: transparent;
+  color: var(--text);
+  border: 2px solid var(--accent-blue);
   border-radius: 6px;
   font-size: 1rem;
   cursor: pointer;
@@ -208,9 +228,9 @@ input.invalid {
 }
 
 .login-container button[type="submit"] {
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
-  border: none;
-  color: #ffffff;
+  background: transparent;
+  border: 2px solid var(--accent-blue);
+  color: var(--text);
 }
 
 .login-container .toggle-btn,
@@ -222,26 +242,28 @@ input.invalid {
 /* Playing without an account is the first thing a child should be able to
    do, so it is a real button with a full touch target — not a text link
    tucked under the form. */
+/* The way most children in: the biggest thing on the screen after the title */
 .guest-btn {
   width: 100%;
-  min-height: 48px;
-  margin-top: 1rem;
-  padding: 12px;
-  font-size: 1rem;
+  min-height: 60px;
+  padding: 14px 20px;
+  font-size: 1.25rem;
+  font-weight: 800;
   cursor: pointer;
-  border-radius: 6px;
-  background: transparent;
-  border: 2px solid var(--accent-magenta);
-  color: var(--text);
-  transition: all 0.3s ease;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
+  color: #ffffff;
+  box-shadow: 0 8px 24px rgba(122, 90, 245, 0.45);
 }
 
 .guest-btn:hover:not(:disabled) {
-  background: rgba(214, 51, 235, 0.18);
+  filter: brightness(1.1);
 }
 
 .guest-btn:disabled {
-  border-color: var(--edge);
+  background: var(--surface-raised);
   color: var(--text-dim);
+  box-shadow: none;
   cursor: not-allowed;
 }

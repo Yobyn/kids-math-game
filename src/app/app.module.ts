@@ -17,6 +17,7 @@ import { CoinsComponent } from './money/coins.component';
 import { CoinPickerComponent } from './money/coin-picker.component';
 import { ParticlesComponent } from './particles/particles.component';
 import { RoundTrackComponent } from './question/round-track.component';
+import { TitleHeroComponent } from './login/title-hero.component';
 import { AuthInterceptor } from './auth.interceptor';
 
 @NgModule({
@@ -32,7 +33,8 @@ import { AuthInterceptor } from './auth.interceptor';
     KeypadComponent,
     CoinsComponent,
     CoinPickerComponent,
-    RoundTrackComponent
+    RoundTrackComponent,
+    TitleHeroComponent
   ],
   imports: [
     BrowserModule,

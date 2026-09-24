@@ -1,0 +1,16 @@
+<div class="title-hero">
+  <h1 class="wordmark">{{ name }}</h1>
+  <p class="tagline">{{ languageService.translate('lets-learn') }}</p>
+  <div class="stage">
+    <div class="ring field-ring">
+      <app-avatar [avatar]="avatar" [size]="104"></app-avatar>
+    </div>
+    <span *ngFor="let mark of marks"
+          class="mark"
+          [style.left.%]="mark.x"
+          [style.top.%]="mark.y"
+          [style.color]="mark.colour"
+          [style.animation-delay.s]="mark.delay"
+          aria-hidden="true">{{ mark.symbol }}</span>
+  </div>
+</div>

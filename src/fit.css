@@ -245,6 +245,41 @@ html[data-fit='short'] .grown-ups-link {
   width: auto;
 }
 
+/* The title screen side by side: title and Play on the left, signing in on
+   the right, so neither is below the fold on a phone held sideways */
+html[data-fit='short'] .title-screen {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.5rem 1.5rem;
+  max-width: 820px;
+  padding: 0.5rem 1rem;
+  align-items: start;
+}
+
+html[data-fit='short'] .title-screen > .language-selector-container {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
+}
+
+html[data-fit='short'] .title-screen .login-container {
+  margin-top: 0;
+}
+
+html[data-fit='short'] .title-hero .tagline {
+  margin-bottom: 0.4rem;
+}
+
+html[data-fit='short'] .title-hero .stage {
+  width: 96px;
+  height: 96px;
+  margin: 1rem 0 1rem;
+}
+
+html[data-fit='short'] .title-hero .stage svg {
+  width: 72px;
+  height: auto;
+}
+
 /* Sign in without scrolling to find the button */
 html[data-fit='short'] .login-container,
 html[data-fit='short'] .register-container {
