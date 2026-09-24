@@ -69,7 +69,7 @@ back. What that cost is recorded under "What the audit found", at the end.
   from an SVG sprite, shaded, and the hair is fitted to every face shape.
 - The particle field answers a tap: a small burst of its particles under the
   finger, apart from the full-field surge that a correct answer earns.
-- 1,289 unit tests, 200 build-script tests and 39 server tests, run on every
+- 1,305 unit tests, 200 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -257,6 +257,49 @@ keypad, because the ring's blue end is close to the surface's navy. It
 reads, but a brighter core for dark surfaces is a small follow-up if Yobyn
 wants more.
 
+**THE LOGIN SCREEN IS A TITLE SCREEN — DONE (2026-09-24).** Every other
+screen had had its pass, and the first one a child sees was still a form
+headed "Login": no name, no character, and "Play without an account", the
+one button most children need, below the username and password fields.
+
+It opens now with the game's name as a wordmark in the field's blue
+running into its magenta, the tagline ("Let's learn some math!"), and the
+child's own character in the ring, as on the reward screen, with + − × ÷ =
+and a 7 circling it in the ring's colours. They bob gently, and are still
+under reduced motion. Below that, "Play without an account" is the biggest
+button on the screen: a full-width gradient pill. Signing in sits beneath,
+in a quieter card, and its button is outlined so the two never compete.
+Nothing about signing in, registering or resetting a password changed:
+the fields, toggles and flows are all where the tests expect them. It is
+not hidden behind an extra tap either. In landscape the title and Play sit
+on the left and the card on the right.
+
+The orbit is arithmetic in `login/title-orbit.ts`, DOM-free: symbols evenly
+round the ring, on one circle, none on top of the character's head, and
+each coloured with the same `stepColour` as the grade cards and the round
+track. The hero is its own component (`login/title-hero.component.*`).
+The separate `/register` page was left alone: nothing in the app links to
+it, because registering happens on this screen's own toggle. It is a
+candidate for deletion, not for a redesign.
+
+Found on the way: the inputs had no `box-sizing`, so at 100% width plus
+padding they ran past the right edge of the card. A test now keeps them
+inside it.
+
+In landscape the screen went from 1.6 screenfuls to 1.04 at 844x390, with
+both Play and the sign-in button above the fold (at 390x844, 844x390,
+740x360 and 820x1180). The ring around the character is now one global
+class, `.field-ring`, shared with the reward screen instead of copied into
+both. Tests: `title-hero.spec.ts` and four new login tests (1,305 unit tests
+in all). A mutation sweep caught all 13 breakages. The first load grew 3.52
+kB, to 495.04 kB. That is the hero's own template, styles and code on the
+one screen that must be in the first load, and the ring's de-duplication
+won back 0.2 kB of it.
+
+The game's name is still "Math Game", taken from `index.html` and the
+manifest. A real name is Yobyn's call, not a run's, and changing it is one
+constant (`GAME_NAME`).
+
 **THE QUESTION SCREEN'S HEADER IS A ROUND TRACK — DONE (2026-09-24).** The
 next sweep of every screen put it first. It is the one strip a child looks at
 on every question, and it said "Score: 0" and "Question 1 of 10", an "out of"
@@ -439,9 +482,11 @@ never locked: skin, face, hair and their colours stay free at level 1 however
 the art changes. Per-tap work must be bounded, so a child mashing the keypad
 cannot allocate without limit.
 
-**And art costs bytes.** The initial bundle has **8.48 kB** of headroom
-(491.52 kB against a 500 kB error budget, measured 2026-09-24 after the round
-track, which cost 0.87 kB; the result screen before it freed 2.00 kB. The tap layer
+**And art costs bytes.** The initial bundle has **4.96 kB** of headroom
+(495.04 kB against a 500 kB error budget, measured 2026-09-24 after the title
+screen, which cost 3.52 kB; the round track before it cost 0.87 kB and the
+result screen freed 2.00 kB. THE NEXT EAGER CHANGE HAS TO PAY FOR ITSELF:
+measure first with `mapsize.js` and move something out of the first load. The tap layer
 before it cost 0.94 kB because the layer itself is lazy; eagerly it would
 have cost 4.58 kB). `result.component.css` is 4.50 kB against a 6 kB ERROR. A DECORATION NOBODY CAN USE BEFORE THE FIRST
 SCREEN DOES NOT BELONG IN THE FIRST LOAD: load it after, as `loadTapLayer`
@@ -1149,8 +1194,8 @@ order; a single screenshot cannot show whether a tap did anything.
   claimed 1.6, which is the seeded history rather than drift. The result
   screen was not re-measured — reaching it means finishing a round — so its
   1.9 is the one landscape number here still taken on trust.
-  STILL OUTSTANDING: the login screen is 1.6 screenfuls in landscape and its
-  secondary links sit below the fold; the result screen is 1.9; the avatar
+  STILL OUTSTANDING: the result screen is 1.9 (the login screen, 1.6 here,
+  is 1.04 since the title screen of 2026-09-24); the avatar
   page is 3.7, and that is the page's shape rather than the layout's — see
   "the character, finished", which is where the sectioning belongs. The
   question screen's own Back link is the one control still below the fold in

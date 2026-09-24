@@ -148,6 +148,39 @@ describe('LoginComponent guest play', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/grade']);
   });
 
+  it('puts the way to play first, above signing in, as the biggest button', () => {
+    const page = fixture.nativeElement as HTMLElement;
+    const guest = page.querySelector('.guest-btn') as HTMLElement;
+    const card = page.querySelector('.login-container') as HTMLElement;
+    const submit = page.querySelector('.submit-btn') as HTMLElement;
+
+    // Before the sign-in card in the page, and outside it
+    expect(guest.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(card.contains(guest)).toBe(false);
+    expect(parseFloat(getComputedStyle(guest).minHeight))
+      .toBeGreaterThan(parseFloat(getComputedStyle(submit).minHeight));
+  });
+
+  it('opens with the title, not a form', () => {
+    const page = fixture.nativeElement as HTMLElement;
+    const hero = page.querySelector('app-title-hero');
+    expect(hero).toBeTruthy();
+    expect(hero!.compareDocumentPosition(page.querySelector('form')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('keeps signing in second: its button is outlined, not the bright one', () => {
+    const submit = fixture.nativeElement.querySelector('.submit-btn') as HTMLElement;
+    const guest = fixture.nativeElement.querySelector('.guest-btn') as HTMLElement;
+    expect(getComputedStyle(submit).backgroundImage).toBe('none');
+    expect(getComputedStyle(guest).backgroundImage).toContain('gradient');
+  });
+
+  it('keeps the inputs inside the card', () => {
+    const card = (fixture.nativeElement.querySelector('.login-container') as HTMLElement).getBoundingClientRect();
+    const input = (fixture.nativeElement.querySelector('input') as HTMLElement).getBoundingClientRect();
+    expect(input.right).toBeLessThanOrEqual(card.right);
+  });
+
   it('gives the guest button a thumb-sized target', () => {
     const button = fixture.nativeElement.querySelector('.guest-btn');
 

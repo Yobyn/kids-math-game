@@ -109,6 +109,24 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* The field's ring, blue round to magenta, around the child's character —
+   on the title screen and at the end of a round. Size is set where it is used. */
+.field-ring {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, var(--surface) 62%, transparent 63%),
+    conic-gradient(from 210deg, var(--accent-blue), var(--accent-magenta), var(--accent-blue));
+  box-shadow: 0 0 28px rgba(122, 90, 245, 0.45);
+}
+
+/* The symbols circling the character on the title screen */
+@keyframes bob {
+  0%, 100% { margin-top: 0; }
+  50% { margin-top: -6px; }
+}
+
 @keyframes pop-in {
   from { opacity: 0; transform: scale(0.8); }
   to { opacity: 1; transform: scale(1); }

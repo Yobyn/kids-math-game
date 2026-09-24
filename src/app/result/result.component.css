@@ -63,16 +63,8 @@
 }
 
 .ring {
-  display: grid;
-  place-items: center;
   width: 148px;
   height: 148px;
-  border-radius: 50%;
-  /* The field's ring, blue round to magenta, around the child */
-  background:
-    radial-gradient(circle, var(--surface) 62%, transparent 63%),
-    conic-gradient(from 210deg, var(--accent-blue), var(--accent-magenta), var(--accent-blue));
-  box-shadow: 0 0 28px rgba(122, 90, 245, 0.45);
 }
 
 .praise {

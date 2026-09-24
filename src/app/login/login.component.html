@@ -1,8 +1,24 @@
-<div class="login-container">
+<!-- The title screen: the game's name and the child's character first, the
+     one button most children need next, and signing in beneath it for the
+     grown-ups who have an account. -->
+<div class="title-screen">
   <div class="language-selector-container">
     <app-language-selector></app-language-selector>
   </div>
-  
+
+  <div class="title-side">
+    <app-title-hero></app-title-hero>
+    <button
+      type="button"
+      class="guest-btn"
+      (click)="playAsGuest()"
+      [disabled]="isLoading"
+      *ngIf="!isForgotPassword">
+      {{ languageService.translate('play-as-guest') }}
+    </button>
+  </div>
+
+<div class="login-container">
   <h2>{{ isForgotPassword ? (languageService.translate('forgot-password')) : (isRegistering ? languageService.translate('register') : languageService.translate('login')) }}</h2>
   
   <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
@@ -69,15 +85,6 @@
       <span *ngIf="isLoading" class="loader"></span>
     </button>
 
-    <button
-      type="button"
-      class="guest-btn"
-      (click)="playAsGuest()"
-      [disabled]="isLoading"
-      *ngIf="!isForgotPassword">
-      {{ languageService.translate('play-as-guest') }}
-    </button>
-
     <button 
       type="button"
       class="toggle-btn" 
@@ -105,4 +112,5 @@
       {{ languageService.translate('cancel') }}
     </button>
   </form>
+</div>
 </div>
