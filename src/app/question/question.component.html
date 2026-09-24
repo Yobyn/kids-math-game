@@ -18,25 +18,10 @@
   </div>
 
   <ng-container *ngIf="!showResumeOffer">
-  <div class="score-display">
-    <div class="score">{{ languageService.translate('score') }}: {{ currentScore }}</div>
-    <div class="streak" *ngIf="streakCount > 2">
-      <span class="streak-text">{{ languageService.translate('streak') }}: {{ streakCount }}</span>
-      <span class="streak-fire">🔥</span>
-    </div>
-    <div class="question-counter">
-      {{ languageService.translate('question') }} {{ questionsAnswered + 1 }} {{ languageService.translate('of') }} {{ totalQuestions }}
-    </div>
-  </div>
-
-  <div class="progress-track"
-       role="progressbar"
-       [attr.aria-valuenow]="questionsAnswered"
-       aria-valuemin="0"
-       [attr.aria-valuemax]="totalQuestions"
-       [attr.aria-label]="languageService.translate('question') + ' ' + (questionsAnswered + 1) + ' ' + languageService.translate('of') + ' ' + totalQuestions">
-    <div class="progress-fill" [style.width.%]="progressPercent"></div>
-  </div>
+  <app-round-track [answered]="questionsAnswered"
+                   [total]="totalQuestions"
+                   [score]="currentScore"
+                   [streak]="streakCount"></app-round-track>
 
   <div class="question-box" [class.shake]="showShakeAnimation" [class.picking]="isPicking">
     <p class="money-prompt" *ngIf="currentQuestion.money">{{ moneyText }}</p>

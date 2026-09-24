@@ -367,12 +367,6 @@ export class QuestionComponent implements OnInit, OnDestroy {
       .replace('{total}', String(TOTAL_QUESTIONS));
   }
 
-  /** How far through the ten questions the child is, as a percentage. */
-  get progressPercent(): number {
-    const answered = Math.min(Math.max(this.questionsAnswered, 0), TOTAL_QUESTIONS);
-    return (answered / TOTAL_QUESTIONS) * 100;
-  }
-
   private isTouchDevice(): boolean {
     return typeof window !== 'undefined' &&
       (('ontouchstart' in window) ||

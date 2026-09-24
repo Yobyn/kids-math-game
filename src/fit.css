@@ -68,18 +68,9 @@ html[data-fit='short'] .question-container {
   min-height: 0;
 }
 
-html[data-fit='short'] .score-display {
+html[data-fit='short'] .round-track {
   margin-bottom: 0.4rem;
-  padding: 0.3rem 0.75rem;
-}
-
-html[data-fit='short'] .score,
-html[data-fit='short'] .question-counter {
-  font-size: 1rem;
-}
-
-html[data-fit='short'] .progress-track {
-  margin-bottom: 0.4rem;
+  padding: 0.35rem 0.75rem;
 }
 
 html[data-fit='short'] .question-box {
@@ -394,8 +385,7 @@ html[data-fit='wide'] .header-content {
 }
 
 html[data-fit='wide'] .question-box,
-html[data-fit='wide'] .score-display,
-html[data-fit='wide'] .progress-track {
+html[data-fit='wide'] .round-track {
   max-width: 820px;
 }
 

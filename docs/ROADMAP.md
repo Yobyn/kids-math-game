@@ -36,7 +36,8 @@ back. What that cost is recorded under "What the audit found", at the end.
   once, the way a flashcard goes back a few cards from the front — and is
   kept for a LATER DAY, where it returns near the start of a round (never
   first). Never the same day it was missed: see spacing, below.
-- Progress bar through the round. The end of a round is a reward screen: the
+- A round track: one pip per question, lit in the ring's colours as the child
+  goes through them, beside the score. The end of a round is a reward screen: the
   child's own character in the ring, up to three drawn stars, praise for the
   work, and tiles of what they did (how many right, the XP it paid, and a
   new best only when it was one). It shows no percentage and no score table.
@@ -68,7 +69,7 @@ back. What that cost is recorded under "What the audit found", at the end.
   from an SVG sprite, shaded, and the hair is fitted to every face shape.
 - The particle field answers a tap: a small burst of its particles under the
   finger, apart from the full-field surge that a correct answer earns.
-- 1,274 unit tests, 200 build-script tests and 39 server tests, run on every
+- 1,289 unit tests, 200 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -256,6 +257,40 @@ keypad, because the ring's blue end is close to the surface's navy. It
 reads, but a brighter core for dark surfaces is a small follow-up if Yobyn
 wants more.
 
+**THE QUESTION SCREEN'S HEADER IS A ROUND TRACK — DONE (2026-09-24).** The
+next sweep of every screen put it first. It is the one strip a child looks at
+on every question, and it said "Score: 0" and "Question 1 of 10", an "out of"
+in front of them the whole round, over a thin grey bar. On the first question
+of every round that bar was completely empty and looked broken.
+
+It is now one strip: a pip per question, each in the ring's colour at its
+step (the first question the field's blue, the last its magenta, using the
+same `stepColour` as the grade cards), and beside it the score and, from three
+in a row, the streak. Pips for questions the child has been through fill in
+and glow; the one they are on is taller and ringed in its own colour; the
+rest wait dim. In landscape it is a single short row, which gives height
+back to the question.
+
+It deliberately does NOT show which answers were right. A row of ticks and
+crosses would be a running tally of mistakes on the one screen where a child
+is working, so every question done lights the same way. "Question 5 of 10"
+is still there for assistive tech, as the progress bar's label, and nowhere
+a child reads it.
+
+The rules are in `question/round-track.ts`, DOM-free: which pips are done,
+current or ahead, their colours, and the question a child is on. The strip
+is its own component (`question/round-track.component.*`), because
+`question.component.css` was 0.77 kB from its 6 kB error budget. Moving the
+header out of it took that stylesheet from 5.23 kB to 4.09 kB. A spec caught a real layout bug on the
+way: the new element was inline by default, so the strip shrank to its
+contents, 474px narrower than the card beneath it.
+
+Tests: `round-track.spec.ts` plus the question screen's own (1,289 unit tests
+in all). A mutation sweep caught 10 of 13 breakages. The other three were
+equivalent: a redundant clamp, `display: inline` on a flex item (which is
+blockified anyway), and a hard-coded 10 where the round is always 10. The
+first load grew 0.87 kB, to 491.52 kB.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
@@ -404,17 +439,17 @@ never locked: skin, face, hair and their colours stay free at level 1 however
 the art changes. Per-tap work must be bounded, so a child mashing the keypad
 cannot allocate without limit.
 
-**And art costs bytes.** The initial bundle has **9.35 kB** of headroom
-(490.65 kB against a 500 kB error budget, measured 2026-09-24 after the
-result screen stopped being a report, which freed 2.00 kB. The tap layer
+**And art costs bytes.** The initial bundle has **8.48 kB** of headroom
+(491.52 kB against a 500 kB error budget, measured 2026-09-24 after the round
+track, which cost 0.87 kB; the result screen before it freed 2.00 kB. The tap layer
 before it cost 0.94 kB because the layer itself is lazy; eagerly it would
 have cost 4.58 kB). `result.component.css` is 4.50 kB against a 6 kB ERROR. A DECORATION NOBODY CAN USE BEFORE THE FIRST
 SCREEN DOES NOT BELONG IN THE FIRST LOAD: load it after, as `loadTapLayer`
 in `app.component.ts` does. Images do not count
 against that budget, but they still cost a download: the sprite is 42.6 kB
 gzipped. The particle field is eager, so anything added there lands in the
-first load. `question.component.css` is 5.23 kB against a 6 kB ERROR, so
-0.77 kB of room.
+first load. `question.component.css` is 4.09 kB against a 6 kB ERROR (was 5.23 before
+the round track moved the header out).
 
 CORRECTION to what this section said this morning: deleting the dead code
 does NOT pay for anything. `src/app/app/`, `translation-keys.ts`,

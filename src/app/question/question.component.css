@@ -9,51 +9,6 @@
   background: transparent;
 }
 
-.score-display {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  max-width: 600px;
-  margin-bottom: 2rem;
-  padding: 1rem;
-  border-radius: 12px;
-  /* Chrome, so dark: it is a status line, not something a child solves */
-  background: var(--surface-raised);
-  border: 1px solid var(--edge);
-  box-shadow: 0 8px 24px rgba(6, 4, 20, 0.45);
-}
-
-.score {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--text);
-}
-
-.question-counter {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: var(--text);
-  background-color: var(--surface);
-  border: 1px solid var(--edge);
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.streak {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 1.25rem;
-  color: #ff5722;
-  animation: pulse 1s infinite;
-}
-
-.streak-fire {
-  font-size: 1.5rem;
-}
-
 .question-box {
   background: var(--surface-read);
   padding: 2rem;
@@ -235,18 +190,6 @@ input[type="number"].incorrect {
     height: 50px;
     font-size: 1.75rem;
   }
-
-  .score-display {
-    padding: 0.75rem;
-  }
-
-  .score {
-    font-size: 1.25rem;
-  }
-
-  .streak {
-    font-size: 1rem;
-  }
 }
 
 @media (max-width: 480px) {
@@ -274,38 +217,6 @@ input[type="number"].incorrect {
     width: 100%;
   }
 }
-/* Progress through the ten questions — seeing the bar fill is what keeps a
-   child going; "Question 3 of 10" alone is a number they have to decode.
-   Matches the question card's width so it reads as part of the same block
-   rather than a sliver poking out from behind it. */
-.progress-track {
-  width: 100%;
-  /* Both the bar and .question-box are border-box at max-width 600px, so
-     their outer widths match without either compensating for the other.
-     The transparent border mirrors the card's themed 1px edge. */
-  box-sizing: border-box;
-  max-width: 600px;
-  border: 1px solid transparent;
-  height: 12px;
-  margin: 1rem auto 1.25rem;
-  background: rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent-blue), var(--accent-magenta));
-  transition: width 0.45s ease-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .progress-fill {
-    transition: none;
-  }
-}
-
 /* Money questions read as a sentence, so they need room to breathe */
 .money-prompt {
   margin: 0 0 1.25rem;

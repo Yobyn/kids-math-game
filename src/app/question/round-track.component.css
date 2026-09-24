@@ -1,0 +1,81 @@
+/* A block the width of the screen's column, so the strip inside can match
+   the card below it; left inline, the host shrank to its contents. */
+:host {
+  display: block;
+  width: 100%;
+}
+
+/* Chrome, so dark: it tells a child where they are, it is not something they
+   solve. Sized to the question card below it so the two read as one block. */
+.round-track {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto 1.25rem;
+  padding: 0.7rem 0.9rem;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  border: 1px solid var(--edge);
+  box-shadow: 0 8px 24px rgba(6, 4, 20, 0.45);
+}
+
+/* One segment per question, walking the ring from blue to magenta */
+.pips {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pip {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--surface-input);
+  box-shadow: inset 0 0 0 1px var(--edge);
+  transition: background-color 0.3s ease-out, height 0.2s ease-out;
+}
+
+.pip.done {
+  background: var(--pip);
+  box-shadow: 0 0 8px var(--pip);
+}
+
+/* The question the child is on: taller, ringed in its own colour */
+.pip.current {
+  height: 14px;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 2px var(--pip), 0 0 10px var(--pip);
+}
+
+.chip {
+  flex: none;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.score-chip {
+  color: var(--accent-blue-text);
+}
+
+.streak-chip {
+  color: #ffb070;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pip {
+    transition: none;
+  }
+}
