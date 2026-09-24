@@ -1,40 +1,53 @@
 <div class="result-container">
-  <h1>{{ languageService.translate('quiz-complete') }}</h1>
-  
-  <div class="stars" [attr.aria-label]="starsEarned + ' of 3 stars'">
-    <span class="star"
-          *ngFor="let star of [1, 2, 3]"
-          [class.earned]="star <= starsShown"
-          aria-hidden="true">★</span>
+  <!-- The end of a round is the reward: the child's own character in the
+       ring, the stars over it, and what they did — never a report card.
+       What it says is decided in round-card.ts. -->
+  <div class="hero">
+    <div class="stars" role="img" [attr.aria-label]="starsEarned + ' / 3 ★'">
+      <svg *ngFor="let star of [1, 2, 3]"
+           class="star"
+           [class.earned]="star <= starsShown"
+           [class.middle]="star === 2"
+           viewBox="0 0 40 40"
+           aria-hidden="true">
+        <path class="star-body" d="M20 2L24.7 14.5L38.1 15.1L27.6 23.5L31.2 36.4L20 29L8.8 36.4L12.4 23.5L1.9 15.1L15.3 14.5Z"></path>
+        <path class="star-facets" d="M20 21L20 2L24.7 14.5ZM20 21L38.1 15.1L27.6 23.5ZM20 21L31.2 36.4L20 29ZM20 21L8.8 36.4L12.4 23.5ZM20 21L1.9 15.1L15.3 14.5Z"></path>
+      </svg>
+    </div>
+    <div class="ring">
+      <app-avatar [avatar]="avatar" [size]="112"></app-avatar>
+    </div>
   </div>
 
-  <div class="score-card">
-    <div class="score">
-      <h2>{{ languageService.translate('your-score') }}</h2>
-      <div class="score-details">
-        <div class="score-item">
-          <div class="score-label">{{ languageService.translate('correct') }}:</div>
-          <div class="score-value">{{ correctAnswers }}/{{ total }}</div>
-        </div>
-        <div class="score-item">
-          <div class="score-label">{{ languageService.translate('percentage') }}:</div>
-          <div class="score-value percentage">{{ displayPercentage | number:'1.0-0' }}%</div>
-        </div>
-        <div class="score-item">
-          <div class="score-label">{{ languageService.translate('total-score') }}:</div>
-          <div class="score-value">{{ score }}</div>
-        </div>
-      </div>
-    </div>
+  <h1 class="praise">{{ message }}</h1>
 
-    <div class="message">
-      {{ message }}
-    </div>
+  <div class="score-card">
+    <ul class="tiles">
+      <li *ngFor="let tile of tiles; let i = index"
+          class="tile"
+          [class.shown]="i < tilesShown"
+          [class.personal-best]="tile.kind === 'best'"
+          [attr.data-kind]="tile.kind">
+        <ng-container [ngSwitch]="tile.kind">
+          <ng-container *ngSwitchCase="'right'">
+            <span class="tile-value">{{ tile.value }}</span>
+            <span class="tile-label">{{ languageService.translate('answers-right') }}</span>
+          </ng-container>
+          <ng-container *ngSwitchCase="'xp'">
+            <span class="tile-value">+{{ tile.value }}</span>
+            <span class="tile-label">{{ languageService.translate('xp') }}</span>
+          </ng-container>
+          <ng-container *ngSwitchCase="'best'">
+            <span class="tile-value" aria-hidden="true">🏆</span>
+            <span class="tile-label">{{ languageService.translate('new-best') }}</span>
+          </ng-container>
+        </ng-container>
+      </li>
+    </ul>
 
     <div class="level-panel">
       <div class="level-row">
         <span class="level-badge">{{ languageService.translate('level') }} {{ level.level }}</span>
-        <span class="xp-earned">+{{ xpEarned }} {{ languageService.translate('xp') }}</span>
       </div>
       <div class="level-track"
            role="progressbar"
@@ -60,12 +73,6 @@
       🎁 {{ languageService.translate('event-earned') }} {{ itemName(eventItem) }}
     </div>
 
-    <div class="personal-best" *ngIf="isPersonalBest">
-      🎉 {{ languageService.translate('new-best') }}
-    </div>
-    <div class="personal-best quiet" *ngIf="!isPersonalBest && previousBest !== null">
-      {{ languageService.translate('your-best') }}: {{ previousBest | number:'1.0-0' }}%
-    </div>
   </div>
 
   <button class="play-again" (click)="playAgain()">

@@ -295,16 +295,43 @@ html[data-fit='short'] .result-container {
   align-items: start;
 }
 
-html[data-fit='short'] .result-container > h1,
-html[data-fit='short'] .result-container > .stars {
-  grid-column: 1 / -1;
+/* The character, stars and praise on the left with what the child did;
+   the three ways on beside them. */
+html[data-fit='short'] .result-container > .hero {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  flex-direction: row;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+html[data-fit='short'] .result-container .ring {
+  width: 96px;
+  height: 96px;
+}
+
+html[data-fit='short'] .result-container .ring svg {
+  width: 72px;
+  height: auto;
+}
+
+html[data-fit='short'] .result-container .stars {
+  order: 2;
+  margin: 0;
+}
+
+html[data-fit='short'] .result-container > .praise {
+  grid-column: 2;
+  grid-row: 1;
   margin: 0.2rem 0;
+  font-size: 1.4rem;
 }
 
 html[data-fit='short'] .result-container > .score-card {
   grid-column: 1;
   grid-row: 3 / span 3;
   padding: 0.6rem 0.9rem;
+  margin: 0;
 }
 
 html[data-fit='short'] .result-container > button {
@@ -313,21 +340,12 @@ html[data-fit='short'] .result-container > button {
   min-height: 48px;
 }
 
-/* The card itself carries a score, a message, a level bar and a personal
-   best; on a screen this short each of them gives up its margins. */
-html[data-fit='short'] .score-card .message,
-html[data-fit='short'] .score-card .level-panel,
-html[data-fit='short'] .score-card .personal-best {
+html[data-fit='short'] .score-card .level-panel {
   margin-top: 0.4rem;
-  padding-top: 0.4rem;
 }
 
-html[data-fit='short'] .score-card .score-details {
-  gap: 0.4rem;
-}
-
-html[data-fit='short'] .result-container .percentage {
-  font-size: 1.6rem;
+html[data-fit='short'] .result-container .tile {
+  padding: 0.4rem;
 }
 
 html[data-fit='short'] .progress-page,

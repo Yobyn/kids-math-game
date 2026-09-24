@@ -99,13 +99,18 @@ describe('ResultComponent', () => {
         .toContain(component.languageService.translate('new-best'));
     });
 
-    it('shows the old best quietly when this round fell short', () => {
+    // It used to say "Your best: 90%" here, quietly. That is a gap between
+    // this round and a better one, in front of the child, at the moment of
+    // reward — the progress screen already shows the best, as a number that
+    // only rises. See round-card.ts.
+    it('says nothing about an old best that this round fell short of', () => {
       progress.record({ correctAnswers: 9, total: 10, percentage: 90, score: 9, grade: 3 });
       renderWith(60);
 
       expect(component.isPersonalBest).toBe(false);
       expect(component.previousBest).toBe(90);
-      expect(fixture.nativeElement.querySelector('.personal-best.quiet').textContent).toContain('90');
+      expect(fixture.nativeElement.querySelector('.personal-best')).toBeNull();
+      expect(fixture.nativeElement.textContent).not.toContain('90');
     });
 
     it('does not celebrate merely matching the old best', () => {
@@ -884,5 +889,101 @@ describe('ResultComponent sending a finished round to the account', () => {
 
     expect(fixture.nativeElement.querySelector('.score-card')).toBeTruthy();
     expect(fixture.componentInstance.percentage).toBe(90);
+  });
+});
+
+describe('ResultComponent: the end of a round is a reward, not a report', () => {
+  let fixture: ComponentFixture<ResultComponent>;
+
+  beforeEach(async () => {
+    localStorage.clear();
+    localStorage.setItem('guest', 'true');
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+  });
+
+  afterEach(() => {
+    fixture?.destroy();
+    localStorage.clear();
+  });
+
+  function finishAt(correctAnswers: number) {
+    spyOn(TestBed.inject(ScoreService), 'getFinalScore').and.returnValue({
+      score: correctAnswers * 2, total: 10, correctAnswers, percentage: correctAnswers * 10
+    });
+    fixture = TestBed.createComponent(ResultComponent);
+    fixture.detectChanges();
+    return fixture.nativeElement as HTMLElement;
+  }
+
+  it('never shows the words of a test: no quiz, no accuracy, no score table', () => {
+    const page = finishAt(6).textContent!.toLowerCase();
+    for (const word of ['quiz', 'accuracy', 'your score', 'total score', 'bonus', '%']) {
+      expect(page).not.toContain(word);
+    }
+    expect(page).not.toContain('6/10');
+  });
+
+  it('praises the work in the headline, even for a round with no stars', () => {
+    const page = finishAt(2);
+    const component = fixture.componentInstance;
+    expect(component.starsEarned).toBe(0);
+    expect(page.querySelector('h1')!.textContent).toBe(component.languageService.translate('praise-0'));
+  });
+
+  it('says how many the child got right, and what it paid', () => {
+    const page = finishAt(8);
+    const tiles = Array.from(page.querySelectorAll('.tile'));
+    expect(tiles.map(tile => tile.getAttribute('data-kind'))).toEqual(['right', 'xp']);
+    expect(tiles[0].textContent).toContain('8');
+    expect(tiles[1].textContent).toContain('+' + fixture.componentInstance.xpEarned);
+  });
+
+  it('draws the child\u2019s own character at the centre of it, large', () => {
+    const page = finishAt(9);
+    const hero = page.querySelector('.hero .ring app-avatar') as HTMLElement & { size?: number };
+    expect(hero).toBeTruthy();
+    // Bound as a property on the (undeclared, in this spec) avatar element
+    expect(hero.size).toBeGreaterThanOrEqual(96);
+  });
+
+  it('draws three stars and fills in the ones earned', () => {
+    spyOn(window, 'matchMedia').and.callFake(query =>
+      ({ matches: query === '(prefers-reduced-motion: reduce)' } as MediaQueryList));
+    const page = finishAt(8);
+    fixture.detectChanges();
+    const stars = Array.from(page.querySelectorAll('.stars .star'));
+    expect(stars.length).toBe(3);
+    expect(stars.filter(star => star.classList.contains('earned')).length).toBe(2);
+  });
+
+  it('shows everything at once under reduced motion', () => {
+    spyOn(window, 'matchMedia').and.callFake(query =>
+      ({ matches: query === '(prefers-reduced-motion: reduce)' } as MediaQueryList));
+    const page = finishAt(10);
+    fixture.detectChanges();
+    expect(fixture.componentInstance.starsShown).toBe(3);
+    const tiles = Array.from(page.querySelectorAll('.tile'));
+    expect(tiles.length).toBeGreaterThan(0);
+    expect(tiles.every(tile => tile.classList.contains('shown'))).toBe(true);
+  });
+
+  it('fills in over time otherwise, and the buttons work before it has', () => {
+    jasmine.clock().install();
+    try {
+      const page = finishAt(10);
+      expect(fixture.componentInstance.tilesShown).toBe(0);
+      expect((page.querySelector('.play-again') as HTMLButtonElement).disabled).toBe(false);
+
+      jasmine.clock().tick(2000);
+      fixture.detectChanges();
+      expect(fixture.componentInstance.starsShown).toBe(3);
+      expect(fixture.componentInstance.tilesShown).toBe(fixture.componentInstance.tiles.length);
+    } finally {
+      jasmine.clock().uninstall();
+    }
   });
 });

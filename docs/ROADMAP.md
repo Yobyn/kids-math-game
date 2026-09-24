@@ -36,8 +36,10 @@ back. What that cost is recorded under "What the audit found", at the end.
   once, the way a flashcard goes back a few cards from the front — and is
   kept for a LATER DAY, where it returns near the start of a round (never
   first). Never the same day it was missed: see spacing, below.
-- Progress bar through the round; result screen with up to three stars and a
-  counted-up percentage.
+- Progress bar through the round. The end of a round is a reward screen: the
+  child's own character in the ring, up to three drawn stars, praise for the
+  work, and tiles of what they did (how many right, the XP it paid, and a
+  new best only when it was one). It shows no percentage and no score table.
 - Sound and haptics switch in the header, remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
   respects `prefers-reduced-motion` — in CSS now, with no animation
@@ -66,7 +68,7 @@ back. What that cost is recorded under "What the audit found", at the end.
   from an SVG sprite, shaded, and the hair is fitted to every face shape.
 - The particle field answers a tap: a small burst of its particles under the
   finger, apart from the full-field surge that a correct answer earns.
-- 1,253 unit tests, 200 build-script tests and 39 server tests, run on every
+- 1,274 unit tests, 200 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -254,6 +256,58 @@ keypad, because the ring's blue end is close to the surface's navy. It
 reads, but a brighter core for dark surfaces is a small follow-up if Yobyn
 wants more.
 
+**THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
+the character and the tap done, every screen was screenshotted in portrait
+and landscape and read side by side. The weakest was the result screen,
+which a child sees after EVERY round. It read as a test result: "Quiz
+Complete!", then a table of Correct 8/10, Accuracy 80% and "Total Score
+with Bonus", a flat "Great job!" box, and text-glyph stars. After a round
+that fell short it also said "Your best: 90%", quietly. The grown-ups'
+screen had already been given accuracy, as "everything the child's own
+progress screen deliberately leaves out". The result screen had simply
+never been brought into line.
+
+Now, from the top: the child's own character, large, inside a ring in the
+field's colours; three drawn SVG stars arcing over it, faceted gold when
+earned and an outline when not; a headline praising the work; and tiles for
+what the child did, which are how many they got right, the XP it paid, and a
+"best round yet" tile only when it was one. The level bar, level-up,
+unlocks, event item and the three buttons are unchanged. In landscape the
+buttons sit beside the card, all above the fold.
+
+The rules live in `result/round-card.ts`, DOM-free: stars, the headline for
+each star count, which tiles show, and the reveal order (stars one by one,
+then the tiles, over in 1.5s at most, all at once under reduced motion). The
+buttons work from the first frame; nothing waits for the reveal.
+
+**The research is Gunderson et al. 2013 (Child Development, developmental
+psychology; read on PMC).** Praise of a young child's effort and process
+("good job trying") predicted, years later, the belief that ability grows
+with effort. So the headline names the work ("Brilliant work!", "Great
+work!", "Good work — keep going!"), never the child, and a round with no
+stars says "You kept going — that counts!" instead of the old "Keep
+practicing!". Tests hold every language to it: no headline labels the
+child, and the no-star one never reads as failing.
+
+This overturns one earlier decision, on purpose: the "old best, shown
+quietly when this round fell short" test now asserts the opposite. That
+line put a gap between this round and a better one in front of the child
+at the moment of reward. The best is still on the progress screen, as a
+number that only rises. Eight copy keys the old report used are deleted in
+all three languages (`quiz-complete`, `your-score`, `percentage`,
+`total-score`, and the four old messages), rather than left for someone to
+reassemble.
+
+Tests: `round-card.spec.ts` and a new block in `result.component.spec.ts`
+(1,274 unit tests in all). A mutation sweep caught all 13 deliberate
+breakages, including bringing back "Quiz Complete!", the quiet old best,
+"Keep practicing!" for no stars, and a headline that calls the child smart.
+The initial bundle went DOWN 2.00 kB to 490.65 kB.
+
+Still not done here: there is no bespoke "celebrating" pose. The character
+is the same portrait used everywhere, and a raised-arms pose would need new
+body parts in the sprite generator.
+
 **THE CHARACTER IS REDRAWN, AND THE HAIR SITS ON THE HEAD — DONE
 (2026-09-23).** The problem was structural: hair paths were keyed only by
 hair style and face paths only by face shape, as absolute coordinates over
@@ -350,10 +404,11 @@ never locked: skin, face, hair and their colours stay free at level 1 however
 the art changes. Per-tap work must be bounded, so a child mashing the keypad
 cannot allocate without limit.
 
-**And art costs bytes.** The initial bundle has **7.35 kB** of headroom
-(492.65 kB against a 500 kB error budget, measured 2026-09-24 after the tap
-layer, which costs 0.94 kB of it because the layer itself is lazy — eagerly
-it would have cost 4.58 kB). A DECORATION NOBODY CAN USE BEFORE THE FIRST
+**And art costs bytes.** The initial bundle has **9.35 kB** of headroom
+(490.65 kB against a 500 kB error budget, measured 2026-09-24 after the
+result screen stopped being a report, which freed 2.00 kB. The tap layer
+before it cost 0.94 kB because the layer itself is lazy; eagerly it would
+have cost 4.58 kB). `result.component.css` is 4.50 kB against a 6 kB ERROR. A DECORATION NOBODY CAN USE BEFORE THE FIRST
 SCREEN DOES NOT BELONG IN THE FIRST LOAD: load it after, as `loadTapLayer`
 in `app.component.ts` does. Images do not count
 against that budget, but they still cost a download: the sprite is 42.6 kB
