@@ -64,7 +64,9 @@ back. What that cost is recorded under "What the audit found", at the end.
   compose with all of them, plus hair and eye colour. The page is three
   sections a child moves between rather than one long scroll. It is drawn
   from an SVG sprite, shaded, and the hair is fitted to every face shape.
-- 1,208 unit tests, 195 build-script tests and 39 server tests, run on every
+- The particle field answers a tap: a small burst of its particles under the
+  finger, apart from the full-field surge that a correct answer earns.
+- 1,253 unit tests, 200 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -179,28 +181,78 @@ white box on a dark page, and its "Deleted" confirmation was dark green
 `#1f6b3a` on a dark panel — nearly invisible. Both fixed. That is the
 argument for the guard.
 
-WHAT IS STILL OUTSTANDING HERE: the tap. It is next. The field does not yet answer a
-touch — see the next section, whose resolution (two vocabularies) stands and
-is unbuilt. And the question card is still the largest light area on screen,
-on purpose; that is the reading-face rule working, not something left
-undone.
+The question card is still the largest light area on screen, on purpose;
+that is the reading-face rule working, not something left undone.
 
-**Making it answer a tap overturns an earlier decision, and the roadmap
-should say so rather than pretend otherwise.** `field-pulse.service.ts`
-carries the note "Deliberately not fired on every tap: a celebration for a
-trivial action stops meaning anything", and only three things pulse today: a
-correct answer (0.5), a three-streak (0.85), a finished round (1.0). Yobyn
-has asked for tap feedback, so that decision is superseded — but its
-reasoning still holds. The way to have both is TWO VOCABULARIES: a tap gets a
-small, local, immediate scatter at the point of contact, which reads as the
-surface being physical; a reward keeps the full-field surge, which stays
-rare. Same field, different gesture. If the two cannot be told apart in a
-screen recording, they have been collapsed and the point is lost.
+**THE FIELD ANSWERS A TAP — DONE (2026-09-24).** A tap on a button now
+scatters a few of the field's particles where the finger is: twelve sparks
+and a contact ring, in the ring's own colour at the bearing of the tap, gone
+in 300ms. Tap the left of the screen and the burst is blue, tap the other
+end and it is magenta, because it is the ring behind it thrown up by the
+finger.
 
-One implementation trap: the particle host is `pointer-events: none` and must
-stay that way, or it swallows every tap in the game. The field cannot listen
-for clicks — interaction has to be pushed to it, by extending
-`FieldPulseService` so a pulse can carry a point.
+**It overturns an earlier decision, and says so.** `field-pulse.service.ts`
+used to carry the note "Deliberately not fired on every tap: a celebration
+for a trivial action stops meaning anything." That note is gone and its
+reasoning is kept, because it is why a tap is NOT a small pulse. There are
+TWO VOCABULARIES: `pulse()` still swells the whole ring for a correct answer
+(0.5), a streak (0.85) or a finished round (1.0), for ~450ms. `tap()` is a
+separate channel that never reaches the ring: it is local and over in 300ms.
+A test holds each to its channel, and one holds the burst to well under the
+surge's life. Frames of a tap alone next to a tap plus a correct-answer surge
+were read side by side: the tap stays under the finger, the surge lights the
+whole ring. The timing follows Material Design's motion guidance (platform
+documentation): mobile transitions "typically occur over 300ms", with small
+areas shorter and large full-screen ones longer.
+
+How it is built, and why:
+
+- **It is a layer of its own, ABOVE the game.** The backdrop sits under every
+  surface, so a burst drawn there was hidden by the very key that was
+  pressed. The keypad's light panel hides the field completely. The tap
+  layer (`particles/tap-sparks.component.ts`) is `position: fixed`, takes no
+  pointer events and is `aria-hidden`.
+- **A global rule had pushed it under everything.** `app-root > *` in
+  `styles.css` sets `z-index: 1` on every screen, and it outranks a
+  component's own `:host` style. The layer's unit spec could not see that,
+  because it renders the component outside `app-root`.
+  `scripts/layers.test.js` now reads the real stylesheets: the tap layer
+  must be above every z-index in `src/`, and the global rule must leave both
+  layers alone.
+- **Buttons report where they were touched; the field does not listen.** A
+  single `pointerdown` listener on the document (capture, passive, outside
+  Angular's zone) finds the control that was tapped (`button`, a link,
+  `role="button"` or `"tab"`) and calls `FieldPulseService.tap(x, y)`. A
+  disabled or `aria-disabled` control gets no answer, so a locked wardrobe
+  item stays quiet. A keyboard or switch press (a click with no pointer)
+  gets the same burst from the middle of the control.
+- **Bounded.** `particles/tap-burst.ts` is DOM-free: a pool of 6 bursts × 12
+  sparks, allocated once. A new tap replaces the oldest burst, so a child
+  mashing the keypad cannot grow anything (a test taps 500 times). The
+  animation loop runs only while a burst is alive and stops with the last
+  one, so the layer costs nothing at rest. Frame time while tapping a key
+  every 60ms stayed at p95 16.7ms, before and after (headless Chromium).
+- **Reduced motion means off.** Under `prefers-reduced-motion` the layer is
+  never even fetched.
+- **It is not in the first load.** Nothing can be tapped before something is
+  drawn, so `AppComponent` loads the layer with a dynamic import after the
+  first screen. Eagerly, it cost 4.58 kB of initial bundle, more than half
+  the headroom that was left. Lazily, the first load grows 0.94 kB and the
+  layer is its own 4.7 kB chunk. If that chunk cannot be fetched (offline
+  before it was ever cached), the game is the same, only quieter.
+
+Tests: `tap-burst.spec.ts`, `tap-sparks.component.spec.ts`, and additions to
+the field-pulse, particles and app specs (1,253 unit tests in all), plus
+`scripts/layers.test.js`. A mutation sweep caught all 19 deliberate
+breakages. Two gaps were found and closed along the way: the reduced-motion
+specs stubbed `matchMedia` to say yes to ANY query, so asking the wrong
+question passed. The stub now answers only the real one.
+
+STILL OPEN: the burst has only been seen in Chromium (Safari is untested,
+as for the character). On the dark chrome it is quieter than on the light
+keypad, because the ring's blue end is close to the surface's navy. It
+reads, but a brighter core for dark surfaces is a small follow-up if Yobyn
+wants more.
 
 **THE CHARACTER IS REDRAWN, AND THE HAIR SITS ON THE HEAD — DONE
 (2026-09-23).** The problem was structural: hair paths were keyed only by
@@ -298,9 +350,12 @@ never locked: skin, face, hair and their colours stay free at level 1 however
 the art changes. Per-tap work must be bounded, so a child mashing the keypad
 cannot allocate without limit.
 
-**And art costs bytes.** The initial bundle has **8.29 kB** of headroom
-(491.71 kB against a 500 kB error budget, measured 2026-09-23 after the
-character moved into the sprite, which freed 3.24 kB). Images do not count
+**And art costs bytes.** The initial bundle has **7.35 kB** of headroom
+(492.65 kB against a 500 kB error budget, measured 2026-09-24 after the tap
+layer, which costs 0.94 kB of it because the layer itself is lazy — eagerly
+it would have cost 4.58 kB). A DECORATION NOBODY CAN USE BEFORE THE FIRST
+SCREEN DOES NOT BELONG IN THE FIRST LOAD: load it after, as `loadTapLayer`
+in `app.component.ts` does. Images do not count
 against that budget, but they still cost a download: the sprite is 42.6 kB
 gzipped. The particle field is eager, so anything added there lands in the
 first load. `question.component.css` is 5.23 kB against a 6 kB ERROR, so

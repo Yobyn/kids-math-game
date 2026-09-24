@@ -54,5 +54,6 @@
 
 <router-outlet></router-outlet>
 
-<!-- Last, so it draws over everything; it takes no taps itself -->
-<app-tap-sparks></app-tap-sparks>
+<!-- The tap layer goes here, last, so it draws over everything. It is loaded
+     after the first screen: see loadTapLayer in app.component.ts -->
+<ng-container #tapLayer></ng-container>

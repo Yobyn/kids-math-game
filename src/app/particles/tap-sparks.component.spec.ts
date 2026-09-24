@@ -175,7 +175,8 @@ describe('TapSparksComponent', () => {
   });
 
   it('under reduced motion does not listen at all — no burst, not a smaller one', () => {
-    spyOn(window, 'matchMedia').and.returnValue({ matches: true } as MediaQueryList);
+    spyOn(window, 'matchMedia').and.callFake(query =>
+      ({ matches: query === '(prefers-reduced-motion: reduce)' } as MediaQueryList));
     const frames = spyOn(window, 'requestAnimationFrame').and.returnValue(0);
     const still = TestBed.createComponent(TapSparksComponent);
     still.detectChanges();

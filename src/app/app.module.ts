@@ -16,7 +16,6 @@ import { KeypadComponent } from './keypad/keypad.component';
 import { CoinsComponent } from './money/coins.component';
 import { CoinPickerComponent } from './money/coin-picker.component';
 import { ParticlesComponent } from './particles/particles.component';
-import { TapSparksComponent } from './particles/tap-sparks.component';
 import { AuthInterceptor } from './auth.interceptor';
 
 @NgModule({
@@ -29,7 +28,6 @@ import { AuthInterceptor } from './auth.interceptor';
     DifficultySelectComponent,
     LanguageSelectorComponent,
     ParticlesComponent,
-    TapSparksComponent,
     KeypadComponent,
     CoinsComponent,
     CoinPickerComponent

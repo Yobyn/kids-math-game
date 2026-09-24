@@ -1,4 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import {
+  AfterViewInit, Component, ComponentFactoryResolver, OnDestroy, OnInit, ViewChild, ViewContainerRef
+} from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
 import { LanguageService } from './services/language.service';
@@ -16,7 +18,7 @@ import { DECLINED_KEY, mayOffer } from './pwa/update-offer';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.css']
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   username: string | null = null;
   isGuest = false;
   avatar!: Avatar;
@@ -30,6 +32,11 @@ export class AppComponent implements OnInit, OnDestroy {
   private updateVersion: string | null = null;
   private route = '/';
 
+  @ViewChild('tapLayer', { read: ViewContainerRef }) tapLayer?: ViewContainerRef;
+  /** Resolves true once the tap layer is on screen, false if it was not loaded. */
+  tapLayerLoaded: Promise<boolean> = Promise.resolve(false);
+  private destroyed = false;
+
   constructor(
     public authService: AuthService,
     public languageService: LanguageService,
@@ -38,7 +45,8 @@ export class AppComponent implements OnInit, OnDestroy {
     private layoutService: LayoutService,
     private pwaService: PwaService,
     private progressSync: ProgressSyncService,
-    private router: Router
+    private router: Router,
+    private resolver: ComponentFactoryResolver
   ) {}
 
   ngOnInit() {
@@ -126,7 +134,37 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  ngAfterViewInit() {
+    this.tapLayerLoaded = this.loadTapLayer();
+  }
+
+  /**
+   * Fetches the layer that answers a tap, after the first screen is drawn:
+   * nothing can be tapped before then, so it has no business in the first
+   * load. Under reduced motion it would never draw anything, so it is not
+   * fetched at all. If the fetch fails (offline before it was ever cached)
+   * the game is the same, only quieter.
+   */
+  private async loadTapLayer(): Promise<boolean> {
+    if (typeof window === 'undefined' || (window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+      return false;
+    }
+    try {
+      const { TapSparksComponent } = await import('./particles/tap-sparks.module');
+      if (this.destroyed || !this.tapLayer) {
+        return false;
+      }
+      const layer = this.tapLayer.createComponent(this.resolver.resolveComponentFactory(TapSparksComponent));
+      layer.changeDetectorRef.detectChanges();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   ngOnDestroy() {
+    this.destroyed = true;
     this.layoutService.stop();
   }
 
