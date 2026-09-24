@@ -1,3 +1,4 @@
+import { RoundTrackComponent } from './round-track.component';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +19,7 @@ describe('QuestionComponent', () => {
 
     await TestBed.configureTestingModule({
       imports: [FormsModule, RouterTestingModule],
-      declarations: [QuestionComponent, KeypadComponent],
+      declarations: [QuestionComponent, KeypadComponent, RoundTrackComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
 
@@ -92,11 +93,14 @@ describe('QuestionComponent', () => {
       expect(style.boxShadow).not.toBe('none');
     });
 
-    it('fills the progress bar with the theme accents', () => {
+    it('lights the round track in the ring\u2019s own colours', () => {
+      component.questionsAnswered = 3;
       fixture.detectChanges();
-      const fill = fixture.nativeElement.querySelector('.progress-fill');
+      const done = Array.from(fixture.nativeElement.querySelectorAll('.pip.done')) as HTMLElement[];
 
-      expect(getComputedStyle(fill).backgroundImage).toContain('gradient');
+      expect(done.length).toBe(3);
+      // Blue at the start of the ring, not a flat grey
+      expect(getComputedStyle(done[0]).backgroundColor).toBe('rgb(56, 128, 255)');
     });
   });
 
@@ -564,34 +568,20 @@ describe('QuestionComponent', () => {
     });
   });
 
-  describe('progress through the quiz', () => {
-    it('starts empty', () => {
+  describe('progress through the round', () => {
+    it('shows one pip per question, and none of them lit at the start', () => {
       component.questionsAnswered = 0;
-      expect(component.progressPercent).toBe(0);
-    });
+      fixture.detectChanges();
 
-    it('tracks the questions answered so far', () => {
-      component.questionsAnswered = 3;
-      expect(component.progressPercent).toBe(30);
-    });
-
-    it('is full on the last answer, never beyond', () => {
-      component.questionsAnswered = 10;
-      expect(component.progressPercent).toBe(100);
-
-      component.questionsAnswered = 12;
-      expect(component.progressPercent).toBe(100);
-    });
-
-    it('never goes negative', () => {
-      component.questionsAnswered = -1;
-      expect(component.progressPercent).toBe(0);
+      expect(fixture.nativeElement.querySelectorAll('.pip').length).toBe(10);
+      expect(fixture.nativeElement.querySelectorAll('.pip.done').length).toBe(0);
+      expect(fixture.nativeElement.querySelectorAll('.pip.current').length).toBe(1);
     });
 
     it('sits clear of the question card rather than behind it', () => {
       fixture.detectChanges();
 
-      const track = fixture.nativeElement.querySelector('.progress-track').getBoundingClientRect();
+      const track = fixture.nativeElement.querySelector('.round-track').getBoundingClientRect();
       const card = fixture.nativeElement.querySelector('.question-box').getBoundingClientRect();
 
       // A visible gap between the bar and the card it belongs to
@@ -600,16 +590,23 @@ describe('QuestionComponent', () => {
       expect(Math.abs(track.width - card.width)).toBeLessThanOrEqual(1);
     });
 
-    it('renders the fill and announces position to assistive tech', () => {
+    it('lights the questions done and announces position to assistive tech', () => {
       component.questionsAnswered = 4;
       fixture.detectChanges();
 
-      const track = fixture.nativeElement.querySelector('.progress-track');
-      const fill = fixture.nativeElement.querySelector('.progress-fill');
+      const bar = fixture.nativeElement.querySelector('[role="progressbar"]');
+      expect(bar.getAttribute('aria-valuenow')).toBe('4');
+      expect(bar.getAttribute('aria-valuemax')).toBe('10');
+      expect(bar.getAttribute('aria-label')).toBe('Question 5 of 10');
+      expect(fixture.nativeElement.querySelectorAll('.pip.done').length).toBe(4);
+    });
 
-      expect(track.getAttribute('aria-valuenow')).toBe('4');
-      expect(track.getAttribute('aria-valuemax')).toBe('10');
-      expect(fill.style.width).toBe('40%');
+    it('shows no "of 10" and no "Question" in the header a child reads', () => {
+      fixture.detectChanges();
+      const track = fixture.nativeElement.querySelector('.round-track') as HTMLElement;
+
+      expect(track.innerText).not.toContain('Question');
+      expect(track.innerText).not.toMatch(/\bof\b/);
     });
   });
 

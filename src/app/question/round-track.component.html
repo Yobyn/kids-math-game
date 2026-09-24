@@ -1,0 +1,23 @@
+<div class="round-track">
+  <ol class="pips"
+      role="progressbar"
+      [attr.aria-valuenow]="answered"
+      aria-valuemin="0"
+      [attr.aria-valuemax]="total"
+      [attr.aria-label]="label">
+    <li *ngFor="let pip of pips; trackBy: byStep"
+        class="pip"
+        [class.done]="pip.state === 'done'"
+        [class.current]="pip.state === 'current'"
+        [style.--pip]="pip.colour"
+        aria-hidden="true"></li>
+  </ol>
+  <span class="chip streak-chip" *ngIf="streak > 2"
+        [attr.aria-label]="languageService.translate('streak') + ': ' + streak">
+    <span aria-hidden="true">🔥 {{ streak }}</span>
+  </span>
+  <span class="chip score-chip"
+        [attr.aria-label]="languageService.translate('score') + ': ' + score">
+    <span aria-hidden="true">✦ {{ score }}</span>
+  </span>
+</div>
