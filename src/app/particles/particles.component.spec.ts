@@ -89,6 +89,13 @@ describe('ParticlesComponent', () => {
     expect(component.energy).toBeLessThan(1);
   });
 
+  it('does not surge for a tap: the full-field swell stays for what earns it', () => {
+    fixture.detectChanges();
+    TestBed.inject(FieldPulseService).tap(100, 100);
+
+    expect(component.energy).toBe(0);
+  });
+
   it('ignores surges under reduced motion', () => {
     spyOn(window, 'matchMedia').and.returnValue({ matches: true } as MediaQueryList);
     const still = TestBed.createComponent(ParticlesComponent);

@@ -25,10 +25,42 @@ describe('AppComponent', () => {
     fixture.detectChanges();
   });
 
-  afterEach(() => localStorage.clear());
+  afterEach(() => {
+    // Destroyed, so the tap layer it loads takes its document listeners with it
+    fixture.destroy();
+    localStorage.clear();
+  });
 
   it('should create the app', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('loads the tap layer after the first screen, last, so it draws over everything', async () => {
+    expect(await component.tapLayerLoaded).toBe(true);
+
+    const root: HTMLElement = fixture.nativeElement;
+    expect(root.lastElementChild!.tagName).toBe('APP-TAP-SPARKS');
+    expect(root.querySelectorAll('app-tap-sparks').length).toBe(1);
+  });
+
+  it('does not even fetch the tap layer under reduced motion', async () => {
+    // Answers only the real question, so asking the wrong one loads the layer
+    spyOn(window, 'matchMedia').and.callFake(query =>
+      ({ matches: query === '(prefers-reduced-motion: reduce)' } as MediaQueryList));
+    const still = TestBed.createComponent(AppComponent);
+    still.detectChanges();
+
+    expect(await still.componentInstance.tapLayerLoaded).toBe(false);
+    expect(still.nativeElement.querySelector('app-tap-sparks')).toBeNull();
+    still.destroy();
+  });
+
+  it('does not add a tap layer to a page that has already gone', async () => {
+    const gone = TestBed.createComponent(AppComponent);
+    gone.detectChanges();
+    gone.destroy();
+
+    expect(await gone.componentInstance.tapLayerLoaded).toBe(false);
   });
 
   it('shows no header before a child has chosen how to play', () => {
@@ -122,7 +154,11 @@ describe('AppComponent: a new version arriving', () => {
     fixture.detectChanges();
   });
 
-  afterEach(() => localStorage.clear());
+  afterEach(() => {
+    // Destroyed, so the tap layer it loads takes its document listeners with it
+    fixture.destroy();
+    localStorage.clear();
+  });
 
   it('knows where the child is without waiting for them to navigate', () => {
     // The initial navigation finishes before ngOnInit subscribes, so a

@@ -1,7 +1,9 @@
 /* You can add global styles to this file, and also import other style files */
 
-/* Keep every screen above the decorative particle layer */
-app-root > *:not(app-particles) {
+/* Keep every screen above the decorative particle layer. The tap layer is
+   left out too: it must stay ABOVE every screen, which this rule would undo
+   (scripts/layers.test.js holds both). */
+app-root > *:not(app-particles):not(app-tap-sparks) {
   position: relative;
   z-index: 1;
 }
