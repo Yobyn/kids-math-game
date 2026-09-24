@@ -13,6 +13,7 @@ import { ProgressSyncService } from '../services/progress-sync.service';
 import { Avatar } from '../avatar/avatar-model';
 import { EASED_KEY } from '../levels/in-round-tuner';
 import { RESULT_VERSION, SavedResult, isShowable } from './result-state';
+import { StarCount, Tile, praiseFor, revealTimeline, roundTiles, starsFor } from './round-card';
 
 /**
  * How many rounds a guest plays before the game mentions an account. Guidance
@@ -35,10 +36,13 @@ export class ResultComponent implements OnInit, OnDestroy {
   total = 0;
   correctAnswers = 0;
   percentage = 0;
+  /** The headline: praise for the work, at every star count. */
   message = '';
-  starsEarned = 0;
+  starsEarned: StarCount = 0;
   starsShown = 0;
-  displayPercentage = 0;
+  /** What the child did this round, shown as tiles — see round-card.ts. */
+  tiles: Tile[] = [];
+  tilesShown = 0;
   private timers: number[] = [];
   previousBest: number | null = null;
   isPersonalBest = false;
@@ -194,11 +198,8 @@ export class ResultComponent implements OnInit, OnDestroy {
     this.timers = [];
   }
 
-  private getStarsEarned(): number {
-    if (this.percentage >= 90) return 3;
-    if (this.percentage >= 70) return 2;
-    if (this.percentage >= 50) return 1;
-    return 0;
+  private getStarsEarned(): StarCount {
+    return starsFor(this.percentage);
   }
 
   private prefersReducedMotion(): boolean {
@@ -206,26 +207,26 @@ export class ResultComponent implements OnInit, OnDestroy {
       window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
-  /** Pop the stars in one by one and count the percentage up, so finishing feels like a reward. */
+  /**
+   * Stars land one by one, then the tiles of what the child did. The order
+   * lives in round-card.ts; nothing waits for it, the buttons work at once.
+   */
   private celebrate() {
     this.fillLevelBar();
+    this.tiles = roundTiles({
+      correctAnswers: this.correctAnswers,
+      xpEarned: this.xpEarned,
+      isPersonalBest: this.isPersonalBest
+    });
 
-    if (this.prefersReducedMotion()) {
+    const timeline = revealTimeline(this.starsEarned, this.tiles.length, this.prefersReducedMotion());
+    if (timeline.done === 0) {
       this.starsShown = this.starsEarned;
-      this.displayPercentage = this.percentage;
+      this.tilesShown = this.tiles.length;
       return;
     }
-
-    for (let star = 1; star <= this.starsEarned; star++) {
-      this.timers.push(window.setTimeout(() => this.starsShown = star, 300 * star));
-    }
-
-    const steps = 20;
-    for (let step = 1; step <= steps; step++) {
-      this.timers.push(window.setTimeout(() => {
-        this.displayPercentage = Math.round((this.percentage * step) / steps);
-      }, 40 * step));
-    }
+    timeline.stars.forEach((at, i) => this.timers.push(window.setTimeout(() => this.starsShown = i + 1, at)));
+    timeline.tiles.forEach((at, i) => this.timers.push(window.setTimeout(() => this.tilesShown = i + 1, at)));
   }
 
   /**
@@ -247,15 +248,7 @@ export class ResultComponent implements OnInit, OnDestroy {
   }
 
   private setMessage() {
-    if (this.percentage >= 90) {
-      this.message = this.languageService.translate('outstanding');
-    } else if (this.percentage >= 70) {
-      this.message = this.languageService.translate('great-job');
-    } else if (this.percentage >= 50) {
-      this.message = this.languageService.translate('good-effort');
-    } else {
-      this.message = this.languageService.translate('keep-practicing');
-    }
+    this.message = this.languageService.translate(praiseFor(starsFor(this.percentage)));
   }
 
   /**

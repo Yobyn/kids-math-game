@@ -1,163 +1,168 @@
 .result-container {
   max-width: 600px;
-  margin: 2rem auto;
-  padding: 2rem;
+  margin: 1rem auto;
+  padding: 1rem 1.25rem 2rem;
   text-align: center;
-  border-radius: 8px;
-  /* Transparent, so the field shows through. This is the screen where the
-     field fires its full surge for a finished round — a white card here hid
-     the one celebration the whole particle system exists for. */
+  /* Transparent, so the field's full surge for a finished round shows */
   background: transparent;
 }
 
-h1 {
+/* The child's own character in the ring, the stars arcing over it */
+.hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.stars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-bottom: -0.6rem;
+  z-index: 1;
+}
+
+.star {
+  width: 52px;
+  height: 52px;
+  transform: scale(0.75);
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.star.middle {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 14px;
+}
+
+/* An unearned star is an outline of what could be, not a grey blob */
+.star-body {
+  fill: var(--surface-raised);
+  stroke: var(--edge);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.star-facets {
+  fill: transparent;
+}
+
+.star.earned {
+  transform: scale(1);
+  filter: drop-shadow(0 3px 8px rgba(253, 203, 110, 0.5));
+}
+
+.star.earned .star-body {
+  fill: #f5b82e;
+  stroke: #9a5a0c;
+}
+
+.star.earned .star-facets {
+  fill: #ffdc73;
+}
+
+.ring {
+  display: grid;
+  place-items: center;
+  width: 148px;
+  height: 148px;
+  border-radius: 50%;
+  /* The field's ring, blue round to magenta, around the child */
+  background:
+    radial-gradient(circle, var(--surface) 62%, transparent 63%),
+    conic-gradient(from 210deg, var(--accent-blue), var(--accent-magenta), var(--accent-blue));
+  box-shadow: 0 0 28px rgba(122, 90, 245, 0.45);
+}
+
+.praise {
+  margin: 1rem 0 1.25rem;
+  font-size: 1.9rem;
   color: var(--text);
-  margin-bottom: 2rem;
+  text-shadow: 0 2px 12px rgba(10, 8, 30, 0.6);
 }
 
 .score-card {
-  background-color: var(--surface-raised);
-  padding: 2rem;
-  border-radius: 8px;
-  margin-bottom: 2rem;
-}
-
-.score {
-  margin-bottom: 2rem;
-}
-
-h2 {
-  color: var(--text-dim);
+  padding: 1.25rem;
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  background: var(--surface-raised);
   margin-bottom: 1.5rem;
 }
 
-.score-details {
+/* What the child did, one tile each */
+.tiles {
+  display: flex;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tile {
+  flex: 1 1 0;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  gap: 0.2rem;
+  padding: 0.75rem 0.4rem;
+  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--edge);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
 }
 
-.score-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--surface);
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+.tile.shown {
+  opacity: 1;
+  transform: none;
 }
 
-.score-label {
-  font-size: 1.1rem;
-  color: var(--text-dim);
-  font-weight: 500;
-}
-
-.score-value {
-  font-size: 1.3rem;
-  font-weight: bold;
+.tile-value {
+  font-size: 1.7rem;
+  font-weight: 800;
   color: var(--accent-blue-text);
 }
 
-.score-value.percentage {
+.tile[data-kind='xp'] .tile-value {
   color: var(--good-on-dark);
 }
 
-.message {
-  font-size: 1.2rem;
-  color: var(--text);
-  line-height: 1.5;
-  margin-top: 1rem;
-  padding: 1rem;
-  background-color: rgba(29, 111, 64, 0.2);
-  border-radius: 6px;
-  border-left: 4px solid var(--good);
+.tile-label {
+  font-size: 0.9rem;
+  color: var(--text-dim);
 }
 
-.play-again {
-  padding: 1rem 2rem;
-  font-size: 1.2rem;
-  background-color: var(--accent-blue);
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.2s;
+.tile.personal-best {
+  border-color: #f5b82e;
 }
 
-.play-again:hover {
-  filter: brightness(1.1);
-}
-
-/* Star reward — pops in one star at a time when the quiz ends */
-.stars {
-  display: flex;
-  justify-content: center;
-  gap: 0.75rem;
-  margin: 0.5rem 0 1.25rem;
-}
-
-.stars .star {
-  font-size: 3rem;
-  line-height: 1;
-  /* An unearned star is a dim outline of what could be, not a grey blob */
-  color: rgba(188, 182, 224, 0.28);
-  transform: scale(0.7);
-  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.35s ease;
-}
-
-.stars .star.earned {
-  color: #fdcb6e;
-  transform: scale(1);
-  text-shadow: 0 4px 12px rgba(253, 203, 110, 0.55);
-}
-
-@media (max-width: 480px) {
-  .stars .star {
-    font-size: 2.5rem;
-  }
+.tile.personal-best .tile-label {
+  color: #f6c56a;
+  font-weight: 700;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stars .star {
+  .star,
+  .tile {
     transition: none;
   }
 }
 
-/* Personal best — measured against the child's own past rounds, never others */
-.personal-best {
-  margin-top: 1rem;
-  padding: 0.75rem 1rem;
-  border-radius: 12px;
-  font-size: 1.15rem;
+.play-again {
+  min-height: 52px;
+  padding: 0.9rem 2.5rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  color: #f6c56a;
-  background: rgba(253, 203, 110, 0.14);
-}
-
-.personal-best.quiet {
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--text-dim);
-  background: var(--surface);
-}
-
-/* Title over the dark backdrop */
-.result-container h1 {
-  color: #f1f0ff;
-  text-shadow: 0 2px 12px rgba(10, 8, 30, 0.6);
-}
-
-/* Same rule: light face, themed edge. */
-.score-card {
-  border: 1px solid var(--edge);
-}
-
-.result-container .play-again {
   background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
-  border: none;
   color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.play-again:hover {
+  filter: brightness(1.1);
 }
 
 /* The offer to keep progress. Deliberately quiet: it sits under Play Again,
@@ -214,10 +219,10 @@ h2 {
   color: var(--text-dim);
 }
 
-/* The level ladder. The card face stays light — the bar earns its colour from
-   the theme's accents rather than by darkening anything behind the text. */
+/* The level ladder */
 .level-panel {
-  margin: 1.5rem 0 0;
+  margin: 1.25rem 0 0;
+  text-align: left;
 }
 
 .level-row {
@@ -231,12 +236,6 @@ h2 {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text);
-}
-
-.xp-earned {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--good-on-dark);
 }
 
 .level-track {

@@ -31,12 +31,10 @@ export type TranslationKeys =
   | 'of'
   | 'submit'
   | 'wrong'
-  | 'quiz-complete'
-  | 'your-score'
-  | 'outstanding'
-  | 'great-job'
-  | 'good-effort'
-  | 'keep-practicing'
+  | 'praise-3'
+  | 'praise-2'
+  | 'praise-1'
+  | 'praise-0'
   | 'welcome'
   | 'correct-answer'
   | 'try-again'
@@ -80,8 +78,6 @@ export type TranslationKeys =
   | 'check'
   | 'next'
   | 'back'
-  | 'percentage'
-  | 'total-score'
   | 'lets-learn'
   | 'sound-on'
   | 'sound-off'
@@ -263,12 +259,10 @@ export class LanguageService {
       'wrong': 'Wrong',
       'incorrect': 'Incorrect',
       'total': 'Total',
-      'quiz-complete': 'Quiz Complete!',
-      'your-score': 'Your Score',
-      'outstanding': 'Outstanding!',
-      'great-job': 'Great job!',
-      'good-effort': 'Good effort!',
-      'keep-practicing': 'Keep practicing!',
+      'praise-3': 'Brilliant work!',
+      'praise-2': 'Great work!',
+      'praise-1': 'Good work — keep going!',
+      'praise-0': 'You kept going — that counts!',
       'play-again': 'Play Again',
       'welcome': 'Welcome',
       'logout': 'Logout',
@@ -430,8 +424,6 @@ export class LanguageService {
       'check': 'Check Answer',
       'next': 'Next Question',
       'back': 'Back to Grade Selection',
-      'percentage': 'Accuracy',
-      'total-score': 'Total Score with Bonus',
       'lets-learn': 'Let\'s learn some math!',
     },
     nl: {
@@ -461,12 +453,10 @@ export class LanguageService {
       'wrong': 'Fout',
       'incorrect': 'Onjuist',
       'total': 'Totaal',
-      'quiz-complete': 'Quiz Voltooid!',
-      'your-score': 'Jouw Score',
-      'outstanding': 'Uitstekend!',
-      'great-job': 'Goed gedaan!',
-      'good-effort': 'Goed geprobeerd!',
-      'keep-practicing': 'Blijf oefenen!',
+      'praise-3': 'Knap gewerkt!',
+      'praise-2': 'Goed gewerkt!',
+      'praise-1': 'Goed bezig — ga zo door!',
+      'praise-0': 'Je bent blijven doorgaan — dat telt!',
       'play-again': 'Opnieuw Spelen',
       'welcome': 'Welkom',
       'logout': 'Uitloggen',
@@ -628,8 +618,6 @@ export class LanguageService {
       'check': 'Controleer antwoord',
       'next': 'Volgende vraag',
       'back': 'Terug naar groep selectie',
-      'percentage': 'Nauwkeurigheid',
-      'total-score': 'Totale score met bonus',
       'lets-learn': 'Laten we wat wiskunde leren!',
     },
     es: {
@@ -659,12 +647,10 @@ export class LanguageService {
       'wrong': 'Incorrecto',
       'incorrect': 'Incorrecto',
       'total': 'Total',
-      'quiz-complete': '¡Quiz completo!',
-      'your-score': 'Tu puntuación',
-      'outstanding': '¡Excelente!',
-      'great-job': '¡Buen trabajo!',
-      'good-effort': '¡Buen esfuerzo!',
-      'keep-practicing': '¡Sigue practicando!',
+      'praise-3': '¡Un trabajo brillante!',
+      'praise-2': '¡Buen trabajo!',
+      'praise-1': '¡Bien hecho, sigue así!',
+      'praise-0': '¡Seguiste adelante, eso cuenta!',
       'play-again': 'Jugar de nuevo',
       'welcome': 'Bienvenido',
       'logout': 'Cerrar sesión',
@@ -826,8 +812,6 @@ export class LanguageService {
       'check': 'Comprobar',
       'next': 'Siguiente',
       'back': 'Volver a Selección de Grado',
-      'percentage': 'Precisión',
-      'total-score': 'Puntuación total con bonus',
       'lets-learn': '¡Aprendamos matemáticas!',
     }
   };
