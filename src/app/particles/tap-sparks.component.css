@@ -1,0 +1,14 @@
+/* Above every surface — a burst under the key that was pressed could not be
+   seen — but never in the way: it takes no pointer events. */
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  pointer-events: none;
+}
+
+.tap-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
