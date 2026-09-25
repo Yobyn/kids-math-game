@@ -72,6 +72,9 @@ function buildHead(avatar: Avatar, figure: Figure): THREE.Group {
   return head;
 }
 
+/** How far a shut eye's line curves down, as a share of the eye's width. */
+const SHUT_CURVE = 0.3;
+
 /** How wide and how open each eye shape is, before the head's own narrowing. */
 const EYE_SCALE: { [shape: string]: [number, number] } = {
   round: [1.35, 0.66],
@@ -109,7 +112,15 @@ function buildEyes(avatar: Avatar): THREE.Group {
     const lid = part('eye-lid', new THREE.TorusGeometry(0.13, 0.02, 6, 24, Math.PI), toon('#3a2230'), 0);
     lid.scale.set(sx, sy, 0.6);
     lid.position.z = 0.02;
-    eye.add(white, iris, pupil, glint, lid);
+    // The closed eye, shown only in the middle of a blink: a soft dark line
+    // curving down, which is what a shut eye reads as at this size. The eye
+    // is pressed flat to blink, so this undoes that on itself to keep its shape.
+    const shut = part('eye-shut', new THREE.TorusGeometry(0.13, 0.024, 6, 24, Math.PI), toon('#3a2230'), 0);
+    shut.rotation.z = Math.PI;
+    shut.scale.set(sx, SHUT_CURVE, 0.6);
+    shut.position.z = 0.03;
+    shut.visible = false;
+    eye.add(white, iris, pupil, glint, lid, shut);
     if (girl) {
       // Lashes: a small flick at the outer corner
       const lash = part('eye-lash', new THREE.ConeGeometry(0.02, 0.09, 6), toon('#3a2230'), 0);
@@ -623,6 +634,55 @@ export function buildAvatar(avatar: Avatar): THREE.Group {
     }
   });
   return root;
+}
+
+/** How long one blink takes, shut and open again, in milliseconds. */
+export const BLINK_MS = 180;
+/** How open an eye is at the bottom of a blink: a line, not nothing. */
+export const EYE_SHUT = 0.08;
+
+/**
+ * How open the eyes are `t` milliseconds into a blink, 1 being wide open:
+ * they close quickly and open a little more slowly, the way a real blink
+ * does. Wide open before the blink starts and after it ends.
+ */
+export function blinkOpenness(t: number): number {
+  const closing = BLINK_MS * 0.4;
+  if (t <= 0 || t >= BLINK_MS) {
+    return 1;
+  }
+  if (t < closing) {
+    return 1 - (t / closing) * (1 - EYE_SHUT);
+  }
+  return EYE_SHUT + ((t - closing) / (BLINK_MS - closing)) * (1 - EYE_SHUT);
+}
+
+/** Below this, an eye in a blink is drawn as the closed line rather than a squashed eye. */
+export const SHUT_BELOW = 0.35;
+
+/**
+ * Opens or closes a built character's eyes, 1 wide open. Each eye is pressed
+ * flat top to bottom, lid and all, and near the bottom of the blink the
+ * closed line takes its place, so it reads as shut whatever the eye's shape.
+ * Nothing else on the face moves.
+ */
+export function setEyesOpen(root: THREE.Object3D, openness: number) {
+  const shut = openness < SHUT_BELOW;
+  root.traverse(object => {
+    if (object.name !== 'eye') {
+      return;
+    }
+    object.scale.y = openness;
+    // The closed line, or the open eye pressed flat: never both at once
+    object.children.forEach(child => {
+      if (child.name === 'eye-shut') {
+        child.visible = shut;
+        child.scale.y = SHUT_CURVE / openness;
+      } else {
+        child.visible = !shut;
+      }
+    });
+  });
 }
 
 /** Frees every geometry and material under a built character. */

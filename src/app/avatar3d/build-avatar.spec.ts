@@ -3,7 +3,7 @@ import {
   Avatar, FACE_SHAPES, HAIR_STYLES, HAIR_TEXTURES, NO_ITEM, WARDROBE, defaultAvatar, findItem
 } from '../avatar/avatar-model';
 import { HATS_OVER_HAIR } from '../avatar/avatar-parts';
-import { buildAvatar, disposeAvatar, topCut } from './build-avatar';
+import { BLINK_MS, EYE_SHUT, SHUT_BELOW, blinkOpenness, buildAvatar, disposeAvatar, setEyesOpen, topCut } from './build-avatar';
 import { FIGURES, Figure, chinY, figureFor, torsoRadius } from './figure';
 import {
   EYE_DIRS, HAT_CAP, HAT_LIFT, Vec3, hairPoint, hatBrim, headPoint, normalise, radiusAlong
@@ -534,5 +534,94 @@ describe('hats and items are built for the choice, not a default', () => {
       const shell = (find(root, 'hat-shell')[0] || find(root, 'hat-cone')[0]) as THREE.Mesh;
       expect((shell.material as THREE.MeshToonMaterial).color.getHexString()).toBe(findItem('hat', id)!.colour.slice(1).toLowerCase());
     });
+  });
+});
+
+describe('blinking', () => {
+  it('is wide open before and after a blink, and shut to a line in the middle', () => {
+    expect(blinkOpenness(-10)).toBe(1);
+    expect(blinkOpenness(0)).toBe(1);
+    expect(blinkOpenness(BLINK_MS)).toBe(1);
+    expect(blinkOpenness(BLINK_MS * 5)).toBe(1);
+    expect(blinkOpenness(BLINK_MS * 0.4)).toBeCloseTo(EYE_SHUT, 9);
+    expect(EYE_SHUT).toBeGreaterThan(0);
+    expect(EYE_SHUT).toBeLessThan(0.2);
+  });
+
+  it('closes faster than it opens, and never jumps', () => {
+    let last = 1;
+    let lowest = 1;
+    let shutAt = 0;
+    for (let t = 1; t < BLINK_MS; t++) {
+      const open = blinkOpenness(t);
+      expect(Math.abs(open - last)).toBeLessThan(0.05);
+      if (open < lowest) {
+        lowest = open;
+        shutAt = t;
+      }
+      last = open;
+    }
+    expect(shutAt).toBeLessThan(BLINK_MS / 2);
+  });
+
+  it('presses each eye flat and moves nothing else, on both figures', () => {
+    ['boy', 'girl'].forEach(bodyType => {
+      const root = buildAvatar(avatar({ bodyType: bodyType as Avatar['bodyType'], glasses: 'round-glasses' }));
+      const before = new Map<THREE.Object3D, string>();
+      root.traverse(o => before.set(o, `${o.position.toArray()}|${o.scale.toArray()}`));
+      setEyesOpen(root, 0.1);
+      const eyes = find(root, 'eye');
+      expect(eyes.length).toBe(2);
+      eyes.forEach(eye => expect(eye.scale.y).toBe(0.1));
+      root.traverse(o => {
+        if (o.name !== 'eye' && o.name !== 'eye-shut') {
+          expect(`${o.position.toArray()}|${o.scale.toArray()}`).toBe(before.get(o)!);
+        }
+      });
+      setEyesOpen(root, 1);
+      eyes.forEach(eye => expect(eye.scale.y).toBe(1));
+      disposeAvatar(root);
+    });
+  });
+
+  it('draws a shut eye as a line of the same size at the bottom of a blink, and hides it otherwise', () => {
+    const root = buildAvatar(avatar());
+    const lines = find(root, 'eye-shut');
+    expect(lines.length).toBe(2);
+    lines.forEach(line => expect(line.visible).toBe(false));
+    const width = (open: number) => {
+      setEyesOpen(root, open);
+      root.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(lines[0]);
+      return [box.max.x - box.min.x, box.max.y - box.min.y];
+    };
+    const [shutW, shutH] = width(EYE_SHUT);
+    lines.forEach(line => expect(line.visible).toBe(true));
+    // ...in place of the open eye, not on top of it
+    ['eye-white', 'iris', 'pupil', 'glint', 'eye-lid'].forEach(name =>
+      find(root, name).forEach(p => expect(p.visible).withContext(name).toBe(false)));
+    // The line keeps its shape however flat the eye is pressed
+    const [halfW, halfH] = width(SHUT_BELOW / 2);
+    expect(halfW).toBeCloseTo(shutW, 6);
+    expect(halfH).toBeCloseTo(shutH, 6);
+    expect(shutH).toBeGreaterThan(0.01);
+    setEyesOpen(root, SHUT_BELOW + 0.01);
+    lines.forEach(line => expect(line.visible).toBe(false));
+    setEyesOpen(root, 1);
+    lines.forEach(line => expect(line.visible).toBe(false));
+    ['eye-white', 'iris', 'pupil', 'glint', 'eye-lid'].forEach(name =>
+      find(root, name).forEach(p => expect(p.visible).withContext(name).toBe(true)));
+    disposeAvatar(root);
+  });
+
+  it('closes the eyes into the head, not out through the glasses', () => {
+    const root = buildAvatar(avatar({ glasses: 'round-glasses' }));
+    setEyesOpen(root, EYE_SHUT);
+    root.updateMatrixWorld(true);
+    const eyes = new THREE.Box3();
+    find(root, 'eye').forEach(eye => eyes.expandByObject(eye));
+    const glasses = new THREE.Box3().setFromObject(find(root, 'glasses')[0]);
+    expect(eyes.max.z).toBeLessThan(glasses.max.z);
+    disposeAvatar(root);
   });
 });

@@ -4,7 +4,7 @@ import {
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Avatar } from '../avatar/avatar-model';
-import { buildAvatar, disposeAvatar } from './build-avatar';
+import { BLINK_MS, blinkOpenness, buildAvatar, disposeAvatar, setEyesOpen } from './build-avatar';
 
 /** The usual camera distance, for a character of ordinary height. */
 export const BASE_DISTANCE = 32;
@@ -48,6 +48,15 @@ function reducedMotion(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+/**
+ * How long to wait before the next blink, from a random number in [0, 1):
+ * every two and a half to six seconds, never on a beat, so the character
+ * looks awake rather than wound up.
+ */
+export function nextBlinkDelay(random: number): number {
+  return 2500 + random * 3500;
+}
+
 /** Slow at both ends, for a turn that starts and settles gently. */
 export function easeInOut(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
@@ -59,8 +68,9 @@ export function easeInOut(t: number): number {
  * three.js never touches the game's first load.
  *
  * It draws only when something changes (a drag, the turn easing out, a new
- * choice), not sixty times a second, so a tablet left on this screen is not
- * spending its battery on a still picture. Where WebGL is not available the
+ * choice, a blink), not sixty times a second, so a tablet left on this screen
+ * is not spending its battery on a still picture. A blink is a fifth of a
+ * second of drawing every few seconds. Where WebGL is not available the
  * 2D character is shown instead.
  */
 @Component({
@@ -110,6 +120,9 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   readonly TURN_STEP = Math.PI / 4;
   /** A turn under way, eased from one angle to another. */
   private spin?: { from: number; to: number; start: number; ms: number };
+  /** A blink under way. */
+  private blink?: { start: number };
+  private blinkTimer?: ReturnType<typeof setTimeout>;
   private introduced = false;
   private destroyed = false;
   private angle = 0;
@@ -163,6 +176,7 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
       window.addEventListener('resize', this.resize);
       this.rebuild();
       this.fit();
+      this.scheduleBlink();
     });
   }
 
@@ -177,6 +191,8 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   ngOnDestroy() {
     this.destroyed = true;
     this.spin = undefined;
+    this.blink = undefined;
+    clearTimeout(this.blinkTimer);
     cancelAnimationFrame(this.frame);
     this.frame = 0;
     window.removeEventListener('resize', this.resize);
@@ -207,6 +223,29 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
     // Presses during a turn add to where it was going, not where it is
     const to = (this.spin ? this.spin.to : now) + delta;
     this.zone.runOutsideAngular(() => this.animateTurn(now, to, 450));
+  }
+
+  /**
+   * Blinks, then waits a few seconds to blink again. Not under reduced
+   * motion, and not while the page is out of sight, where nobody would see
+   * it and the drawing would be wasted.
+   */
+  blinkNow() {
+    if (this.destroyed) {
+      return;
+    }
+    if (this.model && !reducedMotion() && !document.hidden) {
+      this.blink = { start: performance.now() };
+      this.requestRender();
+    }
+    this.scheduleBlink();
+  }
+
+  private scheduleBlink() {
+    clearTimeout(this.blinkTimer);
+    if (!this.destroyed) {
+      this.blinkTimer = setTimeout(() => this.blinkNow(), nextBlinkDelay(Math.random()));
+    }
   }
 
   /** Where the camera is round the character, unwrapped from the last angle placed. */
@@ -343,33 +382,47 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
     }
     this.frame = requestAnimationFrame(now => {
       this.frame = 0;
-      let turning = false;
-      if (this.glide) {
-        const g = this.glide;
-        const t = Math.min(1, (now - g.start) / g.ms);
-        const e = easeInOut(t);
-        this.place3d(g.fromTarget.clone().lerp(g.toTarget, e), g.fromDistance + (g.toDistance - g.fromDistance) * e);
-        if (t >= 1) {
-          this.glide = undefined;
-        } else {
-          turning = true;
-        }
-      }
-      if (this.spin) {
-        const t = Math.min(1, (now - this.spin.start) / this.spin.ms);
-        this.place(this.spin.from + (this.spin.to - this.spin.from) * easeInOut(t));
-        turning = t < 1;
-        if (!turning) {
-          this.spin = undefined;
-        }
-      }
-      // Keep drawing only while a turn is under way or easing out
-      const moving = this.controls ? this.controls.update() : false;
-      this.renderNow();
-      if (moving || turning) {
+      if (this.step(now)) {
         this.requestRender();
       }
     });
+  }
+
+  /** Moves everything that is moving on to `now`, draws, and says whether to draw again. */
+  step(now: number): boolean {
+    let turning = false;
+    if (this.glide) {
+      const g = this.glide;
+      const t = Math.min(1, (now - g.start) / g.ms);
+      const e = easeInOut(t);
+      this.place3d(g.fromTarget.clone().lerp(g.toTarget, e), g.fromDistance + (g.toDistance - g.fromDistance) * e);
+      if (t >= 1) {
+        this.glide = undefined;
+      } else {
+        turning = true;
+      }
+    }
+    if (this.spin) {
+      const t = Math.min(1, (now - this.spin.start) / this.spin.ms);
+      this.place(this.spin.from + (this.spin.to - this.spin.from) * easeInOut(t));
+      turning = t < 1;
+      if (!turning) {
+        this.spin = undefined;
+      }
+    }
+    if (this.blink && this.model) {
+      const t = now - this.blink.start;
+      setEyesOpen(this.model, blinkOpenness(t));
+      if (t >= BLINK_MS) {
+        this.blink = undefined;
+      } else {
+        turning = true;
+      }
+    }
+    // Keep drawing only while a turn or a blink is under way or easing out
+    const moving = this.controls ? this.controls.update() : false;
+    this.renderNow();
+    return moving || turning;
   }
 
   private renderNow() {

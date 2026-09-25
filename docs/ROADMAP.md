@@ -78,7 +78,7 @@ back. What that cost is recorded under "What the audit found", at the end.
   built to fit, and tested on every combination, on both figures.
 - The particle field answers a tap: a small burst of its particles under the
   finger, apart from the full-field surge that a correct answer earns.
-- 1,497 unit tests, 200 build-script tests and 39 server tests, run on every
+- 1,508 unit tests, 200 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -290,6 +290,24 @@ easing, and the Boy/Girl row. 1,497 unit tests. The mutation sweep caught
 arms hanging straight down would sink into the chest, and a torso could be
 made flat as a board.
 
+**IT BLINKS — DONE (2026-09-25, nightly run).** The first piece of "make it
+feel alive": on the dressing-up screen the character blinks every two and a
+half to six seconds, never on a beat. An eye closes in about 70ms and opens
+in about 110ms. It is pressed flat, and near the bottom the open eye is
+swapped for a closed one, a soft dark line curving down, because a squashed
+eye at this size read as white flecks (seen in the first screenshots and
+fixed). Nothing else on the face moves, and glasses stay where they are.
+
+The stage still draws only when something changes: a blink is about a fifth
+of a second of drawing every few seconds. No blinking under reduced motion,
+none while the page is out of sight, and the timer is cleared when the
+screen closes. The drawing loop's body became `step(now)` so a test can
+drive a blink frame by frame. Tests in `build-avatar.spec.ts` (the blink's
+curve, eyes only, the closed line keeping its shape and replacing the open
+eye) and `avatar-stage.component.spec.ts` (a blink is waiting from the
+start, shuts and reopens, the next one is 2.5 to 6 s away, reduced motion
+and hidden page, stops on close). 1,508 unit tests.
+
 WHAT IS NEXT, in the order the runs should take them:
 
 1. **The character everywhere else.** The header, the result screen and the
@@ -298,7 +316,7 @@ WHAT IS NEXT, in the order the runs should take them:
    character appears on every screen — without putting three.js in the
    first load: generate the still lazily and show the 2D one until it is
    ready.
-2. **Make it feel alive.** An idle bob and blink, a little wave when a new
+2. **Make it feel alive.** The blink is done. Still to do: an idle bob, a little wave when a new
    item is put on, a happy jump on the result screen when a round is done.
    All under reduced motion rules.
 3. **More to earn.** More items per slot (shoes, backpacks, capes, pets

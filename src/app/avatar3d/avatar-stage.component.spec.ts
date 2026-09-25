@@ -3,7 +3,8 @@ import * as THREE from 'three';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
-import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming } from './avatar-stage.component';
+import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming, nextBlinkDelay } from './avatar-stage.component';
+import { BLINK_MS, EYE_SHUT } from './build-avatar';
 
 describe('framing', () => {
   it('keeps the usual distance for a character of ordinary height', () => {
@@ -60,6 +61,14 @@ describe('easeInOut', () => {
       expect(easeInOut(t)).toBeGreaterThanOrEqual(last);
       last = easeInOut(t);
     }
+  });
+});
+
+describe('nextBlinkDelay', () => {
+  it('waits between two and a half and six seconds', () => {
+    expect(nextBlinkDelay(0)).toBe(2500);
+    expect(nextBlinkDelay(0.5)).toBe(4250);
+    expect(nextBlinkDelay(0.9999)).toBeLessThan(6000);
   });
 });
 
@@ -255,6 +264,61 @@ describe('AvatarStageComponent', () => {
 
     it('gives the character one full turn when the screen opens', () => {
       expect((component as any).introduced).toBe(true);
+    });
+
+    describe('blinking', () => {
+      const eyeScales = () => {
+        const scales: number[] = [];
+        component.model!.traverse(o => { if (o.name === 'eye') { scales.push(o.scale.y); } });
+        return scales;
+      };
+
+      it('has a blink waiting from the moment it opens', () => {
+        expect((component as any).blinkTimer).toBeDefined();
+      });
+
+      it('shuts the eyes part-way through a blink and opens them again after', () => {
+        spyOn(window, 'matchMedia').and.callFake(() => ({ matches: false } as MediaQueryList));
+        component.blinkNow();
+        const start = (component as any).blink.start;
+        expect(component.step(start + BLINK_MS * 0.4)).toBe(true);
+        eyeScales().forEach(y => expect(y).toBeCloseTo(EYE_SHUT, 6));
+        component.step(start + BLINK_MS + 1);
+        eyeScales().forEach(y => expect(y).toBe(1));
+        expect((component as any).blink).toBeUndefined();
+      });
+
+      it('waits a few seconds and then blinks again', () => {
+        spyOn(window, 'matchMedia').and.callFake(() => ({ matches: false } as MediaQueryList));
+        const timeout = spyOn(window, 'setTimeout').and.callThrough();
+        component.blinkNow();
+        const delay = timeout.calls.mostRecent().args[1] as number;
+        expect(delay).toBeGreaterThanOrEqual(2500);
+        expect(delay).toBeLessThan(6000);
+      });
+
+      it('does not blink under reduced motion, or while the page is out of sight', () => {
+        const media = spyOn(window, 'matchMedia').and.callFake((query: string) =>
+          ({ matches: query === '(prefers-reduced-motion: reduce)' } as MediaQueryList));
+        component.blinkNow();
+        expect((component as any).blink).toBeUndefined();
+        media.and.callFake(() => ({ matches: false } as MediaQueryList));
+        spyOnProperty(document, 'hidden').and.returnValue(true);
+        component.blinkNow();
+        expect((component as any).blink).toBeUndefined();
+        // Still waiting to blink when the child comes back
+        expect((component as any).blinkTimer).toBeDefined();
+      });
+
+      it('stops blinking when the screen closes', () => {
+        const clear = spyOn(window, 'clearTimeout').and.callThrough();
+        const timer = (component as any).blinkTimer;
+        fixture.destroy();
+        expect(clear).toHaveBeenCalledWith(timer);
+        const timeout = spyOn(window, 'setTimeout').and.callThrough();
+        component.blinkNow();
+        expect(timeout).not.toHaveBeenCalled();
+      });
     });
   });
 });
