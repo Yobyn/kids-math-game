@@ -6,6 +6,7 @@ import {
   BrowserDynamicTestingModule,
   platformBrowserDynamicTesting
 } from '@angular/platform-browser-dynamic/testing';
+import { AvatarStillService } from './app/avatar/avatar-still.service';
 
 declare const require: {
   context(path: string, deep?: boolean, filter?: RegExp): {
@@ -38,6 +39,15 @@ document.documentElement.setAttribute('data-fit', 'stack');
 // it there for whatever runs next — and karma randomises the order, so
 // without this the geometry tests pass or fail depending on the draw.
 afterEach(() => document.documentElement.setAttribute('data-fit', 'stack'));
+
+/**
+ * Pictures of the 3D character are off unless a spec turns them on. Every
+ * screen shows the character, and drawing it in 3D for each of hundreds of
+ * specs is slow and beside their point; the 2D drawing they were written
+ * against still shows. avatar-still.service.spec.ts and avatar.component.spec
+ * turn them on and test them.
+ */
+AvatarStillService.enabledByDefault = false;
 
 // Then we find all the tests.
 const context = require.context('./', true, /\.spec\.ts$/);

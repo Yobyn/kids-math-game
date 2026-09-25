@@ -14,6 +14,7 @@ import {
   defaultAvatar
 } from './avatar-model';
 import { HAT_LINE, SPRITE } from './avatar-parts';
+import { AvatarStillService } from './avatar-still.service';
 
 /**
  * The component chooses WHICH parts to draw, in which colours, framing and
@@ -272,5 +273,109 @@ describe('AvatarComponent: hair texture', () => {
       return /--tex-dash:([^;]+)/.exec(style)![1];
     });
     expect(new Set(dashes).size).toBe(dashes.length);
+  });
+});
+
+describe('AvatarComponent: the 3D still', () => {
+  let fixture: ComponentFixture<AvatarComponent>;
+  let component: AvatarComponent;
+  let stills: AvatarStillService;
+  let answers: { [hat: string]: (url: string | null) => void };
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({ declarations: [AvatarComponent] }).compileComponents();
+    stills = TestBed.inject(AvatarStillService);
+    answers = {};
+    spyOn(stills, 'cached').and.returnValue(null);
+    spyOn(stills, 'still').and.callFake(avatar => new Promise(resolve => (answers[avatar.hat] = resolve)));
+    fixture = TestBed.createComponent(AvatarComponent);
+    component = fixture.componentInstance;
+  });
+
+  function show(avatar: Partial<Avatar> = {}) {
+    component.avatar = { ...defaultAvatar(), ...avatar };
+    component.ngOnChanges();
+    fixture.detectChanges();
+  }
+
+  const img = () => fixture.nativeElement.querySelector('img.still') as HTMLImageElement | null;
+  const svg = () => fixture.nativeElement.querySelector('svg') as SVGSVGElement | null;
+
+  it('shows the 2D drawing until the 3D still is ready, then the still in its place', async () => {
+    component.size = 64;
+    show({ hat: 'cap' });
+    expect(svg()).not.toBeNull();
+    expect(img()).toBeNull();
+    answers.cap('data:image/png;base64,cap');
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(svg()).toBeNull();
+    expect(img()!.getAttribute('src')).toBe('data:image/png;base64,cap');
+    expect(img()!.getAttribute('width')).toBe('64');
+    expect(img()!.getAttribute('height')).toBe('64');
+    expect(img()!.alt).toBeTruthy();
+  });
+
+  it('is as tall as the 2D drawing in the full framing', () => {
+    (stills.cached as jasmine.Spy).and.returnValue('data:image/png;base64,kept');
+    component.size = 100;
+    component.framing = 'full';
+    show();
+    expect(img()!.getAttribute('height')).toBe('132');
+  });
+
+  it('shows a kept still at once, without asking for a new one', () => {
+    (stills.cached as jasmine.Spy).and.returnValue('data:image/png;base64,kept');
+    show();
+    expect(img()!.getAttribute('src')).toBe('data:image/png;base64,kept');
+    expect(stills.still).not.toHaveBeenCalled();
+  });
+
+  it('keeps the 2D drawing where no still can be made', async () => {
+    show({ hat: 'cap' });
+    answers.cap(null);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(img()).toBeNull();
+    expect(svg()).not.toBeNull();
+  });
+
+  it('does not ask again for the same character handed over as a new object', () => {
+    show({ hat: 'cap' });
+    show({ hat: 'cap' });
+    expect(stills.still).toHaveBeenCalledTimes(1);
+    show({ hat: 'beanie' });
+    expect(stills.still).toHaveBeenCalledTimes(2);
+  });
+
+  it('shows the newest character, not a slow answer for the one before', async () => {
+    show({ hat: 'cap' });
+    show({ hat: 'beanie' });
+    answers.beanie('data:image/png;base64,beanie');
+    answers.cap('data:image/png;base64,cap');
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(img()!.getAttribute('src')).toBe('data:image/png;base64,beanie');
+  });
+
+  it('stays 2D when asked to look flat, as the dressing-up swatches do', () => {
+    (stills.cached as jasmine.Spy).and.returnValue('data:image/png;base64,kept');
+    component.look = 'flat';
+    show();
+    expect(img()).toBeNull();
+    expect(svg()).not.toBeNull();
+    expect(stills.still).not.toHaveBeenCalled();
+  });
+
+  it('goes back to 2D when switched to flat, and to 3D when switched back', () => {
+    (stills.cached as jasmine.Spy).and.returnValue('data:image/png;base64,kept');
+    show();
+    expect(img()).not.toBeNull();
+    component.look = 'flat';
+    show();
+    expect(img()).toBeNull();
+    component.look = '3d';
+    show();
+    expect(img()).not.toBeNull();
   });
 });

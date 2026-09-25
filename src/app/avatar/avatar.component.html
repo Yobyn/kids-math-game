@@ -1,4 +1,11 @@
+<img *ngIf="still"
+     class="avatar still"
+     [src]="still"
+     [attr.width]="size"
+     [attr.height]="height"
+     alt="Your character">
 <svg class="avatar"
+     *ngIf="!still"
      [attr.width]="size"
      [attr.height]="height"
      [attr.viewBox]="viewBox"

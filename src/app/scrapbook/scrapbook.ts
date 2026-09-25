@@ -1,4 +1,8 @@
 import { RoundResult } from '../services/progress.service';
+import { EarnedEvent, EarnedItem } from './earned';
+
+export { readEarnedEvents, readEarnedItems } from './earned';
+export type { EarnedEvent, EarnedItem } from './earned';
 
 /**
  * The game's memory of itself, kept free of the DOM so what goes in it and
@@ -39,18 +43,6 @@ export interface Keepsake {
   date: string | null;
   /** A number the entry is about, for the milestones that have one. */
   value?: number;
-}
-
-/** An event a child was here for, with the day it happened if it is known. */
-export interface EarnedEvent {
-  id: string;
-  date?: string;
-}
-
-/** An item a child won, and when. */
-export interface EarnedItem {
-  id: string;
-  date?: string;
 }
 
 export interface ScrapbookSource {
@@ -138,42 +130,4 @@ function newestFirst(a: Keepsake, b: Keepsake): number {
     return -1;
   }
   return b.date ? 1 : 0;
-}
-
-/** Reads whatever is in storage as events, however old its shape. */
-export function readEarnedEvents(raw: any[]): EarnedEvent[] {
-  return readEarned(raw);
-}
-
-export function readEarnedItems(raw: any[]): EarnedItem[] {
-  return readEarned(raw);
-}
-
-/**
- * Entries used to be bare id strings with no date at all. One of those still
- * means "this happened", so it is kept — with no date, which is the truth
- * about it.
- */
-function readEarned(raw: any[]): EarnedEvent[] {
-  if (!Array.isArray(raw)) {
-    return [];
-  }
-  const seen = new Set<string>();
-  const earned: EarnedEvent[] = [];
-  raw.forEach(entry => {
-    let id: string | null = null;
-    let date: string | undefined;
-    if (typeof entry === 'string') {
-      id = entry;
-    } else if (entry && typeof entry === 'object' && typeof entry.id === 'string') {
-      id = entry.id;
-      date = typeof entry.date === 'string' ? entry.date : undefined;
-    }
-    if (!id || seen.has(id)) {
-      return;
-    }
-    seen.add(id);
-    earned.push(date ? { id, date } : { id });
-  });
-  return earned;
 }
