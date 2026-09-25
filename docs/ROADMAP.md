@@ -70,13 +70,15 @@ back. What that cost is recorded under "What the audit found", at the end.
   compose with all of them, plus hair and eye colour. The page is three
   sections a child moves between rather than one long scroll. It is drawn
   from an SVG sprite, shaded, and the hair is fitted to every face shape.
-- On the dressing-up screen the character is 3D: a toon-shaded figure on a
-  glowing stand that a child drags round, or turns with two buttons, to see
-  from every side. Every face, hair style, texture, hat, pair of glasses and
-  top is built to fit, and tested on every combination.
+- On the dressing-up screen the character is 3D: a toon-shaded boy or girl
+  about seven heads tall (the boy from Yobyn's reference), on a glowing stand
+  that a child drags round, or turns with two buttons, to see from every
+  side. The camera closes in on the head while a face or hair is being
+  chosen. Every face, hair style, texture, hat, pair of glasses and top is
+  built to fit, and tested on every combination, on both figures.
 - The particle field answers a tap: a small burst of its particles under the
   finger, apart from the full-field surge that a correct answer earns.
-- 1,466 unit tests, 200 build-script tests and 39 server tests, run on every
+- 1,497 unit tests, 200 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -222,6 +224,71 @@ tests called `expect` once per vertex, millions of times. That could stall
 the browser past Karma's 30-second limit, so each check now asserts once on
 the list of misses. Before these fixes 2 of 6 full runs ended early; after,
 8 of 8 were complete and green. 1,401 unit tests.
+
+**A BOY FROM YOBYN'S REFERENCE, AND A GIRL — DONE (2026-09-25).** Yobyn
+asked for the img2threejs skill ("image to three.js",
+https://github.com/img2threejs/img2threejs, Apache-2.0) and sent a
+reference image "for the male character": a teenage game character in a
+hoodie, cargo trousers and sneakers, standing in an A-pose about 7.3 heads
+tall. He chose a Boy/Girl choice with a girl built the same way until he
+sends her reference.
+
+How img2threejs was used. Its method was followed; its code was not run
+(the sandbox refused to execute third-party scripts, rightly):
+- a proportion table in head heights, read off the reference, before any
+  geometry (`avatar3d/figure.ts`, which quotes it);
+- build in passes: blockout, then proportions and bulk, then the face,
+  then clothing detail;
+- after each pass, the reference side by side with the model at 0°, 90°,
+  180° and 270° (its "turntable, not one frame" gate), naming what is wrong
+  and fixing that, not the whole thing.
+Pass 1 got the proportions right but the arms, hands, chest and legs thin.
+Pass 2 fixed those; the close-up then showed a long neck, a hood only at
+the back where the reference wraps it round, and bowl hair where the
+reference sweeps up. Pass 3 fixed those.
+
+What changed:
+- **Two figures** (`figure.ts`): the boy, 7.3 heads, broad shoulders, as
+  measured; the girl, 7.1 heads, with narrower shoulders, a narrower waist,
+  wider hips and a softer, narrower head. Each is one table of numbers,
+  and the tests hold both to their own rules.
+- **The head is narrowed like a real one**, taller than wide and less deep
+  than wide. The head, hair, hat and glasses all share one position and one
+  scale, so everything built to fit the head in its own space still fits,
+  on both figures, with no fit rule changed.
+- **A realistic face**: smaller almond eyes with a dark upper lid line, a
+  nose with a bridge and nostrils, a smaller mouth set lower, stronger
+  brows for the boy, and lashes and lighter brows for the girl.
+- **Clothes from the reference**: cargo trousers with pockets and a belt,
+  and sneakers with white soles and laces, on everyone. Tops are long
+  sleeves with ribbed cuffs, or short sleeves with bare arms for the tees.
+  The hoodie is now the reference's: blue (the 2D drawing too), a hood
+  rolled round the neck and open in a V, drawstrings with metal tips, a
+  pouch pocket, and a red shirt showing at the collar and wrists. The
+  reference's "Property of ESU" lettering is someone else's (a comic
+  university), so it was left off.
+- **Short hair gets a quiff**, swept up over the forehead like the reference.
+- **Long hair falls past the shoulders** and lies on the back. It is pushed
+  clear of the torso wherever it would go through it; braids stop at the
+  jaw. Tested on both figures.
+- **Boy or Girl** sits above the dressing-up tabs, as a picture and a word
+  each. A character saved before there was a choice is a boy. It is free,
+  like the rest of how a child looks.
+- **The camera follows what is being chosen.** It closes in on the head for
+  "Your face" and "Your hair" (at seven heads tall, a face seen head to
+  toe on a phone is too small to see an eye change) and pulls back to the
+  whole figure for "Things to wear", eased, and at once under reduced motion.
+
+Tests: `figure.spec.ts` (the boy's landmarks against the reference, the
+girl's differences, both figures' arms clear of the chest all the way
+down, chest depth). The build and stage specs cover heads tall, the chin
+on the collar, no ledge at the shoulders, hands clear, hair never inside
+the body, each top's cut, the hoodie's parts, trousers, shoes and stripes,
+the head and everything on it sharing one transform, the focus and its
+easing, and the Boy/Girl row. 1,497 unit tests. The mutation sweep caught
+14 of 16 at first. The two misses were real gaps, now closed with tests:
+arms hanging straight down would sink into the chest, and a torso could be
+made flat as a board.
 
 WHAT IS NEXT, in the order the runs should take them:
 

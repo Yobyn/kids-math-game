@@ -6,6 +6,7 @@ import { ProgressService } from '../services/progress.service';
 import { findEvent, nextOpening } from '../events/seasonal-events';
 import { levelForXp } from '../levels/level-curve';
 import {
+  BODY_TYPES,
   Avatar,
   EYE_COLOURS,
   EYE_SHAPES,
@@ -22,8 +23,10 @@ import {
   itemsForSlot,
   nextUnlock
 } from './avatar-model';
-import { ChooserRow, SECTIONS, SectionId } from './chooser-sections';
+import { BODY_ROW, ChooserRow, SECTIONS, SectionId } from './chooser-sections';
 import { CHOOSER_WORDS } from './chooser-words';
+
+const LABEL_ICONS: { [value: string]: string } = { boy: '👦', girl: '👧' };
 
 /**
  * Where a child makes the character theirs. Every choice here is free and
@@ -46,6 +49,7 @@ export class AvatarChooserComponent implements OnInit {
 
   /** What each row of choices offers, looked up by the part it changes. */
   private readonly options: { [part: string]: string[] } = {
+    bodyType: BODY_TYPES,
     skin: SKIN_TONES,
     faceShape: FACE_SHAPES,
     eyeShape: EYE_SHAPES,
@@ -129,6 +133,13 @@ export class AvatarChooserComponent implements OnInit {
   /** The character as it would look with this one part changed. */
   withPart(row: ChooserRow, value: string): Avatar {
     return row.part ? ({ ...this.avatar, [row.part]: value } as Avatar) : this.avatar;
+  }
+
+  readonly bodyRow = BODY_ROW;
+
+  /** The picture beside a word-only choice. */
+  labelIcon(value: string): string {
+    return LABEL_ICONS[value] || '';
   }
 
   /** Hair texture only reads at all on the head, so its swatches show one. */

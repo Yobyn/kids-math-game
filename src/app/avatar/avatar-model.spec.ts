@@ -1,4 +1,6 @@
 import {
+  BODY_TYPES,
+  AVATAR_CHOICES,
   Avatar,
   EVENT_ITEMS,
   EYE_COLOURS,
@@ -69,8 +71,24 @@ describe('the character a child can make', () => {
 });
 
 describe('reading a stored character', () => {
+  it('keeps a boy a boy and a girl a girl, and makes a character saved before there was a choice a boy', () => {
+    expect(normaliseAvatar({ ...defaultAvatar(), bodyType: 'girl' }).bodyType).toBe('girl');
+    expect(normaliseAvatar({ ...defaultAvatar(), bodyType: 'boy' }).bodyType).toBe('boy');
+    const old: any = { ...defaultAvatar() };
+    delete old.bodyType;
+    expect(normaliseAvatar(old).bodyType).toBe('boy');
+    expect(normaliseAvatar({ ...defaultAvatar(), bodyType: 'dragon' }).bodyType).toBe('boy');
+  });
+
+  it('offers the body type as a choice, boy and girl', () => {
+    const choice = AVATAR_CHOICES.find(entry => entry.key === 'bodyType')!;
+    expect(choice.options).toEqual(BODY_TYPES);
+    expect(BODY_TYPES).toEqual(['boy', 'girl']);
+  });
+
   it('keeps every choice that is still valid', () => {
     const chosen: Avatar = {
+      bodyType: 'girl',
       skin: SKIN_TONES[4],
       faceShape: 'square',
       hairStyle: 'curly',

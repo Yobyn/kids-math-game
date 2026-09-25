@@ -1,5 +1,6 @@
 import { AVATAR_CHOICES, Avatar, ItemSlot } from './avatar-model';
-import { SECTIONS, allRows, sectionOfPart, sectionOfSlot } from './chooser-sections';
+import {
+  BODY_ROW, SECTIONS, allRows, sectionOfPart, sectionOfSlot } from './chooser-sections';
 
 const SLOTS: ItemSlot[] = ['hat', 'glasses', 'top'];
 
@@ -26,8 +27,11 @@ describe('the character page, in sections', () => {
     // The failure this exists for: an axis gets added to the model and
     // nobody can reach it, because no section lists it
     AVATAR_CHOICES.forEach(choice => {
-      expect(sectionOfPart(choice.key)).toBeTruthy(`${choice.key} has no section`);
+      // Boy or girl is the one part asked above the sections
+      const reachable = !!sectionOfPart(choice.key) || BODY_ROW.part === choice.key;
+      expect(reachable).toBe(true, `${choice.key} has no section`);
     });
+    expect(sectionOfPart('bodyType')).toBeUndefined();
   });
 
   it('puts every slot somewhere', () => {

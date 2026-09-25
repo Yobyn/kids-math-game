@@ -28,6 +28,8 @@
  */
 
 export interface Avatar {
+  /** Which figure the 3D character has. */
+  bodyType: BodyType;
   skin: string;
   faceShape: FaceShape;
   hairStyle: HairStyle;
@@ -66,6 +68,8 @@ export type HairStyle =
   | 'afro' | 'coils' | 'braids' | 'locs' | 'buzz';
 
 export type FaceShape = 'round' | 'oval' | 'square' | 'heart';
+
+export type BodyType = 'boy' | 'girl';
 
 /**
  * The shape of the eyes, which used to be one pair of circles on every child.
@@ -132,6 +136,8 @@ export const HAIR_STYLES: HairStyle[] = [
 
 export const FACE_SHAPES: FaceShape[] = ['round', 'oval', 'square', 'heart'];
 
+export const BODY_TYPES: BodyType[] = ['boy', 'girl'];
+
 export const EYE_SHAPES: EyeShape[] = ['round', 'almond', 'wide', 'narrow'];
 
 export const MOUTH_SHAPES: MouthShape[] = ['smile', 'grin', 'soft', 'open'];
@@ -140,6 +146,7 @@ export const HAIR_TEXTURES: HairTexture[] = ['smooth', 'wavy', 'coily'];
 
 export function defaultAvatar(): Avatar {
   return {
+    bodyType: 'boy',
     skin: SKIN_TONES[2],
     faceShape: 'round',
     hairStyle: 'short',
@@ -170,6 +177,10 @@ export function normaliseAvatar(raw: any, level = 1, earnedEvents: string[] = []
   }
 
   return {
+    // Absent on every character saved before there was a choice; they keep
+    // the figure they have been looking at, and can change it at the top of
+    // the dressing-up screen
+    bodyType: pick(BODY_TYPES, raw.bodyType, fallback.bodyType) as BodyType,
     skin: pick(SKIN_TONES, raw.skin, fallback.skin),
     // Absent on every character saved before faces could change, which reads
     // as the round one they have been looking at all along
@@ -228,6 +239,7 @@ export function lighten(colour: string, amount = 0.35): string {
 
 /** Everything a child can change today, in the order the chooser shows it. */
 export const AVATAR_CHOICES: { key: keyof Avatar; options: string[] }[] = [
+  { key: 'bodyType', options: BODY_TYPES },
   { key: 'skin', options: SKIN_TONES },
   { key: 'faceShape', options: FACE_SHAPES },
   { key: 'eyeShape', options: EYE_SHAPES },
@@ -389,7 +401,7 @@ export const TOP_ITEMS: WardrobeItem[] = [
     id: 'hoodie',
     slot: 'top',
     unlockLevel: 9,
-    colour: '#3f8f5a',
+    colour: '#1f96d2',
   }
 ];
 

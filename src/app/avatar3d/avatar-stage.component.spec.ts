@@ -1,31 +1,50 @@
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { NO_ERRORS_SCHEMA, SimpleChange } from '@angular/core';
+import * as THREE from 'three';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
-import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, easeInOut, framing } from './avatar-stage.component';
+import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming } from './avatar-stage.component';
 
 describe('framing', () => {
   it('keeps the usual distance for a character of ordinary height', () => {
-    expect(framing(-0.2, 3.5, 30, 1.1)).toEqual({ distance: BASE_DISTANCE, centre: BASE_CENTRE });
+    expect(framing(-0.2, 14.8, 30, 1.1)).toEqual({ distance: BASE_DISTANCE, centre: BASE_CENTRE });
   });
 
   it('backs off, and looks higher, for a tall hat or a big afro', () => {
-    const tall = framing(-0.2, 5, 30, 1.1);
+    const tall = framing(-0.2, 18, 30, 1.1);
     expect(tall.distance).toBeGreaterThan(BASE_DISTANCE);
-    expect(tall.centre).toBeCloseTo(2.4, 9);
+    expect(tall.centre).toBeCloseTo(8.9, 9);
     // Everything from the stand to the tip fits in the view
     const half = Math.tan((30 * Math.PI) / 360) * tall.distance;
-    expect(half * 2).toBeGreaterThan(5.2);
+    expect(half * 2).toBeGreaterThan(18.2);
   });
 
   it('backs off further on a narrow screen, where the width is the limit', () => {
-    expect(framing(-0.2, 5, 30, 0.6).distance).toBeGreaterThan(framing(-0.2, 5, 30, 1).distance);
+    expect(framing(-0.2, 18, 30, 0.6).distance).toBeGreaterThan(framing(-0.2, 18, 30, 1).distance);
   });
 
   it('never comes closer than usual', () => {
-    for (let top = 0; top < 8; top += 0.25) {
+    for (let top = 0; top < 20; top += 0.5) {
       expect(framing(-0.2, top, 30, 1).distance).toBeGreaterThanOrEqual(BASE_DISTANCE);
     }
+  });
+});
+
+describe('headFraming', () => {
+  it('frames the head and what is on it, centred, with room round it', () => {
+    const { distance, centre } = headFraming(12, 16, 30, 1);
+    expect(centre).toBe(14);
+    const half = Math.tan((30 * Math.PI) / 360) * distance;
+    expect(half * 2).toBeGreaterThan(4);
+    expect(half * 2).toBeLessThan(6.5);
+  });
+
+  it('comes no closer than a comfortable distance for a small head', () => {
+    expect(headFraming(13, 13.2, 30, 1).distance).toBe(HEAD_DISTANCE_MIN);
+  });
+
+  it('backs off on a narrow screen', () => {
+    expect(headFraming(12, 18, 30, 0.5).distance).toBeGreaterThan(headFraming(12, 18, 30, 1).distance);
   });
 });
 
@@ -189,6 +208,49 @@ describe('AvatarStageComponent', () => {
       (component as any).requestRender();
       component.turnBy(component.TURN_STEP);
       expect(raf).not.toHaveBeenCalled();
+    });
+
+    it('looks at the whole figure, or closes in on the head, as it is told', () => {
+      const target = () => (component as any).controls.target.y;
+      const distance = () => (component as any).camera.position.distanceTo((component as any).controls.target);
+      component.focus = 'body';
+      (component as any).frameModel();
+      const bodyTarget = target();
+      const bodyDistance = distance();
+      component.focus = 'head';
+      (component as any).frameModel();
+      const head = new THREE.Box3().setFromObject(component.model!.getObjectByName('head-group')!);
+      expect(target()).toBeGreaterThan(head.min.y);
+      expect(target()).toBeLessThan(head.max.y + 1.5);
+      expect(distance()).toBeLessThan(bodyDistance / 2);
+      expect(bodyTarget).toBeLessThan(target());
+    });
+
+    it('glides between the two when only the focus changes, and does not rebuild the character', () => {
+      spyOn(window, 'matchMedia').and.callFake(() => ({ matches: false } as MediaQueryList));
+      const model = component.model;
+      component.focus = 'head';
+      component.ngOnChanges({ focus: new SimpleChange('body', 'head', false) });
+      expect(component.model).toBe(model);
+      expect((component as any).glide).toBeDefined();
+      expect((component as any).glide.toDistance).toBeLessThan((component as any).glide.fromDistance);
+    });
+
+    it('moves at once under reduced motion', () => {
+      spyOn(window, 'matchMedia').and.callFake((query: string) =>
+        ({ matches: query === '(prefers-reduced-motion: reduce)' } as MediaQueryList));
+      component.focus = 'head';
+      component.ngOnChanges({ focus: new SimpleChange('body', 'head', false) });
+      expect((component as any).glide).toBeUndefined();
+      const { distance } = component.view();
+      expect((component as any).camera.position.distanceTo((component as any).controls.target)).toBeCloseTo(distance, 6);
+    });
+
+    it('rebuilds the character when the character changes', () => {
+      const model = component.model;
+      component.avatar = { ...component.avatar, bodyType: 'girl' };
+      component.ngOnChanges({ avatar: new SimpleChange(null, component.avatar, false) });
+      expect(component.model).not.toBe(model);
     });
 
     it('gives the character one full turn when the screen opens', () => {

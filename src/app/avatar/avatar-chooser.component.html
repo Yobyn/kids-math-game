@@ -5,9 +5,27 @@
        point of a swatch is seeing what it does. -->
   <div class="stage">
     <app-avatar-stage [avatar]="avatar" [label]="languageService.translate('your-character')"
+                      [focus]="open === 'wardrobe' ? 'body' : 'head'"
                       [turnLeftLabel]="languageService.translate('turn-left')"
                       [turnRightLabel]="languageService.translate('turn-right')"></app-avatar-stage>
   </div>
+
+  <!-- Boy or girl, above the sections: the figure everything else is chosen on -->
+  <section class="choice-row body-row">
+    <h2>{{ languageService.translate(bodyRow.heading) }}</h2>
+    <div class="swatches">
+      <button type="button"
+              class="swatch label-swatch"
+              *ngFor="let value of choicesFor(bodyRow)"
+              [class.chosen]="chosen(bodyRow, value)"
+              [attr.aria-pressed]="chosen(bodyRow, value)"
+              [attr.data-value]="value"
+              (click)="pickPart(bodyRow, value)">
+        <span class="label-icon" aria-hidden="true">{{ labelIcon(value) }}</span>
+        <span class="label-word">{{ languageService.translate($any(value)) }}</span>
+      </button>
+    </div>
+  </section>
 
   <!-- Three sections rather than eight rows in one column. The face first,
        because it is what says who this is. -->
