@@ -14,7 +14,11 @@
          (click)="selectDifficulty(difficulty.level)"
          (keydown.enter)="selectDifficulty(difficulty.level)"
          (keydown.space)="selectDifficulty(difficulty.level)">
-      <div class="difficulty-icon">{{ difficulty.icon }}</div>
+      <svg class="climb" viewBox="0 0 60 40" aria-hidden="true">
+        <path [attr.d]="difficulty.path"></path>
+        <path *ngIf="difficulty.flag" class="flag"
+              [attr.d]="'M' + difficulty.flag.x + ' ' + difficulty.flag.y + 'v-9l7 3-7 3'"></path>
+      </svg>
       <h2>{{ difficulty.name }}</h2>
       <p>{{ difficulty.description }}</p>
       <p class="suggestion" *ngIf="difficulty.level === suggested">

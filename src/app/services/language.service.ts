@@ -11,10 +11,8 @@ export type TranslationKeys =
   | 'login'
   | 'grade'
   | 'difficulty'
-  | 'start'
   | 'score'
   | 'correct'
-  | 'incorrect'
   | 'total'
   | 'play-again'
   | 'logout'
@@ -23,6 +21,9 @@ export type TranslationKeys =
   | 'select-grade'
   | 'maths-for-grade'
   | 'select-difficulty'
+  | 'climb-easy'
+  | 'climb-medium'
+  | 'climb-hard'
   | 'level'
   | 'easy-desc'
   | 'medium-desc'
@@ -36,7 +37,6 @@ export type TranslationKeys =
   | 'praise-1'
   | 'praise-0'
   | 'welcome'
-  | 'correct-answer'
   | 'try-again'
   | 'answer-is'
   | 'good-try'
@@ -55,14 +55,11 @@ export type TranslationKeys =
   | 'money-tray'
   | 'money-so-far'
   | 'money-take-back'
-  | 'money-another-way'
   | 'money-and'
   | 'new-best'
   | 'your-best'
-  | 'ok'
   | 'email'
   | 'forgot-password'
-  | 'enter-email'
   | 'password-reset-sent'
   | 'password-reset-failed'
   | 'reset-password'
@@ -246,7 +243,10 @@ export class LanguageService {
       'select-grade': 'Select Grade',
       'maths-for-grade': 'Maths for grade',
       'difficulty': 'Select Difficulty',
-      'select-difficulty': 'Select Difficulty Level',
+      'select-difficulty': 'Pick your climb',
+      'climb-easy': 'Warm-up',
+      'climb-medium': 'A step further',
+      'climb-hard': 'Challenge',
       'level': 'Level',
       'easy-desc': 'Basic operations with small numbers',
       'medium-desc': 'Mixed operations with larger numbers',
@@ -257,7 +257,6 @@ export class LanguageService {
       'submit': 'Submit',
       'correct': 'Correct',
       'wrong': 'Wrong',
-      'incorrect': 'Incorrect',
       'total': 'Total',
       'praise-3': 'Brilliant work!',
       'praise-2': 'Great work!',
@@ -381,7 +380,6 @@ export class LanguageService {
       'event-spring': 'Spring',
       'event-autumn': 'Autumn',
       'book-back': 'Back to your progress',
-      'correct-answer': 'The correct answer is',
       'try-again': 'Not quite right, try one more time! ',
       'answer-is': 'The answer is',
       'good-try': "Good try — you'll get the next one!",
@@ -400,15 +398,11 @@ export class LanguageService {
       'money-tray': 'Coins you can use',
       'money-so-far': 'So far',
       'money-take-back': 'Take back',
-      'money-another-way': 'There is more than one way to make it.',
       'money-and': 'and',
       'new-best': 'Your best round yet!',
       'your-best': 'Your best so far',
-      'ok': 'OK',
-      'start': 'Start Game',
       'email': 'Email',
       'forgot-password': 'Forgot Password',
-      'enter-email': 'Please enter your email address',
       'password-reset-sent': 'Password reset instructions have been sent to your email',
       'password-reset-failed': 'Failed to send password reset email. Please try again.',
       'reset-password': 'Reset Password',
@@ -440,7 +434,10 @@ export class LanguageService {
       'select-grade': 'Kies Groep',
       'maths-for-grade': 'Wiskunde voor groep',
       'difficulty': 'Kies Moeilijkheidsgraad',
-      'select-difficulty': 'Kies Moeilijkheidsgraad',
+      'select-difficulty': 'Kies je klim',
+      'climb-easy': 'Opwarmen',
+      'climb-medium': 'Een stapje verder',
+      'climb-hard': 'Uitdaging',
       'level': 'Niveau',
       'easy-desc': 'Basis bewerkingen met kleine getallen',
       'medium-desc': 'Gemengde bewerkingen met grotere getallen',
@@ -451,7 +448,6 @@ export class LanguageService {
       'submit': 'Verstuur',
       'correct': 'Goed',
       'wrong': 'Fout',
-      'incorrect': 'Onjuist',
       'total': 'Totaal',
       'praise-3': 'Knap gewerkt!',
       'praise-2': 'Goed gewerkt!',
@@ -575,7 +571,6 @@ export class LanguageService {
       'event-spring': 'Lente',
       'event-autumn': 'Herfst',
       'book-back': 'Terug naar je voortgang',
-      'correct-answer': 'Het juiste antwoord is',
       'try-again': 'Niet helemaal goed, probeer nog een keer! ',
       'answer-is': 'Het antwoord is',
       'good-try': 'Goed geprobeerd — de volgende lukt je!',
@@ -594,15 +589,11 @@ export class LanguageService {
       'money-tray': 'Munten die je kunt gebruiken',
       'money-so-far': 'Tot nu toe',
       'money-take-back': 'Terugnemen',
-      'money-another-way': 'Er is meer dan één manier om het te maken.',
       'money-and': 'en',
       'new-best': 'Je beste ronde tot nu toe!',
       'your-best': 'Je beste tot nu toe',
-      'ok': 'OK',
-      'start': 'Start Spel',
       'email': 'E-mailadres',
       'forgot-password': 'Wachtwoord vergeten',
-      'enter-email': 'Voer uw e-mailadres in',
       'password-reset-sent': 'Instructies voor het opnieuw instellen van uw wachtwoord zijn naar uw e-mail verzonden',
       'password-reset-failed': 'Kon geen wachtwoord reset e-mail verzenden. Probeer het opnieuw.',
       'reset-password': 'Wachtwoord opnieuw instellen',
@@ -634,7 +625,10 @@ export class LanguageService {
       'select-grade': 'Seleccione Grado',
       'maths-for-grade': 'Matemáticas para el grado',
       'difficulty': 'Seleccione Dificultad',
-      'select-difficulty': 'Seleccione Nivel de Dificultad',
+      'select-difficulty': 'Elige tu subida',
+      'climb-easy': 'Calentamiento',
+      'climb-medium': 'Un paso más',
+      'climb-hard': 'Desafío',
       'level': 'Nivel',
       'easy-desc': 'Operaciones básicas con números pequeños',
       'medium-desc': 'Operaciones mixtas con números más grandes',
@@ -645,7 +639,6 @@ export class LanguageService {
       'submit': 'Enviar',
       'correct': 'Correcto',
       'wrong': 'Incorrecto',
-      'incorrect': 'Incorrecto',
       'total': 'Total',
       'praise-3': '¡Un trabajo brillante!',
       'praise-2': '¡Buen trabajo!',
@@ -769,7 +762,6 @@ export class LanguageService {
       'event-spring': 'Primavera',
       'event-autumn': 'Otoño',
       'book-back': 'Volver a tu progreso',
-      'correct-answer': 'La respuesta correcta es',
       'try-again': 'No es correcto, inténtalo de nuevo ',
       'answer-is': 'La respuesta es',
       'good-try': '¡Buen intento, la próxima te saldrá!',
@@ -788,15 +780,11 @@ export class LanguageService {
       'money-tray': 'Monedas que puedes usar',
       'money-so-far': 'Hasta ahora',
       'money-take-back': 'Quitar',
-      'money-another-way': 'Hay más de una manera de hacerlo.',
       'money-and': 'y',
       'new-best': '¡Tu mejor ronda hasta ahora!',
       'your-best': 'Tu mejor resultado',
-      'ok': 'OK',
-      'start': 'Comenzar juego',
       'email': 'Correo electrónico',
       'forgot-password': '¿Olvidaste tu contraseña?',
-      'enter-email': 'Por favor, ingresa tu dirección de correo electrónico',
       'password-reset-sent': 'Se han enviado instrucciones para restablecer tu contraseña a tu correo electrónico',
       'password-reset-failed': 'No se pudo enviar el correo electrónico de restablecimiento de contraseña. Por favor, inténtalo de nuevo.',
       'reset-password': 'Restablecer contraseña',

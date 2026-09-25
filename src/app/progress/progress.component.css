@@ -192,3 +192,34 @@
     grid-template-columns: repeat(4, 1fr);
   }
 }
+
+/* On a short, wide screen (a phone held sideways): side by side rather than
+   one long column. Here rather than in fit.css because this page is lazy. */
+:host-context(html[data-fit='short']) .progress-page {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 1.25rem;
+  align-items: start;
+  max-width: 900px;
+}
+
+:host-context(html[data-fit='short']) .progress-page > h1,
+:host-context(html[data-fit='short']) .progress-page > .back-btn {
+  grid-column: 1 / -1;
+}
+
+:host-context(html[data-fit='short']) .progress-page .stage {
+  width: 104px;
+  height: 104px;
+}
+
+/* The avatar's svg is another component's: reach it without leaking */
+:host-context(html[data-fit='short']) .progress-page .stage ::ng-deep svg {
+  width: 66px;
+  height: auto;
+}
+
+/* Half a sideways screen is too narrow for four tiles in a row */
+:host-context(html[data-fit='short']) .progress-page .counts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}

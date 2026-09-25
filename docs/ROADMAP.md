@@ -69,7 +69,7 @@ back. What that cost is recorded under "What the audit found", at the end.
   from an SVG sprite, shaded, and the hair is fitted to every face shape.
 - The particle field answers a tap: a small burst of its particles under the
   finger, apart from the full-field surge that a correct answer earns.
-- 1,316 unit tests, 200 build-script tests and 39 server tests, run on every
+- 1,326 unit tests, 200 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -256,6 +256,45 @@ as for the character). On the dark chrome it is quieter than on the light
 keypad, because the ring's blue end is close to the surface's navy. It
 reads, but a brighter core for dark surfaces is a small follow-up if Yobyn
 wants more.
+
+**PICK YOUR CLIMB — DONE (2026-09-25).** The difficulty screen was the last
+one still looking as it did before the art direction: three plain cards
+headed "Level 1", "Level 2" and "Level 3", with 🌟, 🌟🌟 and 🌟🌟🌟, and top
+edges in green, yellow and red.
+
+Three things were wrong with it. The first was a bug: the theme migration
+gave these cards the ring's colours through `--level-colour`, but older
+`nth-child` rules hard-coding a traffic light had higher specificity, so the
+traffic light always won and the palette never showed. The second was the
+stars: stars are what a round EARNS, so three of them on the hardest card
+read as "the best result" rather than "the biggest climb". The third was the
+word "Level", which is the character's level everywhere else.
+
+It is "Pick your climb" now. Each card draws its climb in its own ring
+colour (blue, violet, magenta): a low hill, two rising hills, and a tall
+peak with a flag. They are named Warm-up, A step further and Challenge, and
+the descriptions stay for the grown-ups reading over a shoulder. The
+suggestion that marks a card is untouched. On a phone each card lies on its
+side, the climb beside its words, so all three fit without scrolling.
+
+The shapes are arithmetic in `difficulty-select/climb.ts`, DOM-free: taller
+peaks for harder climbs, one, two and three of them, a flag only on the
+hardest, and every hump kept inside its drawing.
+
+IT PAID FOR ITSELF, as the first load now has to. The screen is eager, and
+there was 4.74 kB of room. Six translation keys nothing used were deleted
+from all three languages (`start`, `incorrect`, `correct-answer`,
+`money-another-way`, `ok`, `enter-email`). The progress page's own
+landscape rules moved out of the global `fit.css` into its lazy stylesheet
+(`:host-context`), because every rule in `fit.css` ships in everyone's first
+load, whichever screen it is for. Net, the first load went DOWN 0.14 kB, to
+495.12 kB, with the new screen in it.
+
+Tests: `climb.spec.ts` and three new difficulty tests (1,326 unit tests in
+all). A mutation sweep caught 9 of 10 breakages at first. The miss was a
+real gap and is closed: the bounds test checked where humps sat across the
+drawing but not how high they rose, so a peak asked to be twice the height
+escaped the top unnoticed.
 
 **HOW FAR YOU HAVE COME, REDRAWN — DONE (2026-09-25).** A fresh sweep put
 the progress screen and the difficulty screen at the bottom. The progress
@@ -491,8 +530,9 @@ magenta (grade 10, `#d633eb`), using the SAME colour function the field
 draws with (`fieldColour`, exported from `particle-field.ts` for this), so
 the grades are literally on the ring behind them rather than lookalikes. A
 glowing numbered badge in that colour replaced the emoji. The difficulty
-screen walks the same ring in three steps, so an ordered choice looks like
-one everywhere in the game.
+screen was meant to walk the same ring in three steps, so an ordered choice
+looks like one everywhere in the game. It did not, until 2026-09-25: older
+rules hard-coding a traffic light outranked it (see "PICK YOUR CLIMB").
 
 The copy is fixed in all three languages: it rendered "Maths for 1 students"
 — counting children rather than naming a year group — and now reads "Maths
@@ -517,9 +557,12 @@ never locked: skin, face, hair and their colours stay free at level 1 however
 the art changes. Per-tap work must be bounded, so a child mashing the keypad
 cannot allocate without limit.
 
-**And art costs bytes.** The initial bundle has **4.74 kB** of headroom
-(495.26 kB against a 500 kB error budget, measured 2026-09-25 after the
-progress screen's redraw, which cost 0.22 kB of global layout; the title
+**And art costs bytes.** The initial bundle has **4.88 kB** of headroom
+(495.12 kB against a 500 kB error budget, measured 2026-09-25 after "pick
+your climb", which paid for itself and freed 0.14 kB net; RULES FOR A LAZY
+SCREEN DO NOT BELONG IN `fit.css`, which ships in everyone's first load —
+put them in the screen's own stylesheet with `:host-context`. The progress
+screen's redraw before it cost 0.22 kB of global layout; the title
 screen before it cost 3.52 kB; the round track before it cost 0.87 kB and the
 result screen freed 2.00 kB. THE NEXT EAGER CHANGE HAS TO PAY FOR ITSELF:
 measure first with `mapsize.js` and move something out of the first load. The tap layer
