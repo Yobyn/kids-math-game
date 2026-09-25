@@ -4,7 +4,9 @@
   <!-- The character stays on screen while it is being changed: the whole
        point of a swatch is seeing what it does. -->
   <div class="stage">
-    <app-avatar [avatar]="avatar" [size]="180" framing="full"></app-avatar>
+    <app-avatar-stage [avatar]="avatar" [label]="languageService.translate('your-character')"
+                      [turnLeftLabel]="languageService.translate('turn-left')"
+                      [turnRightLabel]="languageService.translate('turn-right')"></app-avatar-stage>
   </div>
 
   <!-- Three sections rather than eight rows in one column. The face first,

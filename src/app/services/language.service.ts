@@ -89,6 +89,8 @@ export type TranslationKeys =
   | 'xp-to-next'
   | 'level-up'
   | 'your-character'
+  | 'turn-left'
+  | 'turn-right'
   | 'skin'
   | 'hair-style'
   | 'hair-colour'
@@ -278,6 +280,8 @@ export class LanguageService {
       'xp-to-next': 'XP to the next level',
       'level-up': 'Level up!',
       'your-character': 'Your character',
+      'turn-left': 'Turn left',
+      'turn-right': 'Turn right',
       'skin': 'Skin',
       'hair-style': 'Hair',
       'hair-colour': 'Hair colour',
@@ -469,6 +473,8 @@ export class LanguageService {
       'xp-to-next': 'XP tot het volgende niveau',
       'level-up': 'Niveau omhoog!',
       'your-character': 'Jouw figuur',
+      'turn-left': 'Draai naar links',
+      'turn-right': 'Draai naar rechts',
       'skin': 'Huid',
       'hair-style': 'Haar',
       'hair-colour': 'Haarkleur',
@@ -660,6 +666,8 @@ export class LanguageService {
       'xp-to-next': 'XP para el siguiente nivel',
       'level-up': '¡Subiste de nivel!',
       'your-character': 'Tu personaje',
+      'turn-left': 'Girar a la izquierda',
+      'turn-right': 'Girar a la derecha',
       'skin': 'Piel',
       'hair-style': 'Pelo',
       'hair-colour': 'Color de pelo',

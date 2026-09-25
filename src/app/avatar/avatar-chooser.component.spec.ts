@@ -1,5 +1,6 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AvatarChooserComponent } from './avatar-chooser.component';
@@ -260,11 +261,11 @@ describe('AvatarChooserComponent wardrobe', () => {
       .toBe(PORTRAIT_VIEW_BOX);
   });
 
-  it('shows the child their whole character on the stage', () => {
+  it('shows the child their whole character on the stage, in 3D', () => {
     openAtLevel(9);
 
-    expect(fixture.nativeElement.querySelector('.stage app-avatar svg').getAttribute('viewBox'))
-      .toBe(FULL_VIEW_BOX);
+    expect(fixture.nativeElement.querySelector('.stage app-avatar-stage')).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('.stage app-avatar')).toBeNull();
   });
 
   it('wears a shirt the child has earned', () => {
@@ -497,8 +498,16 @@ describe('AvatarChooserComponent: three sections rather than one long scroll', (
     (['face', 'hair', 'wardrobe'] as const).forEach(section => {
       component.show(section);
       fixture.detectChanges();
-      expect(fixture.nativeElement.querySelector('.stage app-avatar')).toBeTruthy(section);
+      expect(fixture.nativeElement.querySelector('.stage app-avatar-stage')).toBeTruthy(section);
     });
+  });
+
+  it('puts the character on the 3D stage, with the choices it is wearing', () => {
+    const stage = fixture.debugElement.query(By.css('.stage app-avatar-stage'));
+    expect(stage.properties.avatar).toBe(component.avatar);
+    expect(stage.properties.label).toBe(component.languageService.translate('your-character'));
+    expect(stage.properties.turnLeftLabel).toBe(component.languageService.translate('turn-left'));
+    expect(stage.properties.turnRightLabel).toBe(component.languageService.translate('turn-right'));
   });
 
   it('saves a choice made in any section, straight away', () => {

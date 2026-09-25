@@ -43,7 +43,9 @@ module.exports = function (config) {
       // refuses to start its sandbox.
       ChromeHeadlessCI: {
         base: 'ChromeHeadless',
-        flags: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage']
+        // SwiftShader gives the 3D character a WebGL context with no GPU, so its
+        // tests run the real renderer rather than only the 2D fallback
+        flags: ['--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']
       }
     },
     singleRun: false,
