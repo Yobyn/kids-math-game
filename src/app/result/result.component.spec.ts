@@ -2,7 +2,9 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { ResultComponent } from './result.component';
+import { ROUND_TUNE_AFTER_STARS_MS, ResultComponent } from './result.component';
+import { STAR_STEP_MS } from './round-card';
+import { SoundService } from '../services/sound.service';
 import { ScoreService } from '../services/score.service';
 import { ProgressService } from '../services/progress.service';
 import { AuthService } from '../services/auth.service';
@@ -969,6 +971,60 @@ describe('ResultComponent: the end of a round is a reward, not a report', () => 
     const tiles = Array.from(page.querySelectorAll('.tile'));
     expect(tiles.length).toBeGreaterThan(0);
     expect(tiles.every(tile => tile.classList.contains('shown'))).toBe(true);
+  });
+
+  it('rings each star as it lands, a step higher each time, then plays the round\u2019s tune', () => {
+    const sound = TestBed.inject(SoundService);
+    const heard: string[] = [];
+    spyOn(sound, 'playStar').and.callFake((step: number) => { heard.push('star' + step); });
+    spyOn(sound, 'playRoundDone').and.callFake(() => { heard.push('done'); });
+    spyOn(window, 'matchMedia').and.callFake(() => ({ matches: false } as MediaQueryList));
+    jasmine.clock().install();
+    try {
+      finishAt(10);
+      expect(heard).toEqual([]);
+      jasmine.clock().tick(STAR_STEP_MS);
+      expect(heard).toEqual(['star0']);
+      jasmine.clock().tick(STAR_STEP_MS * 2);
+      expect(heard).toEqual(['star0', 'star1', 'star2']);
+      jasmine.clock().tick(ROUND_TUNE_AFTER_STARS_MS - 1);
+      expect(heard).toEqual(['star0', 'star1', 'star2']);
+      jasmine.clock().tick(1);
+      expect(heard).toEqual(['star0', 'star1', 'star2', 'done']);
+      jasmine.clock().tick(5000);
+      expect(heard.length).toBe(4);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('plays the round\u2019s tune straight away after a round with no stars: the work is praised whatever', () => {
+    const sound = TestBed.inject(SoundService);
+    const star = spyOn(sound, 'playStar');
+    const done = spyOn(sound, 'playRoundDone');
+    spyOn(window, 'matchMedia').and.callFake(() => ({ matches: false } as MediaQueryList));
+    jasmine.clock().install();
+    try {
+      finishAt(2);
+      jasmine.clock().tick(0);
+      expect(done).toHaveBeenCalledTimes(1);
+      jasmine.clock().tick(5000);
+      expect(star).not.toHaveBeenCalled();
+      expect(done).toHaveBeenCalledTimes(1);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('plays just the tune, once, under reduced motion', () => {
+    const sound = TestBed.inject(SoundService);
+    const star = spyOn(sound, 'playStar');
+    const done = spyOn(sound, 'playRoundDone');
+    spyOn(window, 'matchMedia').and.callFake(query =>
+      ({ matches: query === '(prefers-reduced-motion: reduce)' } as MediaQueryList));
+    finishAt(10);
+    expect(done).toHaveBeenCalledTimes(1);
+    expect(star).not.toHaveBeenCalled();
   });
 
   it('fills in over time otherwise, and the buttons work before it has', () => {

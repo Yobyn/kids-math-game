@@ -1,3 +1,5 @@
+import { CHOOSER_WORDS } from './chooser-words';
+import { LanguageService } from '../services/language.service';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
@@ -47,6 +49,14 @@ describe('AvatarChooserComponent', () => {
   });
 
   afterEach(() => localStorage.clear());
+
+  it('adds its own words to the language service when it opens: they are not in the first load', () => {
+    const service = TestBed.inject(LanguageService);
+    // The screen is already open here (see beforeEach); a fresh service has none of them
+    expect(new LanguageService().translate('turn-left')).toBe('turn-left');
+    Object.keys(CHOOSER_WORDS.en).forEach(key => expect(service.translate(key as any)).not.toBe(key));
+    expect(service.translate('turn-left')).toBe(CHOOSER_WORDS[service.getLanguage()]['turn-left']);
+  });
 
   it('never asks a child to earn the way they look', () => {
     // Identity is free from the first visit. Items are earned; a face, hair

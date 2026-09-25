@@ -7,6 +7,7 @@ import { spellNumber } from './number-words';
 import { PracticePlan, practicePlan } from './practice-plan';
 import { AuthService } from '../services/auth.service';
 import { ProgressSyncService } from '../services/progress-sync.service';
+import { ADULTS_WORDS } from './adults-words';
 
 /** Where the honest trend is drawn, in its own coordinate space. */
 const CHART_WIDTH = 300;
@@ -55,7 +56,9 @@ export class AdultsComponent implements OnInit {
     public languageService: LanguageService,
     private authService: AuthService,
     private progressSync: ProgressSyncService
-  ) {}
+  ) {
+    languageService.extend(ADULTS_WORDS);
+  }
 
   ngOnInit() {
     this.challenge = newChallenge();

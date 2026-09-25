@@ -1,0 +1,22 @@
+<div class="backdrop" (click)="close()"></div>
+<section class="panel" role="dialog" aria-modal="true" aria-labelledby="sound-picker-title">
+  <header class="panel-head">
+    <h2 id="sound-picker-title">{{ words('title') }}</h2>
+    <button type="button" class="close" (click)="close()" [attr.aria-label]="words('close')">✕</button>
+  </header>
+  <p class="hint">{{ words('hint') }}</p>
+  <div class="options" role="radiogroup" [attr.aria-label]="words('title')">
+    <button #option type="button" class="option" role="radio"
+            *ngFor="let option of options; let i = index"
+            [class.chosen]="option.choice === chosen"
+            [class.off]="option.choice === 'off'"
+            [class.played]="option.choice === played"
+            [attr.aria-checked]="option.choice === chosen"
+            [attr.data-choice]="option.choice"
+            (click)="pick(option.choice)"
+            (keydown)="move($event, i)">
+      <span class="icon" aria-hidden="true">{{ option.icon }}</span>
+      <span class="name">{{ words(option.choice) }}</span>
+    </button>
+  </div>
+</section>

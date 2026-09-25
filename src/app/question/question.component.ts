@@ -383,6 +383,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
       return;
     }
     this.vibrate(10);
+    this.soundService.playTap();
     this.userAnswer = applyKey(this.userAnswer, key);
     this.inputPlaceholder = placeholderFor(this.userAnswer);
   }

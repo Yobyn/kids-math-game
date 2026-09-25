@@ -163,7 +163,7 @@
   transform: scale(1.05);
 }
 
-.sound-btn[aria-pressed="false"] {
+.sound-btn.muted {
   opacity: 0.65;
 }
 

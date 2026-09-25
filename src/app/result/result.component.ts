@@ -10,6 +10,7 @@ import { WardrobeItem, itemById, itemForEvent, itemsUnlockedAt } from '../avatar
 import { activeEvent } from '../events/seasonal-events';
 import { AvatarService } from '../services/avatar.service';
 import { ProgressSyncService } from '../services/progress-sync.service';
+import { SoundService } from '../services/sound.service';
 import { Avatar } from '../avatar/avatar-model';
 import { EASED_KEY } from '../levels/in-round-tuner';
 import { RESULT_VERSION, SavedResult, isShowable } from './result-state';
@@ -24,6 +25,8 @@ import { StarCount, Tile, praiseFor, revealTimeline, roundTiles, starsFor } from
  * it has been waved away.
  */
 const ROUNDS_BEFORE_OFFER = 3;
+/** The round's tune starts this long after the last star rings. */
+export const ROUND_TUNE_AFTER_STARS_MS = 250;
 const OFFER_DISMISSED_KEY = 'keepOfferDismissed';
 
 @Component({
@@ -77,7 +80,8 @@ export class ResultComponent implements OnInit, OnDestroy {
     private fieldPulse: FieldPulseService,
     private authService: AuthService,
     private avatarService: AvatarService,
-    private progressSync: ProgressSyncService
+    private progressSync: ProgressSyncService,
+    private soundService: SoundService
   ) {}
 
   ngOnInit() {
@@ -223,9 +227,18 @@ export class ResultComponent implements OnInit, OnDestroy {
     if (timeline.done === 0) {
       this.starsShown = this.starsEarned;
       this.tilesShown = this.tiles.length;
+      this.soundService.playRoundDone();
       return;
     }
-    timeline.stars.forEach((at, i) => this.timers.push(window.setTimeout(() => this.starsShown = i + 1, at)));
+    // Each star rings as it lands, a step higher than the last, and the
+    // round's own tune follows — after no stars too: the work is praised
+    // whatever the stars say
+    timeline.stars.forEach((at, i) => this.timers.push(window.setTimeout(() => {
+      this.starsShown = i + 1;
+      this.soundService.playStar(i);
+    }, at)));
+    const afterStars = timeline.stars.length ? timeline.stars[timeline.stars.length - 1] + ROUND_TUNE_AFTER_STARS_MS : 0;
+    this.timers.push(window.setTimeout(() => this.soundService.playRoundDone(), afterStars));
     timeline.tiles.forEach((at, i) => this.timers.push(window.setTimeout(() => this.tilesShown = i + 1, at)));
   }
 

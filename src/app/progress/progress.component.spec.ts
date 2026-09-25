@@ -1,3 +1,5 @@
+import { PROGRESS_WORDS } from './progress-words';
+import { LanguageService } from '../services/language.service';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
@@ -36,6 +38,14 @@ describe('ProgressComponent', () => {
   });
 
   afterEach(() => localStorage.clear());
+
+  it('adds its own words to the language service when it opens: they are not in the first load', () => {
+    const service = TestBed.inject(LanguageService);
+    expect(service.translate('your-best')).toBe('your-best');
+    open();
+    Object.keys(PROGRESS_WORDS.en).forEach(key => expect(service.translate(key as any)).not.toBe(key));
+    expect(service.translate('your-best')).toBe(PROGRESS_WORDS[service.getLanguage()]['your-best']);
+  });
 
   it('says so kindly when there is nothing to show yet', () => {
     open();

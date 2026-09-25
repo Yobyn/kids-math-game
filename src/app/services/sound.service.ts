@@ -1,46 +1,92 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
+import { CHOICE_KEY, LEGACY_KEY, SoundChoice, SoundEvent, readChoice } from '../sound/sound-choice';
 
-const STORAGE_KEY = 'soundEnabled';
+/** What plays the sounds: loaded later, so the first load carries only the choice. */
+export interface SoundPlayer {
+  play(choice: SoundChoice, event: SoundEvent, step?: number): void;
+}
+
+export type PlayerLoader = () => Promise<SoundPlayer>;
+
+const loadEngine: PlayerLoader = () => import('../sound/sound-engine').then(m => new m.SoundEngine());
 
 /**
- * Central switch for the game's sound effects and haptics, so a child can play
- * in a classroom or next to a sleeping sibling without the tablet buzzing.
+ * The sounds a child has picked, and the game's one way to make a sound or a
+ * buzz. A child picks a set of sounds — or none, to play in a classroom or
+ * next to a sleeping sibling — from the header, and it is remembered.
+ * "None" turns the haptics off too, as the old switch did.
  */
 @Injectable({
   providedIn: 'root'
 })
 export class SoundService {
-  private enabled = new BehaviorSubject<boolean>(this.readStoredPreference());
+  private choice = new BehaviorSubject<SoundChoice>(this.readStoredChoice());
+  private player: Promise<SoundPlayer | null> | null = null;
+
+  /** Swapped in tests; in the app it fetches the engine. */
+  loader: PlayerLoader = loadEngine;
+
+  /** The set picked, or 'off'. */
+  choice$(): Observable<SoundChoice> {
+    return this.choice.asObservable();
+  }
+
+  get choiceValue(): SoundChoice {
+    return this.choice.value;
+  }
 
   isEnabled(): Observable<boolean> {
-    return this.enabled.asObservable();
+    return this.choice$().pipe(map(choice => choice !== 'off'));
   }
 
   get enabledValue(): boolean {
-    return this.enabled.value;
+    return this.choice.value !== 'off';
   }
 
-  toggle() {
-    const next = !this.enabled.value;
-    this.enabled.next(next);
-    localStorage.setItem(STORAGE_KEY, String(next));
-    // Confirm the tap itself, otherwise switching sound back on gives no feedback
-    if (next) {
+  /** Picks a set (or none), remembers it, and plays it so the child hears what they picked. */
+  choose(choice: SoundChoice) {
+    this.choice.next(choice);
+    try {
+      localStorage.setItem(CHOICE_KEY, choice);
+    } catch {
+      // Kept for this visit only
+    }
+    if (choice !== 'off') {
       this.vibrate(15);
+      this.play('correct');
     }
   }
 
+  /** Fetches the engine ahead of the first sound, so that sound is not late. */
+  preload(): Promise<boolean> {
+    return this.engine().then(player => !!player);
+  }
+
   playSuccess() {
-    this.play('assets/sounds/success.mp3', 0.5);
+    this.play('correct');
   }
 
   playError() {
-    this.play('assets/sounds/error.mp3', 0.3);
+    this.play('tryAgain');
+  }
+
+  playTap() {
+    this.play('tap');
+  }
+
+  /** A star landing on the result screen: 0, 1 or 2, each a step higher. */
+  playStar(step: number) {
+    this.play('star', step);
+  }
+
+  playRoundDone() {
+    this.play('roundDone');
   }
 
   vibrate(pattern: number | number[]) {
-    if (!this.enabled.value) {
+    if (!this.enabledValue) {
       return;
     }
     const nav = navigator as Navigator & { vibrate?: (p: number | number[]) => boolean };
@@ -49,17 +95,31 @@ export class SoundService {
     }
   }
 
-  private play(source: string, volume: number) {
-    if (!this.enabled.value) {
+  private play(event: SoundEvent, step = 0) {
+    const choice = this.choice.value;
+    if (choice === 'off') {
       return;
     }
-    const audio = new Audio(source);
-    audio.volume = volume;
-    audio.play().catch(() => {}); // Ignore errors if sound can't play
+    this.engine().then(player => player?.play(choice, event, step));
   }
 
-  private readStoredPreference(): boolean {
-    // Sound is on by default; only an explicit 'false' turns it off
-    return localStorage.getItem(STORAGE_KEY) !== 'false';
+  private engine(): Promise<SoundPlayer | null> {
+    if (!this.player) {
+      // A failed fetch (offline before it was ever cached) is a quiet game,
+      // not a broken one; the next sound tries again
+      this.player = this.loader().catch(() => {
+        this.player = null;
+        return null;
+      });
+    }
+    return this.player;
+  }
+
+  private readStoredChoice(): SoundChoice {
+    try {
+      return readChoice(localStorage.getItem(CHOICE_KEY), localStorage.getItem(LEGACY_KEY));
+    } catch {
+      return readChoice(null, null);
+    }
   }
 }

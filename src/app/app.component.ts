@@ -1,5 +1,6 @@
 import {
-  AfterViewInit, Component, ComponentFactoryResolver, OnDestroy, OnInit, ViewChild, ViewContainerRef
+  AfterViewInit, Component, ComponentFactoryResolver, ComponentRef, ElementRef, OnDestroy, OnInit, ViewChild,
+  ViewContainerRef
 } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { AuthService } from './services/auth.service';
@@ -35,6 +36,13 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('tapLayer', { read: ViewContainerRef }) tapLayer?: ViewContainerRef;
   /** Resolves true once the tap layer is on screen, false if it was not loaded. */
   tapLayerLoaded: Promise<boolean> = Promise.resolve(false);
+
+  @ViewChild('soundLayer', { read: ViewContainerRef }) soundLayer?: ViewContainerRef;
+  @ViewChild('soundButton') soundButton?: ElementRef<HTMLButtonElement>;
+  /** True while the sound picker is open. */
+  soundsOpen = false;
+  private soundPicker?: ComponentRef<{ closed: { subscribe(fn: () => void): unknown } }>;
+  private opening?: Promise<boolean>;
   private destroyed = false;
 
   constructor(
@@ -136,6 +144,11 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     this.tapLayerLoaded = this.loadTapLayer();
+    // The sounds are fetched after the first screen too, so the first right
+    // answer is not waiting on a download. Not at all for a child with none.
+    if (this.soundService.enabledValue) {
+      this.soundService.preload();
+    }
   }
 
   /**
@@ -165,6 +178,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.destroyed = true;
+    this.soundPicker?.destroy();
     this.layoutService.stop();
   }
 
@@ -172,8 +186,47 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
     this.router.navigate(['/avatar']);
   }
 
-  toggleSound() {
-    this.soundService.toggle();
+  /**
+   * Opens the sound picker over whatever is on screen: fetched the first time,
+   * never in the first load. A round in progress is untouched underneath.
+   */
+  openSounds(): Promise<boolean> {
+    // A second press while the first is still fetching waits for the same picker
+    if (!this.opening) {
+      this.opening = this.showSounds().finally(() => this.opening = undefined);
+    }
+    return this.opening;
+  }
+
+  private async showSounds(): Promise<boolean> {
+    if (this.soundPicker) {
+      return true;
+    }
+    this.soundsOpen = true;
+    try {
+      const { SoundPickerComponent } = await import('./sound/sound-picker.module');
+      if (this.destroyed || !this.soundLayer) {
+        this.soundsOpen = false;
+        return false;
+      }
+      const picker = this.soundLayer.createComponent(this.resolver.resolveComponentFactory(SoundPickerComponent));
+      this.soundPicker = picker;
+      picker.instance.closed.subscribe(() => this.closeSounds());
+      picker.changeDetectorRef.detectChanges();
+      return true;
+    } catch {
+      // Offline before it was ever fetched: nothing to show, and nothing broken
+      this.soundsOpen = false;
+      return false;
+    }
+  }
+
+  closeSounds() {
+    this.soundPicker?.destroy();
+    this.soundPicker = undefined;
+    this.soundsOpen = false;
+    // Back to the button that opened it, so a keyboard is not lost
+    this.soundButton?.nativeElement.focus();
   }
 
   logout() {

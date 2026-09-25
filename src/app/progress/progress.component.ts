@@ -6,6 +6,7 @@ import { AvatarService } from '../services/avatar.service';
 import { Avatar, WardrobeItem, levelItems, isUnlocked, WARDROBE, NO_ITEM } from '../avatar/avatar-model';
 import { LevelProgress, levelProgress } from '../levels/level-curve';
 import { EffortTile, TileKind, effortTiles } from './progress-card';
+import { PROGRESS_WORDS } from './progress-words';
 
 /**
  * How far a child has come.
@@ -41,7 +42,9 @@ export class ProgressComponent implements OnInit {
     private avatarService: AvatarService,
     private router: Router,
     public languageService: LanguageService
-  ) {}
+  ) {
+    languageService.extend(PROGRESS_WORDS);
+  }
 
   ngOnInit() {
     this.totals = this.progressService.getTotals();

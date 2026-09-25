@@ -100,24 +100,89 @@ describe('AppComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/avatar']);
   });
 
-  it('starts with sound enabled', () => {
+  it('starts with sound on', () => {
     expect(component.soundEnabled).toBe(true);
   });
 
-  it('toggles sound off and back on', () => {
-    component.toggleSound();
+  it('opens the sound picker from the header, over the screen, without going anywhere', async () => {
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    TestBed.inject(AuthService).playAsGuest();
+    fixture.detectChanges();
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('.sound-btn');
+    expect(button.getAttribute('aria-label')).toBe('Sounds');
+    expect(button.getAttribute('aria-haspopup')).toBe('dialog');
+    expect(button.getAttribute('aria-expanded')).toBe('false');
+
+    button.click();
+    expect(await component.openSounds()).toBe(true);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('app-sound-picker').length).toBe(1);
+    expect(button.getAttribute('aria-expanded')).toBe('true');
+    expect(router.navigate).not.toHaveBeenCalled();
+  });
+
+  it('opens only one picker however many times the button is pressed', async () => {
+    await Promise.all([component.openSounds(), component.openSounds(), component.openSounds()]);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('app-sound-picker').length).toBe(1);
+  });
+
+  it('closes the picker when it asks, and hands focus back to the sound button', async () => {
+    TestBed.inject(AuthService).playAsGuest();
+    fixture.detectChanges();
+    await component.openSounds();
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('app-sound-picker .close') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('app-sound-picker')).toBeNull();
+    expect(component.soundsOpen).toBe(false);
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('.sound-btn'));
+  });
+
+  it('shows the header button muted once "no sound" is picked there', async () => {
+    TestBed.inject(AuthService).playAsGuest();
+    fixture.detectChanges();
+    await component.openSounds();
+    fixture.detectChanges();
+
+    (fixture.nativeElement.querySelector('app-sound-picker [data-choice="off"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
     expect(component.soundEnabled).toBe(false);
-
-    component.toggleSound();
-    expect(component.soundEnabled).toBe(true);
+    const button: HTMLButtonElement = fixture.nativeElement.querySelector('.sound-btn');
+    expect(button.classList).toContain('muted');
+    expect(button.textContent).toContain('🔇');
+    expect(new SoundService().choiceValue).toBe('off');
   });
 
-  it('remembers the muted choice for the next visit', () => {
-    component.toggleSound();
-    expect(localStorage.getItem('soundEnabled')).toBe('false');
+  it('puts the picker under the tap layer, so a tap on it still sparkles', async () => {
+    await component.tapLayerLoaded;
+    await component.openSounds();
+    fixture.detectChanges();
+    const root: HTMLElement = fixture.nativeElement;
+    const picker = root.querySelector('app-sound-picker')!;
+    const sparks = root.querySelector('app-tap-sparks')!;
+    expect(picker.compareDocumentPosition(sparks) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
 
-    const service = new SoundService();
-    expect(service.enabledValue).toBe(false);
+  it('fetches the sounds after the first screen, but not for a child with none', async () => {
+    const sound = TestBed.inject(SoundService);
+    expect(sound.enabledValue).toBe(true);
+    const preload = spyOn(sound, 'preload').and.returnValue(Promise.resolve(true));
+    const again = TestBed.createComponent(AppComponent);
+    again.detectChanges();
+    expect(preload).toHaveBeenCalledTimes(1);
+    again.destroy();
+
+    sound.choose('off');
+    const quiet = TestBed.createComponent(AppComponent);
+    quiet.detectChanges();
+    expect(preload).toHaveBeenCalledTimes(1);
+    quiet.destroy();
   });
 });
 

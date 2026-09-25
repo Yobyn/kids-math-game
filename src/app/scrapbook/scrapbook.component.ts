@@ -5,6 +5,7 @@ import { ProgressService } from '../services/progress.service';
 import { Keepsake, scrapbookOf } from './scrapbook';
 import { Avatar, WardrobeItem, findItem } from '../avatar/avatar-model';
 import { AvatarService } from '../services/avatar.service';
+import { SCRAPBOOK_WORDS } from './scrapbook-words';
 
 /**
  * What the child has done, in the order it happened.
@@ -26,7 +27,9 @@ export class ScrapbookComponent implements OnInit {
     private avatarService: AvatarService,
     private router: Router,
     public languageService: LanguageService
-  ) {}
+  ) {
+    languageService.extend(SCRAPBOOK_WORDS);
+  }
 
   ngOnInit() {
     this.avatar = this.avatarService.get();
