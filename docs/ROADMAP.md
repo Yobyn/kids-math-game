@@ -69,7 +69,7 @@ back. What that cost is recorded under "What the audit found", at the end.
   from an SVG sprite, shaded, and the hair is fitted to every face shape.
 - The particle field answers a tap: a small burst of its particles under the
   finger, apart from the full-field surge that a correct answer earns.
-- 1,305 unit tests, 200 build-script tests and 39 server tests, run on every
+- 1,316 unit tests, 200 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -256,6 +256,41 @@ as for the character). On the dark chrome it is quieter than on the light
 keypad, because the ring's blue end is close to the surface's navy. It
 reads, but a brighter core for dark surfaces is a small follow-up if Yobyn
 wants more.
+
+**HOW FAR YOU HAVE COME, REDRAWN — DONE (2026-09-25).** A fresh sweep put
+the progress screen and the difficulty screen at the bottom. The progress
+screen was taken because it also broke two of the game's own rules, and
+because it is a lazy route, so redrawing it costs none of the first load's
+last 4.96 kB.
+
+It showed "80% Your best so far", a percentage on a child's screen, and
+"Things you have earned: 5 / 13", an "out of" that turns the wardrobe into a
+set to complete. Both were deliberate once. The best was allowed because a
+best only rises, and the count was written before the scrapbook entry that
+says, with Habgood and Ainsworth behind it, "IT IS NOT A SET TO COMPLETE".
+Both are reversed, for reasons the earlier decisions did not have in front
+of them: accuracy has since been moved to the grown-ups' screen and taken
+off the reward screen, so a percentage here was the last one left in front
+of a child; and the collection count contradicted the scrapbook's own rule.
+
+Now: the child's character, dressed in what they wear, stands in the
+`.field-ring` with the level badge on it and a bar filling towards the next
+level (XP only rises, so it only fills). The counts are tiles edged and
+numbered in the ring's colours for their places. The best round is its
+STARS, the one judgement a child already knows from the end of a round, and
+a best of no stars shows no tile at all ("your best: nothing" is not for a
+child). The things earned are shown with a swatch of their own colour, and
+no total. In landscape the page went from 2.1 screenfuls to 1.59.
+
+The rules are in `progress/progress-card.ts`, DOM-free. The screen still
+never draws a line of scores over time, and every number still only rises;
+the existing tests for both stand, rewritten to read stars. A mutation sweep
+caught 10 of 12 breakages at first. The two it missed were real gaps and
+are closed now: lighting all three stars passed because the only best-round
+test used a three-star round, and swapping a tile's label passed because no
+test read labels. 1,316 unit tests in all. The first load moved 0.22 kB
+(the page's landscape rules live in the global `fit.css`; the page itself
+is lazy).
 
 **THE LOGIN SCREEN IS A TITLE SCREEN — DONE (2026-09-24).** Every other
 screen had had its pass, and the first one a child sees was still a form
@@ -482,9 +517,10 @@ never locked: skin, face, hair and their colours stay free at level 1 however
 the art changes. Per-tap work must be bounded, so a child mashing the keypad
 cannot allocate without limit.
 
-**And art costs bytes.** The initial bundle has **4.96 kB** of headroom
-(495.04 kB against a 500 kB error budget, measured 2026-09-24 after the title
-screen, which cost 3.52 kB; the round track before it cost 0.87 kB and the
+**And art costs bytes.** The initial bundle has **4.74 kB** of headroom
+(495.26 kB against a 500 kB error budget, measured 2026-09-25 after the
+progress screen's redraw, which cost 0.22 kB of global layout; the title
+screen before it cost 3.52 kB; the round track before it cost 0.87 kB and the
 result screen freed 2.00 kB. THE NEXT EAGER CHANGE HAS TO PAY FOR ITSELF:
 measure first with `mapsize.js` and move something out of the first load. The tap layer
 before it cost 0.94 kB because the layer itself is lazy; eagerly it would
@@ -725,9 +761,9 @@ order; a single screenshot cannot show whether a tap did anything.
   before this reads as "A while ago" rather than being given an invented
   date, and those entries sort to the end. A made-up date in a book of what
   really happened is worse than an honest gap.
-  IT IS NOT A SET TO COMPLETE. The progress screen already counts items
-  earned against items in all; this one never does, and shows no count of
-  what is left. Habgood and Ainsworth (Journal of the Learning Sciences,
+  IT IS NOT A SET TO COMPLETE. This one never counts items earned against
+  items in all, and shows no count of what is left; since 2026-09-25 the
+  progress screen does not either. Habgood and Ainsworth (Journal of the Learning Sciences,
   2011) found children learned more from a game whose reward WAS the subject,
   and spent seven times longer at it freely, than from one where the reward
   sat alongside the learning — so this records the maths that was done and
@@ -881,8 +917,10 @@ order; a single screenshot cannot show whether a tap did anything.
 - **A child can see how far they have come.** "How far you have come", from
   the result screen, shows their character, the level they have climbed to,
   and four numbers: rounds finished, questions answered, answers right, and
-  their best round. Plus the things they have earned, counted against
-  everything there is to earn.
+  their best round. Plus the things they have earned. (Since 2026-09-25 the
+  best round is shown as its stars, not a percentage, and the things earned
+  are no longer counted against everything there is to earn — see "HOW FAR
+  YOU HAVE COME, REDRAWN" under Art direction.)
   Every one of those only ever goes up, and that is the design rather than an
   accident. Research on children and progress feedback is clear that recent
   poor results pile up into a performance loop — a discouraging place with

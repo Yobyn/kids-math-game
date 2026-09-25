@@ -405,9 +405,19 @@ html[data-fit='short'] .progress-page > .back-btn {
   grid-column: 1 / -1;
 }
 
-html[data-fit='short'] .progress-page .who app-avatar {
-  transform: scale(0.7);
-  transform-origin: top center;
+html[data-fit='short'] .progress-page .stage {
+  width: 104px;
+  height: 104px;
+}
+
+html[data-fit='short'] .progress-page .stage svg {
+  width: 66px;
+  height: auto;
+}
+
+/* Half a sideways screen is too narrow for four tiles in a row */
+html[data-fit='short'] .progress-page .counts {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 /* ---------- A large tablet ---------- */

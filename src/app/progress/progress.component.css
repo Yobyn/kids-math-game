@@ -23,7 +23,35 @@
   margin-bottom: 1.5rem;
 }
 
+.stage {
+  width: 148px;
+  height: 148px;
+}
+
+/* How far into the next level: XP only rises, so this only ever fills */
+.level-track {
+  width: 100%;
+  max-width: 320px;
+  height: 12px;
+  border-radius: 999px;
+  background: var(--surface-input);
+  overflow: hidden;
+}
+
+.level-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-magenta));
+}
+
+.level-remaining {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+
 .level-badge {
+  margin-top: -1.1rem;
+  position: relative;
   padding: 0.35rem 1rem;
   border-radius: 999px;
   font-weight: 700;
@@ -43,21 +71,46 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
 }
 
+/* Each tile edged and numbered in the ring's colour for its place */
 .count {
   padding: 1rem 0.75rem;
   border-radius: 12px;
   border: 1px solid var(--edge);
+  border-top: 3px solid var(--tile);
   background: var(--surface-input);
   text-align: center;
 }
 
 .count-value {
   font-size: 1.9rem;
-  font-weight: 700;
-  color: var(--text);
+  font-weight: 800;
+  color: var(--tile);
+  filter: brightness(1.35);
+}
+
+.best-stars {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  filter: none;
+}
+
+.star {
+  width: 30px;
+  height: 30px;
+  fill: var(--surface-raised);
+  stroke: var(--edge);
+  stroke-width: 1.5;
+}
+
+.star.earned {
+  fill: #f5b82e;
+  stroke: #9a5a0c;
 }
 
 .count-label {
@@ -77,14 +130,29 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .earned-item {
-  padding: 0.35rem 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem 0.35rem 0.4rem;
   border-radius: 999px;
-  border: 1px solid var(--accent-magenta);
+  border: 1px solid var(--edge);
+  background: var(--surface-raised);
   font-size: 0.9rem;
   color: var(--text);
+}
+
+/* The item's own colour, so the list reads as things rather than words */
+.swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
 }
 
 .more-coming {

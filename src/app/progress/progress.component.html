@@ -1,44 +1,57 @@
 <div class="progress-page">
   <h1>{{ languageService.translate('your-progress') }}</h1>
 
+  <!-- The child, standing in the ring, with the level they have climbed to
+       and how far into the next one they are. Everything here only rises. -->
   <div class="who">
-    <app-avatar [avatar]="avatar" [size]="140" framing="full"></app-avatar>
+    <div class="stage field-ring">
+      <app-avatar [avatar]="avatar" [size]="96" framing="full"></app-avatar>
+    </div>
     <div class="level-badge">{{ languageService.translate('level') }} {{ level.level }}</div>
+    <div class="level-track"
+         role="progressbar"
+         [attr.aria-valuenow]="level.xpIntoLevel"
+         aria-valuemin="0"
+         [attr.aria-valuemax]="level.xpForLevel"
+         [attr.aria-label]="languageService.translate('level') + ' ' + level.level">
+      <div class="level-fill" [style.width.%]="levelPercent"></div>
+    </div>
+    <div class="level-remaining">
+      {{ level.xpRemaining }} {{ languageService.translate('xp-to-next') }}
+    </div>
   </div>
 
   <p class="nothing-yet" *ngIf="!hasPlayed">
     {{ languageService.translate('progress-empty') }}
   </p>
 
-  <div class="counts" *ngIf="hasPlayed">
-    <div class="count">
-      <div class="count-value">{{ totals.rounds }}</div>
-      <div class="count-label">{{ languageService.translate('rounds-finished') }}</div>
-    </div>
-    <div class="count">
-      <div class="count-value">{{ totals.questions }}</div>
-      <div class="count-label">{{ languageService.translate('questions-answered') }}</div>
-    </div>
-    <div class="count">
-      <div class="count-value">{{ totals.correct }}</div>
-      <div class="count-label">{{ languageService.translate('answers-right') }}</div>
-    </div>
-    <div class="count" *ngIf="best !== null">
-      <div class="count-value">{{ best }}%</div>
-      <div class="count-label">{{ languageService.translate('your-best') }}</div>
-    </div>
-  </div>
+  <ul class="counts" *ngIf="hasPlayed">
+    <li class="count" *ngFor="let tile of tiles"
+        [attr.data-kind]="tile.kind"
+        [style.--tile]="tile.colour">
+      <ng-container *ngIf="tile.kind !== 'best'; else best">
+        <div class="count-value">{{ tile.value }}</div>
+      </ng-container>
+      <ng-template #best>
+        <div class="count-value best-stars" role="img" [attr.aria-label]="tile.stars + ' / 3 ★'">
+          <svg *ngFor="let star of [1, 2, 3]" class="star" [class.earned]="star <= (tile.stars || 0)"
+               viewBox="0 0 40 40" aria-hidden="true">
+            <path d="M20 2L24.7 14.5L38.1 15.1L27.6 23.5L31.2 36.4L20 29L8.8 36.4L12.4 23.5L1.9 15.1L15.3 14.5Z"></path>
+          </svg>
+        </div>
+      </ng-template>
+      <div class="count-label">{{ languageService.translate(labelFor(tile.kind)) }}</div>
+    </li>
+  </ul>
 
   <div class="collection" *ngIf="hasPlayed">
-    <h2>
-      {{ languageService.translate('things-earned') }}
-      {{ earnedItems.length }} / {{ itemsInAll }}
-    </h2>
-    <div class="earned-items">
-      <span class="earned-item" *ngFor="let item of earnedItems">
+    <h2>{{ languageService.translate('things-earned') }}</h2>
+    <ul class="earned-items">
+      <li class="earned-item" *ngFor="let item of earnedItems">
+        <span class="swatch" [style.background]="item.colour" aria-hidden="true"></span>
         {{ itemName(item) }}
-      </span>
-    </div>
+      </li>
+    </ul>
     <p class="more-coming" *ngIf="moreToWin">
       {{ languageService.translate('more-to-win') }}
     </p>

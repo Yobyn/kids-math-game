@@ -58,14 +58,16 @@ describe('ProgressComponent', () => {
   it('shows nothing that can go down after a bad round', () => {
     [9, 8, 10].forEach(c => progress.record(round(c)));
     open();
-    const before = Array.from(fixture.nativeElement.querySelectorAll('.count-value'))
-      .map((el: any) => Number(el.textContent.replace('%', '')));
+    const shown = () => Array.from(fixture.nativeElement.querySelectorAll('.count') as NodeListOf<HTMLElement>)
+      .map(tile => tile.querySelector('.best-stars')
+        ? tile.querySelectorAll('.star.earned').length
+        : Number(tile.querySelector('.count-value')!.textContent));
+    const before = shown();
 
     // The worst possible round: every number must still be at least as big
     progress.record(round(0));
     open();
-    const after = Array.from(fixture.nativeElement.querySelectorAll('.count-value'))
-      .map((el: any) => Number(el.textContent.replace('%', '')));
+    const after = shown();
 
     expect(after.length).toBe(before.length);
     after.forEach((value, i) => expect(value).toBeGreaterThanOrEqual(before[i]));
@@ -83,13 +85,57 @@ describe('ProgressComponent', () => {
     expect(fixture.nativeElement.querySelector('.history')).toBeNull();
   });
 
-  it('shows a personal best, which cannot fall either', () => {
+  it('shows a personal best, which cannot fall either, as stars rather than a percentage', () => {
     progress.record(round(9));
     progress.record(round(2));
     open();
 
     expect(component.best).toBe(90);
-    expect(fixture.nativeElement.querySelector('.counts').textContent).toContain('90%');
+    const best = fixture.nativeElement.querySelector('.count[data-kind="best"]');
+    expect(best.querySelectorAll('.star.earned').length).toBe(3);
+    expect(fixture.nativeElement.textContent).not.toContain('%');
+  });
+
+  it('lights only the stars the best round earned', () => {
+    progress.record(round(8));
+    open();
+
+    const best = fixture.nativeElement.querySelector('.count[data-kind="best"]');
+    expect(best.querySelectorAll('.star').length).toBe(3);
+    expect(best.querySelectorAll('.star.earned').length).toBe(2);
+  });
+
+  it('labels every number with what it counts', () => {
+    progress.record(round(9));
+    open();
+
+    const t = (key: any) => component.languageService.translate(key);
+    const labels = Array.from(fixture.nativeElement.querySelectorAll('.count') as NodeListOf<HTMLElement>)
+      .map(tile => [tile.getAttribute('data-kind'), tile.querySelector('.count-label')!.textContent!.trim()]);
+    expect(labels).toEqual([
+      ['rounds', t('rounds-finished')],
+      ['questions', t('questions-answered')],
+      ['right', t('answers-right')],
+      ['best', t('your-best')]
+    ]);
+  });
+
+  it('shows no best at all when the best round earned no stars', () => {
+    progress.record(round(3));
+    open();
+
+    expect(fixture.nativeElement.querySelector('.count[data-kind="best"]')).toBeNull();
+  });
+
+  it('fills a bar towards the next level, which only ever fills', () => {
+    progress.record(round(5));
+    progress.addXp(xpToReach(4) + 10);
+    open();
+
+    const bar = fixture.nativeElement.querySelector('.level-track');
+    expect(bar.getAttribute('role')).toBe('progressbar');
+    expect(component.levelPercent).toBeGreaterThan(0);
+    expect(fixture.nativeElement.querySelector('.level-fill').style.width).toBe(component.levelPercent + '%');
   });
 
   it('shows the level the child has climbed to', () => {
@@ -101,7 +147,7 @@ describe('ProgressComponent', () => {
     expect(fixture.nativeElement.querySelector('.level-badge').textContent).toContain('4');
   });
 
-  it('lists what they have earned, out of everything there is', () => {
+  it('lists what they have earned, and never out of everything there is', () => {
     progress.record(round(5));
     progress.addXp(xpToReach(3));
     open();
@@ -111,6 +157,19 @@ describe('ProgressComponent', () => {
     expect(component.earnedItems.every(item => item.id !== NO_ITEM)).toBe(true);
     expect(fixture.nativeElement.querySelectorAll('.earned-item').length)
       .toBe(component.earnedItems.length);
+    // "5 / 13" made a set to complete; the count of all is not shown
+    const heading = fixture.nativeElement.querySelector('.collection h2').textContent;
+    expect(heading).not.toContain('/');
+    expect(heading).not.toContain(String(component.itemsInAll));
+  });
+
+  it('shows each thing earned in its own colour', () => {
+    progress.record(round(5));
+    progress.addXp(xpToReach(3));
+    open();
+
+    const swatch = fixture.nativeElement.querySelector('.earned-item .swatch') as HTMLElement;
+    expect(swatch.style.background).toBeTruthy();
   });
 
   it('counts an event item among what they earned', () => {
@@ -145,6 +204,9 @@ describe('ProgressComponent', () => {
     open();
 
     expect(fixture.nativeElement.querySelector('.who app-avatar svg')).toBeTruthy();
+    // The full framing, so what they have earned to wear is seen
+    expect(fixture.nativeElement.querySelector('.who app-avatar svg').getAttribute('viewBox')).toBe('0 0 100 132');
+    expect(fixture.nativeElement.querySelector('.who .field-ring app-avatar')).toBeTruthy();
   });
 
   it('goes back to playing', () => {
