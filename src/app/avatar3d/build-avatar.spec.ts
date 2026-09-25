@@ -3,7 +3,7 @@ import {
   Avatar, FACE_SHAPES, HAIR_STYLES, HAIR_TEXTURES, NO_ITEM, WARDROBE, defaultAvatar, findItem
 } from '../avatar/avatar-model';
 import { HATS_OVER_HAIR } from '../avatar/avatar-parts';
-import { HEAD_Y, buildAvatar, disposeAvatar } from './build-avatar';
+import { BODY, HEAD_Y, buildAvatar, disposeAvatar, torsoRadius } from './build-avatar';
 import {
   EYE_DIRS, HAT_CAP, HAT_LIFT, Vec3, hairPoint, hatBrim, headPoint, normalise, radiusAlong
 } from './head-surface';
@@ -32,30 +32,33 @@ function headSpaceVertices(root: THREE.Object3D, mesh: THREE.Mesh): Vec3[] {
   return out;
 }
 
+/**
+ * The vertices that break `rule`. A geometry has thousands of vertices; one
+ * expectation per vertex filled the test runner with millions of recorded
+ * passes and could stall the browser, so each check asserts once on the misses.
+ */
+function misses(vertices: Vec3[], rule: (p: Vec3) => boolean): Vec3[] {
+  return vertices.filter(p => !rule(p));
+}
+
 const COVERING = WARDROBE.filter(item => item.slot === 'hat' && HATS_OVER_HAIR.includes(item.id)).map(item => item.id);
 
 describe('buildAvatar', () => {
-  it('builds every face with every hair style, in every texture, and nothing inside the head', () => {
-    FACE_SHAPES.forEach(faceShape => HAIR_STYLES.forEach((hairStyle, i) => {
+  FACE_SHAPES.forEach(faceShape => it(`builds a ${faceShape} face with every hair style, in every texture, and nothing inside the head`, () => {
+    HAIR_STYLES.forEach((hairStyle, i) => {
       const hairTexture = HAIR_TEXTURES[i % HAIR_TEXTURES.length];
       const root = buildAvatar(avatar({ faceShape, hairStyle, hairTexture }));
       const [shell] = find(root, 'hair-shell') as THREE.Mesh[];
       expect(shell).toBeTruthy(`${faceShape}/${hairStyle} has no hair`);
       const vertices = headSpaceVertices(root, shell);
-      let outside = 0;
-      for (const p of vertices) {
-        const r = Math.hypot(...p);
-        const head = radiusAlong(faceShape, p);
-        // The only vertices under the skin are the row that tucks the edge in
-        expect(r).toBeGreaterThan(head * 0.96, `${faceShape}/${hairStyle} cuts into the head`);
-        if (r > head * 1.001) {
-          outside++;
-        }
-      }
-      expect(outside / vertices.length).toBeGreaterThan(0.9, `${faceShape}/${hairStyle}`);
+      // The only vertices under the skin are the row that tucks the edge in
+      expect(misses(vertices, p => Math.hypot(...p) > radiusAlong(faceShape, p) * 0.96).length)
+        .toBe(0, `${faceShape}/${hairStyle} cuts into the head`);
+      const inside = misses(vertices, p => Math.hypot(...p) > radiusAlong(faceShape, p) * 1.001);
+      expect(inside.length / vertices.length).toBeLessThan(0.1, `${faceShape}/${hairStyle}`);
       disposeAvatar(root);
-    }));
-  });
+    });
+  }));
 
   it('gives the copies of the crown point one normal, so the outline does not split into spikes there', () => {
     const root = buildAvatar(avatar({ hairStyle: 'coils' }));
@@ -79,49 +82,43 @@ describe('buildAvatar', () => {
     FACE_SHAPES.forEach(faceShape => HAIR_STYLES.forEach(hairStyle => {
       const root = buildAvatar(avatar({ faceShape, hairStyle }));
       const [shell] = find(root, 'hair-shell') as THREE.Mesh[];
-      for (const p of headSpaceVertices(root, shell)) {
+      const overEye = misses(headSpaceVertices(root, shell), p => {
         const d = normalise(p);
-        for (const eye of EYE_DIRS) {
-          const angle = Math.acos(d[0] * eye[0] + d[1] * eye[1] + d[2] * eye[2]);
-          expect(angle).toBeGreaterThan(0.2, `${faceShape}/${hairStyle} hair over an eye`);
-        }
-      }
+        return EYE_DIRS.every(eye => Math.acos(d[0] * eye[0] + d[1] * eye[1] + d[2] * eye[2]) > 0.2);
+      });
+      expect(overEye.length).toBe(0, `${faceShape}/${hairStyle} hair over an eye`);
       disposeAvatar(root);
     }));
   });
 
-  it('keeps every covering hat clear of the hair under it, on every face and style', () => {
-    COVERING.forEach(hat => FACE_SHAPES.forEach(faceShape => HAIR_STYLES.forEach(hairStyle => {
+  // One spec per hat, so no single spec runs long enough to look like a hung browser
+  COVERING.forEach(hat => it(`keeps the ${hat} clear of the hair under it, on every face and style`, () => {
+    FACE_SHAPES.forEach(faceShape => HAIR_STYLES.forEach(hairStyle => {
       const root = buildAvatar(avatar({ faceShape, hairStyle, hat, hairTexture: 'coily' }));
       const [shell] = find(root, 'hair-shell') as THREE.Mesh[];
-      for (const p of headSpaceVertices(root, shell)) {
-        expect(Math.hypot(...p)).toBeLessThanOrEqual(radiusAlong(faceShape, p) * (1 + HAT_CAP) + 1e-6,
-          `${hat}/${faceShape}/${hairStyle}: hair would poke through`);
-      }
+      const poking = misses(headSpaceVertices(root, shell),
+        p => Math.hypot(...p) <= radiusAlong(faceShape, p) * (1 + HAT_CAP) + 1e-6);
+      expect(poking.length).toBe(0, `${hat}/${faceShape}/${hairStyle}: hair would poke through`);
       const [hatShell] = find(root, 'hat-shell') as THREE.Mesh[];
       if (hatShell) {
-        let above = 0;
-        for (const p of headSpaceVertices(root, hatShell)) {
-          // Every vertex but the tucked-in underside stands clear of the flattened hair
-          if (Math.hypot(...p) > radiusAlong(faceShape, p) * 1.01) {
-            above++;
-            expect(Math.hypot(...p)).toBeGreaterThan(radiusAlong(faceShape, p) * (1 + HAT_CAP), `${hat}/${faceShape}`);
-          }
-        }
-        expect(above).toBeGreaterThan(0);
+        // Every vertex but the tucked-in underside stands clear of the flattened hair
+        const outer = headSpaceVertices(root, hatShell).filter(p => Math.hypot(...p) > radiusAlong(faceShape, p) * 1.01);
+        expect(outer.length).toBeGreaterThan(0);
+        expect(misses(outer, p => Math.hypot(...p) > radiusAlong(faceShape, p) * (1 + HAT_CAP)).length).toBe(0, `${hat}/${faceShape}`);
       }
       disposeAvatar(root);
-    })));
-  });
+    }));
+  }));
 
   it('ends each hat on the brim line, above the brows', () => {
     FACE_SHAPES.forEach(faceShape => {
       const root = buildAvatar(avatar({ faceShape, hat: 'cap' }));
       const [hatShell] = find(root, 'hat-shell') as THREE.Mesh[];
-      for (const p of headSpaceVertices(root, hatShell)) {
+      const below = misses(headSpaceVertices(root, hatShell), p => {
         const d = normalise(p);
-        expect(d[1]).toBeGreaterThanOrEqual(hatBrim(d) - 0.03, `${faceShape}: hat below its brim`);
-      }
+        return d[1] >= hatBrim(d) - 0.03;
+      });
+      expect(below.length).toBe(0, `${faceShape}: hat below its brim`);
       disposeAvatar(root);
     });
   });
@@ -218,6 +215,77 @@ describe('buildAvatar', () => {
     expect(stand.max.y).toBeLessThanOrEqual(0.05);
   });
 
+  it('gives the head a body in proportion: taller than the head, and as wide as its cheeks', () => {
+    FACE_SHAPES.forEach(faceShape => {
+      const root = buildAvatar(avatar({ faceShape }));
+      root.updateMatrixWorld(true);
+      const body = new THREE.Box3().setFromObject(find(root, 'body')[0]);
+      const head = new THREE.Box3().setFromObject(find(root, 'head')[0]);
+      const headHeight = head.max.y - head.min.y;
+      // From the floor to the chin is more than the head is tall
+      expect(head.min.y).toBeGreaterThan(headHeight, faceShape);
+      // Shoulder to shoulder, arms and all, is most of the head's width
+      expect(body.max.x - body.min.x).toBeGreaterThan((head.max.x - head.min.x) * 0.85, faceShape);
+      // The chin rests on the collar, not above a gap or deep inside the body
+      const collar = BODY.waist + BODY.torsoHeight;
+      expect(head.min.y).toBeGreaterThan(collar - 0.25, faceShape);
+      expect(head.min.y).toBeLessThan(collar + 0.2, faceShape);
+      disposeAvatar(root);
+    });
+  });
+
+  it('rounds the torso over the shoulders instead of ending in a ledge', () => {
+    // Fullest at the chest, then narrowing all the way to the collar
+    let widest = 0;
+    let widestAt = 0;
+    for (let h = 0; h <= BODY.torsoHeight; h += 0.01) {
+      if (torsoRadius(h) > widest) {
+        widest = torsoRadius(h);
+        widestAt = h;
+      }
+    }
+    expect(widestAt).toBeGreaterThan(BODY.torsoHeight * 0.4);
+    expect(widestAt).toBeLessThan(BODY.torsoHeight * 0.75);
+    for (let h = widestAt; h < BODY.torsoHeight; h += 0.02) {
+      expect(torsoRadius(h + 0.02)).toBeLessThanOrEqual(torsoRadius(h) + 1e-9);
+    }
+    expect(torsoRadius(BODY.torsoHeight)).toBeLessThan(0.05);
+    expect(torsoRadius(-1)).toBeLessThan(0.05);
+    expect(torsoRadius(BODY.torsoHeight + 1)).toBeLessThan(0.05);
+  });
+
+  it('hangs the arms from the shoulders with the hands clear of the body', () => {
+    const root = buildAvatar(avatar());
+    root.updateMatrixWorld(true);
+    const hands = find(root, 'hand');
+    expect(hands.length).toBe(2);
+    hands.forEach(hand => {
+      const p = new THREE.Vector3().setFromMatrixPosition(hand.matrixWorld);
+      const h = p.y - BODY.waist;
+      // Beside the torso at that height, and down by the hips
+      // The whole hand, not just its middle, is outside the torso
+      const handRadius = 0.19 * 0.9;
+      const widest = Math.max(torsoRadius(Math.max(h, 0)), BODY.hips) * BODY.torsoScale[0];
+      expect(Math.abs(p.x) - handRadius).toBeGreaterThan(widest);
+      expect(p.y).toBeLessThan(BODY.waist + 0.3);
+      expect(p.y).toBeGreaterThan(0.6);
+    });
+    expect(find(root, 'shoulder').length).toBe(2);
+    expect(find(root, 'cuff').length).toBe(2);
+  });
+
+  it('lays each stripe on the torso, at the torso\'s own width', () => {
+    const root = buildAvatar(avatar({ top: 'striped' }));
+    find(root, 'stripe').forEach(stripe => {
+      const geometry = (stripe as THREE.Mesh).geometry as THREE.CylinderGeometry;
+      const h = stripe.position.y - BODY.waist;
+      expect(geometry.parameters.radiusTop).toBeCloseTo(torsoRadius(h + 0.05), 9);
+      expect(geometry.parameters.radiusBottom).toBeCloseTo(torsoRadius(h - 0.05), 9);
+      expect(h).toBeGreaterThan(0);
+      expect(h).toBeLessThan(BODY.torsoHeight * 0.8);
+    });
+  });
+
   it('frees every geometry and material when disposed', () => {
     const root = buildAvatar(avatar({ hat: 'crown', glasses: 'shades' }));
     const geometries = new Set<THREE.BufferGeometry>();
@@ -248,9 +316,8 @@ describe('glasses', () => {
       const root = buildAvatar(avatar({ faceShape, glasses }));
       const frames = find(root, 'glasses-frame') as THREE.Mesh[];
       expect(frames.length).toBeGreaterThanOrEqual(2);
-      frames.forEach(frame => headSpaceVertices(root, frame).forEach(p => {
-        expect(Math.hypot(...p)).toBeGreaterThan(radiusAlong(faceShape, p), `${glasses} on ${faceShape}`);
-      }));
+      frames.forEach(frame => expect(misses(headSpaceVertices(root, frame),
+        p => Math.hypot(...p) > radiusAlong(faceShape, p)).length).toBe(0, `${glasses} on ${faceShape}`));
     }));
   });
 
@@ -261,14 +328,9 @@ describe('glasses', () => {
       expect(arms.length).toBe(2);
       arms.forEach(arm => {
         const vertices = headSpaceVertices(root, arm);
-        let reachesBack = false;
-        for (const p of vertices) {
-          expect(Math.hypot(...p)).toBeGreaterThan(radiusAlong(faceShape, p), `${faceShape}/${hairStyle} arm in the head`);
-          if (p[2] < 0) {
-            reachesBack = true;
-          }
-        }
-        expect(reachesBack).toBe(true);
+        expect(misses(vertices, p => Math.hypot(...p) > radiusAlong(faceShape, p)).length)
+          .toBe(0, `${faceShape}/${hairStyle} arm in the head`);
+        expect(vertices.some(p => p[2] < 0)).toBe(true);
       });
     }));
   });
@@ -321,9 +383,8 @@ describe('wizard hat', () => {
     FACE_SHAPES.forEach(faceShape => {
       const root = buildAvatar(avatar({ faceShape, hat: 'wizard' }));
       const [cone] = find(root, 'hat-cone') as THREE.Mesh[];
-      for (const p of headSpaceVertices(root, cone)) {
-        expect(Math.hypot(...p)).toBeGreaterThanOrEqual(radiusAlong(faceShape, p) * HAT_LIFT, faceShape);
-      }
+      expect(misses(headSpaceVertices(root, cone), p => Math.hypot(...p) >= radiusAlong(faceShape, p) * HAT_LIFT).length)
+        .toBe(0, faceShape);
     });
   });
 });

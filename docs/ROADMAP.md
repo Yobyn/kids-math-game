@@ -73,7 +73,7 @@ back. What that cost is recorded under "What the audit found", at the end.
   top is built to fit, and tested on every combination.
 - The particle field answers a tap: a small burst of its particles under the
   finger, apart from the full-field surge that a correct answer earns.
-- 1,389 unit tests, 200 build-script tests and 39 server tests, run on every
+- 1,401 unit tests, 200 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -186,6 +186,39 @@ unchanged by building, so saved characters round-trip) and
 tests in all. The mutation sweep killed 17 of 17: sideburns, fringe clamp,
 hat cap, hat clearance, cone clearance, crown seat, lens offset, framing,
 turn accumulation, bun under a hat, crown normals and more.
+
+**A BODY IN PROPORTION — DONE (2026-09-25).** Yobyn: "I'm not a fan of the
+shoulders and the body should be bigger, more in proportion with the head."
+The first body was a short barrel with a flared ledge at the top and arms
+stuck to its sides; the head was about 60% of the character's height. Now
+the body is a little taller than the head (the head is about 45%):
+
+- The torso is taller and wider, fullest at the chest, then one long soft
+  slope over the shoulders to the collar. A test holds it to that: no
+  point above the chest is wider than the point below it, so a ledge
+  cannot come back.
+- The arms hang from round shoulder caps in the sleeve colour, swung a
+  little away from the body, with a cuff at the wrist; a test keeps the
+  whole hand clear of the torso and hips.
+- There are hips in the trousers and longer legs.
+- All the proportions are in one `BODY` table in `build-avatar.ts`, and the
+  head's height is derived from it, so the chin always rests on the collar
+  (tested on every face shape).
+- Stripes, the star and flower decals, and the hoodie's hood, drawstrings
+  and pocket are placed from the torso's own outline (`torsoRadius`), so
+  they sit on it at any size.
+- The camera's usual distance moved back to fit the taller character
+  wearing a cap.
+
+Two test-suite fixes came with it. The routing test that really opens
+`/avatar` left the screen open, so its WebGL stage kept drawing into later
+tests, and the full run sometimes ended early with no failure reported. The
+test now closes what it opens, and the stage hands its GL context back
+(`forceContextLoss`) and stops drawing when destroyed. Separately, the fit
+tests called `expect` once per vertex, millions of times. That could stall
+the browser past Karma's 30-second limit, so each check now asserts once on
+the list of misses. Before these fixes 2 of 6 full runs ended early; after,
+8 of 8 were complete and green. 1,401 unit tests.
 
 WHAT IS NEXT, in the order the runs should take them:
 

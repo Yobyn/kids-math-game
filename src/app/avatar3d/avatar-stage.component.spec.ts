@@ -179,6 +179,18 @@ describe('AvatarStageComponent', () => {
       expect((component as any).angle).toBeCloseTo(0, 6);
     });
 
+    it('gives its WebGL context back and stops drawing when the screen closes', () => {
+      const renderer = (component as any).renderer;
+      const lose = spyOn(renderer, 'forceContextLoss').and.callThrough();
+      const raf = spyOn(window, 'requestAnimationFrame').and.callThrough();
+      fixture.destroy();
+      expect(lose).toHaveBeenCalled();
+      expect((component as any).renderer).toBeUndefined();
+      (component as any).requestRender();
+      component.turnBy(component.TURN_STEP);
+      expect(raf).not.toHaveBeenCalled();
+    });
+
     it('gives the character one full turn when the screen opens', () => {
       expect((component as any).introduced).toBe(true);
     });

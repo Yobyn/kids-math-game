@@ -1,5 +1,5 @@
 import { Component, NgZone } from '@angular/core';
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
@@ -65,12 +65,22 @@ describe('the routes, and which of them the first load carries', () => {
   });
 
   describe('opening one of them', () => {
+    let opened: ComponentFixture<HostComponent> | undefined;
+
+    // A screen left open keeps running after its test: the dressing-up
+    // screen's 3D stage would hold a WebGL context and keep drawing
+    afterEach(() => {
+      opened?.destroy();
+      opened = undefined;
+    });
+
     // Genuinely async, not fakeAsync: a lazy route is a real dynamic
     // import(), and fakeAsync cannot flush a promise webpack settles
     // outside the zone's timer queue — it reports the navigation as simply
     // never having happened.
     async function open(path: string) {
       const fixture = TestBed.createComponent(HostComponent);
+      opened = fixture;
       const router = TestBed.inject(Router);
       const zone = TestBed.inject(NgZone);
       fixture.detectChanges();
