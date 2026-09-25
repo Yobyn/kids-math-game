@@ -77,6 +77,10 @@ export function radiusAlong(shape: FaceShape, ray: Vec3): number {
   let d = u;
   for (let i = 0; i < 20; i++) {
     const p = normalise(headPoint(shape, d));
+    const miss = Math.abs(u[0] - p[0]) + Math.abs(u[1] - p[1]) + Math.abs(u[2] - p[2]);
+    if (miss < 1e-12) {
+      break;
+    }
     d = normalise([d[0] + u[0] - p[0], d[1] + u[1] - p[1], d[2] + u[2] - p[2]]);
   }
   return headRadius(shape, d);
@@ -195,11 +199,14 @@ export function puff(dir: Vec3, count: number): number {
   const d = normalise(dir);
   // A puff reaches about as far as the gap to its neighbours
   const reach = Math.sqrt((4 * Math.PI) / count) * 0.75;
+  // Most puffs are nowhere near: rule them out on the dot product, which is
+  // cheap, before paying for an angle
+  const near = Math.cos(reach);
   let best = 0;
   for (const p of spherePoints(count)) {
-    const angle = Math.acos(Math.max(-1, Math.min(1, d[0] * p[0] + d[1] * p[1] + d[2] * p[2])));
-    if (angle < reach) {
-      const t = angle / reach;
+    const dot = d[0] * p[0] + d[1] * p[1] + d[2] * p[2];
+    if (dot > near) {
+      const t = Math.acos(Math.min(1, dot)) / reach;
       best = Math.max(best, (1 - t * t) ** 2);
     }
   }

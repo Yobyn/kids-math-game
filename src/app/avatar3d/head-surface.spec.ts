@@ -145,13 +145,11 @@ describe('hair', () => {
     for (const shape of FACE_SHAPES) {
       for (const style of HAIR_STYLES) {
         for (const texture of HAIR_TEXTURES) {
-          for (const dir of everywhere(300)) {
+          const inside = everywhere(300).filter(dir => {
             const p = hairPoint(shape, style, texture, dir);
-            if (p) {
-              expect(Math.hypot(...p)).toBeGreaterThan(radiusAlong(shape, p),
-                `${shape}/${style}/${texture} inside the head`);
-            }
-          }
+            return p && Math.hypot(...p) <= radiusAlong(shape, p);
+          });
+          expect(inside.length).toBe(0, `${shape}/${style}/${texture} inside the head`);
         }
       }
     }
@@ -187,13 +185,11 @@ describe('hair', () => {
     for (const shape of FACE_SHAPES) {
       for (const style of HAIR_STYLES) {
         for (const texture of HAIR_TEXTURES) {
-          for (const dir of everywhere(300)) {
+          const standingUp = everywhere(300).filter(dir => {
             const p = hairPoint(shape, style, texture, dir, HAT_CAP);
-            if (p) {
-              expect(Math.hypot(...p) / radiusAlong(shape, p)).toBeLessThanOrEqual(1 + HAT_CAP + 1e-6,
-                `${shape}/${style}/${texture}`);
-            }
-          }
+            return p && Math.hypot(...p) / radiusAlong(shape, p) > 1 + HAT_CAP + 1e-6;
+          });
+          expect(standingUp.length).toBe(0, `${shape}/${style}/${texture}`);
         }
       }
     }

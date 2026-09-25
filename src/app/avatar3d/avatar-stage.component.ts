@@ -7,9 +7,9 @@ import { Avatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
 
 /** The usual camera distance, for a character of ordinary height. */
-export const BASE_DISTANCE = 8.4;
+export const BASE_DISTANCE = 10.2;
 /** Where the usual camera looks, part-way up an ordinary character. */
-export const BASE_CENTRE = 1.62;
+export const BASE_CENTRE = 2.25;
 
 /**
  * How far back to stand, and where to look, to see everything from `bottom`
@@ -86,6 +86,7 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   /** A turn under way, eased from one angle to another. */
   private spin?: { from: number; to: number; start: number; ms: number };
   private introduced = false;
+  private destroyed = false;
   private angle = 0;
   @ViewChild('canvas') canvasRef?: ElementRef<HTMLCanvasElement>;
 
@@ -121,7 +122,7 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       // Linear output: the palette's hex colours come out as the hex says
       this.light();
-      this.camera.position.set(0, 2.5, BASE_DISTANCE);
+      this.camera.position.set(0, BASE_CENTRE + 0.9, BASE_DISTANCE);
       this.controls = new OrbitControls(this.camera, canvas);
       this.controls.target.set(0, BASE_CENTRE, 0);
       this.controls.enablePan = false;
@@ -147,13 +148,20 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   ngOnDestroy() {
+    this.destroyed = true;
+    this.spin = undefined;
     cancelAnimationFrame(this.frame);
+    this.frame = 0;
     window.removeEventListener('resize', this.resize);
     this.controls?.dispose();
     if (this.model) {
       disposeAvatar(this.model);
     }
+    // Hand the GL context back now rather than whenever the page is
+    // collected: a browser keeps only a handful alive at once
     this.renderer?.dispose();
+    this.renderer?.forceContextLoss();
+    this.renderer = undefined;
   }
 
   /** Turns the character to face `angle` radians round from the front, at once. */
@@ -261,7 +269,7 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private requestRender() {
-    if (this.frame) {
+    if (this.frame || this.destroyed) {
       return;
     }
     this.frame = requestAnimationFrame(now => {
