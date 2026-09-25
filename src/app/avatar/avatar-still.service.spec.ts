@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { Avatar, defaultAvatar } from './avatar-model';
+import { keepStill } from './still-queue';
 import {
   AvatarStillService,
   MAX_STORED_STILLS,
@@ -100,22 +101,18 @@ describe('AvatarStillService', () => {
     expect(drawn.length).toBe(1);
   });
 
-  it('fetches the renderer once and draws one still at a time', async () => {
+  it('fetches the renderer once for all its pictures', async () => {
     const loader = spyOn(service, 'loader').and.callThrough();
-    let drawing = 0;
-    let most = 0;
-    const render = maker.render;
-    maker.render = (...args) => {
-      drawing++;
-      most = Math.max(most, drawing);
-      const url = render(...args);
-      drawing--;
-      return url;
-    };
     await Promise.all(['cap', 'beanie', 'crown'].map(hat => service.still(withHat(hat), 'portrait', 40)));
     expect(loader).toHaveBeenCalledTimes(1);
     expect(drawn.length).toBe(3);
-    expect(most).toBe(1);
+  });
+
+  it('keeps the 2D drawing when the code that makes pictures cannot be fetched', async () => {
+    service.queueLoader = () => Promise.reject(new Error('offline'));
+    const loader = spyOn(service, 'loader').and.callThrough();
+    expect(await service.still(defaultAvatar(), 'portrait', 40)).toBeNull();
+    expect(loader).not.toHaveBeenCalled();
   });
 
   it('answers null where there is no WebGL, and does not ask again this visit', async () => {
@@ -186,10 +183,31 @@ describe('AvatarStillService', () => {
     expect(Object.values(stored())).toEqual(['data:image/png;base64,c-portrait', 'data:image/png;base64,d-portrait']);
   });
 
-  it('shrugs off a store it cannot read', () => {
-    localStorage.setItem(STILL_STORE_KEY, 'not json');
-    expect(service.cached(defaultAvatar(), 'portrait', 40)).toBeNull();
-    localStorage.setItem(STILL_STORE_KEY, '[1,2]');
-    expect(service.cached(defaultAvatar(), 'portrait', 40)).toBeNull();
+  it('starts afresh over a store it cannot read, and keeps the new picture', async () => {
+    for (const junk of ['not json', '[1,2]', 'null']) {
+      localStorage.setItem(STILL_STORE_KEY, junk);
+      expect(service.cached(withHat(junk), 'portrait', 40)).toBeNull();
+      const url = await service.still(withHat(junk), 'portrait', 40);
+      expect(service.cached(withHat(junk), 'portrait', 40)).toBe(url);
+      expect(Object.values(stored())).toEqual([url!]);
+    }
+  });
+});
+
+describe('keepStill', () => {
+  beforeEach(() => localStorage.removeItem(STILL_STORE_KEY));
+  afterEach(() => localStorage.removeItem(STILL_STORE_KEY));
+
+  it('counts a picture kept again as the newest, so it is the last to go', () => {
+    keepStill('a', 'data:a');
+    keepStill('b', 'data:b');
+    keepStill('a', 'data:a2');
+    expect(Object.keys(JSON.parse(localStorage.getItem(STILL_STORE_KEY)!))).toEqual(['b', 'a']);
+    for (let i = 0; i < MAX_STORED_STILLS - 1; i++) {
+      keepStill(`n${i}`, 'data:n');
+    }
+    const kept = JSON.parse(localStorage.getItem(STILL_STORE_KEY)!);
+    expect(kept.a).toBe('data:a2');
+    expect(kept.b).toBeUndefined();
   });
 });

@@ -275,6 +275,17 @@ describe('AvatarChooserComponent wardrobe', () => {
       .toBe(PORTRAIT_VIEW_BOX);
   });
 
+  it('keeps the swatches flat: twenty 3D pictures would be twenty renders for a thumbnail', () => {
+    openAtLevel(9);
+    (['face', 'hair', 'wardrobe'] as const).forEach(section => {
+      component.show(section);
+      fixture.detectChanges();
+      const swatches = fixture.debugElement.queryAll(By.css('.swatch app-avatar'));
+      expect(swatches.length).withContext(section).toBeGreaterThan(3);
+      swatches.forEach(swatch => expect((swatch.componentInstance as AvatarComponent).look).withContext(section).toBe('flat'));
+    });
+  });
+
   it('shows the child their whole character on the stage, in 3D', () => {
     openAtLevel(9);
 

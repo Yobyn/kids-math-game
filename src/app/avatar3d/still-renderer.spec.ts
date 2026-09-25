@@ -30,6 +30,19 @@ describe('still renderer', () => {
       expect(box.min.x).toBeGreaterThanOrEqual(-reach - 1e-6);
     });
 
+    it('frames a portrait from the chin, however long the hair', () => {
+      const long = buildAvatar({ ...boy, hairStyle: 'long' as any });
+      try {
+        const head = new THREE.Box3().setFromObject(long.getObjectByName('head-group')!);
+        const hair = new THREE.Box3().setFromObject(long.getObjectByName('hair')!);
+        expect(hair.min.y).toBeLessThan(head.min.y - 1);
+        const box = framedBox(long, 'portrait', FIGURES.boy);
+        expect(box.min.y).toBeCloseTo(head.min.y - (head.max.y - head.min.y) * 0.28, 5);
+      } finally {
+        disposeAvatar(long);
+      }
+    });
+
     it('leaves room above a tall hat', () => {
       const hatted = buildAvatar({ ...boy, hat: 'wizard' as any });
       try {
@@ -112,12 +125,26 @@ describe('still renderer', () => {
       expect(drawn / 1600).toBeLessThan(0.95);
     });
 
-    it('answers null where the browser cannot draw in 3D', () => {
+    it('answers null where the browser cannot draw in 3D, without trying to build a renderer', () => {
       const getContext = HTMLCanvasElement.prototype.getContext;
-      spyOn(HTMLCanvasElement.prototype, 'getContext').and.callFake(function (this: HTMLCanvasElement, type: string, ...rest: any[]) {
+      const asked = spyOn(HTMLCanvasElement.prototype, 'getContext').and.callFake(function (this: HTMLCanvasElement, type: string, ...rest: any[]) {
         return /webgl/.test(type) ? null : (getContext as any).call(this, type, ...rest);
       } as any);
       expect(createStillRenderer()).toBeNull();
+      // One canvas asked, once for each kind of WebGL; a renderer would ask its own
+      const canvases = new Set(asked.calls.all().map(call => call.object));
+      expect(canvases.size).toBe(1);
+      expect(asked.calls.count()).toBe(2);
+    });
+
+    it('leaves the stand out of both framings', () => {
+      const model = buildAvatar(defaultAvatar());
+      try {
+        const stand = new THREE.Box3().setFromObject(model.getObjectByName('pedestal')!);
+        (['portrait', 'full'] as const).forEach(framing => expect(framedBox(model, framing, FIGURES.boy).min.y).toBeGreaterThan(stand.max.y));
+      } finally {
+        disposeAvatar(model);
+      }
     });
   });
 });

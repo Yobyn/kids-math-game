@@ -45,12 +45,13 @@ export function framedBox(model: THREE.Object3D, framing: StillFraming, figure: 
         box.expandByObject(part);
       }
     });
-    // Down to the top of the shoulders, so a portrait is not a floating head
-    const head = model.getObjectByName('head-group')!;
-    const headSize = new THREE.Box3().setFromObject(head).getSize(new THREE.Vector3());
-    box.min.y -= headSize.y * 0.45;
-    box.min.x = Math.min(box.min.x, -headSize.x * 0.95);
-    box.max.x = Math.max(box.max.x, headSize.x * 0.95);
+    // Down to the top of the shoulders, so a portrait is not a floating head;
+    // measured from the chin, so long hair down the back does not shrink the face
+    const head = new THREE.Box3().setFromObject(model.getObjectByName('head-group')!);
+    const headSize = head.getSize(new THREE.Vector3());
+    box.min.y = head.min.y - headSize.y * 0.28;
+    box.min.x = Math.min(box.min.x, -headSize.x * 0.8);
+    box.max.x = Math.max(box.max.x, headSize.x * 0.8);
     return box;
   }
   // Head to hips: the clothes and who is wearing them. The whole figure is
@@ -91,11 +92,8 @@ export class StillRenderer {
 
   /** The character as a PNG data URL, `width` by `height` device pixels. */
   render(avatar: Avatar, framing: StillFraming, width: number, height: number): string {
+    // The stand is in the model but below both framings, so it is never in the picture
     const model = buildAvatar(avatar);
-    const stand = model.getObjectByName('pedestal');
-    if (stand) {
-      model.remove(stand);
-    }
     this.scene.add(model);
     try {
       const box = framedBox(model, framing, figureFor(avatar.bodyType));
@@ -114,9 +112,6 @@ export class StillRenderer {
     } finally {
       this.scene.remove(model);
       disposeAvatar(model);
-      if (stand) {
-        disposeAvatar(stand);
-      }
     }
   }
 

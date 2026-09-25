@@ -298,7 +298,9 @@ characters. Now every screen shows the 3D character, as a picture.
 - One offscreen three.js renderer (`avatar3d/still-renderer.ts`) draws a
   picture of the character, a little turned so it reads as 3D even small,
   in the stage's light and outline, on a see-through background. A
-  portrait is the head and whatever is on it, down to the shoulders; the
+  portrait is the head and whatever is on it, from just below the chin
+  (measured from the chin, so long hair down the back does not shrink the
+  face); the
   full framing (the progress ring) is head to belt, out to the shoulders,
   because a seven-heads-tall figure in a small circle is a matchstick.
 - three.js is still never in the first load. The renderer is fetched the
@@ -310,7 +312,7 @@ characters. Now every screen shows the 3D character, as a picture.
   The key is the whole outfit, the framing and the pixel size, plus
   `STILL_VERSION` — BUMP IT whenever the 3D look changes, or screens will
   show a picture of the old one.
-- One picture at a time, each outfit once. A picture that could not be made
+- Each outfit is drawn once. A picture that could not be made
   is not asked for again on every redraw (a page that hands over a new
   object for the same character each redraw would otherwise loop).
 - The dressing-up screen's swatches stay 2D (`look="flat"`): a row of
@@ -321,16 +323,23 @@ and the header's swap; making and keeping pictures is its own lazy chunk
 (`avatar/still-queue.ts`). To pay for it, the scrapbook's book-building
 code left the first load (`scrapbook/earned.ts` holds the two readers the
 progress service needs) and the season names moved to the scrapbook's
-words. Net +1.2 kB (486.81 → 488.03 kB). THAT IS A DEBT: the next run that
+words. Net +1.3 kB (486.81 → 488.07 kB). THAT IS A DEBT: the next run that
 touches the first load pays it back.
 
 Tests: `avatar-still.service.spec.ts` (keys, sizes, keeping and dropping,
-one render per outfit, one at a time, no WebGL, a failed render, turned
-off), the component's 3D swap (2D until ready, a kept picture at once, a
+a picture kept again counted as newest, a junk store replaced, one render
+per outfit, no WebGL, the picture code not loading, a failed render,
+turned off), the component's 3D swap (2D until ready, a kept picture at once, a
 slow answer for an old outfit ignored, the same outfit not asked twice,
-flat), and `still-renderer.spec.ts` (framing, camera distance, and a real
-render: a PNG, clear corners, the character in the middle). Other screens'
-unit tests run with pictures off (`src/test.ts`). SWEEP_PLACEHOLDER
+flat), `still-renderer.spec.ts` (framing, the stand out of frame, camera
+distance, and a real render: a PNG, clear corners, the character in the
+middle), and the chooser's swatches staying flat on every tab. Other screens'
+unit tests run with pictures off (`src/test.ts`). 1,535 unit tests.
+The mutation sweep caught 24 of 32 at first. Of the 8 survivors, 3 were
+code that did nothing and is gone (a render queue, when a render is one
+synchronous call and cannot overlap; a second catch; taking the stand
+out of a picture it was never in), and 5 were gaps, now closed with the
+tests above. A re-run of all 8 catches every one.
 
 WHAT IS NEXT, in the order the runs should take them:
 

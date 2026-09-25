@@ -9,7 +9,7 @@ export interface StillMaker {
 }
 
 /** Bumped whenever the 3D look changes, so no screen shows a picture of the old one. */
-export const STILL_VERSION = 1;
+export const STILL_VERSION = 2;
 export const STILL_STORE_KEY = 'avatarStills';
 /** A few pictures of the current character are kept; older ones make room. */
 export const MAX_STORED_STILLS = 8;
@@ -64,6 +64,10 @@ export class AvatarStillService {
   loader: () => Promise<StillMaker | null> = () =>
     import('../avatar3d/still-renderer').then(module => module.createStillRenderer());
 
+  /** Swapped in tests; in the app it fetches the code that makes and keeps pictures. */
+  queueLoader: () => Promise<StillMaking> = () =>
+    import('./still-queue').then(module => new module.StillQueue(() => this.loader()));
+
   private making: Promise<StillMaking> | null = null;
 
   /** A picture already made or kept, if there is one: no waiting, no fetch. */
@@ -79,8 +83,9 @@ export class AvatarStillService {
     }
     const [width, height] = stillBox(framing, size, this.pixelRatio());
     if (!this.making) {
-      this.making = import('./still-queue').then(module => new module.StillQueue(() => this.loader()));
+      this.making = this.queueLoader();
     }
+    // Offline before the chunk was ever fetched: the 2D drawing stays
     return this.making.then(making => making.still(stillKey(avatar, framing, width, height), avatar, framing, width, height), () => null);
   }
 
