@@ -23,6 +23,7 @@ import {
   nextUnlock
 } from './avatar-model';
 import { ChooserRow, SECTIONS, SectionId } from './chooser-sections';
+import { CHOOSER_WORDS } from './chooser-words';
 
 /**
  * Where a child makes the character theirs. Every choice here is free and
@@ -63,7 +64,9 @@ export class AvatarChooserComponent implements OnInit {
     private progressService: ProgressService,
     private router: Router,
     public languageService: LanguageService
-  ) {}
+  ) {
+    languageService.extend(CHOOSER_WORDS);
+  }
 
   ngOnInit() {
     this.avatar = { ...this.avatarService.get() };

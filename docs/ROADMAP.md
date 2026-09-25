@@ -41,7 +41,10 @@ back. What that cost is recorded under "What the audit found", at the end.
   child's own character in the ring, up to three drawn stars, praise for the
   work, and tiles of what they did (how many right, the XP it paid, and a
   new best only when it was one). It shows no percentage and no score table.
-- Sound and haptics switch in the header, remembered between sessions.
+- A child picks their own sounds from the header: Chimes, Marimba, Retro,
+  Bubbles or Space, or none (which turns haptics off too). Each set has a
+  sound for a right answer, a gentle try-again, a key press, each star as it
+  lands, and the end of a round. Remembered between sessions.
 - Drifting math symbols behind every screen; everything motion-related
   respects `prefers-reduced-motion` — in CSS now, with no animation
   framework in the bundle at all.
@@ -73,7 +76,7 @@ back. What that cost is recorded under "What the audit found", at the end.
   top is built to fit, and tested on every combination.
 - The particle field answers a tap: a small burst of its particles under the
   finger, apart from the full-field surge that a correct answer earns.
-- 1,401 unit tests, 200 build-script tests and 39 server tests, run on every
+- 1,466 unit tests, 200 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -921,6 +924,52 @@ order; a single screenshot cannot show whether a tap did anything.
   carry their own, built where the question is (see Money, above).
 
 ### Keeping a child coming back
+
+**SOUNDS A CHILD PICKS — DONE (2026-09-25).** Yobyn: "Please can you update
+the sounds, make that the child can choose." The game had two MP3s (a right
+answer and a wrong one) and an on/off switch. Now the sound button in the
+header opens a panel over whatever screen the child is on, and a round in
+progress is untouched underneath. It offers five sets and "no sound", and
+tapping a set picks it and plays it, so choosing is listening.
+
+- **The sounds are notes, not recordings** (`sound/sound-sets.ts`). They are
+  made by the Web Audio API (`sound/sound-engine.ts`): Chimes (bells), Marimba
+  (wood), Retro (8-bit), Bubbles (bloops) and Space (sweeps and echoes).
+- **Five moments each:** a right answer, trying again, a key press, a star
+  landing (each star a step higher: a third, then a fifth) and the end of a
+  round. The end-of-round tune follows the stars, and plays after a round with
+  no stars too, because the work is praised whatever.
+- **Rules every set is tested against.** Trying again is never a buzzer: it
+  is quieter than a right answer and falls in pitch. A key press is the
+  quietest and shortest sound. Nothing adds up past half volume. Square waves
+  appear only in Retro, and quietly. Every pitch is in a comfortable range.
+- **Old settings are kept.** A child who had switched sound off with the old
+  switch finds it still off; everyone else starts on Chimes. "No sound" also
+  turns the haptics off, as the switch did.
+- **Waking the audio.** Browsers only let a page make sound after a touch.
+  The engine wakes the audio on any touch or key after the device has put it
+  to sleep (a call, a locked screen), so a right answer is heard.
+- **Lazy, and nothing large in the first load.** The engine, the sets and the
+  picker are all fetched after the first screen or on first open. The two
+  MP3s (110 kB) are gone.
+
+IT PAID FOR ITSELF, with room to spare. The first load had 4.86 kB left, and
+the eager side of this (the choice, the hooks, the header button) costs about
+2 kB. It was paid for by moving 67 translation keys, about 10 kB of text in
+three languages, out of the language service. Those words were used ONLY by
+lazy screens: the grown-ups' page, the scrapbook, the progress screen and the
+dressing-up screen. Each screen now keeps its own words in a `*-words.ts` file
+in its lazy chunk and hands them to the language service when it opens
+(`LanguageService.extend`). A test checks that none of them is in the first
+load until its screen adds it, and that the first-load words cannot be
+overwritten. **The first load went from 495.14 kB to 486.73 kB** with the
+new feature in it: 13.27 kB of headroom now.
+
+Tests: 1,466 unit tests. A mutation sweep of 19 mutants killed 18 at first.
+The survivor was a real design flaw rather than a missing test: the engine
+stopped listening for touches once awake, so audio put to sleep by the
+device would stay asleep. It now keeps listening, and a test covers it.
+
 - **The game remembers what happened now.** `/scrapbook` is a record, reached
   from the progress screen: the events a child was present for, the items
   they won, the day each arrived, their best round and the earliest one the

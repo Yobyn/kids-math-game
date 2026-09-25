@@ -1,6 +1,7 @@
 import { RoundTrackComponent } from './round-track.component';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { SoundService } from '../services/sound.service';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -672,6 +673,20 @@ describe('QuestionComponent', () => {
     beforeEach(() => {
       component.userAnswer = '';
       component.showOkButton = false;
+    });
+
+    it('gives every key press a soft tap in the chosen sounds', () => {
+      const tap = spyOn(TestBed.inject(SoundService), 'playTap');
+      component.onKeypadPress('4');
+      component.onKeypadPress('del');
+      expect(tap).toHaveBeenCalledTimes(2);
+    });
+
+    it('makes no tap for a key the keypad ignores while the answer is being shown', () => {
+      const tap = spyOn(TestBed.inject(SoundService), 'playTap');
+      component.showOkButton = true;
+      component.onKeypadPress('4');
+      expect(tap).not.toHaveBeenCalled();
     });
 
     it('appends digits in order', () => {

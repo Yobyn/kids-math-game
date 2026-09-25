@@ -1,3 +1,4 @@
+import { ADULTS_WORDS } from './adults-words';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
@@ -45,6 +46,14 @@ describe('AdultsComponent', () => {
   });
 
   afterEach(() => localStorage.clear());
+
+  it('adds its own words to the language service when it opens: they are not in the first load', () => {
+    const service = TestBed.inject(LanguageService);
+    expect(service.translate('adults-weakest')).toBe('adults-weakest');
+    open();
+    Object.keys(ADULTS_WORDS.en).forEach(key => expect(service.translate(key as any)).not.toBe(key));
+    expect(service.translate('adults-weakest')).toBe(ADULTS_WORDS[service.getLanguage()]['adults-weakest']);
+  });
 
   describe('the door', () => {
     it('is shut on arrival', () => {

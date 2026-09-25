@@ -1,3 +1,5 @@
+import { SCRAPBOOK_WORDS } from './scrapbook-words';
+import { LanguageService } from '../services/language.service';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
@@ -34,6 +36,14 @@ describe('ScrapbookComponent', () => {
   });
 
   afterEach(() => localStorage.clear());
+
+  it('adds its own words to the language service when it opens: they are not in the first load', () => {
+    const service = TestBed.inject(LanguageService);
+    expect(service.translate('book-empty')).toBe('book-empty');
+    open();
+    Object.keys(SCRAPBOOK_WORDS.en).forEach(key => expect(service.translate(key as any)).not.toBe(key));
+    expect(service.translate('book-empty')).toBe(SCRAPBOOK_WORDS[service.getLanguage()]['book-empty']);
+  });
 
   it('says the book is empty before anything has happened', () => {
     open();

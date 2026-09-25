@@ -18,11 +18,14 @@
     <div class="header-actions">
       <app-language-selector></app-language-selector>
       <button class="sound-btn"
+              #soundButton
               type="button"
-              (click)="toggleSound()"
-              [attr.aria-pressed]="soundEnabled"
-              [attr.aria-label]="languageService.translate(soundEnabled ? 'sound-on' : 'sound-off')"
-              [title]="languageService.translate(soundEnabled ? 'sound-on' : 'sound-off')">
+              (click)="openSounds()"
+              aria-haspopup="dialog"
+              [attr.aria-expanded]="soundsOpen"
+              [class.muted]="!soundEnabled"
+              [attr.aria-label]="languageService.translate('sounds')"
+              [title]="languageService.translate('sounds')">
         <span class="sound-icon">{{ soundEnabled ? '🔊' : '🔇' }}</span>
       </button>
       <button class="logout-btn" *ngIf="username" (click)="logout()">
@@ -53,6 +56,11 @@
 </div>
 
 <router-outlet></router-outlet>
+
+<!-- The sound picker opens here, over the screen, when the sound button is
+     pressed: see openSounds in app.component.ts. Before the tap layer, so a
+     tap on the picker still sparkles. -->
+<ng-container #soundLayer></ng-container>
 
 <!-- The tap layer goes here, last, so it draws over everything. It is loaded
      after the first screen: see loadTapLayer in app.component.ts -->
