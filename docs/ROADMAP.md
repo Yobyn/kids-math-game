@@ -290,26 +290,72 @@ easing, and the Boy/Girl row. 1,497 unit tests. The mutation sweep caught
 arms hanging straight down would sink into the chest, and a torso could be
 made flat as a board.
 
+**THE 3D CHARACTER ON EVERY SCREEN — DONE (2026-09-25).** The header, the
+end of a round, the progress ring and the scrapbook drew the flat 2D
+character while the dressing-up screen had the 3D one: two different
+characters. Now every screen shows the 3D character, as a picture.
+
+- One offscreen three.js renderer (`avatar3d/still-renderer.ts`) draws a
+  picture of the character, a little turned so it reads as 3D even small,
+  in the stage's light and outline, on a see-through background. A
+  portrait is the head and whatever is on it, from just below the chin
+  (measured from the chin, so long hair down the back does not shrink the
+  face); the
+  full framing (the progress ring) is head to belt, out to the shoulders,
+  because a seven-heads-tall figure in a small circle is a matchstick.
+- three.js is still never in the first load. The renderer is fetched the
+  first time a picture is wanted; until it is ready, and wherever there is
+  no WebGL, the 2D drawing stands in. Nothing waits for it.
+- Pictures are kept: in memory for the visit, and the eight newest in the
+  browser (`avatarStills`), so on the next visit the header shows the 3D
+  character at once with nothing fetched. A full store just keeps fewer.
+  The key is the whole outfit, the framing and the pixel size, plus
+  `STILL_VERSION` — BUMP IT whenever the 3D look changes, or screens will
+  show a picture of the old one.
+- Each outfit is drawn once. A picture that could not be made
+  is not asked for again on every redraw (a page that hands over a new
+  object for the same character each redraw would otherwise loop).
+- The dressing-up screen's swatches stay 2D (`look="flat"`): a row of
+  twenty 3D pictures would be twenty renders for a thumbnail.
+
+Bundle: the eager part is only "read a kept picture" (`AvatarStillService`)
+and the header's swap; making and keeping pictures is its own lazy chunk
+(`avatar/still-queue.ts`). To pay for it, the scrapbook's book-building
+code left the first load (`scrapbook/earned.ts` holds the two readers the
+progress service needs) and the season names moved to the scrapbook's
+words. Net +1.3 kB (486.81 → 488.07 kB). THAT IS A DEBT: the next run that
+touches the first load pays it back.
+
+Tests: `avatar-still.service.spec.ts` (keys, sizes, keeping and dropping,
+a picture kept again counted as newest, a junk store replaced, one render
+per outfit, no WebGL, the picture code not loading, a failed render,
+turned off), the component's 3D swap (2D until ready, a kept picture at once, a
+slow answer for an old outfit ignored, the same outfit not asked twice,
+flat), `still-renderer.spec.ts` (framing, the stand out of frame, camera
+distance, and a real render: a PNG, clear corners, the character in the
+middle), and the chooser's swatches staying flat on every tab. Other screens'
+unit tests run with pictures off (`src/test.ts`). 1,535 unit tests.
+The mutation sweep caught 24 of 32 at first. Of the 8 survivors, 3 were
+code that did nothing and is gone (a render queue, when a render is one
+synchronous call and cannot overlap; a second catch; taking the stand
+out of a picture it was never in), and 5 were gaps, now closed with the
+tests above. A re-run of all 8 catches every one.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **The character everywhere else.** The header, the result screen and the
-   progress screen still draw the 2D character. Render the 3D one to a still
-   image (one shared offscreen renderer, cached per outfit) so the same
-   character appears on every screen — without putting three.js in the
-   first load: generate the still lazily and show the 2D one until it is
-   ready.
-2. **Make it feel alive.** An idle bob and blink, a little wave when a new
+1. **Make it feel alive.** An idle bob and blink, a little wave when a new
    item is put on, a happy jump on the result screen when a round is done.
    All under reduced motion rules.
-3. **More to earn.** More items per slot (shoes, backpacks, capes, pets
+2. **More to earn.** More items per slot (shoes, backpacks, capes, pets
    beside the stand), and colour choices for tops. Every new item goes
    through the same fit tests on every face and style.
-4. **Better materials.** Hair strands or clumps rather than one smooth
+3. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
-5. **Offline.** The dressing-up chunk is only cached once it has been
+4. **Offline.** The dressing-up chunk is only cached once it has been
    opened. A child who installs and goes offline before opening it gets no
-   dressing-up screen. Precache the lazy chunks in the service worker.
+   dressing-up screen. Precache the lazy chunks in the service worker
+   (the still renderer's chunks too, so the pictures work offline).
 
 ## Art direction (Yobyn, 2026-09-23)
 

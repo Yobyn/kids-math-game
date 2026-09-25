@@ -13,7 +13,10 @@ export type ScrapbookKey =
   | 'book-from-event'
   | 'book-long-ago'
   | 'book-best'
-  | 'book-first';
+  | 'book-first'
+  | 'event-winter'
+  | 'event-spring'
+  | 'event-autumn';
 
 export const SCRAPBOOK_WORDS: Words<ScrapbookKey> = {
   en: {
@@ -24,7 +27,10 @@ export const SCRAPBOOK_WORDS: Words<ScrapbookKey> = {
     'book-from-event': 'You were here for this',
     'book-long-ago': 'A while ago',
     'book-best': 'Your best round: {percent}%',
-    'book-first': 'The earliest round in here'
+    'book-first': 'The earliest round in here',
+    'event-winter': 'Winter',
+    'event-spring': 'Spring',
+    'event-autumn': 'Autumn'
   },
   nl: {
     'your-book': 'Jouw boek',
@@ -34,7 +40,10 @@ export const SCRAPBOOK_WORDS: Words<ScrapbookKey> = {
     'book-from-event': 'Hier was je bij',
     'book-long-ago': 'Een tijdje geleden',
     'book-best': 'Je beste ronde: {percent}%',
-    'book-first': 'De oudste ronde hierin'
+    'book-first': 'De oudste ronde hierin',
+    'event-winter': 'Winter',
+    'event-spring': 'Lente',
+    'event-autumn': 'Herfst'
   },
   es: {
     'your-book': 'Tu libro',
@@ -44,6 +53,9 @@ export const SCRAPBOOK_WORDS: Words<ScrapbookKey> = {
     'book-from-event': 'Aquí estuviste',
     'book-long-ago': 'Hace un tiempo',
     'book-best': 'Tu mejor ronda: {percent}%',
-    'book-first': 'La ronda más antigua de aquí'
+    'book-first': 'La ronda más antigua de aquí',
+    'event-winter': 'Invierno',
+    'event-spring': 'Primavera',
+    'event-autumn': 'Otoño'
   }
 };

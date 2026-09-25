@@ -58,7 +58,8 @@
                 (click)="pickPart(row, value)">
           <app-avatar *ngIf="!isColour(row)"
                       [avatar]="withPart(row, value)"
-                      [size]="44"></app-avatar>
+                      [size]="44"
+                      look="flat"></app-avatar>
         </button>
       </div>
 
@@ -75,7 +76,8 @@
                 (click)="wear(row.slot, item)">
           <app-avatar [avatar]="withItem(row.slot, item)"
                       [size]="44"
-                      [framing]="framingForRow(row)"></app-avatar>
+                      [framing]="framingForRow(row)"
+                      look="flat"></app-avatar>
           <span class="lock" *ngIf="!canWear(item) && !item.event" aria-hidden="true">🔒{{ item.unlockLevel }}</span>
           <span class="lock event-lock" *ngIf="!canWear(item) && item.event" aria-hidden="true">🎁</span>
         </button>

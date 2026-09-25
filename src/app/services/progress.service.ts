@@ -15,7 +15,7 @@ import {
   EarnedItem,
   readEarnedEvents,
   readEarnedItems
-} from '../scrapbook/scrapbook';
+} from '../scrapbook/earned';
 
 export interface RoundResult {
   date: string;
@@ -73,7 +73,7 @@ const TOTALS_KEY = 'totals';
 const ROUND_KEY = 'round';
 const RESULT_KEY = 'result';
 const LEARNED_KEY = 'learned';
-/** Items won, with the day they were won. See scrapbook/scrapbook.ts. */
+/** Items won, with the day they were won. See scrapbook/earned.ts. */
 const KEEPSAKES_KEY = 'keepsakes';
 /** Enough to carry a round's mistakes forward without burying the next one. */
 const MAX_MISSED = 12;
