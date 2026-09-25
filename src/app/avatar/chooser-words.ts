@@ -6,6 +6,9 @@ import type { Words } from '../services/language.service';
  * The screen hands them to the service when it opens (`extend`).
  */
 export type ChooserKey =
+  | 'body-type'
+  | 'boy'
+  | 'girl'
   | 'next-unlock'
   | 'events-return'
   | 'back-in'
@@ -26,6 +29,9 @@ export type ChooserKey =
 
 export const CHOOSER_WORDS: Words<ChooserKey> = {
   en: {
+    'body-type': 'You are a',
+    'boy': 'Boy',
+    'girl': 'Girl',
     'next-unlock': 'Next:',
     'events-return': 'Event items come back every year — nothing is ever gone for good.',
     'back-in': 'back in',
@@ -45,6 +51,9 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'tops': 'Tops'
   },
   nl: {
+    'body-type': 'Je bent een',
+    'boy': 'Jongen',
+    'girl': 'Meisje',
     'next-unlock': 'Hierna:',
     'events-return': 'Evenementen komen elk jaar terug — niets is ooit voorgoed weg.',
     'back-in': 'terug in',
@@ -64,6 +73,9 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'tops': 'Kleding'
   },
   es: {
+    'body-type': 'Eres',
+    'boy': 'Chico',
+    'girl': 'Chica',
     'next-unlock': 'Siguiente:',
     'events-return': 'Los eventos vuelven cada año: nada se pierde para siempre.',
     'back-in': 'vuelve en',

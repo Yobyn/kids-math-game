@@ -3,7 +3,8 @@ import {
   Avatar, FACE_SHAPES, HAIR_STYLES, HAIR_TEXTURES, NO_ITEM, WARDROBE, defaultAvatar, findItem
 } from '../avatar/avatar-model';
 import { HATS_OVER_HAIR } from '../avatar/avatar-parts';
-import { BODY, HEAD_Y, buildAvatar, disposeAvatar, torsoRadius } from './build-avatar';
+import { buildAvatar, disposeAvatar, topCut } from './build-avatar';
+import { FIGURES, Figure, chinY, figureFor, torsoRadius } from './figure';
 import {
   EYE_DIRS, HAT_CAP, HAT_LIFT, Vec3, hairPoint, hatBrim, headPoint, normalise, radiusAlong
 } from './head-surface';
@@ -19,18 +20,42 @@ function find(root: THREE.Object3D, name: string): THREE.Object3D[] {
   return found;
 }
 
-/** A mesh's vertices in head space: relative to the centre of the head. */
+/**
+ * A mesh's vertices in head space: the space the head, its hair, a hat and
+ * glasses are all built in, before the figure moves and narrows them.
+ */
 function headSpaceVertices(root: THREE.Object3D, mesh: THREE.Mesh): Vec3[] {
   root.updateMatrixWorld(true);
+  const head = root.getObjectByName('head-group')!;
+  const toHead = head.matrixWorld.clone().invert();
   const position = mesh.geometry.attributes.position as THREE.BufferAttribute;
   const out: Vec3[] = [];
   const v = new THREE.Vector3();
   for (let i = 0; i < position.count; i++) {
-    v.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld);
-    out.push([v.x, v.y - HEAD_Y, v.z]);
+    v.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld).applyMatrix4(toHead);
+    out.push([v.x, v.y, v.z]);
   }
   return out;
 }
+
+/** A mesh's vertices in the world, where the body is. */
+function worldVertices(root: THREE.Object3D, mesh: THREE.Mesh): THREE.Vector3[] {
+  root.updateMatrixWorld(true);
+  const position = mesh.geometry.attributes.position as THREE.BufferAttribute;
+  const out: THREE.Vector3[] = [];
+  for (let i = 0; i < position.count; i++) {
+    out.push(new THREE.Vector3().fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld));
+  }
+  return out;
+}
+
+/** True when a point is inside the torso's own surface (an ellipse at each height). */
+function insideTorso(figure: Figure, p: THREE.Vector3): boolean {
+  const w = torsoRadius(figure, p.y);
+  return w > 0 && (p.x / w) ** 2 + (p.z / (w * figure.torsoDepth)) ** 2 < 1;
+}
+
+const BODY_TYPES: Array<'boy' | 'girl'> = ['boy', 'girl'];
 
 /**
  * The vertices that break `rule`. A geometry has thousands of vertices; one
@@ -134,7 +159,7 @@ describe('buildAvatar', () => {
 
   it('gives the styles that have them their extra parts', () => {
     expect(find(buildAvatar(avatar({ hairStyle: 'long' })), 'hair-long').length).toBe(1);
-    expect(find(buildAvatar(avatar({ hairStyle: 'braids' })), 'hair-braid').length).toBe(14);
+    expect(find(buildAvatar(avatar({ hairStyle: 'braids' })), 'hair-braid').length).toBe(10);
     expect(find(buildAvatar(avatar({ hairStyle: 'braids' })), 'hair-tie').length).toBe(2);
     expect(find(buildAvatar(avatar({ hairStyle: 'locs' })), 'hair-loc').length).toBe(13);
     expect(find(buildAvatar(avatar({ hairStyle: 'short' })), 'hair-long').length).toBe(0);
@@ -168,13 +193,9 @@ describe('buildAvatar', () => {
   });
 
   it('draws each top its own way', () => {
-    expect(find(buildAvatar(avatar({ top: 'striped' })), 'stripe').length).toBe(4);
     expect(find(buildAvatar(avatar({ top: 'star-tee' })), 'decal').length).toBe(1);
     expect(find(buildAvatar(avatar({ top: 'flower-tee' })), 'decal').length).toBe(1);
-    const hoodie = buildAvatar(avatar({ top: 'hoodie' }));
-    expect(find(hoodie, 'hood').length).toBe(1);
-    expect(find(hoodie, 'hoodie-string').length).toBe(2);
-    expect(find(hoodie, 'hoodie-pocket').length).toBe(1);
+    expect(find(buildAvatar(avatar({ top: 'hoodie' })), 'hood').length).toBe(1);
   });
 
   it('colours the face from the choices', () => {
@@ -206,84 +227,201 @@ describe('buildAvatar', () => {
     expect(JSON.stringify(chosen)).toBe(before);
   });
 
-  it('stands the character on its stand', () => {
-    const root = buildAvatar(avatar());
-    const box = new THREE.Box3().setFromObject(find(root, 'body')[0]);
-    expect(box.min.y).toBeGreaterThan(-0.05);
-    expect(box.min.y).toBeLessThan(0.1);
-    const stand = new THREE.Box3().setFromObject(find(root, 'pedestal')[0]);
-    expect(stand.max.y).toBeLessThanOrEqual(0.05);
-  });
-
-  it('gives the head a body in proportion: taller than the head, and as wide as its cheeks', () => {
-    FACE_SHAPES.forEach(faceShape => {
-      const root = buildAvatar(avatar({ faceShape }));
+  it('stands each figure on its stand, feet on the floor', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const root = buildAvatar(avatar({ bodyType }));
       root.updateMatrixWorld(true);
-      const body = new THREE.Box3().setFromObject(find(root, 'body')[0]);
-      const head = new THREE.Box3().setFromObject(find(root, 'head')[0]);
-      const headHeight = head.max.y - head.min.y;
-      // From the floor to the chin is more than the head is tall
-      expect(head.min.y).toBeGreaterThan(headHeight, faceShape);
-      // Shoulder to shoulder, arms and all, is most of the head's width
-      expect(body.max.x - body.min.x).toBeGreaterThan((head.max.x - head.min.x) * 0.85, faceShape);
-      // The chin rests on the collar, not above a gap or deep inside the body
-      const collar = BODY.waist + BODY.torsoHeight;
-      expect(head.min.y).toBeGreaterThan(collar - 0.25, faceShape);
-      expect(head.min.y).toBeLessThan(collar + 0.2, faceShape);
-      disposeAvatar(root);
+      const box = new THREE.Box3().setFromObject(find(root, 'body')[0]);
+      expect(box.min.y).toBeGreaterThan(-0.05, bodyType);
+      expect(box.min.y).toBeLessThan(0.1, bodyType);
+      const stand = new THREE.Box3().setFromObject(find(root, 'pedestal')[0]);
+      expect(stand.max.y).toBeLessThanOrEqual(0.05);
+      // Wide enough for both feet
+      expect(stand.max.x).toBeGreaterThan(box.max.x * 0.4);
     });
   });
 
-  it('rounds the torso over the shoulders instead of ending in a ledge', () => {
-    // Fullest at the chest, then narrowing all the way to the collar
-    let widest = 0;
-    let widestAt = 0;
-    for (let h = 0; h <= BODY.torsoHeight; h += 0.01) {
-      if (torsoRadius(h) > widest) {
-        widest = torsoRadius(h);
-        widestAt = h;
+  it('builds each body type in its own figure, head on the collar', () => {
+    BODY_TYPES.forEach(bodyType => FACE_SHAPES.forEach(faceShape => {
+      const figure = figureFor(bodyType);
+      const root = buildAvatar(avatar({ bodyType, faceShape }));
+      root.updateMatrixWorld(true);
+      const head = new THREE.Box3().setFromObject(find(root, 'head')[0]);
+      const headHeight = head.max.y - head.min.y;
+      // About seven heads tall, as in the reference (an oval face is itself a longer head)
+      expect(head.max.y / headHeight).toBeGreaterThan(faceShape === 'oval' ? 6.3 : 6.8, `${bodyType}/${faceShape}`);
+      expect(head.max.y / headHeight).toBeLessThan(7.8, `${bodyType}/${faceShape}`);
+      // The chin rests just above the collar: no gap under it, not sunk into the body
+      const collar = figure.torso[figure.torso.length - 1][1];
+      expect(head.min.y - collar).toBeGreaterThan(0, `${bodyType}/${faceShape}`);
+      expect(head.min.y - collar).toBeLessThan(0.8, `${bodyType}/${faceShape}`);
+      // Shoulders wider than the head
+      const body = new THREE.Box3().setFromObject(find(root, 'body')[0]);
+      expect(body.max.x - body.min.x).toBeGreaterThan((head.max.x - head.min.x) * 2);
+      disposeAvatar(root);
+    }));
+  });
+
+  it('narrows the head the way a real one is narrow: taller than wide, less deep than wide', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const [x, y, z] = figureFor(bodyType).headScale;
+      expect(x).toBeLessThan(y);
+      expect(z).toBeGreaterThan(x * 0.9);
+      // Everything on the head shares its place and its shape, or it would not fit
+      const root = buildAvatar(avatar({ bodyType, hat: 'cap', glasses: 'shades' }));
+      const head = root.getObjectByName('head-group')!;
+      ['head-group', 'hair', 'hat', 'glasses'].forEach(name => {
+        const group = root.getObjectByName(name)!;
+        expect(group.scale.toArray()).toEqual([x, y, z], name);
+        expect(group.position.toArray()).toEqual(head.position.toArray(), name);
+      });
+    });
+  });
+
+  it('gives the girl narrower shoulders, a narrower waist and wider hips for them', () => {
+    const widest = (f: Figure, from: number, to: number) =>
+      Math.max(...f.torso.filter(([, y]) => y >= from && y <= to).map(([r]) => r));
+    const narrowest = (f: Figure, from: number, to: number) =>
+      Math.min(...f.torso.filter(([, y]) => y >= from && y <= to).map(([r]) => r));
+    const { boy, girl } = FIGURES;
+    expect(girl.shoulder[0]).toBeLessThan(boy.shoulder[0]);
+    const hipsToWaist = (f: Figure) => widest(f, f.crotch, f.belt) / narrowest(f, f.belt, f.hem + 1);
+    expect(hipsToWaist(girl)).toBeGreaterThan(hipsToWaist(boy));
+    expect(chinY(girl)).toBeLessThan(chinY(boy));
+  });
+
+  it('rounds the torso over the shoulders instead of ending in a ledge, on both figures', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const figure = figureFor(bodyType);
+      const top = figure.torso[figure.torso.length - 1][1];
+      let widest = 0;
+      let widestAt = 0;
+      for (let y = figure.hem; y <= top; y += 0.01) {
+        if (torsoRadius(figure, y) > widest) {
+          widest = torsoRadius(figure, y);
+          widestAt = y;
+        }
       }
-    }
-    expect(widestAt).toBeGreaterThan(BODY.torsoHeight * 0.4);
-    expect(widestAt).toBeLessThan(BODY.torsoHeight * 0.75);
-    for (let h = widestAt; h < BODY.torsoHeight; h += 0.02) {
-      expect(torsoRadius(h + 0.02)).toBeLessThanOrEqual(torsoRadius(h) + 1e-9);
-    }
-    expect(torsoRadius(BODY.torsoHeight)).toBeLessThan(0.05);
-    expect(torsoRadius(-1)).toBeLessThan(0.05);
-    expect(torsoRadius(BODY.torsoHeight + 1)).toBeLessThan(0.05);
+      const ledges: number[] = [];
+      for (let y = widestAt; y < top; y += 0.02) {
+        if (torsoRadius(figure, y + 0.02) > torsoRadius(figure, y) + 1e-9) {
+          ledges.push(y);
+        }
+      }
+      expect(ledges).toEqual([], bodyType);
+      expect(widestAt).toBeLessThan(figure.shoulder[1]);
+    });
   });
 
   it('hangs the arms from the shoulders with the hands clear of the body', () => {
-    const root = buildAvatar(avatar());
-    root.updateMatrixWorld(true);
-    const hands = find(root, 'hand');
-    expect(hands.length).toBe(2);
-    hands.forEach(hand => {
-      const p = new THREE.Vector3().setFromMatrixPosition(hand.matrixWorld);
-      const h = p.y - BODY.waist;
-      // Beside the torso at that height, and down by the hips
-      // The whole hand, not just its middle, is outside the torso
-      const handRadius = 0.19 * 0.9;
-      const widest = Math.max(torsoRadius(Math.max(h, 0)), BODY.hips) * BODY.torsoScale[0];
-      expect(Math.abs(p.x) - handRadius).toBeGreaterThan(widest);
-      expect(p.y).toBeLessThan(BODY.waist + 0.3);
-      expect(p.y).toBeGreaterThan(0.6);
+    BODY_TYPES.forEach(bodyType => {
+      const figure = figureFor(bodyType);
+      const root = buildAvatar(avatar({ bodyType }));
+      root.updateMatrixWorld(true);
+      const hands = find(root, 'hand');
+      expect(hands.length).toBe(2);
+      hands.forEach(hand => {
+        const box = new THREE.Box3().setFromObject(hand);
+        const inner = Math.min(Math.abs(box.min.x), Math.abs(box.max.x));
+        const beside = Math.max(...[box.min.y, (box.min.y + box.max.y) / 2, box.max.y].map(y => torsoRadius(figure, y)));
+        expect(inner).toBeGreaterThan(beside, bodyType);
+        // Down by the hips, not up at the chest or down at the knees
+        expect(box.max.y).toBeLessThan(figure.belt);
+        expect(box.min.y).toBeGreaterThan(figure.knee[1]);
+      });
+      expect(find(root, 'shoulder').length).toBe(2);
     });
-    expect(find(root, 'shoulder').length).toBe(2);
-    expect(find(root, 'cuff').length).toBe(2);
+  });
+
+  it('never lets long hair or braids hang inside the body', () => {
+    BODY_TYPES.forEach(bodyType => ['long', 'braids'].forEach(hairStyle => {
+      const figure = figureFor(bodyType);
+      const root = buildAvatar(avatar({ bodyType, hairStyle: hairStyle as any }));
+      const parts = [...find(root, 'hair-long'), ...find(root, 'hair-braid'), ...find(root, 'hair-tie')] as THREE.Mesh[];
+      expect(parts.length).toBeGreaterThan(0);
+      parts.forEach(mesh => {
+        const inside = worldVertices(root, mesh).filter(p => insideTorso(figure, p));
+        expect(inside.length).toBe(0, `${bodyType}/${hairStyle}`);
+      });
+      disposeAvatar(root);
+    }));
+  });
+
+  it('lets long hair fall past the shoulders', () => {
+    const figure = figureFor('boy');
+    const root = buildAvatar(avatar({ hairStyle: 'long' }));
+    const [curtain] = find(root, 'hair-long') as THREE.Mesh[];
+    const lowest = Math.min(...worldVertices(root, curtain).map(p => p.y));
+    expect(lowest).toBeLessThan(figure.shoulder[1]);
+  });
+
+  it('cuts each top its own way: long sleeves and cuffs, short sleeves and bare arms, or a hoodie', () => {
+    expect(topCut('none')).toBe('long');
+    expect(topCut('striped')).toBe('long');
+    expect(topCut('star-tee')).toBe('short');
+    expect(topCut('flower-tee')).toBe('short');
+    expect(topCut('hoodie')).toBe('hoodie');
+    const long = buildAvatar(avatar());
+    expect(find(long, 'cuff').length).toBe(2);
+    expect(find(long, 'bare-arm').length).toBe(0);
+    expect(find(long, 'neckline').length).toBe(1);
+    const tee = buildAvatar(avatar({ top: 'star-tee' }));
+    expect(find(tee, 'cuff').length).toBe(0);
+    expect(find(tee, 'bare-arm').length).toBe(2);
+    const skin = (find(tee, 'forearm')[0] as THREE.Mesh).material as THREE.MeshToonMaterial;
+    expect(skin.color.getHexString()).toBe(avatar().skin.slice(1).toLowerCase());
+  });
+
+  it('builds the hoodie the way the reference wears it', () => {
+    const root = buildAvatar(avatar({ top: 'hoodie' }));
+    expect(find(root, 'hood').length).toBe(1);
+    expect(find(root, 'hood-end').length).toBe(2);
+    expect(find(root, 'hood-back').length).toBe(1);
+    expect(find(root, 'hoodie-string').length).toBe(2);
+    expect(find(root, 'hoodie-string-tip').length).toBe(2);
+    expect(find(root, 'hoodie-pocket').length).toBe(1);
+    // The red of the shirt underneath at the collar and the wrists
+    expect(find(root, 'undershirt-collar').length).toBe(1);
+    expect(find(root, 'undershirt-cuff').length).toBe(2);
+    expect(find(root, 'neckline').length).toBe(0);
+  });
+
+  it('dresses every figure in cargo trousers with pockets, a belt and sneakers', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const root = buildAvatar(avatar({ bodyType }));
+      expect(find(root, 'leg').length).toBe(4);
+      expect(find(root, 'cargo-pocket').length).toBe(2);
+      expect(find(root, 'belt').length).toBe(1);
+      expect(find(root, 'shoe').length).toBe(2);
+      find(root, 'shoe').forEach(shoe => expect(shoe.position.y).toBe(0));
+    });
   });
 
   it('lays each stripe on the torso, at the torso\'s own width', () => {
-    const root = buildAvatar(avatar({ top: 'striped' }));
-    find(root, 'stripe').forEach(stripe => {
-      const geometry = (stripe as THREE.Mesh).geometry as THREE.CylinderGeometry;
-      const h = stripe.position.y - BODY.waist;
-      expect(geometry.parameters.radiusTop).toBeCloseTo(torsoRadius(h + 0.05), 9);
-      expect(geometry.parameters.radiusBottom).toBeCloseTo(torsoRadius(h - 0.05), 9);
-      expect(h).toBeGreaterThan(0);
-      expect(h).toBeLessThan(BODY.torsoHeight * 0.8);
+    BODY_TYPES.forEach(bodyType => {
+      const figure = figureFor(bodyType);
+      const root = buildAvatar(avatar({ bodyType, top: 'striped' }));
+      const stripes = find(root, 'stripe');
+      expect(stripes.length).toBe(5);
+      stripes.forEach(stripe => {
+        const geometry = (stripe as THREE.Mesh).geometry as THREE.CylinderGeometry;
+        const y = stripe.position.y;
+        expect(geometry.parameters.radiusTop).toBeCloseTo(torsoRadius(figure, y + 0.1) * 1.012, 9);
+        expect(geometry.parameters.radiusBottom).toBeCloseTo(torsoRadius(figure, y - 0.1) * 1.012, 9);
+        expect(y).toBeGreaterThan(figure.hem);
+        expect(y).toBeLessThan(figure.shoulder[1]);
+      });
     });
+  });
+
+  it('gives only the girl lashes, and her brows a lighter line', () => {
+    const boy = buildAvatar(avatar({ bodyType: 'boy' }));
+    const girl = buildAvatar(avatar({ bodyType: 'girl' }));
+    expect(find(boy, 'eye-lash').length).toBe(0);
+    expect(find(girl, 'eye-lash').length).toBe(2);
+    const thickness = (root: THREE.Object3D) =>
+      (((find(root, 'brow')[0] as THREE.Mesh).geometry) as THREE.BoxGeometry).parameters.height;
+    expect(thickness(girl)).toBeLessThan(thickness(boy));
   });
 
   it('frees every geometry and material when disposed', () => {

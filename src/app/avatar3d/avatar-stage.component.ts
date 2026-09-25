@@ -1,5 +1,5 @@
 import {
-  AfterViewInit, Component, ElementRef, Input, NgZone, OnChanges, OnDestroy, ViewChild
+  AfterViewInit, Component, ElementRef, Input, NgZone, OnChanges, OnDestroy, SimpleChanges, ViewChild
 } from '@angular/core';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
@@ -7,9 +7,26 @@ import { Avatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
 
 /** The usual camera distance, for a character of ordinary height. */
-export const BASE_DISTANCE = 10.2;
+export const BASE_DISTANCE = 32;
 /** Where the usual camera looks, part-way up an ordinary character. */
-export const BASE_CENTRE = 2.25;
+export const BASE_CENTRE = 7.4;
+
+/** What the camera is looking at: the whole figure, or a close-up of the head. */
+export type StageFocus = 'body' | 'head';
+
+/** Nothing closer than this on a close-up, so a bare head is not pressed against the glass. */
+export const HEAD_DISTANCE_MIN = 8;
+
+/**
+ * How far back to stand to see from `bottom` to `top` of the head and what is
+ * on it, with room round it. Unlike the whole figure it has no usual distance
+ * to keep to: each head is framed on its own.
+ */
+export function headFraming(bottom: number, top: number, fov: number, aspect: number): { distance: number; centre: number } {
+  const half = ((top - bottom) / 2) * 1.35;
+  const tan = Math.tan((fov * Math.PI) / 360);
+  return { distance: Math.max(HEAD_DISTANCE_MIN, half / (tan * Math.min(1, aspect || 1))), centre: (top + bottom) / 2 };
+}
 
 /**
  * How far back to stand, and where to look, to see everything from `bottom`
@@ -81,6 +98,14 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   @Input() label = '';
   @Input() turnLeftLabel = '';
   @Input() turnRightLabel = '';
+  /**
+   * The head while a child is choosing a face or hair, the whole figure while
+   * they are dressing it: at seven heads tall, a face seen head to toe on a
+   * phone is too small to see an eye shape change.
+   */
+  @Input() focus: StageFocus = 'body';
+  /** A move of the camera between focuses, eased. */
+  private glide?: { fromTarget: THREE.Vector3; toTarget: THREE.Vector3; fromDistance: number; toDistance: number; start: number; ms: number };
   /** One press of a turn button: an eighth of the way round. */
   readonly TURN_STEP = Math.PI / 4;
   /** A turn under way, eased from one angle to another. */
@@ -122,14 +147,14 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
       // Linear output: the palette's hex colours come out as the hex says
       this.light();
-      this.camera.position.set(0, BASE_CENTRE + 0.9, BASE_DISTANCE);
+      this.camera.position.set(0, BASE_CENTRE + 3, BASE_DISTANCE);
       this.controls = new OrbitControls(this.camera, canvas);
       this.controls.target.set(0, BASE_CENTRE, 0);
       this.controls.enablePan = false;
       this.controls.enableDamping = true;
       this.controls.dampingFactor = 0.12;
-      this.controls.minDistance = 5.5;
-      this.controls.maxDistance = 12;
+      this.controls.minDistance = 5;
+      this.controls.maxDistance = 48;
       // Round the character freely, but never under its feet or over its head
       this.controls.minPolarAngle = Math.PI * 0.3;
       this.controls.maxPolarAngle = Math.PI * 0.62;
@@ -141,10 +166,12 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
     });
   }
 
-  ngOnChanges() {
-    if (this.renderer) {
-      this.zone.runOutsideAngular(() => this.rebuild());
+  ngOnChanges(changes: SimpleChanges = {}) {
+    if (!this.renderer) {
+      return;
     }
+    const onlyFocus = Object.keys(changes).length > 0 && Object.keys(changes).every(key => key === 'focus');
+    this.zone.runOutsideAngular(() => onlyFocus ? this.moveToFocus() : this.rebuild());
   }
 
   ngOnDestroy() {
@@ -245,14 +272,56 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
     if (!this.model || !this.controls) {
       return;
     }
-    const box = new THREE.Box3().setFromObject(this.model);
-    const { distance, centre } = framing(box.min.y, box.max.y, this.camera.fov, this.camera.aspect);
-    const target = this.controls.target;
-    const direction = this.camera.position.clone().sub(target).normalize();
-    target.set(0, centre, 0);
-    this.camera.position.copy(target).addScaledVector(direction, distance);
-    this.controls.maxDistance = Math.max(12, distance + 2);
+    this.glide = undefined;
+    const { target, distance } = this.view();
+    this.place3d(target, distance);
+    this.controls.maxDistance = Math.max(48, distance + 2);
     this.controls.update();
+  }
+
+  /** Where the camera should look, and from how far, for the current focus. */
+  view(): { target: THREE.Vector3; distance: number } {
+    const box = new THREE.Box3();
+    if (this.focus === 'head') {
+      ['head-group', 'hair', 'hat', 'glasses'].forEach(name => {
+        const part = this.model!.getObjectByName(name);
+        if (part) {
+          box.expandByObject(part);
+        }
+      });
+      const { distance, centre } = headFraming(box.min.y, box.max.y, this.camera.fov, this.camera.aspect);
+      return { target: new THREE.Vector3(0, centre, 0), distance };
+    }
+    box.setFromObject(this.model!);
+    const { distance, centre } = framing(box.min.y, box.max.y, this.camera.fov, this.camera.aspect);
+    return { target: new THREE.Vector3(0, centre, 0), distance };
+  }
+
+  /** Puts the camera `distance` from `target`, keeping the angle it is looking from. */
+  private place3d(target: THREE.Vector3, distance: number) {
+    const direction = this.camera.position.clone().sub(this.controls!.target).normalize();
+    this.controls!.target.copy(target);
+    this.camera.position.copy(target).addScaledVector(direction, distance);
+  }
+
+  /** Eases the camera to the current focus: at once under reduced motion. */
+  private moveToFocus() {
+    if (!this.model || !this.controls) {
+      return;
+    }
+    const { target, distance } = this.view();
+    if (reducedMotion()) {
+      this.place3d(target, distance);
+      this.controls.update();
+      this.renderNow();
+      return;
+    }
+    this.glide = {
+      fromTarget: this.controls.target.clone(), toTarget: target,
+      fromDistance: this.camera.position.distanceTo(this.controls.target), toDistance: distance,
+      start: performance.now(), ms: 500
+    };
+    this.requestRender();
   }
 
   private fit() {
@@ -275,6 +344,17 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
     this.frame = requestAnimationFrame(now => {
       this.frame = 0;
       let turning = false;
+      if (this.glide) {
+        const g = this.glide;
+        const t = Math.min(1, (now - g.start) / g.ms);
+        const e = easeInOut(t);
+        this.place3d(g.fromTarget.clone().lerp(g.toTarget, e), g.fromDistance + (g.toDistance - g.fromDistance) * e);
+        if (t >= 1) {
+          this.glide = undefined;
+        } else {
+          turning = true;
+        }
+      }
       if (this.spin) {
         const t = Math.min(1, (now - this.spin.start) / this.spin.ms);
         this.place(this.spin.from + (this.spin.to - this.spin.from) * easeInOut(t));

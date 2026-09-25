@@ -35,6 +35,11 @@ export interface ChooserRow {
   slot?: ItemSlot;
   /** Colour swatches show a colour; shape swatches draw the character. */
   shape?: boolean;
+  /**
+   * Set for a choice the flat drawing cannot show (the figure is only in
+   * 3D): each option is a word and a picture instead.
+   */
+  labels?: boolean;
 }
 
 export interface ChooserSection {
@@ -42,6 +47,12 @@ export interface ChooserSection {
   heading: TranslationKeys;
   rows: ChooserRow[];
 }
+
+/**
+ * Boy or girl: asked above the sections, not in one of them. It is the
+ * choice the rest are made on, and the face section already has its handful.
+ */
+export const BODY_ROW: ChooserRow = { heading: 'body-type', part: 'bodyType', labels: true };
 
 export const SECTIONS: ChooserSection[] = [
   {

@@ -12,6 +12,7 @@ import { ProgressService } from '../services/progress.service';
 import { xpToReach } from '../levels/level-curve';
 import { SECTIONS, allRows } from './chooser-sections';
 import {
+  BODY_TYPES,
   EYE_COLOURS,
   EYE_SHAPES,
   FACE_SHAPES,
@@ -68,12 +69,15 @@ describe('AvatarChooserComponent', () => {
     (['face', 'hair'] as const).forEach(section => {
       component.show(section);
       fixture.detectChanges();
-      Array.from(fixture.nativeElement.querySelectorAll('.choice-row .swatch'))
+      Array.from(fixture.nativeElement.querySelectorAll('.section .choice-row .swatch'))
         .forEach((swatch: any) => identitySwatches.push(swatch));
     });
+    // Boy or girl, above the sections, is who they are too
+    Array.from(fixture.nativeElement.querySelectorAll('.body-row .swatch'))
+      .forEach((swatch: any) => identitySwatches.push(swatch));
 
     expect(identitySwatches.length).toBe(
-      SKIN_TONES.length + FACE_SHAPES.length + EYE_SHAPES.length + MOUTH_SHAPES.length
+      BODY_TYPES.length + SKIN_TONES.length + FACE_SHAPES.length + EYE_SHAPES.length + MOUTH_SHAPES.length
       + HAIR_STYLES.length + HAIR_TEXTURES.length + HAIR_COLOURS.length + EYE_COLOURS.length
     );
     identitySwatches.forEach(swatch => {
@@ -257,7 +261,7 @@ describe('AvatarChooserComponent wardrobe', () => {
     // Found by heading rather than by index: a new identity row used to shift
     // every number here, which is a test breaking for the wrong reason
     const rowFor = (heading: string) =>
-      Array.from(fixture.nativeElement.querySelectorAll('.choice-row') as NodeListOf<HTMLElement>)
+      Array.from(fixture.nativeElement.querySelectorAll('.section .choice-row') as NodeListOf<HTMLElement>)
         .find(row => row.querySelector('h2')!.textContent!.trim()
           === component.languageService.translate(heading as any))!;
     const tops = rowFor('tops');
@@ -421,7 +425,7 @@ describe('AvatarChooserComponent: three sections rather than one long scroll', (
   const tabs = (): HTMLElement[] =>
     Array.from(fixture.nativeElement.querySelectorAll('.tab'));
   const headings = (): string[] =>
-    Array.from(fixture.nativeElement.querySelectorAll('.choice-row h2'))
+    Array.from(fixture.nativeElement.querySelectorAll('.section .choice-row h2'))
       .map((h: any) => h.textContent.trim());
 
   beforeEach(async () => {
@@ -510,6 +514,38 @@ describe('AvatarChooserComponent: three sections rather than one long scroll', (
       fixture.detectChanges();
       expect(fixture.nativeElement.querySelector('.stage app-avatar-stage')).toBeTruthy(section);
     });
+  });
+
+  it('asks boy or girl above the sections, with a picture and a word each, and changes the figure', () => {
+    // Above the tabs, whichever section is open
+    component.show('wardrobe');
+    fixture.detectChanges();
+    const row = fixture.nativeElement.querySelector('.body-row') as HTMLElement;
+    expect(row.compareDocumentPosition(fixture.nativeElement.querySelector('.tabs')) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const options = Array.from(row.querySelectorAll('.label-swatch')) as HTMLButtonElement[];
+    expect(options.map(o => o.getAttribute('data-value'))).toEqual(['boy', 'girl']);
+    expect(options[0].textContent).toContain('Boy');
+    expect(options[1].textContent).toContain('Girl');
+    expect(options[0].textContent).toContain('👦');
+    options[1].click();
+    fixture.detectChanges();
+    expect(component.avatar.bodyType).toBe('girl');
+    expect(TestBed.inject(AvatarService).get().bodyType).toBe('girl');
+    expect(options[1].getAttribute('aria-pressed')).toBe('true');
+    expect(options[0].getAttribute('aria-pressed')).toBe('false');
+  });
+
+  it('closes in on the head for the face and hair, and shows the whole figure for clothes', () => {
+    const focus = () => fixture.debugElement.query(By.css('.stage app-avatar-stage')).properties.focus;
+    component.show('face');
+    fixture.detectChanges();
+    expect(focus()).toBe('head');
+    component.show('hair');
+    fixture.detectChanges();
+    expect(focus()).toBe('head');
+    component.show('wardrobe');
+    fixture.detectChanges();
+    expect(focus()).toBe('body');
   });
 
   it('puts the character on the 3D stage, with the choices it is wearing', () => {

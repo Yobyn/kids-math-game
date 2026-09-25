@@ -168,3 +168,34 @@
   outline: 3px solid var(--accent-blue);
   outline-offset: 2px;
 }
+
+/* A choice only the 3D figure shows, so each option is a picture and a word */
+.label-swatch {
+  width: auto;
+  min-width: 112px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--surface-input);
+  color: var(--text-primary, #fff);
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.label-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+/* Boy or girl sits between the stage and the tabs, centred */
+.body-row {
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.body-row .swatches {
+  justify-content: center;
+}

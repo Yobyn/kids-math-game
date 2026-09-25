@@ -352,7 +352,7 @@ const TOPS = {
   none: { colour: '#5b679a' },
   striped: { colour: '#c1442e', deco: '#f5ece0' },
   'star-tee': { colour: '#3f8fd6', deco: '#ffd34d' },
-  hoodie: { colour: '#3f8f5a', deco: '#26603c' },
+  hoodie: { colour: '#1f96d2', deco: '#155f86' },
   'flower-tee': { colour: '#8ab84f', deco: '#f5d6e8' }
 };
 for (const [id, top] of Object.entries(TOPS)) {

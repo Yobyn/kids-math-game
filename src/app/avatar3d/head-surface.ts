@@ -118,6 +118,8 @@ export interface HairShape {
   bumps: [number, number];
   /** How far the hair comes down in front of the ears. */
   sideburn: number;
+  /** Extra height swept up over the forehead, as in the reference boy's hair. */
+  quiff?: number;
 }
 
 /**
@@ -126,7 +128,7 @@ export interface HairShape {
  * eyes on any face.
  */
 export const HAIR: { [style in HairStyle]: HairShape } = {
-  short: { thickness: 0.1, front: 0.46, back: -0.3, fringe: [0.07, 5], bumps: [0, 0], sideburn: 0.22 },
+  short: { thickness: 0.1, front: 0.5, back: -0.3, fringe: [0.03, 5], bumps: [0, 0], sideburn: 0.22, quiff: 0.22 },
   buzz: { thickness: 0.03, front: 0.5, back: -0.25, fringe: [0, 0], bumps: [0, 0], sideburn: 0.18 },
   long: { thickness: 0.12, front: 0.48, back: -0.45, fringe: [0.05, 3], bumps: [0, 0], sideburn: 0.3 },
   curly: { thickness: 0.2, front: 0.5, back: -0.35, fringe: [0.06, 7], bumps: [0.1, 70], sideburn: 0.22 },
@@ -228,6 +230,21 @@ export function textureRipple(texture: HairTexture, dir: Vec3): number {
 }
 
 /**
+ * A quiff: hair swept up over the front of the head, highest above the
+ * forehead and gone by the crown and the temples. Zero for styles without one.
+ */
+export function quiffLift(spec: HairShape, d: Vec3): number {
+  if (!spec.quiff) {
+    return 0;
+  }
+  // Centred up and forward, above the forehead
+  const centre = normalise([0, 0.72, 0.7]);
+  const near = d[0] * centre[0] + d[1] * centre[1] + d[2] * centre[2];
+  const t = Math.max(0, (near - 0.55) / 0.45);
+  return spec.quiff * t * t * (3 - 2 * t);
+}
+
+/**
  * Where the hair's outer surface is in direction `dir`, or null where there
  * is no hair. Thickness eases to nothing at the hairline, so the edge tucks
  * into the skin instead of ending in a cliff.
@@ -243,7 +260,7 @@ export function hairPoint(
   const spec = HAIR[style];
   const ease = Math.min(1, (d[1] - line) / 0.18);
   const [bumpHeight, bumpCount] = spec.bumps;
-  let height = spec.thickness + bumpHeight * puff(d, bumpCount) + textureRipple(texture, d);
+  let height = spec.thickness + bumpHeight * puff(d, bumpCount) + textureRipple(texture, d) + quiffLift(spec, d);
   if (capAt !== undefined) {
     // Under a hat, curls and all are pressed flat
     height = Math.min(height, capAt);

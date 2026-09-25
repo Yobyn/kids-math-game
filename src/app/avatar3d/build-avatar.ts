@@ -2,10 +2,11 @@ import * as THREE from 'three';
 import { Avatar, DEFAULT_TOP_COLOUR, findItem, NO_ITEM } from '../avatar/avatar-model';
 import { HATS_OVER_HAIR, shade } from '../avatar/avatar-parts';
 import {
-  BROW_DIRS, EAR_DIRS, EYE_DIRS, HAT_CAP, MOUTH_DIR, NOSE_DIR, Vec3, hairPoint, hairline, headPoint, normalise
+  BROW_DIRS, EAR_DIRS, EYE_DIRS, HAT_CAP, Vec3, hairPoint, hairline, headPoint, normalise
 } from './head-surface';
 import { at, crownGrid, part, scale, starShape, surfaceGeometry, toon } from './toon';
 import { buildGlasses, buildHat } from './wardrobe3d';
+import { Figure, chinY, figureFor, hang, torsoRadius, wrist } from './figure';
 
 /**
  * The child's character, built in 3D from the same choices the 2D drawing
@@ -16,87 +17,50 @@ import { buildGlasses, buildHat } from './wardrobe3d';
  * which reads at any angle and on any screen, and matches the drawn game.
  */
 
-/**
- * The body's proportions, in one place. The head (about 2 across) sits on
- * a body a little taller than itself: big enough to read as a child with a
- * big head rather than a head on a peg, and still chibi.
- */
-export const BODY = {
-  /** Where the torso starts (the waist) and how tall it is. */
-  waist: 0.95,
-  torsoHeight: 1.38,
-  /** How much wider than deep the torso is. */
-  torsoScale: [1.12, 1, 0.74] as [number, number, number],
-  /** Where each arm hangs from, and how far out it swings. */
-  shoulder: [0.68, 1.9] as [number, number],
-  armLength: 1.0,
-  armSwing: 0.24,
-  /** The hips' radius, before the torso's width and depth are applied. */
-  hips: 0.62
-};
+/** Where the mouth sits: lower than a cartoon's, with room for a chin. */
+const MOUTH_AT: Vec3 = normalise([0, -0.52, 0.86]);
 
-/** The head's centre: just above the top of the torso, on a short neck. */
-const HEAD_Y = BODY.waist + BODY.torsoHeight + 1.05;
-
-/**
- * The torso's outline from waist to collar, as (radius, height) — rounded at
- * the hem, fullest at the chest, then a long soft slope over the shoulders to
- * the collar. No ledge: the arms hang from the slope.
- */
-const TORSO_PROFILE: [number, number][] = [
-  [0.001, 0], [0.58, 0.02], [0.66, 0.15], [0.68, 0.5], [0.7, 0.85],
-  [0.67, 1.05], [0.56, 1.22], [0.36, 1.33], [0.2, 1.37], [0.001, 1.38]
-];
-
-/** How far out the torso is at `h` above the waist (the lathe is straight between points). */
-export function torsoRadius(h: number): number {
-  const p = TORSO_PROFILE;
-  if (h <= p[0][1]) {
-    return p[0][0];
-  }
-  for (let i = 1; i < p.length; i++) {
-    if (h <= p[i][1]) {
-      const t = (h - p[i - 1][1]) / (p[i][1] - p[i - 1][1]);
-      return p[i - 1][0] + (p[i][0] - p[i - 1][0]) * t;
-    }
-  }
-  return p[p.length - 1][0];
-}
-
-/** A point on the front of the torso at `h` above the waist, nudged out by `out`. */
-function chest(h: number, out = 0.01): number {
-  return torsoRadius(h) * BODY.torsoScale[2] + out;
-}
-
-function buildHead(avatar: Avatar): THREE.Group {
+function buildHead(avatar: Avatar, figure: Figure): THREE.Group {
   const head = new THREE.Group();
   head.name = 'head-group';
-  head.position.y = HEAD_Y;
+  head.position.y = figure.headY;
+  head.scale.set(...figure.headScale);
   const skin = avatar.skin;
   const shape = avatar.faceShape;
 
-  head.add(part('head', surfaceGeometry(d => headPoint(shape, d), d => headPoint(shape, d)), toon(skin), 0.045));
+  head.add(part('head', surfaceGeometry(d => headPoint(shape, d), d => headPoint(shape, d)), toon(skin), 0.035));
 
-  // Ears, tucked a little into the side of the head
-  EAR_DIRS.forEach((dir, i) => {
-    const ear = part('ear', new THREE.SphereGeometry(0.2, 20, 16), toon(skin), 0.02);
-    ear.scale.set(0.55, 1, 0.8);
-    at(ear, headPoint(shape, dir), 0.97);
+  // Ears, level with the eyes and nose, tucked into the side of the head
+  EAR_DIRS.forEach(dir => {
+    const ear = part('ear', new THREE.SphereGeometry(0.24, 20, 16), toon(skin), 0.018);
+    ear.scale.set(0.42, 1.05, 0.72);
+    at(ear, headPoint(shape, normalise([dir[0], -0.14, dir[2]])), 0.97);
     head.add(ear);
   });
 
-  // Nose: a soft bump in a slightly deeper tone
-  const nose = part('nose', new THREE.SphereGeometry(0.1, 16, 12), toon(shade(skin, 0.12)), 0);
-  nose.scale.set(1, 0.85, 0.7);
-  at(nose, headPoint(shape, NOSE_DIR), 1.0);
-  head.add(nose);
+  // The nose: a bridge down from between the eyes to a rounded tip
+  const noseTone = toon(shade(skin, 0.08));
+  const top = headPoint(shape, normalise([0, 0.0, 1]));
+  const tip = headPoint(shape, normalise([0, -0.3, 1]));
+  const bridge = part('nose', limb([0.055, 0.075, 0.09], new THREE.Vector3(top[0], top[1], top[2] - 0.02),
+    new THREE.Vector3(tip[0], tip[1], tip[2] + 0.1), 12), noseTone, 0.012);
+  head.add(bridge);
+  const noseTip = part('nose-tip', new THREE.SphereGeometry(0.11, 16, 12), noseTone, 0.015);
+  noseTip.scale.set(1.1, 0.85, 0.9);
+  noseTip.position.set(tip[0], tip[1] + 0.01, tip[2] + 0.1);
+  head.add(noseTip);
+  [-1, 1].forEach(side => {
+    const wing = part('nostril', new THREE.SphereGeometry(0.06, 10, 8), noseTone, 0.01);
+    wing.position.set(side * 0.09, tip[1] - 0.02, tip[2] + 0.04);
+    head.add(wing);
+  });
 
-  // Cheeks
+  // A little colour in the cheeks
   EYE_DIRS.forEach(dir => {
     const cheek = new THREE.Mesh(new THREE.CircleGeometry(0.13, 20),
-      new THREE.MeshBasicMaterial({ color: '#ff7aa2', transparent: true, opacity: 0.35 }));
+      new THREE.MeshBasicMaterial({ color: '#ff7aa2', transparent: true, opacity: 0.14 }));
     cheek.name = 'cheek';
-    const p = headPoint(shape, normalise([dir[0] * 1.15, -0.2, dir[2]]));
+    const p = headPoint(shape, normalise([dir[0] * 1.15, -0.26, dir[2]]));
     at(cheek, p, 1.005);
     cheek.lookAt(p[0] * 2, p[1] * 2, p[2] * 2);
     head.add(cheek);
@@ -108,37 +72,51 @@ function buildHead(avatar: Avatar): THREE.Group {
   return head;
 }
 
+/** How wide and how open each eye shape is, before the head's own narrowing. */
 const EYE_SCALE: { [shape: string]: [number, number] } = {
-  round: [1, 1],
-  almond: [1.25, 0.72],
-  wide: [1.2, 1.1],
-  narrow: [1.25, 0.5]
+  round: [1.35, 0.66],
+  almond: [1.5, 0.5],
+  wide: [1.6, 0.68],
+  narrow: [1.5, 0.38]
 };
 
 function buildEyes(avatar: Avatar): THREE.Group {
   const eyes = new THREE.Group();
   eyes.name = 'eyes';
   const [sx, sy] = EYE_SCALE[avatar.eyeShape] || EYE_SCALE.round;
+  const girl = avatar.bodyType === 'girl';
   EYE_DIRS.forEach((dir, i) => {
+    const side = i === 0 ? -1 : 1;
     const eye = new THREE.Group();
     eye.name = 'eye';
     const p = headPoint(avatar.faceShape, dir);
-    at(eye, p, 0.99);
+    at(eye, p, 0.985);
     eye.lookAt(p[0] * 3, p[1] * 3, p[2] * 3 + 1.5);
-    const white = part('eye-white', new THREE.SphereGeometry(0.17, 24, 18), toon('#ffffff'), 0.018);
-    white.scale.set(sx, sy, 0.45);
-    const iris = new THREE.Mesh(new THREE.SphereGeometry(0.11, 20, 16), toon(avatar.eyeColour));
+    const white = part('eye-white', new THREE.SphereGeometry(0.13, 24, 18), toon('#fbf8f4'), 0.012);
+    white.scale.set(sx, sy, 0.4);
+    const iris = new THREE.Mesh(new THREE.SphereGeometry(0.075, 20, 16), toon(avatar.eyeColour));
     iris.name = 'iris';
-    iris.scale.set(Math.min(sx, 1.05), Math.min(sy, 1), 0.3);
-    iris.position.z = 0.065;
-    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 12), new THREE.MeshBasicMaterial({ color: '#1a1026' }));
+    iris.scale.set(1, Math.min(1, sy / 0.62), 0.3);
+    iris.position.z = 0.045;
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.036, 16, 12), new THREE.MeshBasicMaterial({ color: '#1a1026' }));
     pupil.name = 'pupil';
-    pupil.scale.set(1, Math.min(sy, 1), 0.3);
-    pupil.position.z = 0.085;
-    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), new THREE.MeshBasicMaterial({ color: '#ffffff' }));
+    pupil.scale.set(1, Math.min(1, sy / 0.62), 0.3);
+    pupil.position.z = 0.058;
+    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.016, 10, 8), new THREE.MeshBasicMaterial({ color: '#ffffff' }));
     glint.name = 'glint';
-    glint.position.set(-0.035, 0.035 * sy, 0.1);
-    eye.add(white, iris, pupil, glint);
+    glint.position.set(-0.025, 0.02, 0.065);
+    // The upper lid: a dark line over the top of the eye, which is what gives it its shape
+    const lid = part('eye-lid', new THREE.TorusGeometry(0.13, 0.02, 6, 24, Math.PI), toon('#3a2230'), 0);
+    lid.scale.set(sx, sy, 0.6);
+    lid.position.z = 0.02;
+    eye.add(white, iris, pupil, glint, lid);
+    if (girl) {
+      // Lashes: a small flick at the outer corner
+      const lash = part('eye-lash', new THREE.ConeGeometry(0.02, 0.09, 6), toon('#3a2230'), 0);
+      lash.position.set(side * 0.13 * sx, 0.03, 0.02);
+      lash.rotation.z = -side * 1.1;
+      eye.add(lash);
+    }
     eyes.add(eye);
   });
   return eyes;
@@ -147,11 +125,13 @@ function buildEyes(avatar: Avatar): THREE.Group {
 function buildBrows(avatar: Avatar): THREE.Group {
   const brows = new THREE.Group();
   brows.name = 'brows';
+  const girl = avatar.bodyType === 'girl';
   BROW_DIRS.forEach((dir, i) => {
-    const brow = part('brow', new THREE.CylinderGeometry(0.035, 0.035, 0.24, 10), toon(shade(avatar.hairColour, 0.1)), 0);
-    const p = headPoint(avatar.faceShape, dir);
-    at(brow, p, 1.01);
-    brow.rotation.z = Math.PI / 2 + (i === 0 ? -0.18 : 0.18);
+    const brow = part('brow', new THREE.BoxGeometry(0.38, girl ? 0.045 : 0.07, 0.06), toon(shade(avatar.hairColour, 0.1)), 0);
+    const p = headPoint(avatar.faceShape, normalise([dir[0], 0.24, dir[2]]));
+    at(brow, p, 1.005);
+    // A boy's brows sit a little lower in the middle; a girl's arch
+    brow.rotation.z = (i === 0 ? 1 : -1) * (girl ? -0.12 : 0.1);
     brow.rotation.y = i === 0 ? -0.35 : 0.35;
     brows.add(brow);
   });
@@ -161,42 +141,42 @@ function buildBrows(avatar: Avatar): THREE.Group {
 function buildMouth(avatar: Avatar): THREE.Group {
   const mouth = new THREE.Group();
   mouth.name = 'mouth';
-  const p = headPoint(avatar.faceShape, MOUTH_DIR);
+  const p = headPoint(avatar.faceShape, MOUTH_AT);
   at(mouth, p, 1.0);
   mouth.lookAt(p[0] * 3, p[1] * 3, p[2] * 3 + 2);
-  const lip = toon('#8e2f4a');
+  const lip = toon(shade(avatar.skin, 0.35));
   switch (avatar.mouthShape) {
     case 'grin': {
       const shape = new THREE.Shape();
-      shape.moveTo(-0.22, 0.03);
-      shape.quadraticCurveTo(0, -0.28, 0.22, 0.03);
-      shape.lineTo(-0.22, 0.03);
+      shape.moveTo(-0.17, 0.03);
+      shape.quadraticCurveTo(0, -0.17, 0.17, 0.03);
+      shape.lineTo(-0.17, 0.03);
       const grin = part('mouth-shape', new THREE.ShapeGeometry(shape, 16), new THREE.MeshBasicMaterial({ color: '#5a1a2e' }), 0);
-      const teeth = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.06), new THREE.MeshBasicMaterial({ color: '#ffffff' }));
-      teeth.position.set(0, 0.0, 0.002);
+      const teeth = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.045), new THREE.MeshBasicMaterial({ color: '#ffffff' }));
+      teeth.position.set(0, 0.005, 0.002);
       mouth.add(grin, teeth);
       break;
     }
     case 'open': {
-      const open = part('mouth-shape', new THREE.CircleGeometry(0.11, 24), new THREE.MeshBasicMaterial({ color: '#5a1a2e' }), 0);
-      open.scale.set(1, 0.85, 1);
-      const tongue = new THREE.Mesh(new THREE.CircleGeometry(0.06, 16), new THREE.MeshBasicMaterial({ color: '#e0607e' }));
-      tongue.position.set(0, -0.04, 0.002);
+      const open = part('mouth-shape', new THREE.CircleGeometry(0.08, 24), new THREE.MeshBasicMaterial({ color: '#5a1a2e' }), 0);
+      open.scale.set(1.1, 0.8, 1);
+      const tongue = new THREE.Mesh(new THREE.CircleGeometry(0.045, 16), new THREE.MeshBasicMaterial({ color: '#e0607e' }));
+      tongue.position.set(0, -0.03, 0.002);
       mouth.add(open, tongue);
       break;
     }
     case 'soft': {
-      const soft = part('mouth-shape', new THREE.TorusGeometry(0.1, 0.022, 8, 20, Math.PI * 0.6), lip, 0);
-      soft.rotation.z = Math.PI + Math.PI * 0.2;
-      soft.position.y = 0.06;
+      const soft = part('mouth-shape', new THREE.TorusGeometry(0.08, 0.018, 8, 20, Math.PI * 0.5), lip, 0);
+      soft.rotation.z = Math.PI + Math.PI * 0.25;
+      soft.position.y = 0.05;
       mouth.add(soft);
       break;
     }
     case 'smile':
     default: {
-      const smile = part('mouth-shape', new THREE.TorusGeometry(0.17, 0.026, 8, 24, Math.PI * 0.8), lip, 0);
-      smile.rotation.z = Math.PI + Math.PI * 0.1;
-      smile.position.y = 0.1;
+      const smile = part('mouth-shape', new THREE.TorusGeometry(0.14, 0.02, 8, 24, Math.PI * 0.6), lip, 0);
+      smile.rotation.z = Math.PI + Math.PI * 0.2;
+      smile.position.y = 0.09;
       mouth.add(smile);
     }
   }
@@ -228,27 +208,38 @@ export function hairShellGeometry(avatar: Avatar, capAt?: number): THREE.BufferG
  * the back of the head, hugs it round behind the ears, and falls past the
  * shoulders, a little longer in the middle and with its ends turned in.
  */
-export function curtainGeometry(avatar: Avatar): THREE.BufferGeometry {
+export function curtainGeometry(avatar: Avatar, figure: Figure = figureFor(avatar.bodyType)): THREE.BufferGeometry {
   const columns = 48;
-  const rows = 24;
-  const from = Math.PI * 0.56;
-  const to = Math.PI * 1.44;
+  const rows = 32;
   const top = 0.1;
+  const [sx, sy, sz] = figure.headScale;
   const positions: number[] = [];
   const indices: number[] = [];
   for (let r = 0; r <= rows; r++) {
     const v = r / rows;
+    // Full width round the back of the head, narrowing lower down so the
+    // ends fall between the shoulders rather than through them
+    const narrow = v * v * (3 - 2 * v);
+    const from = Math.PI * (0.56 + 0.16 * narrow);
+    const to = Math.PI * (1.44 - 0.16 * narrow);
     for (let c = 0; c <= columns; c++) {
       const phi = from + (c / columns) * (to - from);
       const middle = Math.cos((c / columns - 0.5) * Math.PI); // 1 at the centre back
-      const length = 1.35 + 0.2 * middle;
+      const length = 2.9 + 0.35 * middle;
       const y = top - v * length;
       const start = hairPoint(avatar.faceShape, 'long', avatar.hairTexture,
         normalise([Math.sin(phi), top, Math.cos(phi)])) || headPoint(avatar.faceShape, [Math.sin(phi), top, Math.cos(phi)]);
-      const reach = Math.hypot(start[0], start[2]);
-      // Out over the shoulders, then in a little at the very ends
-      const radius = reach * (1 + 0.1 * Math.sin(v * Math.PI * 0.8)) - 0.12 * v ** 4;
-      positions.push(Math.sin(phi) * radius, y, Math.cos(phi) * radius * 0.92);
+      let radius = Math.hypot(start[0], start[2]) * (1 + 0.08 * Math.sin(Math.min(v * 2, 1) * Math.PI * 0.5));
+      // Lower down it lies on the back: never inside the torso, which is
+      // measured in this head's own (narrowed) space
+      const w = torsoRadius(figure, figure.headY + y * sy);
+      if (w > 0) {
+        const a = w / sx;
+        const b = (w * figure.torsoDepth) / sz;
+        const onBack = 1 / Math.sqrt((Math.sin(phi) / a) ** 2 + (Math.cos(phi) / b) ** 2);
+        radius = Math.max(radius, onBack + 0.14);
+      }
+      positions.push(Math.sin(phi) * radius, y, Math.cos(phi) * radius);
     }
   }
   for (let r = 0; r < rows; r++) {
@@ -269,10 +260,11 @@ function hairColour(avatar: Avatar): string {
   return avatar.hairColour;
 }
 
-function buildHair(avatar: Avatar): THREE.Group {
+function buildHair(avatar: Avatar, figure: Figure): THREE.Group {
   const hair = new THREE.Group();
   hair.name = 'hair';
-  hair.position.y = HEAD_Y;
+  hair.position.y = figure.headY;
+  hair.scale.set(...figure.headScale);
   const style = avatar.hairStyle;
   const shape = avatar.faceShape;
   const hatCovers = HATS_OVER_HAIR.includes(avatar.hat);
@@ -285,7 +277,7 @@ function buildHair(avatar: Avatar): THREE.Group {
   hair.add(part('hair-shell', shell, material, 0.028));
 
   if (style === 'long') {
-    hair.add(part('hair-long', curtainGeometry(avatar), material, 0.025));
+    hair.add(part('hair-long', curtainGeometry(avatar, figure), material, 0.025));
   }
   if (style === 'bun' && !hatCovers) {
     const bun = part('hair-bun', new THREE.SphereGeometry(0.36, 24, 18), material, 0.025);
@@ -294,14 +286,15 @@ function buildHair(avatar: Avatar): THREE.Group {
   }
   if (style === 'braids') {
     [-1, 1].forEach(side => {
-      for (let i = 0; i < 7; i++) {
+      // Down to the jaw and no further, so they hang clear of the shoulders
+      for (let i = 0; i < 5; i++) {
         const bead = part('hair-braid', new THREE.SphereGeometry(0.13 - i * 0.006, 14, 10), material, 0.018);
         bead.scale.set(1, 1.25, 1);
-        bead.position.set(side * (0.78 - i * 0.02), -0.25 - i * 0.2, -0.35);
+        bead.position.set(side * (0.8 - i * 0.02), -0.25 - i * 0.2, -0.35);
         hair.add(bead);
       }
       const tie = part('hair-tie', new THREE.SphereGeometry(0.07, 10, 8), toon('#d633eb'), 0.012);
-      tie.position.set(side * 0.64, -1.68, -0.35);
+      tie.position.set(side * 0.7, -1.25, -0.35);
       hair.add(tie);
     });
   }
@@ -318,107 +311,249 @@ function buildHair(avatar: Avatar): THREE.Group {
   return hair;
 }
 
-function buildBody(avatar: Avatar): THREE.Group {
+/** A body part in the trousers' colour. */
+const TROUSERS = '#a86f3f';
+const BELT = '#2f2a3a';
+const SHOE = '#2c3944';
+const SOLE = '#e4e9ea';
+const LACE = '#dfe6ea';
+
+/**
+ * A rounded tube from `from` to `to`, its radius following `radii` along the
+ * way (first to last, straight between). A limb, a sleeve, a trouser leg.
+ */
+function limb(radii: number[], from: THREE.Vector3, to: THREE.Vector3, segments = 20): THREE.BufferGeometry {
+  const length = from.distanceTo(to);
+  const points = radii.map((r, i) => new THREE.Vector2(r, (1 - i / (radii.length - 1)) * length));
+  // Close both ends so an outline does not show down the inside
+  points.unshift(new THREE.Vector2(0.001, length));
+  points.push(new THREE.Vector2(0.001, 0));
+  const geometry = new THREE.LatheGeometry(points.reverse(), segments);
+  const up = new THREE.Vector3(0, 1, 0);
+  const direction = from.clone().sub(to).normalize();
+  geometry.applyMatrix4(new THREE.Matrix4().makeRotationFromQuaternion(new THREE.Quaternion().setFromUnitVectors(up, direction)));
+  geometry.translate(to.x, to.y, to.z);
+  return geometry;
+}
+
+/** The torso's own surface at a height: [half-width, half-depth]. */
+function girth(figure: Figure, y: number): [number, number] {
+  const r = torsoRadius(figure, y);
+  return [r, r * figure.torsoDepth];
+}
+
+/** Which kind of sleeve and neckline a top has. */
+export function topCut(top: string): 'long' | 'short' | 'hoodie' {
+  if (top === 'hoodie') {
+    return 'hoodie';
+  }
+  return top === 'star-tee' || top === 'flower-tee' ? 'short' : 'long';
+}
+
+function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
   const body = new THREE.Group();
   body.name = 'body';
   const top = findItem('top', avatar.top);
   const topColour = top && top.id !== NO_ITEM ? top.colour : DEFAULT_TOP_COLOUR;
+  const cut = topCut(avatar.top);
   const cloth = toon(topColour);
   const skin = toon(avatar.skin);
-  const trousers = toon('#3b3663');
-  const [sx, sy, sz] = BODY.torsoScale;
+  const trousers = toon(TROUSERS);
+  const depth = figure.torsoDepth;
 
-  const torso = part('torso', new THREE.LatheGeometry(TORSO_PROFILE.map(([r, h]) => new THREE.Vector2(r, h)), 40), cloth, 0.025);
-  torso.position.y = BODY.waist;
-  torso.scale.set(sx, sy, sz);
+  // The top: the torso from the hem up to the collar, in the top's colour
+  const upper = figure.torso.filter(([, y]) => y >= figure.hem - 0.3);
+  const torso = part('torso', new THREE.LatheGeometry(upper.map(([r, y]) => new THREE.Vector2(r, y)), 40), cloth, 0.05);
+  torso.scale.z = depth;
   body.add(torso);
+  // A ribbed band at the hem
+  const [hemR] = girth(figure, figure.hem);
+  const band = part('hem-band', new THREE.CylinderGeometry(hemR * 1.03, hemR * 1.03, 0.28, 40, 1, true), toon(shade(topColour, 0.1), { side: THREE.DoubleSide }), 0.03);
+  band.position.y = figure.hem;
+  band.scale.z = depth;
+  body.add(band);
 
-  // Hips, in the trousers, joining the legs to the torso
-  const hips = part('hips', new THREE.SphereGeometry(BODY.hips, 28, 16), trousers, 0.022);
-  hips.scale.set(sx, 0.5, sz);
-  hips.position.y = BODY.waist + 0.04;
-  body.add(hips);
+  // Trousers: from the crotch to the belt, then down each leg
+  const lower = figure.torso.filter(([, y]) => y <= figure.belt + 0.2);
+  const pelvis = part('hips', new THREE.LatheGeometry(lower.map(([r, y]) => new THREE.Vector2(r * 1.01, y)), 40), trousers, 0.05);
+  pelvis.scale.z = depth;
+  body.add(pelvis);
+  const [beltR] = girth(figure, figure.belt);
+  const belt = part('belt', new THREE.CylinderGeometry(beltR * 1.04, beltR * 1.04, 0.2, 40, 1, true), toon(BELT, { side: THREE.DoubleSide }), 0.02);
+  belt.position.y = figure.belt;
+  belt.scale.z = depth;
+  body.add(belt);
+  const buckle = part('buckle', new THREE.BoxGeometry(0.34, 0.24, 0.06), toon('#c9a54a'), 0.015);
+  buckle.position.set(0, figure.belt, beltR * 1.04 * depth + 0.02);
+  body.add(buckle);
+
+  [-1, 1].forEach(side => {
+    const hip = new THREE.Vector3(side * figure.hip[0], figure.hip[1], 0);
+    const knee = new THREE.Vector3(side * figure.knee[0], figure.knee[1], 0.04);
+    const ankle = new THREE.Vector3(side * figure.ankle[0], figure.ankle[1], 0);
+    const [rHip, rKnee, rHem] = figure.legRadii;
+    body.add(part('leg', limb([rHip, rHip * 0.92], hip, knee), trousers, 0.04));
+    body.add(part('leg', limb([rKnee * 1.02, rKnee, rHem, rHem * 1.05], knee, ankle), trousers, 0.04));
+    // Cargo pockets on the outside of each thigh, as in the reference
+    const mid = hip.clone().lerp(knee, 0.45);
+    const pocket = part('cargo-pocket', new THREE.BoxGeometry(0.14, 1.3, 0.8), toon(shade(TROUSERS, 0.08)), 0.02);
+    pocket.position.set(mid.x + side * (rHip * 0.92), mid.y, 0);
+    body.add(pocket);
+    const flap = part('cargo-flap', new THREE.BoxGeometry(0.18, 0.3, 0.86), toon(shade(TROUSERS, 0.16)), 0.02);
+    flap.position.set(mid.x + side * (rHip * 0.94), mid.y + 0.62, 0);
+    body.add(flap);
+
+    // Sneakers: a white sole, a dark upper, laces over the top
+    const [footLength, footWidth] = figure.foot;
+    const shoe = new THREE.Group();
+    shoe.name = 'shoe';
+    shoe.position.set(ankle.x, 0, 0.18 * footLength);
+    const sole = part('shoe-sole', new THREE.CylinderGeometry(0.5, 0.5, 0.26, 28), toon(SOLE), 0.02);
+    sole.scale.set(footWidth, 1, footLength);
+    sole.position.y = 0.13;
+    const upperShoe = part('shoe-upper', new THREE.SphereGeometry(0.5, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2), toon(SHOE), 0.025);
+    upperShoe.scale.set(footWidth * 0.94, 1.15, footLength * 0.94);
+    upperShoe.position.y = 0.24;
+    const toe = part('shoe-toe', new THREE.SphereGeometry(0.5, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), toon(SOLE), 0.02);
+    toe.scale.set(footWidth * 0.8, 0.5, footLength * 0.34);
+    toe.position.set(0, 0.24, footLength * 0.3);
+    shoe.add(sole, upperShoe, toe);
+    for (let i = 0; i < 3; i++) {
+      const lace = part('shoe-lace', new THREE.BoxGeometry(footWidth * 0.5, 0.05, 0.06), toon(LACE), 0.008);
+      lace.position.set(0, 0.62 + i * 0.1 - i * i * 0.02, footLength * (0.14 - i * 0.1));
+      shoe.add(lace);
+    }
+    body.add(shoe);
+
+    // Arms hang from the shoulder: a round shoulder, then the upper arm and forearm
+    const shoulder = new THREE.Vector3(side * figure.shoulder[0], figure.shoulder[1], 0);
+    const elbowXY = hang(figure.shoulder, figure.upperArm, figure.armSwing, 1);
+    const wristXY = wrist(figure);
+    const elbow = new THREE.Vector3(side * elbowXY[0], elbowXY[1], 0.08);
+    const wristV = new THREE.Vector3(side * wristXY[0], wristXY[1], 0.18);
+    const [rShoulder, rElbow, rWrist] = figure.armRadii;
+    const cap = part('shoulder', new THREE.SphereGeometry(rShoulder * 1.08, 20, 14), cloth, 0.04);
+    cap.position.copy(shoulder);
+    body.add(cap);
+    if (cut === 'short') {
+      // A short sleeve ends above the elbow; below it is a bare arm
+      const sleeveEnd = shoulder.clone().lerp(elbow, 0.55);
+      body.add(part('arm', limb([rShoulder * 1.05, rShoulder], shoulder, sleeveEnd), cloth, 0.04));
+      body.add(part('bare-arm', limb([rElbow * 0.8, rElbow * 0.78], sleeveEnd, elbow), skin, 0.035));
+      body.add(part('forearm', limb([rElbow * 0.78, rWrist * 0.75], elbow, wristV), skin, 0.035));
+    } else {
+      body.add(part('arm', limb([rShoulder, rElbow * 1.05], shoulder, elbow), cloth, 0.04));
+      body.add(part('forearm', limb([rElbow, rWrist * 1.02], elbow, wristV), cloth, 0.04));
+      // A ribbed cuff at the wrist
+      const cuff = part('cuff', limb([rWrist * 1.12, rWrist * 1.12], wristV.clone().lerp(elbow, 0.12), wristV), toon(shade(topColour, 0.12)), 0.02);
+      body.add(cuff);
+      if (cut === 'hoodie') {
+        // The red of the shirt underneath shows at the wrist, as in the reference
+        const under = part('undershirt-cuff', limb([rWrist * 1.0, rWrist * 0.98], wristV, wristV.clone().add(wristV.clone().sub(elbow).normalize().multiplyScalar(0.12))), toon('#b5302b'), 0.015);
+        body.add(under);
+      }
+    }
+    // A hand: palm, fingers together, and a thumb, hanging relaxed
+    const hand = new THREE.Group();
+    hand.name = 'hand';
+    const down = wristV.clone().sub(elbow).normalize();
+    hand.position.copy(wristV);
+    hand.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), down);
+    const palm = part('palm', new THREE.SphereGeometry(0.5, 18, 14), skin, 0.025);
+    palm.scale.set(0.44, figure.handLength * 0.6, 0.7);
+    palm.position.y = -figure.handLength * 0.28;
+    const fingers = part('fingers', new THREE.SphereGeometry(0.5, 18, 14), skin, 0.025);
+    fingers.scale.set(0.38, figure.handLength * 0.6, 0.62);
+    fingers.position.set(0, -figure.handLength * 0.68, 0.04);
+    fingers.rotation.x = 0.25;
+    const thumb = part('thumb', new THREE.SphereGeometry(0.5, 12, 10), skin, 0.02);
+    thumb.scale.set(0.2, figure.handLength * 0.4, 0.2);
+    thumb.position.set(-side * 0.02, -figure.handLength * 0.36, 0.34);
+    thumb.rotation.x = 0.5;
+    hand.add(palm, fingers, thumb);
+    body.add(hand);
+  });
+
+  // The neck, from inside the collar up into the head
+  const neckTop = chinY(figure) + 0.5;
+  const neckBottom = figure.torso[figure.torso.length - 1][1] - 0.6;
+  const neck = part('neck', new THREE.CylinderGeometry(figure.neckRadius * 0.95, figure.neckRadius, neckTop - neckBottom, 20), skin, 0.03);
+  neck.position.y = (neckTop + neckBottom) / 2;
+  body.add(neck);
+
+  const collarY = figure.torso[figure.torso.length - 1][1] - 0.12;
+  if (cut === 'hoodie') {
+    // The hood, lying round the back of the neck; a red collar underneath;
+    // drawstrings with metal tips; a pouch pocket — all read off the reference
+    // A thick roll right round the neck, open in a V at the front
+    const gap = Math.PI * 0.28;
+    const hoodRing = new THREE.TorusGeometry(figure.neckRadius * 1.9, 0.3, 14, 40, Math.PI * 2 - gap);
+    hoodRing.rotateX(Math.PI / 2);
+    hoodRing.rotateY(-(Math.PI / 2 + gap / 2));
+    const hood = part('hood', hoodRing, toon(shade(topColour, 0.06)), 0.04);
+    hood.rotation.x = -0.18;
+    hood.position.set(0, collarY - 0.05, -0.08);
+    hood.scale.set(1.2, 1, 1);
+    // Round off the two ends of the roll either side of the V
+    [Math.PI / 2 + gap / 2, Math.PI / 2 - gap / 2].forEach(angle => {
+      const end = part('hood-end', new THREE.SphereGeometry(0.3, 14, 10), toon(shade(topColour, 0.06)), 0.03);
+      end.position.set(Math.cos(angle) * figure.neckRadius * 1.9, 0, Math.sin(angle) * figure.neckRadius * 1.9);
+      hood.add(end);
+    });
+    body.add(hood);
+    // and the hood itself lying on the upper back
+    const back = part('hood-back', new THREE.SphereGeometry(0.9, 24, 16), toon(shade(topColour, 0.06)), 0.035);
+    back.scale.set(1.1, 0.75, 0.35);
+    back.position.set(0, collarY - 0.7, -girth(figure, collarY - 0.7)[0] * depth - 0.05);
+    body.add(back);
+    const collar = part('undershirt-collar', new THREE.TorusGeometry(figure.neckRadius * 1.08, 0.1, 10, 28), toon('#b5302b'), 0.015);
+    collar.rotation.x = Math.PI / 2;
+    collar.position.y = collarY + 0.02;
+    body.add(collar);
+    [-1, 1].forEach(side => {
+      const x = side * 0.3;
+      const [chestR] = girth(figure, collarY - 0.9);
+      const string = part('hoodie-string', new THREE.CylinderGeometry(0.035, 0.035, 1.2, 8), toon('#dfe6ea'), 0.012);
+      string.position.set(x, collarY - 0.75, chestR * depth + 0.06);
+      string.rotation.x = -0.12;
+      body.add(string);
+      const tip = part('hoodie-string-tip', new THREE.CylinderGeometry(0.05, 0.05, 0.16, 8), toon('#9aa5ab'), 0.01);
+      tip.position.set(x, collarY - 1.4, chestR * depth + 0.13);
+      body.add(tip);
+    });
+    const pocketY = figure.hem + 0.95;
+    const [pocketR] = girth(figure, pocketY);
+    const pocket = part('hoodie-pocket', new THREE.BoxGeometry(1.5, 0.95, 0.08), toon(shade(topColour, 0.1)), 0.02);
+    pocket.position.set(0, pocketY, pocketR * depth + 0.03);
+    body.add(pocket);
+  } else {
+    // A plain round neckline
+    const neckline = part('neckline', new THREE.TorusGeometry(figure.neckRadius * 1.18, 0.07, 8, 28), toon(shade(topColour, 0.14)), 0.012);
+    neckline.rotation.x = Math.PI / 2;
+    neckline.position.y = collarY + 0.04;
+    body.add(neckline);
+  }
 
   if (top && top.id === 'striped') {
-    for (let i = 0; i < 4; i++) {
-      const h = 0.25 + i * 0.24;
-      const band = new THREE.Mesh(new THREE.CylinderGeometry(torsoRadius(h + 0.05), torsoRadius(h - 0.05), 0.1, 40, 1, true),
+    for (let i = 0; i < 5; i++) {
+      const y = figure.hem + 0.5 + i * 0.62;
+      const band = new THREE.Mesh(new THREE.CylinderGeometry(torsoRadius(figure, y + 0.1) * 1.012, torsoRadius(figure, y - 0.1) * 1.012, 0.2, 40, 1, true),
         toon('#ffffff'));
       band.name = 'stripe';
-      band.position.y = BODY.waist + h;
-      band.scale.set(sx * 1.01, 1, sz * 1.01);
+      band.position.y = y;
+      band.scale.z = depth * 1.012;
       body.add(band);
     }
   }
   if (top && (top.id === 'star-tee' || top.id === 'flower-tee')) {
-    const decal = top.id === 'star-tee' ? starShape(0.24, 0.1) : flowerShape(0.22);
+    const decal = top.id === 'star-tee' ? starShape(0.5, 0.22) : flowerShape(0.45);
     const mesh = new THREE.Mesh(new THREE.ShapeGeometry(decal, 12),
       new THREE.MeshBasicMaterial({ color: top.id === 'star-tee' ? '#ffd166' : '#ff8fb8' }));
     mesh.name = 'decal';
-    mesh.position.set(0, BODY.waist + 0.8, chest(0.8));
+    const y = figure.hem + (figure.shoulder[1] - figure.hem) * 0.62;
+    mesh.position.set(0, y, girth(figure, y)[0] * depth + 0.03);
     body.add(mesh);
   }
-  if (top && top.id === 'hoodie') {
-    // The hood, hanging down the upper back below the head
-    const hood = part('hood', new THREE.SphereGeometry(0.5, 24, 16), toon(shade(topColour, 0.08)), 0.022);
-    hood.scale.set(1.1, 0.8, 0.42);
-    hood.position.set(0, BODY.waist + 1.05, -chest(1.05, 0.08));
-    body.add(hood);
-    const lining = new THREE.Mesh(new THREE.SphereGeometry(0.32, 20, 12), toon(shade(topColour, 0.3)));
-    lining.name = 'hood-lining';
-    lining.scale.set(1.1, 0.7, 0.3);
-    lining.position.set(0, BODY.waist + 1.15, -chest(1.05, 0.2));
-    body.add(lining);
-    // Drawstrings and a pocket, so it reads as a hoodie from the front too
-    [-1, 1].forEach(side => {
-      const string = part('hoodie-string', new THREE.CylinderGeometry(0.028, 0.028, 0.4, 8), toon('#f3e9e2'), 0.01);
-      string.position.set(side * 0.16, BODY.waist + 1.02, chest(1.02, 0.02));
-      string.rotation.x = -0.3;
-      body.add(string);
-    });
-    const pocket = part('hoodie-pocket', new THREE.BoxGeometry(0.78, 0.32, 0.06), toon(shade(topColour, 0.12)), 0.015);
-    pocket.position.set(0, BODY.waist + 0.32, chest(0.32, 0.02));
-    pocket.rotation.x = -0.05;
-    body.add(pocket);
-  }
-
-  // Neck, from inside the collar up into the head
-  const neck = part('neck', new THREE.CylinderGeometry(0.22, 0.24, 0.5, 16), skin, 0.02);
-  neck.position.y = BODY.waist + BODY.torsoHeight;
-  body.add(neck);
-
-  const [shoulderX, shoulderY] = BODY.shoulder;
-  [-1, 1].forEach(side => {
-    // A round shoulder in the sleeve, so the arm grows out of the slope
-    const cap = part('shoulder', new THREE.SphereGeometry(0.23, 18, 14), cloth, 0.022);
-    cap.position.set(side * (shoulderX - 0.02), shoulderY - 0.02, 0);
-    body.add(cap);
-    // The arm hangs from the shoulder, swung a little away from the body
-    const arm = new THREE.Group();
-    arm.name = 'arm-pivot';
-    arm.position.set(side * shoulderX, shoulderY, 0);
-    arm.rotation.z = side * BODY.armSwing;
-    const sleeve = part('arm', new THREE.CylinderGeometry(0.21, 0.17, BODY.armLength * 0.82, 16), cloth, 0.022);
-    sleeve.position.y = -BODY.armLength * 0.41;
-    arm.add(sleeve);
-    const cuff = part('cuff', new THREE.TorusGeometry(0.16, 0.035, 8, 20), toon(shade(topColour, 0.15)), 0.01);
-    cuff.rotation.x = Math.PI / 2;
-    cuff.position.y = -BODY.armLength * 0.8;
-    arm.add(cuff);
-    const hand = part('hand', new THREE.SphereGeometry(0.19, 18, 14), skin, 0.02);
-    hand.scale.set(0.9, 1.05, 0.85);
-    hand.position.y = -BODY.armLength * 0.94;
-    arm.add(hand);
-    body.add(arm);
-
-    const leg = part('leg', new THREE.CylinderGeometry(0.24, 0.21, 0.82, 16), trousers, 0.022);
-    leg.position.set(side * 0.3, 0.55, 0);
-    body.add(leg);
-    const shoe = part('shoe', new THREE.SphereGeometry(0.25, 18, 12), toon('#f2f0ff'), 0.02);
-    shoe.scale.set(1, 0.55, 1.4);
-    shoe.position.set(side * 0.3, 0.12, 0.09);
-    body.add(shoe);
-  });
   return body;
 }
 
@@ -439,15 +574,15 @@ function flowerShape(r: number): THREE.Shape {
  * colours, so the character is standing somewhere rather than floating in
  * the dark.
  */
-function buildPedestal(): THREE.Group {
+function buildPedestal(radius: number): THREE.Group {
   const pedestal = new THREE.Group();
   pedestal.name = 'pedestal';
-  const top = part('pedestal-top', new THREE.CylinderGeometry(1.25, 1.35, 0.18, 48), toon('#3a2f6e'), 0.02);
+  const top = part('pedestal-top', new THREE.CylinderGeometry(radius, radius * 1.08, 0.18, 48), toon('#3a2f6e'), 0.02);
   top.position.y = -0.1;
   pedestal.add(top);
   const blue = new THREE.Color('#3880ff');
   const magenta = new THREE.Color('#d633eb');
-  const ring = new THREE.TorusGeometry(1.3, 0.04, 8, 96);
+  const ring = new THREE.TorusGeometry(radius * 1.04, 0.06, 8, 96);
   const position = ring.attributes.position as THREE.BufferAttribute;
   const colour = new Float32Array(position.count * 3);
   for (let i = 0; i < position.count; i++) {
@@ -464,19 +599,26 @@ function buildPedestal(): THREE.Group {
   return pedestal;
 }
 
-/** The whole character, standing on the origin, about 3.5 units tall. */
+/**
+ * The whole character, standing on the origin, in the figure of the body
+ * type picked. The head and everything on it (hair, a hat, glasses) share
+ * one position and one scale, so what fits the head in its own space fits it
+ * here, on every figure.
+ */
 export function buildAvatar(avatar: Avatar): THREE.Group {
+  const figure = figureFor(avatar.bodyType);
   const root = new THREE.Group();
   root.name = 'avatar';
-  root.add(buildPedestal());
-  root.add(buildBody(avatar));
-  root.add(buildHead(avatar));
-  root.add(buildHair(avatar));
+  root.add(buildPedestal(figure.ankle[0] + figure.foot[1] + 0.9));
+  root.add(buildBody(avatar, figure));
+  root.add(buildHead(avatar, figure));
+  root.add(buildHair(avatar, figure));
   const hat = buildHat(avatar);
   const glasses = buildGlasses(avatar);
   [hat, glasses].forEach(item => {
     if (item) {
-      item.position.y = HEAD_Y;
+      item.position.y = figure.headY;
+      item.scale.set(...figure.headScale);
       root.add(item);
     }
   });
@@ -499,4 +641,3 @@ export function disposeAvatar(root: THREE.Object3D) {
   });
 }
 
-export { HEAD_Y };
