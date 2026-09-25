@@ -388,37 +388,8 @@ html[data-fit='short'] .difficulty-container h1 {
   margin: 0 0 0.5rem;
 }
 
-/* What a child has done, side by side rather than in one long column.
-   The class is `.progress-page`; three of the container names in the first
-   draft of this file were guessed and matched nothing, which is why every
-   number here comes from a measurement rather than a read-through. */
-html[data-fit='short'] .progress-page {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem 1.25rem;
-  align-items: start;
-  max-width: 900px;
-}
-
-html[data-fit='short'] .progress-page > h1,
-html[data-fit='short'] .progress-page > .back-btn {
-  grid-column: 1 / -1;
-}
-
-html[data-fit='short'] .progress-page .stage {
-  width: 104px;
-  height: 104px;
-}
-
-html[data-fit='short'] .progress-page .stage svg {
-  width: 66px;
-  height: auto;
-}
-
-/* Half a sideways screen is too narrow for four tiles in a row */
-html[data-fit='short'] .progress-page .counts {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
+/* The progress page's own landscape rules live in its stylesheet: it is a
+   lazy route, and rules here ship in everyone's first load. */
 
 /* ---------- A large tablet ---------- */
 

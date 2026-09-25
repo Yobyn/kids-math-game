@@ -1,9 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { LanguageService } from '../services/language.service';
+import { LanguageService, TranslationKeys } from '../services/language.service';
 import { ProgressService } from '../services/progress.service';
 import { Difficulty, lastPlayed, suggestDifficulty, suggestionDirection } from '../levels/difficulty-tuner';
-import { stepColour } from '../theme/palette';
+import { climbs } from './climb';
 
 @Component({
   selector: 'app-difficulty-select',
@@ -11,29 +11,12 @@ import { stepColour } from '../theme/palette';
   styleUrls: ['./difficulty-select.component.css']
 })
 export class DifficultySelectComponent implements OnInit {
-  difficulties = [
-    { 
-      level: 'easy',
-      colour: stepColour(1, 3),
-      name: this.languageService.translate('level') + ' 1',
-      description: this.languageService.translate('easy-desc'),
-      icon: '🌟'
-    },
-    {
-      level: 'medium',
-      colour: stepColour(2, 3),
-      name: this.languageService.translate('level') + ' 2',
-      description: this.languageService.translate('medium-desc'),
-      icon: '🌟🌟'
-    },
-    {
-      level: 'hard',
-      colour: stepColour(3, 3),
-      name: this.languageService.translate('level') + ' 3',
-      description: this.languageService.translate('hard-desc'),
-      icon: '🌟🌟🌟'
-    }
-  ];
+  /** Three climbs, easiest first: see climb.ts for why they are drawn. */
+  difficulties = climbs().map(climb => ({
+    ...climb,
+    name: this.languageService.translate(`climb-${climb.level}` as TranslationKeys),
+    description: this.languageService.translate(`${climb.level}-desc` as TranslationKeys)
+  }));
 
   /** What recent rounds suggest, if they suggest anything at all. */
   suggested?: Difficulty;

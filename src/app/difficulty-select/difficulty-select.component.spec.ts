@@ -37,6 +37,31 @@ describe('DifficultySelectComponent', () => {
     expect(card.getAttribute('tabindex')).toBe('0');
   });
 
+  it('edges the cards in the ring\u2019s colours, not a traffic light', () => {
+    const cards = Array.from(fixture.nativeElement.querySelectorAll('.difficulty-card')) as HTMLElement[];
+    // Blue, violet, magenta: the old green/yellow/red rules outranked these
+    expect(getComputedStyle(cards[0]).borderTopColor).toBe('rgb(56, 128, 255)');
+    expect(getComputedStyle(cards[2]).borderTopColor).toBe('rgb(214, 51, 235)');
+  });
+
+  it('draws each difficulty as a climb, and never as stars', () => {
+    const cards = Array.from(fixture.nativeElement.querySelectorAll('.difficulty-card')) as HTMLElement[];
+    cards.forEach(card => {
+      expect(card.querySelector('svg.climb path')).toBeTruthy();
+      expect(card.textContent).not.toMatch(/[★⭐🌟]/);
+    });
+    expect(cards[2].querySelector('.flag')).toBeTruthy();
+    expect(cards[0].querySelector('.flag')).toBeNull();
+  });
+
+  it('names the climbs without the word "Level", which belongs to the character', () => {
+    const t = (key: any) => component.languageService.translate(key);
+    const names = Array.from(fixture.nativeElement.querySelectorAll('.difficulty-card h2') as NodeListOf<HTMLElement>)
+      .map(h => h.textContent!.trim());
+    expect(names).toEqual([t('climb-easy'), t('climb-medium'), t('climb-hard')]);
+    names.forEach(name => expect(name).not.toContain(t('level')));
+  });
+
   it('can be chosen with the keyboard, not just a tap', () => {
     const card = fixture.nativeElement.querySelector('.difficulty-card');
     card.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
