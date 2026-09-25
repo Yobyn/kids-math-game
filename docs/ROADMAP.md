@@ -67,9 +67,13 @@ back. What that cost is recorded under "What the audit found", at the end.
   compose with all of them, plus hair and eye colour. The page is three
   sections a child moves between rather than one long scroll. It is drawn
   from an SVG sprite, shaded, and the hair is fitted to every face shape.
+- On the dressing-up screen the character is 3D: a toon-shaded figure on a
+  glowing stand that a child drags round, or turns with two buttons, to see
+  from every side. Every face, hair style, texture, hat, pair of glasses and
+  top is built to fit, and tested on every combination.
 - The particle field answers a tap: a small burst of its particles under the
   finger, apart from the full-field surge that a correct answer earns.
-- 1,326 unit tests, 200 build-script tests and 39 server tests, run on every
+- 1,389 unit tests, 200 build-script tests and 39 server tests, run on every
   PR by GitHub Actions alongside the build.
 - THE UNIT SUITE RUNS TWICE: once on the machine's own clock and once with
   `Date` moved on more than a year (`npm run test:future`). A test that writes
@@ -110,6 +114,99 @@ are earned and specific, and become noise when they are constant — a reward
 at every level only works if the levels themselves take real practice. And an
 avatar means per-child data: guest state in `localStorage`, account state on
 a backend that currently keeps its users in memory (see Code health).
+
+## The avatar in 3D (Yobyn, 2026-09-25)
+
+**THE AVATAR IS 100% OF THE FOCUS NOW.** Yobyn's words: "the avatar will be
+the motivator for the kids to come back and do more, the avatar should be in
+3D, you should be able to rotate around your avatar and view it from all
+angles ... make sure all combos work, I want to see screenshots as you
+improve the avatar." Every run under this heading ships an avatar
+improvement, checks it on every combination, and sends Yobyn screenshots
+from several angles.
+
+**A 3D CHARACTER YOU CAN TURN ROUND — DONE (2026-09-25).** The dressing-up
+screen's stage is a 3D character now, built with three.js (r128) and drawn
+in the game's look: toon shading in four soft bands, a dark violet outline
+round every part, and a glowing stand ringed in the particle field's blue
+and magenta. A child drags it round, or presses ↺ and ↻ (each press turns it
+an eighth, eased). It spins once, all the way round, when the screen opens,
+so it is obvious straight away that it turns. Under reduced motion every
+turn is instant and there is no opening spin.
+
+How it fits every combination, BY CONSTRUCTION rather than by tuning:
+
+- `avatar3d/head-surface.ts` is the head as arithmetic, DOM-free and free of
+  three.js: one surface per face shape (round, a longer oval, a
+  superellipsoid square, a heart that tapers to the chin). Eyes, brows,
+  mouth, nose and ears are placed ON that surface, so they sit on every face.
+- Hair is a shell grown out of the same surface. Each of the nine styles is
+  a line of numbers (thickness, hairline front and back, fringe, sideburns,
+  curl puffs). The shell is a grid that runs from the crown to EXACTLY the
+  hairline all the way round, and one more row tucks the edge into the
+  scalp, so there is no ragged edge and no open shelf under a big afro.
+  Curls are round puffs laid out on an even Fibonacci spread over the head;
+  laid out by angle they bunched into spikes at the crown.
+- Hats that cover the head press the hair flat under a fixed height, curls
+  and all, and the hat's own shell stands clear of that height, so no hair
+  can poke through any hat. A crown is worn IN the hair: it finds where the
+  top of this hair is and sits there, high on an afro and low on a buzz cut.
+- Glasses sit in front of where the eyes are on THIS face, and their arms
+  run back along the outside of whatever is on the side of the head. Goggles
+  have a strap all the way round.
+- The camera backs off only when something is taller than usual (a wizard's
+  hat, an afro), so everything is always in view and ordinary outfits do not
+  jump about.
+
+Every item has a 3D look: cap (peak and button), beanie (cuff), bobble hat
+(white cuff, fluffy bobble), wizard hat (wide brim, gold band, stars, a tip
+that flops back), crown (five points, gems); round glasses, shades,
+goggles, pumpkin spooky glasses; striped top, star tee, flower tee, and a
+hoodie with a hood, drawstrings and a pocket. Long hair falls down the back
+past the shoulders; braids, locs and the bun are their own parts.
+
+Where WebGL is missing the stage shows the 2D character as before. The 2D
+character is still what the header, the result screen and the progress
+screen draw.
+
+COST: nothing on the first load. three.js is only in the lazy dressing-up
+chunk (548 kB raw, 141 kB gzipped); the first load went from 495.12 kB to
+495.14 kB (the two turn-button labels in three languages). Karma now runs
+Chrome with SwiftShader (`--use-angle=swiftshader`), so the 3D tests run the
+real renderer rather than only the fallback.
+
+Tests: `head-surface.spec.ts` (every face × style × texture: hair never
+inside the head, never over the brows or eyes, pressed flat under a hat),
+`build-avatar.spec.ts` (all 36 face and style pairs built and measured;
+every hat on every face and style checked for poke-through; every wardrobe
+item on every face; glasses frames and arms outside the head; the crown
+seated in the hair; the wizard's cone clear of the head; the avatar object
+unchanged by building, so saved characters round-trip) and
+`avatar-stage.component.spec.ts` (fallback, framing, turning). 1,389 unit
+tests in all. The mutation sweep killed 17 of 17: sideburns, fringe clamp,
+hat cap, hat clearance, cone clearance, crown seat, lens offset, framing,
+turn accumulation, bun under a hat, crown normals and more.
+
+WHAT IS NEXT, in the order the runs should take them:
+
+1. **The character everywhere else.** The header, the result screen and the
+   progress screen still draw the 2D character. Render the 3D one to a still
+   image (one shared offscreen renderer, cached per outfit) so the same
+   character appears on every screen — without putting three.js in the
+   first load: generate the still lazily and show the 2D one until it is
+   ready.
+2. **Make it feel alive.** An idle bob and blink, a little wave when a new
+   item is put on, a happy jump on the result screen when a round is done.
+   All under reduced motion rules.
+3. **More to earn.** More items per slot (shoes, backpacks, capes, pets
+   beside the stand), and colour choices for tops. Every new item goes
+   through the same fit tests on every face and style.
+4. **Better materials.** Hair strands or clumps rather than one smooth
+   shell for the straight styles; fabric folds; a soft contact shadow on the
+   stand.
+5. **Offline.** The dressing-up chunk is only cached once it has been
+   opened. A child who installs and goes offline before opening it gets no
+   dressing-up screen. Precache the lazy chunks in the service worker.
 
 ## Art direction (Yobyn, 2026-09-23)
 

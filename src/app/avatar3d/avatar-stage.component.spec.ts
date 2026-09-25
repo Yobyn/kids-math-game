@@ -1,0 +1,186 @@
+import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
+import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, easeInOut, framing } from './avatar-stage.component';
+
+describe('framing', () => {
+  it('keeps the usual distance for a character of ordinary height', () => {
+    expect(framing(-0.2, 3.5, 30, 1.1)).toEqual({ distance: BASE_DISTANCE, centre: BASE_CENTRE });
+  });
+
+  it('backs off, and looks higher, for a tall hat or a big afro', () => {
+    const tall = framing(-0.2, 5, 30, 1.1);
+    expect(tall.distance).toBeGreaterThan(BASE_DISTANCE);
+    expect(tall.centre).toBeCloseTo(2.4, 9);
+    // Everything from the stand to the tip fits in the view
+    const half = Math.tan((30 * Math.PI) / 360) * tall.distance;
+    expect(half * 2).toBeGreaterThan(5.2);
+  });
+
+  it('backs off further on a narrow screen, where the width is the limit', () => {
+    expect(framing(-0.2, 5, 30, 0.6).distance).toBeGreaterThan(framing(-0.2, 5, 30, 1).distance);
+  });
+
+  it('never comes closer than usual', () => {
+    for (let top = 0; top < 8; top += 0.25) {
+      expect(framing(-0.2, top, 30, 1).distance).toBeGreaterThanOrEqual(BASE_DISTANCE);
+    }
+  });
+});
+
+describe('easeInOut', () => {
+  it('starts and ends where it should and is slow at both ends', () => {
+    expect(easeInOut(0)).toBe(0);
+    expect(easeInOut(1)).toBe(1);
+    expect(easeInOut(0.5)).toBeCloseTo(0.5, 9);
+    expect(easeInOut(0.1)).toBeLessThan(0.1);
+    expect(easeInOut(0.9)).toBeGreaterThan(0.9);
+    let last = 0;
+    for (let t = 0; t <= 1; t += 0.05) {
+      expect(easeInOut(t)).toBeGreaterThanOrEqual(last);
+      last = easeInOut(t);
+    }
+  });
+});
+
+describe('AvatarStageComponent', () => {
+  let fixture: ComponentFixture<AvatarStageComponent>;
+  let component: AvatarStageComponent;
+
+  async function create(webgl: boolean) {
+    spyOn(AvatarStageComponent, 'canUseWebGL').and.returnValue(webgl);
+    await TestBed.configureTestingModule({
+      declarations: [AvatarStageComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+    fixture = TestBed.createComponent(AvatarStageComponent);
+    component = fixture.componentInstance;
+    component.avatar = { ...defaultAvatar(), hat: 'cap', glasses: NO_ITEM, top: NO_ITEM };
+    component.label = 'Your character';
+    component.turnLeftLabel = 'Turn left';
+    component.turnRightLabel = 'Turn right';
+    fixture.detectChanges();
+  }
+
+  afterEach(() => fixture?.destroy());
+
+  it('shows the 2D character where there is no WebGL, and no turn buttons', async () => {
+    await create(false);
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('canvas')).toBeNull();
+    expect(el.querySelector('app-avatar')).not.toBeNull();
+    expect(el.querySelector('.turn-button')).toBeNull();
+    // Head to toe, as big as the stage, in the choices being made
+    const flat = fixture.debugElement.query(By.css('app-avatar'));
+    expect(flat.attributes.framing).toBe('full');
+    expect(flat.properties.size).toBe(180);
+    expect(flat.properties.avatar).toBe(component.avatar);
+  });
+
+  it('finds out whether this browser can draw in 3D', () => {
+    const canvas = document.createElement('canvas');
+    const real = !!(canvas.getContext('webgl2') || canvas.getContext('webgl'));
+    expect(AvatarStageComponent.canUseWebGL()).toBe(real);
+  });
+
+  it('says it cannot draw in 3D when asking throws', () => {
+    spyOn(document, 'createElement').and.throwError('no canvas');
+    expect(AvatarStageComponent.canUseWebGL()).toBe(false);
+  });
+
+  describe('with WebGL', () => {
+    beforeEach(async () => {
+      await create(true);
+    });
+
+    it('draws the character on a labelled canvas', () => {
+      const canvas: HTMLCanvasElement = fixture.nativeElement.querySelector('canvas');
+      expect(canvas).not.toBeNull();
+      expect(canvas.getAttribute('role')).toBe('img');
+      expect(canvas.getAttribute('aria-label')).toBe('Your character');
+      expect(component.model).toBeTruthy();
+      let hat = false;
+      component.model!.traverse(o => { hat = hat || o.name === 'hat'; });
+      expect(hat).toBe(true);
+    });
+
+    it('gives the turn buttons names a screen reader can read', () => {
+      const buttons = fixture.nativeElement.querySelectorAll('.turn-button');
+      expect(buttons.length).toBe(2);
+      expect(buttons[0].getAttribute('aria-label')).toBe('Turn left');
+      expect(buttons[1].getAttribute('aria-label')).toBe('Turn right');
+      expect(buttons[0].getAttribute('type')).toBe('button');
+    });
+
+    it('turns an eighth of the way round each press, adding presses made mid-turn', () => {
+      const spin = (component as any).animateTurn = jasmine.createSpy('animateTurn');
+      component.turnTo(0);
+      component.turnBy(component.TURN_STEP);
+      expect(spin).toHaveBeenCalledWith(jasmine.any(Number), Math.PI / 4, 450);
+      (component as any).spin = { from: 0, to: Math.PI / 4, start: 0, ms: 450 };
+      component.turnBy(component.TURN_STEP);
+      expect(spin.calls.mostRecent().args[1]).toBeCloseTo(Math.PI / 2, 9);
+      (component as any).spin = undefined;
+      component.turnBy(-component.TURN_STEP);
+      expect(spin.calls.mostRecent().args[1]).toBeCloseTo(-Math.PI / 4, 6);
+    });
+
+    it('turns the camera round the character, keeping its height and distance', () => {
+      const camera = (component as any).camera;
+      const target = (component as any).controls.target;
+      const height = camera.position.y;
+      const across = Math.hypot(camera.position.x - target.x, camera.position.z - target.z);
+      component.turnTo(Math.PI / 2);
+      expect(camera.position.y).toBeCloseTo(height, 6);
+      expect(Math.hypot(camera.position.x - target.x, camera.position.z - target.z)).toBeCloseTo(across, 6);
+      expect(camera.position.x - target.x).toBeCloseTo(across, 6);
+      component.turnTo(Math.PI);
+      expect(camera.position.z - target.z).toBeCloseTo(-across, 6);
+    });
+
+    it('builds a new character when a choice changes, and frees the old one', () => {
+      const old = component.model!;
+      component.avatar = { ...component.avatar, hat: 'wizard' };
+      component.ngOnChanges();
+      expect(component.model).not.toBe(old);
+      let wizard = false;
+      component.model!.traverse(o => { wizard = wizard || o.name === 'hat-cone'; });
+      expect(wizard).toBe(true);
+    });
+
+    it('backs the camera off for a wizard hat and comes back for a cap', () => {
+      const target = (component as any).controls.target;
+      const distance = () => (component as any).camera.position.distanceTo(target);
+      expect(distance()).toBeCloseTo(BASE_DISTANCE, 1);
+      component.avatar = { ...component.avatar, hat: 'wizard', hairStyle: 'afro' };
+      component.ngOnChanges();
+      expect(distance()).toBeGreaterThan(BASE_DISTANCE + 0.3);
+      component.avatar = { ...component.avatar, hat: 'cap', hairStyle: 'short' };
+      component.ngOnChanges();
+      expect(distance()).toBeCloseTo(BASE_DISTANCE, 1);
+    });
+
+    it('turns at once, with no animation, under reduced motion', () => {
+      spyOn(window, 'matchMedia').and.callFake((query: string) =>
+        ({ matches: query === '(prefers-reduced-motion: reduce)' } as MediaQueryList));
+      component.turnTo(0);
+      component.turnBy(component.TURN_STEP);
+      expect((component as any).spin).toBeUndefined();
+      expect((component as any).angle).toBeCloseTo(Math.PI / 4, 9);
+    });
+
+    it('eases a turn over time rather than jumping', () => {
+      spyOn(window, 'matchMedia').and.callFake(() => ({ matches: false } as MediaQueryList));
+      component.turnTo(0);
+      component.turnBy(component.TURN_STEP);
+      expect((component as any).spin).toBeDefined();
+      expect((component as any).spin.to).toBeCloseTo(Math.PI / 4, 9);
+      expect((component as any).angle).toBeCloseTo(0, 6);
+    });
+
+    it('gives the character one full turn when the screen opens', () => {
+      expect((component as any).introduced).toBe(true);
+    });
+  });
+});
