@@ -5,6 +5,7 @@ import { ProgressService, PlayTotals } from '../services/progress.service';
 import { AvatarService } from '../services/avatar.service';
 import { Avatar, WardrobeItem, levelItems, isUnlocked, WARDROBE, NO_ITEM } from '../avatar/avatar-model';
 import { LevelProgress, levelProgress } from '../levels/level-curve';
+import { EffortTile, TileKind, effortTiles } from './progress-card';
 
 /**
  * How far a child has come.
@@ -19,7 +20,8 @@ import { LevelProgress, levelProgress } from '../levels/level-curve';
  *
  * So a child sees effort, not performance: rounds finished, questions
  * answered, the level they have climbed to, the things they have earned, and
- * a personal best, which by definition never falls. The honest trend — dips
+ * a personal best, which by definition never falls — shown as the round's
+ * stars rather than a percentage (see progress-card.ts). The honest trend — dips
  * included — is a parent's view, and belongs on a screen of its own.
  */
 @Component({
@@ -52,7 +54,30 @@ export class ProgressComponent implements OnInit {
       item.id !== NO_ITEM && isUnlocked(item, this.level.level, events));
   }
 
-  /** How many there are to collect in all, so the count has a denominator. */
+  /** What the child has done, as tiles — see progress-card.ts. */
+  get tiles(): EffortTile[] {
+    return effortTiles(this.totals, this.best);
+  }
+
+  /** How far into the next level, for the bar. It only ever fills. */
+  get levelPercent(): number {
+    return Math.round(Math.min(Math.max(this.level.fraction, 0), 1) * 100);
+  }
+
+  labelFor(kind: TileKind): TranslationKeys {
+    const labels: Record<TileKind, TranslationKeys> = {
+      rounds: 'rounds-finished',
+      questions: 'questions-answered',
+      right: 'answers-right',
+      best: 'your-best'
+    };
+    return labels[kind];
+  }
+
+  /**
+   * How many there are in all. Not shown — "5 / 13" made a set to complete —
+   * only used to know whether there is more to come.
+   */
   get itemsInAll(): number {
     return WARDROBE.filter(item => item.id !== NO_ITEM).length;
   }
