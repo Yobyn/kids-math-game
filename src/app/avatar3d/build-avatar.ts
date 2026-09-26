@@ -6,6 +6,8 @@ import {
 } from './head-surface';
 import { at, crownGrid, part, scale, starShape, surfaceGeometry, toon } from './toon';
 import { buildGlasses, buildHat } from './wardrobe3d';
+import { buildPet } from './pets';
+import { WAVING_SIDE } from './motion';
 import { Figure, chinY, figureFor, hang, torsoRadius, wrist } from './figure';
 
 /** The joints an arm turns at, by name, for rig.ts. */
@@ -596,9 +598,9 @@ function flowerShape(r: number): THREE.Shape {
  * colours, so the character is standing somewhere rather than floating in
  * the dark.
  */
-function buildPedestal(radius: number): THREE.Group {
+function buildPedestal(radius: number, name = 'pedestal'): THREE.Group {
   const pedestal = new THREE.Group();
-  pedestal.name = 'pedestal';
+  pedestal.name = name;
   const top = part('pedestal-top', new THREE.CylinderGeometry(radius, radius * 1.08, 0.18, 48), toon('#3a2f6e'), 0.02);
   top.position.y = -0.1;
   pedestal.add(top);
@@ -621,6 +623,39 @@ function buildPedestal(radius: number): THREE.Group {
   return pedestal;
 }
 
+/** A pet's own stand. */
+export const PET_STAND_RADIUS = 1.7;
+/** The gap between the two stands' edges. */
+export const PET_STAND_GAP = 0.3;
+/**
+ * Pets are drawn larger than life, up to the character's knee: at a pet's
+ * true size beside a teenager, a phone shows a kitten as a few pixels.
+ */
+export const PET_SCALE = 1.55;
+
+/**
+ * The pet, on its own small stand beside the character's: on the side away
+ * from the waving arm, a little forward, and turned a little toward the
+ * character and the camera. It never touches the character, because the two
+ * stands do not touch and nothing of the character reaches down beside it.
+ */
+function buildPetBeside(avatar: Avatar, standRadius: number): THREE.Group | null {
+  const item = avatar.pet && avatar.pet !== NO_ITEM ? findItem('pet', avatar.pet) : undefined;
+  const pet = item ? buildPet(item.id, item.colour) : null;
+  if (!pet) {
+    return null;
+  }
+  const group = new THREE.Group();
+  group.name = 'pet';
+  group.add(buildPedestal(PET_STAND_RADIUS, 'pet-pedestal'));
+  pet.scale.setScalar(PET_SCALE);
+  group.add(pet);
+  // Both stands flare out 8% at the foot
+  group.position.set(-WAVING_SIDE * (standRadius * 1.08 + PET_STAND_GAP + PET_STAND_RADIUS * 1.08), 0, 0.3);
+  group.rotation.y = WAVING_SIDE * 0.35;
+  return group;
+}
+
 /**
  * The whole character, standing on the origin, in the figure of the body
  * type picked. The head and everything on it (hair, a hat, glasses) share
@@ -631,7 +666,12 @@ export function buildAvatar(avatar: Avatar): THREE.Group {
   const figure = figureFor(avatar.bodyType);
   const root = new THREE.Group();
   root.name = 'avatar';
-  root.add(buildPedestal(figure.ankle[0] + figure.foot[1] + 0.9));
+  const standRadius = figure.ankle[0] + figure.foot[1] + 0.9;
+  root.add(buildPedestal(standRadius));
+  const pet = buildPetBeside(avatar, standRadius);
+  if (pet) {
+    root.add(pet);
+  }
   root.add(buildBody(avatar, figure));
   root.add(buildHead(avatar, figure));
   root.add(buildHair(avatar, figure));

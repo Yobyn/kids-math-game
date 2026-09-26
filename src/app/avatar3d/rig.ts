@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 import { ARM_RIG, FOREARM_RIG } from './build-avatar';
-import { BREATH_ARMS, BREATH_RISE, breath, eyesOpen, wave } from './motion';
+import { BREATH_ARMS, BREATH_RISE, WAVING_SIDE, breath, eyesOpen, tailWag, wave, wingFlap } from './motion';
+import { PET_TAIL, PET_WING } from './pets';
 
 /** The parts that share the head's transform, and so rise with it on a breath. */
 const HEAD_PARTS = ['head-group', 'hair', 'hat', 'glasses'];
-/** The character's right arm waves (on the viewer's left, facing them). */
-export const WAVING_SIDE = -1;
+export { WAVING_SIDE };
 /** A shut eye is not squashed to nothing: the lid line stays. */
 const SHUT = 0.08;
 
@@ -25,6 +25,8 @@ export class Rig {
   private eyes: { node: THREE.Object3D; y: number }[] = [];
   private arms: Joint[] = [];
   private forearms: Joint[] = [];
+  private tails: THREE.Object3D[] = [];
+  private wings: { node: THREE.Object3D; side: number; z: number }[] = [];
 
   constructor(model: THREE.Object3D) {
     HEAD_PARTS.forEach(name => {
@@ -40,6 +42,10 @@ export class Rig {
         this.arms.push({ node, side: node.userData.side });
       } else if (node.name === FOREARM_RIG) {
         this.forearms.push({ node, side: node.parent!.userData.side });
+      } else if (node.name === PET_TAIL) {
+        this.tails.push(node);
+      } else if (node.name === PET_WING) {
+        this.wings.push({ node, side: node.userData.side, z: node.rotation.z });
       }
     });
   }
@@ -61,6 +67,9 @@ export class Rig {
       node.rotation.z = side * (lift + BREATH_ARMS * b);
     });
     this.forearms.forEach(({ node, side }) => (node.rotation.z = side * (side === WAVING_SIDE ? arm.bend : 0)));
+    // The pet's tail wags side to side, about its root
+    this.tails.forEach(node => (node.rotation.y = tailWag(seconds)));
+    this.wings.forEach(({ node, side, z }) => (node.rotation.z = z + side * wingFlap(seconds)));
   }
 
   /** Every joint back where it was built. */
@@ -69,5 +78,7 @@ export class Rig {
     this.eyes.forEach(({ node, y }) => (node.scale.y = y));
     this.arms.forEach(({ node }) => (node.rotation.z = 0));
     this.forearms.forEach(({ node }) => (node.rotation.z = 0));
+    this.tails.forEach(node => (node.rotation.y = 0));
+    this.wings.forEach(({ node, z }) => (node.rotation.z = z));
   }
 }

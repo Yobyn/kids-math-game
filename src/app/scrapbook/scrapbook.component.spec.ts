@@ -122,6 +122,23 @@ describe('ScrapbookComponent', () => {
     expect(worn.skin).toBe(TestBed.inject(ProgressService) && component.entries.length ? worn.skin : '');
   });
 
+  it('shows a pet that was won by itself, since the character\u2019s picture would not show it', () => {
+    progress.keepItem('puppy');
+    progress.keepItem('crown');
+    open();
+    fixture.detectChanges();
+
+    const pup = component.entries.find(entry => entry.id === 'puppy')!;
+    const crown = component.entries.find(entry => entry.id === 'crown')!;
+    expect(component.petIcon(pup)).toBe('🐶');
+    expect(component.petIcon(crown)).toBe('');
+    const pictures = Array.from(fixture.nativeElement.querySelectorAll('.entry .picture')) as HTMLElement[];
+    const pupPicture = pictures.find(p => p.textContent!.includes('🐶'))!;
+    expect(pupPicture).toBeTruthy();
+    expect(pupPicture.querySelector('app-avatar')).toBeNull();
+    expect(pictures.filter(p => p.querySelector('app-avatar')).length).toBe(1);
+  });
+
   it('gives the milestones a mark of their own instead of a character', () => {
     progress.record({ correctAnswers: 9, total: 10, percentage: 90, score: 14, grade: 3 });
     open();

@@ -22,6 +22,7 @@ import {
   isUnlocked
 } from './avatar-model';
 import { BODY_ROW, ChooserRow, SECTIONS, SectionId } from './chooser-sections';
+import { PET_ICONS } from './pet-icons';
 import { CHOOSER_WORDS } from './chooser-words';
 import { findEvent, nextOpening } from '../events/next-opening';
 import { itemsForSlot, nextUnlock } from './wardrobe-lookups';
@@ -187,6 +188,11 @@ export class AvatarChooserComponent implements OnInit {
       return `${this.itemName(item)} — ${this.languageService.translate('back-in')} ${this.returnsOn(item)}`;
     }
     return `${this.itemName(item)} — ${this.languageService.translate('level')} ${item.unlockLevel}`;
+  }
+
+  /** A pet's swatch: the pet by itself (see PET_ICONS). */
+  petIcon(item: WardrobeItem): string {
+    return PET_ICONS[item.id] || PET_ICONS[NO_ITEM];
   }
 
   /** A bare character, so an item's own swatch is not lost under a hat. */

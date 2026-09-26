@@ -98,10 +98,23 @@ describe('reading a stored character', () => {
       mouthShape: 'grin',
       hat: NO_ITEM,
       glasses: NO_ITEM,
-      top: NO_ITEM
+      top: NO_ITEM,
+      pet: 'kitten'
     };
 
-    expect(normaliseAvatar(chosen)).toEqual(chosen);
+    expect(normaliseAvatar(chosen, 14)).toEqual(chosen);
+  });
+
+  it('keeps a pet only once it is won, and gives a character saved before pets none', () => {
+    const kitten = { ...defaultAvatar(), pet: 'kitten' };
+    expect(normaliseAvatar(kitten, 13).pet).toBe(NO_ITEM);
+    expect(normaliseAvatar(kitten, 14).pet).toBe('kitten');
+    const { pet, ...beforePets } = defaultAvatar();
+    expect(pet).toBe(NO_ITEM);
+    expect(normaliseAvatar(beforePets, 30).pet).toBe(NO_ITEM);
+    expect(normaliseAvatar({ ...defaultAvatar(), pet: 'unicorn' }, 30).pet).toBe(NO_ITEM);
+    // A pet is not a hat: an id from another slot is not a pet
+    expect(normaliseAvatar({ ...defaultAvatar(), pet: 'crown' }, 30).pet).toBe(NO_ITEM);
   });
 
   it('keeps the parts that survived a half-corrupt store', () => {
@@ -136,7 +149,7 @@ describe('reading a stored character', () => {
 
 describe('the wardrobe', () => {
   it('gives a slot an empty option that is never locked', () => {
-    (['hat', 'glasses', 'top'] as const).forEach(slot => {
+    (['hat', 'glasses', 'top', 'pet'] as const).forEach(slot => {
       const empty = itemsForSlot(slot).filter(item => item.id === NO_ITEM);
 
       expect(empty.length).toBe(1);
@@ -168,7 +181,7 @@ describe('the wardrobe', () => {
   });
 
   it('keeps item ids unique within a slot', () => {
-    (['hat', 'glasses', 'top'] as const).forEach(slot => {
+    (['hat', 'glasses', 'top', 'pet'] as const).forEach(slot => {
       const ids = itemsForSlot(slot).map(item => item.id);
       expect(new Set(ids).size).toBe(ids.length);
     });
@@ -217,6 +230,16 @@ describe('the wardrobe', () => {
     const highest = Math.max(...WARDROBE.map(item => item.unlockLevel));
 
     expect(nextUnlock(highest)).toBeUndefined();
+  });
+
+  it('keeps something to climb for after the last hat, glasses and top: a pet', () => {
+    const worn = levelItems().filter(item => item.slot !== 'pet');
+    const pets = levelItems().filter(item => item.slot === 'pet');
+    const lastWorn = Math.max(...worn.map(item => item.unlockLevel));
+    expect(pets.length).toBe(3);
+    pets.forEach(pet => expect(pet.unlockLevel).toBeGreaterThan(lastWorn));
+    // And nextUnlock points at the first of them from the top of the rest
+    expect(nextUnlock(lastWorn)!.slot).toBe('pet');
   });
 
   it('unlocks on reaching the level, not after it', () => {

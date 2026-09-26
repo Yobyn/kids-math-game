@@ -51,7 +51,8 @@
       <span class="currency" *ngIf="answerPrefix">{{ answerPrefix }}</span>
       <input #answerInput
              type="number"
-             [(ngModel)]="userAnswer"
+             [value]="userAnswer"
+             (input)="userAnswer = $any($event.target).value"
              [placeholder]="inputPlaceholder"
              (focus)="onInputFocus()"
              (blur)="onInputBlur()"

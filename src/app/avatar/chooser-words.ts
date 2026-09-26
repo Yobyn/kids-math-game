@@ -25,7 +25,8 @@ export type ChooserKey =
   | 'hair-texture'
   | 'hair-colour'
   | 'hats'
-  | 'tops';
+  | 'tops'
+  | 'pets';
 
 export const CHOOSER_WORDS: Words<ChooserKey> = {
   en: {
@@ -48,7 +49,8 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'hair-texture': 'Hair texture',
     'hair-colour': 'Hair colour',
     'hats': 'Hats',
-    'tops': 'Tops'
+    'tops': 'Tops',
+    'pets': 'Pets'
   },
   nl: {
     'body-type': 'Je bent een',
@@ -70,7 +72,8 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'hair-texture': 'Haarstructuur',
     'hair-colour': 'Haarkleur',
     'hats': 'Hoeden',
-    'tops': 'Kleding'
+    'tops': 'Kleding',
+    'pets': 'Huisdieren'
   },
   es: {
     'body-type': 'Eres',
@@ -92,6 +95,7 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'hair-texture': 'Textura del pelo',
     'hair-colour': 'Color de pelo',
     'hats': 'Sombreros',
-    'tops': 'Ropa'
+    'tops': 'Ropa',
+    'pets': 'Mascotas'
   }
 };

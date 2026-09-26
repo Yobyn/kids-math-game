@@ -3,6 +3,12 @@ import {
   BLINK_JITTER,
   BLINK_SECONDS,
   BREATH_SECONDS,
+  TAIL_BEAT,
+  TAIL_BURST,
+  TAIL_EVERY,
+  TAIL_SWING,
+  WING_BEAT,
+  WING_FLAP,
   WAVE_BEND,
   WAVE_LIFT,
   WAVE_SECONDS,
@@ -11,7 +17,9 @@ import {
   breath,
   eyesOpen,
   putOnSomethingNew,
-  wave
+  tailWag,
+  wave,
+  wingFlap
 } from './motion';
 
 /** Samples `f` from `from` to `to` every `step` seconds. */
@@ -158,10 +166,48 @@ describe('motion', () => {
       expect(putOnSomethingNew({ ...was, hat: 'cap' }, { ...was, hat: 'crown' })).toBeTrue();
     });
 
+    it('waves hello to a new pet', () => {
+      expect(putOnSomethingNew({ ...was, pet: 'none' }, { ...was, pet: 'kitten' })).toBeTrue();
+      expect(putOnSomethingNew({ ...was, pet: 'kitten' }, { ...was, pet: 'none' })).toBeFalse();
+    });
+
     it('does not wave for taking something off, for nothing changing, or on arrival', () => {
       expect(putOnSomethingNew({ ...was, hat: 'cap' }, was)).toBeFalse();
       expect(putOnSomethingNew(was, { ...was })).toBeFalse();
       expect(putOnSomethingNew(undefined, { ...was, hat: 'cap' })).toBeFalse();
+    });
+  });
+
+  describe('a pet', () => {
+    it('keeps its tail still at first, then wags in bursts with rests between', () => {
+      const all = samples(0, TAIL_EVERY * 4 + 1, 0.005, tailWag);
+      expect(all.filter(s => s.t < 1).every(s => s.v === 0)).toBeTrue();
+      for (let burst = 0; burst < 4; burst++) {
+        const start = 1 + burst * TAIL_EVERY;
+        const wagging = all.filter(s => s.t > start && s.t < start + TAIL_BURST);
+        const resting = all.filter(s => s.t > start + TAIL_BURST + 0.01 && s.t < start + TAIL_EVERY - 0.01);
+        expect(Math.max(...wagging.map(s => Math.abs(s.v)))).toBeGreaterThan(TAIL_SWING * 0.8);
+        expect(resting.every(s => s.v === 0)).toBeTrue();
+      }
+      expect(all.every(s => Math.abs(s.v) <= TAIL_SWING + 1e-9)).toBeTrue();
+    });
+
+    it('wags quickly, both ways, swelling in and fading out', () => {
+      const burst = samples(1, 1 + TAIL_BURST, 0.002, tailWag);
+      const changes = burst.slice(1).filter((s, i) => Math.sign(s.v) !== Math.sign(burst[i].v) && s.v !== 0).length;
+      expect(changes).toBeGreaterThanOrEqual(Math.floor((TAIL_BURST / TAIL_BEAT) * 2) - 1);
+      expect(Math.abs(tailWag(1 + 0.02))).toBeLessThan(TAIL_SWING * 0.2);
+      expect(Math.abs(tailWag(1 + TAIL_BURST - 0.02))).toBeLessThan(TAIL_SWING * 0.2);
+      const jumps = burst.slice(1).filter((s, i) => Math.abs(s.v - burst[i].v) > 0.05);
+      expect(jumps).toEqual([]);
+    });
+
+    it('flaps a dragon\u2019s wings slowly and evenly, never further than a little', () => {
+      const all = samples(0, WING_BEAT * 3, 0.01, wingFlap);
+      expect(Math.max(...all.map(s => s.v))).toBeCloseTo(WING_FLAP, 3);
+      expect(Math.min(...all.map(s => s.v))).toBeCloseTo(-WING_FLAP, 3);
+      expect(wingFlap(0.3)).toBeCloseTo(wingFlap(0.3 + WING_BEAT), 9);
+      expect(WING_BEAT).toBeGreaterThan(1);
     });
   });
 });
