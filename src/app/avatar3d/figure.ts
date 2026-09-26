@@ -119,10 +119,74 @@ const GIRL: Figure = {
   foot: [0.86 * HH, 0.42 * HH]
 };
 
-export const FIGURES: { [type in BodyType]: Figure } = { boy: BOY, girl: GIRL };
+/** The figures as measured: the boy from Yobyn's reference, the girl to match. */
+export const MEASURED: { [type in BodyType]: Figure } = { boy: BOY, girl: GIRL };
+
+/**
+ * HOW STYLISED THE CHARACTER IS (Yobyn, 2026-09-26): "in between what we had
+ * and what we have now". What we had was chibi, about two and a half heads
+ * tall, all head and eyes; what we have now is the reference measured as it
+ * is, over seven heads tall. In between is a game character of a little over
+ * four heads (the middle of 2.5 and 7.3 as a ratio, not a difference): a
+ * bigger head on a shorter, sturdier body.
+ *
+ * The measured figure stays the truth; the stylised one is made from it by
+ * three numbers, so the look can be moved along the line without anything
+ * being re-fitted. Everything on the head (hair, hats, glasses) shares the
+ * head's transform, so it grows with it and fits by construction.
+ */
+export interface Style {
+  /** How much bigger the head is than measured. */
+  head: number;
+  /** How much shorter everything below the chin is. */
+  body: number;
+  /** How much sturdier: widths and limb thickness. */
+  build: number;
+}
+
+export const STYLE: Style = { head: 1.55, body: 0.82, build: 1.1 };
+
+/** A measured figure made into the stylised one (see STYLE). */
+export function stylise(measured: Figure, style: Style): Figure {
+  const y = (v: number) => v * style.body;
+  const w = (v: number) => v * style.build;
+  const point = ([x, h]: [number, number]): [number, number] => [w(x), y(h)];
+  const headScale = measured.headScale.map(v => v * style.head) as Vec3;
+  // The chin stays on the collar: it comes down with the body, and the head
+  // grows up from it
+  const chin = y(chinY(measured));
+  return {
+    ...measured,
+    headScale,
+    headY: chin + headScale[1],
+    torso: measured.torso.map(([r, h]) => [w(r), y(h)] as [number, number]),
+    hem: y(measured.hem),
+    belt: y(measured.belt),
+    crotch: y(measured.crotch),
+    hip: point(measured.hip),
+    knee: point(measured.knee),
+    ankle: point(measured.ankle),
+    legRadii: measured.legRadii.map(w) as [number, number, number],
+    // The arms thicken outwards, not into the chest: the shoulder moves out
+    // by as much as the arm grew
+    shoulder: [w(measured.shoulder[0]) + (style.build - 1) * measured.armRadii[0], y(measured.shoulder[1])],
+    upperArm: y(measured.upperArm),
+    forearm: y(measured.forearm),
+    armRadii: measured.armRadii.map(w) as [number, number, number],
+    handLength: y(measured.handLength) * style.build,
+    neckRadius: w(measured.neckRadius) * Math.sqrt(style.head),
+    foot: [measured.foot[0] * style.build, w(measured.foot[1])]
+  };
+}
+
+/** The figures the character is drawn in: the measured ones, stylised. */
+export const FIGURES: { [type in BodyType]: Figure } = {
+  boy: stylise(BOY, STYLE),
+  girl: stylise(GIRL, STYLE)
+};
 
 export function figureFor(type: BodyType | undefined): Figure {
-  return FIGURES[type as BodyType] || BOY;
+  return FIGURES[type as BodyType] || FIGURES.boy;
 }
 
 /** The torso's half-width at a height (straight between the profile's points), or 0 outside it. */

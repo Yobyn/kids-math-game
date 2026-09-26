@@ -9,7 +9,7 @@ export interface StillMaker {
 }
 
 /** Bumped whenever the 3D look changes, so no screen shows a picture of the old one. */
-export const STILL_VERSION = 2;
+export const STILL_VERSION = 3;
 export const STILL_STORE_KEY = 'avatarStills';
 /** A few pictures of the current character are kept; older ones make room. */
 export const MAX_STORED_STILLS = 8;

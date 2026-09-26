@@ -44,20 +44,22 @@ function buildHead(avatar: Avatar, figure: Figure): THREE.Group {
     head.add(ear);
   });
 
-  // The nose: a bridge down from between the eyes to a rounded tip
+  // The nose: a bridge down from between the eyes to a rounded tip; small,
+  // as a stylised character's is (NOSE_SIZE)
   const noseTone = toon(shade(skin, 0.08));
-  const top = headPoint(shape, normalise([0, 0.0, 1]));
+  const top = headPoint(shape, normalise([0, -0.08, 1]));
   const tip = headPoint(shape, normalise([0, -0.3, 1]));
-  const bridge = part('nose', limb([0.055, 0.075, 0.09], new THREE.Vector3(top[0], top[1], top[2] - 0.02),
-    new THREE.Vector3(tip[0], tip[1], tip[2] + 0.1), 12), noseTone, 0.012);
+  const n = NOSE_SIZE;
+  const bridge = part('nose', limb([0.055 * n, 0.075 * n, 0.09 * n], new THREE.Vector3(top[0], top[1], top[2] - 0.02),
+    new THREE.Vector3(tip[0], tip[1], tip[2] + 0.1 * n), 12), noseTone, 0.012);
   head.add(bridge);
-  const noseTip = part('nose-tip', new THREE.SphereGeometry(0.11, 16, 12), noseTone, 0.015);
+  const noseTip = part('nose-tip', new THREE.SphereGeometry(0.11 * n, 16, 12), noseTone, 0.015);
   noseTip.scale.set(1.1, 0.85, 0.9);
-  noseTip.position.set(tip[0], tip[1] + 0.01, tip[2] + 0.1);
+  noseTip.position.set(tip[0], tip[1] + 0.01, tip[2] + 0.1 * n);
   head.add(noseTip);
   [-1, 1].forEach(side => {
-    const wing = part('nostril', new THREE.SphereGeometry(0.06, 10, 8), noseTone, 0.01);
-    wing.position.set(side * 0.09, tip[1] - 0.02, tip[2] + 0.04);
+    const wing = part('nostril', new THREE.SphereGeometry(0.06 * n, 10, 8), noseTone, 0.01);
+    wing.position.set(side * 0.09 * n, tip[1] - 0.02, tip[2] + 0.04 * n);
     head.add(wing);
   });
 
@@ -78,8 +80,19 @@ function buildHead(avatar: Avatar, figure: Figure): THREE.Group {
   return head;
 }
 
+/**
+ * The stylised face (figure.ts, STYLE): eyes a little bigger than measured,
+ * and a smaller nose. The eyes grow only so far that the widest one still
+ * sits inside a round lens (a test holds it).
+ */
+export const EYE_SIZE = 1.18;
+export const NOSE_SIZE = 0.72;
+/** The white of the eye's radius, and the iris's: a big iris, as stylised eyes have. */
+export const EYE_WHITE = 0.13;
+export const IRIS = 0.098;
+
 /** How wide and how open each eye shape is, before the head's own narrowing. */
-const EYE_SCALE: { [shape: string]: [number, number] } = {
+export const EYE_SCALE: { [shape: string]: [number, number] } = {
   round: [1.35, 0.66],
   almond: [1.5, 0.5],
   wide: [1.6, 0.68],
@@ -97,20 +110,24 @@ function buildEyes(avatar: Avatar): THREE.Group {
     eye.name = 'eye';
     const p = headPoint(avatar.faceShape, dir);
     at(eye, p, 0.985);
+    eye.scale.set(EYE_SIZE, EYE_SIZE, 1);
     eye.lookAt(p[0] * 3, p[1] * 3, p[2] * 3 + 1.5);
-    const white = part('eye-white', new THREE.SphereGeometry(0.13, 24, 18), toon('#fbf8f4'), 0.012);
+    const white = part('eye-white', new THREE.SphereGeometry(EYE_WHITE, 24, 18), toon('#fbf8f4'), 0.012);
     white.scale.set(sx, sy, 0.4);
-    const iris = new THREE.Mesh(new THREE.SphereGeometry(0.075, 20, 16), toon(avatar.eyeColour));
+    // A big iris is most of what makes a stylised face friendly; it is kept
+    // inside the white of even the narrowest eye (a test holds it)
+    const tall = Math.min(1, (EYE_WHITE * sy * 0.92) / IRIS);
+    const iris = new THREE.Mesh(new THREE.SphereGeometry(IRIS, 20, 16), toon(avatar.eyeColour));
     iris.name = 'iris';
-    iris.scale.set(1, Math.min(1, sy / 0.62), 0.3);
+    iris.scale.set(1, tall, 0.3);
     iris.position.z = 0.045;
-    const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.036, 16, 12), new THREE.MeshBasicMaterial({ color: '#1a1026' }));
+    const pupil = new THREE.Mesh(new THREE.SphereGeometry(IRIS * 0.48, 16, 12), new THREE.MeshBasicMaterial({ color: '#1a1026' }));
     pupil.name = 'pupil';
-    pupil.scale.set(1, Math.min(1, sy / 0.62), 0.3);
+    pupil.scale.set(1, tall, 0.3);
     pupil.position.z = 0.058;
-    const glint = new THREE.Mesh(new THREE.SphereGeometry(0.016, 10, 8), new THREE.MeshBasicMaterial({ color: '#ffffff' }));
+    const glint = new THREE.Mesh(new THREE.SphereGeometry(IRIS * 0.26, 10, 8), new THREE.MeshBasicMaterial({ color: '#ffffff' }));
     glint.name = 'glint';
-    glint.position.set(-0.025, 0.02, 0.065);
+    glint.position.set(-IRIS * 0.36, IRIS * 0.3 * tall, 0.065);
     // The upper lid: a dark line over the top of the eye, which is what gives it its shape
     const lid = part('eye-lid', new THREE.TorusGeometry(0.13, 0.02, 6, 24, Math.PI), toon('#3a2230'), 0);
     lid.scale.set(sx, sy, 0.6);
@@ -214,6 +231,29 @@ export function hairShellGeometry(avatar: Avatar, capAt?: number): THREE.BufferG
  * the back of the head, hugs it round behind the ears, and falls past the
  * shoulders, a little longer in the middle and with its ends turned in.
  */
+/**
+ * How low, in the head's own units, a braid can hang on this figure: found by
+ * going down from the head until a bead where a braid hangs (out at the side
+ * of the neck, a little behind) would touch the body, less a bead's height.
+ * On a tall figure the neck is long and the braids reach the jaw; on a
+ * stylised one the big head sits close to the shoulders, and they stop sooner.
+ */
+export function braidEnd(figure: Figure): number {
+  const [sx, sy, sz] = figure.headScale;
+  const x = 0.72 * sx;
+  const z = -0.35 * sz;
+  const reach = 0.16 * sy;
+  for (let y = -0.25; y > -1.3; y -= 0.01) {
+    const world = figure.headY + y * sy - reach;
+    const r = torsoRadius(figure, world);
+    const inside = r > 0 && (x / r) ** 2 + (z / (r * figure.torsoDepth)) ** 2 < 1.25;
+    if (inside) {
+      return y + 0.02;
+    }
+  }
+  return -1.3;
+}
+
 export function curtainGeometry(avatar: Avatar, figure: Figure = figureFor(avatar.bodyType)): THREE.BufferGeometry {
   const columns = 48;
   const rows = 32;
@@ -291,16 +331,19 @@ function buildHair(avatar: Avatar, figure: Figure): THREE.Group {
     hair.add(bun);
   }
   if (style === 'braids') {
+    // Down towards the shoulders and no further: as far as a braid can hang
+    // on THIS figure before it would meet the body (braidEnd)
+    const end = braidEnd(figure);
+    const step = Math.min(0.2, (-0.25 - end) / 5);
     [-1, 1].forEach(side => {
-      // Down to the jaw and no further, so they hang clear of the shoulders
       for (let i = 0; i < 5; i++) {
         const bead = part('hair-braid', new THREE.SphereGeometry(0.13 - i * 0.006, 14, 10), material, 0.018);
         bead.scale.set(1, 1.25, 1);
-        bead.position.set(side * (0.8 - i * 0.02), -0.25 - i * 0.2, -0.35);
+        bead.position.set(side * (0.8 - i * 0.02), -0.25 - i * step, -0.35);
         hair.add(bead);
       }
       const tie = part('hair-tie', new THREE.SphereGeometry(0.07, 10, 8), toon('#d633eb'), 0.012);
-      tie.position.set(side * 0.7, -1.25, -0.35);
+      tie.position.set(side * 0.7, -0.25 - 5 * step, -0.35);
       hair.add(tie);
     });
   }
@@ -559,8 +602,10 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
   }
 
   if (top && top.id === 'striped') {
+    // Spread over the torso between the hem and the shoulders, whatever its height
+    const span = figure.shoulder[1] - figure.hem;
     for (let i = 0; i < 5; i++) {
-      const y = figure.hem + 0.5 + i * 0.62;
+      const y = figure.hem + span * (0.15 + i * 0.175);
       const band = new THREE.Mesh(new THREE.CylinderGeometry(torsoRadius(figure, y + 0.1) * 1.012, torsoRadius(figure, y - 0.1) * 1.012, 0.2, 40, 1, true),
         toon('#ffffff'));
       band.name = 'stripe';
@@ -631,7 +676,7 @@ export const PET_STAND_GAP = 0.3;
  * Pets are drawn larger than life, up to the character's knee: at a pet's
  * true size beside a teenager, a phone shows a kitten as a few pixels.
  */
-export const PET_SCALE = 1.55;
+export const PET_SCALE = 1.45;
 
 /**
  * The pet, on its own small stand beside the character's: on the side away

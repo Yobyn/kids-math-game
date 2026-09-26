@@ -3,7 +3,7 @@ import {
   Avatar, FACE_SHAPES, HAIR_STYLES, HAIR_TEXTURES, NO_ITEM, WARDROBE, defaultAvatar, findItem
 } from '../avatar/avatar-model';
 import { HATS_OVER_HAIR } from '../avatar/avatar-parts';
-import { buildAvatar, disposeAvatar, topCut } from './build-avatar';
+import { EYE_SCALE, EYE_SIZE, EYE_WHITE, IRIS, NOSE_SIZE, buildAvatar, disposeAvatar, topCut } from './build-avatar';
 import { FIGURES, Figure, chinY, figureFor, torsoRadius } from './figure';
 import {
   EYE_DIRS, HAT_CAP, HAT_LIFT, Vec3, hairPoint, hatBrim, headPoint, normalise, radiusAlong
@@ -206,6 +206,37 @@ describe('buildAvatar', () => {
     expect(colour('hair-shell')).toBe('e0b35a');
   });
 
+  describe('the stylised face (Yobyn, 2026-09-26: in between chibi and realistic)', () => {
+    it('makes the eyes bigger than measured, but never too big for a round lens', () => {
+      expect(EYE_SIZE).toBeGreaterThan(1.1);
+      const eyes = find(buildAvatar(avatar()), 'eye');
+      eyes.forEach(eye => expect([eye.scale.x, eye.scale.y]).toEqual([EYE_SIZE, EYE_SIZE]));
+      // The widest eye's half-width, grown, still inside the round lens's rim
+      const widest = Math.max(...Object.values(EYE_SCALE).map(([sx]) => sx));
+      expect(EYE_WHITE * widest * EYE_SIZE).toBeLessThan(0.25);
+    });
+
+    it('gives a big iris, kept inside the white of every eye shape', () => {
+      expect(IRIS).toBeGreaterThan(0.075 * 1.2);
+      Object.keys(EYE_SCALE).forEach(eyeShape => {
+        const root = buildAvatar(avatar({ eyeShape: eyeShape as any }));
+        const [white] = find(root, 'eye-white') as THREE.Mesh[];
+        const [iris] = find(root, 'iris') as THREE.Mesh[];
+        const whiteHalfHeight = EYE_WHITE * white.scale.y;
+        const irisHalfHeight = IRIS * iris.scale.y;
+        expect(irisHalfHeight).toBeLessThan(whiteHalfHeight, eyeShape);
+        expect(IRIS * iris.scale.x).toBeLessThan(EYE_WHITE * white.scale.x, eyeShape);
+        disposeAvatar(root);
+      });
+    });
+
+    it('gives a smaller nose than measured', () => {
+      expect(NOSE_SIZE).toBeLessThan(0.85);
+      const [tip] = find(buildAvatar(avatar()), 'nose-tip') as THREE.Mesh[];
+      expect((tip.geometry as THREE.SphereGeometry).parameters.radius).toBeCloseTo(0.11 * NOSE_SIZE, 9);
+    });
+  });
+
   it('gives each eye shape and mouth shape its own look', () => {
     const eyeScale = (eyeShape: any) => {
       const [white] = find(buildAvatar(avatar({ eyeShape })), 'eye-white');
@@ -248,9 +279,9 @@ describe('buildAvatar', () => {
       root.updateMatrixWorld(true);
       const head = new THREE.Box3().setFromObject(find(root, 'head')[0]);
       const headHeight = head.max.y - head.min.y;
-      // About seven heads tall, as in the reference (an oval face is itself a longer head)
-      expect(head.max.y / headHeight).toBeGreaterThan(faceShape === 'oval' ? 6.3 : 6.8, `${bodyType}/${faceShape}`);
-      expect(head.max.y / headHeight).toBeLessThan(7.8, `${bodyType}/${faceShape}`);
+      // A little over four heads tall, stylised (figure.ts, STYLE); an oval face is itself a longer head
+      expect(head.max.y / headHeight).toBeGreaterThan(faceShape === 'oval' ? 3.7 : 3.95, `${bodyType}/${faceShape}`);
+      expect(head.max.y / headHeight).toBeLessThan(4.8, `${bodyType}/${faceShape}`);
       // The chin rests just above the collar: no gap under it, not sunk into the body
       const collar = figure.torso[figure.torso.length - 1][1];
       expect(head.min.y - collar).toBeGreaterThan(0, `${bodyType}/${faceShape}`);

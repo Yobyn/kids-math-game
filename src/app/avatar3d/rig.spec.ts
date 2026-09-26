@@ -84,6 +84,7 @@ describe('Rig', () => {
     const eyes: THREE.Object3D[] = [];
     model.traverse(node => node.name === 'eye' && eyes.push(node));
     const open = eyes.map(eye => eye.scale.y);
+    const wide = eyes.map(eye => eye.scale.x);
     const t = shutMoment();
     rig.pose(t, null);
     eyes.forEach((eye, i) => {
@@ -91,7 +92,7 @@ describe('Rig', () => {
       // Shut to the lid's line, never to nothing
       expect(eye.scale.y).toBeGreaterThan(open[i] * 0.05);
       // Only the height: a blink does not change the eye's width
-      expect(eye.scale.x).toBe(1);
+      expect(eye.scale.x).toBe(wide[i]);
     });
     rig.pose(t + 1, null);
     eyes.forEach((eye, i) => expect(eye.scale.y).toBeCloseTo(open[i], 9));
