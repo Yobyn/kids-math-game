@@ -193,6 +193,8 @@ describe('pets', () => {
     // The two wings flap together, mirrored, not one up and one down
     rig.pose(0.55, null);
     expect(wings[0].rotation.z - built[0]).toBeCloseTo(-(wings[1].rotation.z - built[1]), 9);
+    rig.pose(1.3, null);
+    expect(tail.rotation.y).not.toBe(0);
     rig.rest();
     expect(tail.rotation.y).toBe(0);
     wings.forEach((w, i) => expect(w.rotation.z).toBe(built[i]));

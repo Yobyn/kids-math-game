@@ -141,8 +141,10 @@ export const WING_BEAT = 2.2;
  * and fades, then still again. The first burst comes a moment after arrival.
  */
 export function tailWag(seconds: number): number {
+  // Counted from a second in; before that the count wraps round into the
+  // rest at the end of a cycle, so the tail is still on arrival too
   const into = ((seconds - 1) % TAIL_EVERY + TAIL_EVERY) % TAIL_EVERY;
-  if (seconds < 1 || into >= TAIL_BURST) {
+  if (into >= TAIL_BURST) {
     return 0;
   }
   const swell = Math.sin((into / TAIL_BURST) * Math.PI);

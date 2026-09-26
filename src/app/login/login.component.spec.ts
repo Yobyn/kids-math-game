@@ -1,7 +1,6 @@
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { FormsModule } from '@angular/forms';
 import { RouterTestingModule } from '@angular/router/testing';
 import { ActivatedRoute, convertToParamMap, Router } from '@angular/router';
 
@@ -14,7 +13,7 @@ describe('LoginComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule, HttpClientTestingModule],
+      imports: [RouterTestingModule, HttpClientTestingModule],
       declarations: [ LoginComponent ],
       schemas: [NO_ERRORS_SCHEMA]
     })
@@ -29,6 +28,32 @@ describe('LoginComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('keeps what a child types, and shows what it keeps', () => {
+    const type = (name: string, text: string) => {
+      const input = fixture.nativeElement.querySelector(`input[name="${name}"]`) as HTMLInputElement;
+      input.value = text;
+      input.dispatchEvent(new Event('input'));
+      return input;
+    };
+    type('username', 'sam');
+    type('password', 'secret1');
+    expect(component.username).toBe('sam');
+    expect(component.password).toBe('secret1');
+    component.username = 'zoe';
+    fixture.detectChanges();
+    expect((fixture.nativeElement.querySelector('input[name="username"]') as HTMLInputElement).value).toBe('zoe');
+  });
+
+  it('sends the form without the page reloading, and without the browser\u2019s own warnings', () => {
+    const submit = spyOn(component, 'onSubmit');
+    const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;
+    expect(form.hasAttribute('novalidate')).toBeTrue();
+    const event = new Event('submit', { cancelable: true });
+    form.dispatchEvent(event);
+    expect(submit).toHaveBeenCalledTimes(1);
+    expect(event.defaultPrevented).toBeTrue();
   });
 });
 
@@ -62,7 +87,7 @@ describe('LoginComponent theme', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule, HttpClientTestingModule],
+      imports: [RouterTestingModule, HttpClientTestingModule],
       declarations: [LoginComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -119,7 +144,7 @@ describe('LoginComponent guest play', () => {
   beforeEach(async () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule, HttpClientTestingModule],
+      imports: [RouterTestingModule, HttpClientTestingModule],
       declarations: [LoginComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -199,7 +224,7 @@ describe('LoginComponent arriving from the offer to keep progress', () => {
   function build(queryParams: { [key: string]: string }) {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule, HttpClientTestingModule],
+      imports: [RouterTestingModule, HttpClientTestingModule],
       declarations: [LoginComponent],
       providers: [{
         provide: ActivatedRoute,

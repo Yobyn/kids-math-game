@@ -2,7 +2,6 @@ import { RoundTrackComponent } from './round-track.component';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SoundService } from '../services/sound.service';
-import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { QuestionComponent } from './question.component';
@@ -19,7 +18,7 @@ describe('QuestionComponent', () => {
     localStorage.setItem('grade', '3');
 
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule],
+      imports: [RouterTestingModule],
       declarations: [QuestionComponent, KeypadComponent, RoundTrackComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -33,6 +32,25 @@ describe('QuestionComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('reads what a child types into the answer box, and empties the box for the next question', () => {
+    do {
+      component.generateQuestion();
+    } while (component.isPicking);
+    component.useKeypad = false;
+    component.showOkButton = false;
+    fixture.detectChanges();
+    const box = fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement;
+    box.value = '12';
+    box.dispatchEvent(new Event('input'));
+    expect(component.userAnswer).toBe('12');
+    component.userAnswer = '7';
+    fixture.detectChanges();
+    expect(box.value).toBe('7');
+    component.userAnswer = '';
+    fixture.detectChanges();
+    expect(box.value).toBe('');
   });
 
   it('only asks a grade 3 child to add and subtract', () => {
@@ -741,7 +759,7 @@ describe('QuestionComponent sums for the youngest players', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule],
+      imports: [RouterTestingModule],
       declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -795,7 +813,7 @@ describe('QuestionComponent showing how', () => {
     localStorage.setItem('difficulty', 'medium');
 
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule],
+      imports: [RouterTestingModule],
       declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -949,7 +967,7 @@ describe('QuestionComponent offering an easier rest of the round', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule],
+      imports: [RouterTestingModule],
       declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
@@ -1193,7 +1211,7 @@ describe('QuestionComponent: a round that survives the real world', () => {
     localStorage.setItem('difficulty', 'medium');
     localStorage.setItem('grade', '3');
     await TestBed.configureTestingModule({
-      imports: [FormsModule, RouterTestingModule],
+      imports: [RouterTestingModule],
       declarations: [QuestionComponent, KeypadComponent],
       schemas: [NO_ERRORS_SCHEMA]
     }).compileComponents();
