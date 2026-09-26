@@ -461,13 +461,22 @@ screen shapes, measured on the real stand rim, not a box round it; not in
 the other screens' pictures; wagging and flapping, mirrored wings, and
 back exactly at rest), the tail and wing timing in `motion.spec.ts`, the
 model (kept once won, none for old saves, pets after all the clothes), the
-chooser's Pets row and the scrapbook's pet. 1,587 unit tests.
+chooser's Pets row and the scrapbook's pet, and the title screen and
+answer box without FormsModule (typed in, shown back, sent without a
+reload). 1,591 unit tests.
 
 On the way, a test from #70 was taking over six seconds: it counted 120
 frames, each really drawn in software WebGL, and a test browser that
 busy misses Karma's ping and disconnects (one run did). It counts the
 draws without drawing them now; no test takes over 1.5 seconds.
-SWEEP_PLACEHOLDER
+
+The mutation sweep caught 27 of 33 at first (a container restart cut it
+in two; it was resumed from where it stopped). The survivors: the stage
+had two ways of backing off for a pet and either alone was enough, so
+one is gone; the tail's first-second guard was dead and is gone; the
+pet's side, the tail at rest, and the typed title-screen fields, its
+submit and the answer box had no test, and have one now. A re-run
+catches every one.
 
 WHAT IS NEXT, in the order the runs should take them:
 
