@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { BODY_TYPES, defaultAvatar } from '../avatar/avatar-model';
-import { ARM_RIG, FOREARM_RIG, buildAvatar, disposeAvatar } from './build-avatar';
+import { ARM_RIG, EYE_SHUT, FOREARM_RIG, buildAvatar, disposeAvatar } from './build-avatar';
 import { figureFor } from './figure';
 import { BREATH_RISE, BREATH_SECONDS, WAVE_LIFT, WAVE_SECONDS, eyesOpen, wave } from './motion';
-import { Rig, WAVING_SIDE } from './rig';
+import { Rig, SHUT_BELOW, WAVING_SIDE } from './rig';
 
 /** Every mesh's world position, so a pose can be checked to leave nothing behind. */
 function snapshot(root: THREE.Object3D): number[] {
@@ -96,6 +96,55 @@ describe('Rig', () => {
     });
     rig.pose(t + 1, null);
     eyes.forEach((eye, i) => expect(eye.scale.y).toBeCloseTo(open[i], 9));
+  });
+
+  it('draws a shut eye as a closed line in place of the squashed eye, on both figures', () => {
+    const OPEN_PARTS = ['eye-white', 'iris', 'pupil', 'glint', 'eye-lid'];
+    BODY_TYPES.forEach(bodyType => {
+      const model = build(bodyType);
+      const rig = new Rig(model);
+      const find = (name: string) => {
+        const found: THREE.Object3D[] = [];
+        model.traverse(node => node.name === name && found.push(node));
+        return found;
+      };
+      const lines = find(EYE_SHUT);
+      expect(lines.length).toBe(2);
+      // Hidden as built, and while the eyes are open
+      lines.forEach(line => expect(line.visible).toBe(false));
+      rig.pose(0, null);
+      lines.forEach(line => expect(line.visible).toBe(false));
+      OPEN_PARTS.forEach(name => find(name).forEach(node => expect(node.visible).withContext(name).toBe(true)));
+
+      const size = () => {
+        model.updateMatrixWorld(true);
+        const box = new THREE.Box3().setFromObject(lines[0]);
+        return [box.max.x - box.min.x, box.max.y - box.min.y];
+      };
+      const t = shutMoment();
+      rig.pose(t, null);
+      lines.forEach(line => expect(line.visible).toBe(true));
+      OPEN_PARTS.forEach(name => find(name).forEach(node => expect(node.visible).withContext(name).toBe(false)));
+      const [width, height] = size();
+      expect(height).toBeGreaterThan(0.01);
+      // Just past the swap the eye is less flat, but the line is the same shape
+      let swap = t;
+      while (eyesOpen(swap) < (SHUT_BELOW - 0.08) / 0.92 - 0.02) {
+        swap += 0.001;
+      }
+      rig.pose(swap, null);
+      expect(lines[0].visible).toBe(true);
+      const [width2, height2] = size();
+      expect(width2).toBeCloseTo(width, 6);
+      expect(height2).toBeCloseTo(height, 6);
+
+      rig.pose(t + 1, null);
+      lines.forEach(line => expect(line.visible).toBe(false));
+      OPEN_PARTS.forEach(name => find(name).forEach(node => expect(node.visible).withContext(name).toBe(true)));
+      rig.pose(t, null);
+      rig.rest();
+      lines.forEach(line => expect(line.visible).toBe(false));
+    });
   });
 
   it('waves one hand up above the shoulder and out to its side, with the other hand still down', () => {
