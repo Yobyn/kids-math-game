@@ -414,11 +414,67 @@ now gives every module its scope once all specs are loaded (the built app
 is compiled ahead of time and never had the queue), and prints the random
 seed, so an order-only failure can be run again in exactly that order.
 
+**PETS TO EARN — DONE (2026-09-26).** Every hat, pair of glasses and top
+was won by level 12, and children keep climbing long after that with
+nothing new to want. Now there are pets: a kitten at level 14, a puppy at
+17 and a baby dragon at 21, further apart than the clothes, because a
+companion is worth waiting for.
+
+- A pet is a wardrobe slot like the others (`pet` on the character,
+  `PET_ITEMS` in `avatar-model.ts`), earned and checked the same way: a
+  pet above the child's level comes off, and a character saved before
+  pets has none.
+- In 3D (`avatar3d/pets.ts`) each pet sits on its own small stand beside
+  the character's, on the side away from the waving arm, a little turned
+  towards the character. Built from round shapes in the toon look, drawn
+  larger than life, up to about the knee, because at a real kitten's size
+  a phone shows a few pixels.
+- It wags its tail in bursts, as pets do, rather than all the time; the
+  dragon flaps its wings slowly as well (`motion.ts`, `rig.ts`). The
+  character waves hello to a new pet.
+- The chooser has a Pets row, and the scrapbook shows a pet won. Both show
+  the pet by itself (`avatar/pet-icons.ts`): a head-and-shoulders picture
+  of the character looks the same with a pet as without.
+- With a pet out, the stage backs off just enough to keep the pet's stand
+  in view all the way round (`bodyFraming`): turned towards the camera,
+  the stand is the nearest thing, and a near thing looks lower. Without a
+  pet nothing moves.
+- The flat 2D drawing never shows a pet, and the pictures on other screens
+  do not either (the stand is outside both framings); both are tested.
+
+Bundle: THE DEBT IS PAID, many times over. Angular's forms were in the
+first load for four two-way bindings on two screens: the title screen's
+form and the question screen's answer box. They are plain value and input
+bindings now (the form says `novalidate` itself, which FormsModule used to
+add, and stops the page reloading on submit); the lazy register and
+grown-ups screens import FormsModule themselves. Checked in a browser too:
+bad fields are marked, submit stays on the page, typed answers (money ones
+as well) are read and marked, and the box empties for the next question.
+First load 487.86 → 459.20 kB, back under the 460 kB warning.
+
+Tests: `pets.spec.ts` (a 3D pet for every pet in the wardrobe; none for no
+pet; each its own shape and colour, with a tail, and wings on the dragon;
+looking forward; on its stand, stands apart, up to the knee; never
+touching the character, on both figures in four outfits, standing,
+breathing and through a whole wave; in view all the way round at three
+screen shapes, measured on the real stand rim, not a box round it; not in
+the other screens' pictures; wagging and flapping, mirrored wings, and
+back exactly at rest), the tail and wing timing in `motion.spec.ts`, the
+model (kept once won, none for old saves, pets after all the clothes), the
+chooser's Pets row and the scrapbook's pet. 1,587 unit tests.
+
+On the way, a test from #70 was taking over six seconds: it counted 120
+frames, each really drawn in software WebGL, and a test browser that
+busy misses Karma's ping and disconnects (one run did). It counts the
+draws without drawing them now; no test takes over 1.5 seconds.
+SWEEP_PLACEHOLDER
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **More to earn.** More items per slot (shoes, backpacks, capes, pets
-   beside the stand), and colour choices for tops. Every new item goes
-   through the same fit tests on every face and style.
+1. **More to earn, still.** Pets are in. Next: shoes and a back
+   slot (a backpack, a cape) and colour choices for tops. A back item must
+   stay clear of long hair, braids and the hood, and never swallow the
+   waving arm; test it through a whole wave, as the pets are.
 2. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
