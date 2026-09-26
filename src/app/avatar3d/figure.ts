@@ -199,7 +199,7 @@ export function stylise(measured: Figure, style: Style): Figure {
  * the sleeve brushes the side), and how clear the stylised arm is kept.
  */
 export const ARM_TOUCH = 0.1;
-const ARM_CLEARANCE = 0.05;
+export const ARM_CLEARANCE = 0.05;
 
 /**
  * The figure with its shoulders moved out, if they must be, so that each arm

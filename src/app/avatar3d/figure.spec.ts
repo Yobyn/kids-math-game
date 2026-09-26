@@ -1,4 +1,4 @@
-import { ARM_TOUCH, FIGURES, HH, MEASURED, STYLE, clearOfChest, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist } from './figure';
+import { ARM_CLEARANCE, ARM_TOUCH, Figure, FIGURES, HH, MEASURED, STYLE, clearOfChest, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist } from './figure';
 
 const BODY_TYPES_HERE = ['boy', 'girl'] as const;
 
@@ -94,20 +94,38 @@ describe('figure', () => {
     expect(wy).toBeLessThan(boy.shoulder[1] - boy.upperArm);
   });
 
+  /** How far the arm is from sinking into the chest, at its closest: 0 is just touching. */
+  function closest(figure: Figure): number {
+    const elbow = hang(figure.shoulder, figure.upperArm, figure.armSwing, 1);
+    const [wx, wy] = wrist(figure);
+    const [rShoulder, rElbow, rWrist] = figure.armRadii;
+    let gap = Infinity;
+    // From a third of the way down the upper arm (above that it joins the shoulder) to the wrist
+    for (let t = 0.3; t <= 2; t += 0.05) {
+      const upper = t <= 1;
+      const k = upper ? t : t - 1;
+      const x = upper ? figure.shoulder[0] + (elbow[0] - figure.shoulder[0]) * k : elbow[0] + (wx - elbow[0]) * k;
+      const y = upper ? figure.shoulder[1] + (elbow[1] - figure.shoulder[1]) * k : elbow[1] + (wy - elbow[1]) * k;
+      const r = upper ? rShoulder + (rElbow - rShoulder) * k : rElbow + (rWrist - rElbow) * k;
+      gap = Math.min(gap, x - r - (torsoRadius(figure, y) - ARM_TOUCH));
+    }
+    return gap;
+  }
+
   it('hangs each arm clear of the chest all the way down, touching at most', () => {
-    Object.entries(FIGURES).forEach(([type, figure]) => {
-      const elbow = hang(figure.shoulder, figure.upperArm, figure.armSwing, 1);
-      const [wx, wy] = wrist(figure);
-      const [rShoulder, rElbow, rWrist] = figure.armRadii;
-      // From a third of the way down the upper arm (above that it joins the shoulder) to the wrist
-      for (let t = 0.3; t <= 2; t += 0.05) {
-        const upper = t <= 1;
-        const k = upper ? t : t - 1;
-        const x = upper ? figure.shoulder[0] + (elbow[0] - figure.shoulder[0]) * k : elbow[0] + (wx - elbow[0]) * k;
-        const y = upper ? figure.shoulder[1] + (elbow[1] - figure.shoulder[1]) * k : elbow[1] + (wy - elbow[1]) * k;
-        const r = upper ? rShoulder + (rElbow - rShoulder) * k : rElbow + (rWrist - rElbow) * k;
-        expect(x - r).toBeGreaterThan(torsoRadius(figure, y) - ARM_TOUCH, `${type} arm into the body at ${y.toFixed(2)}`);
-      }
+    Object.entries(FIGURES).forEach(([type, figure]) => expect(closest(figure)).toBeGreaterThan(0, `${type} arm into the body`));
+  });
+
+  it('moves a shoulder that is in too far out just enough: the arm ends up the clearance away, no more', () => {
+    BODY_TYPES_HERE.forEach(type => {
+      const figure = FIGURES[type];
+      const squeezed: Figure = { ...figure, shoulder: [figure.shoulder[0] - 0.4, figure.shoulder[1]] };
+      expect(closest(squeezed)).toBeLessThan(0);
+      const cleared = clearOfChest(squeezed);
+      expect(closest(cleared)).toBeCloseTo(ARM_CLEARANCE, 6);
+      // Only the shoulder moves, and only outwards
+      expect({ ...cleared, shoulder: squeezed.shoulder }).toEqual(squeezed);
+      expect(cleared.shoulder[0]).toBeGreaterThan(squeezed.shoulder[0]);
     });
   });
 
