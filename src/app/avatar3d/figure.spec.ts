@@ -1,4 +1,5 @@
 import { ARM_CLEARANCE, ARM_TOUCH, Figure, FIGURES, HH, MEASURED, STYLE, clearOfChest, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist } from './figure';
+import { STILL_VERSION } from '../avatar/avatar-still.service';
 
 const BODY_TYPES_HERE = ['boy', 'girl'] as const;
 
@@ -178,6 +179,14 @@ describe('figure', () => {
         expect(FIGURES[type].elbowBend).toBeGreaterThan(0.2);
         expect(FIGURES[type].elbowBend).toBeLessThan(0.6);
         expect(MEASURED[type].elbowBend).toBe(0);
+      });
+    });
+
+    it('re-draws the pictures on other screens when the look changes: STILL_VERSION goes up with STYLE', () => {
+      // Saved pictures are kept by version; a new STYLE with the old version
+      // would leave every screen showing the old character
+      expect({ version: STILL_VERSION, style: STYLE }).toEqual({
+        version: 4, style: { head: 1.8, body: 0.66, build: 1.15, armSwing: 0.24, elbowBend: 0.35 }
       });
     });
 
