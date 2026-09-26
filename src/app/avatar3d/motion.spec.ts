@@ -171,6 +171,12 @@ describe('motion', () => {
       expect(putOnSomethingNew({ ...was, pet: 'kitten' }, { ...was, pet: 'none' })).toBeFalse();
     });
 
+    it('waves to show off a backpack or a cape', () => {
+      expect(putOnSomethingNew({ ...was, back: 'none' }, { ...was, back: 'backpack' })).toBeTrue();
+      expect(putOnSomethingNew({ ...was, back: 'backpack' }, { ...was, back: 'cape' })).toBeTrue();
+      expect(putOnSomethingNew({ ...was, back: 'cape' }, { ...was, back: 'none' })).toBeFalse();
+    });
+
     it('does not wave for taking something off, for nothing changing, or on arrival', () => {
       expect(putOnSomethingNew({ ...was, hat: 'cap' }, was)).toBeFalse();
       expect(putOnSomethingNew(was, { ...was })).toBeFalse();

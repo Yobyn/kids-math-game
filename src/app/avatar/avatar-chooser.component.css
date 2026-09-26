@@ -117,7 +117,7 @@
 }
 
 /* A pet is shown by itself, at the size of a face in the other swatches */
-.pet-icon {
+.item-icon {
   display: block;
   font-size: 1.9rem;
   line-height: 44px;

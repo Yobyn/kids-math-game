@@ -6,7 +6,7 @@ import { Keepsake, scrapbookOf } from './scrapbook';
 import { Avatar, WardrobeItem, itemById } from '../avatar/avatar-model';
 import { AvatarService } from '../services/avatar.service';
 import { SCRAPBOOK_WORDS } from './scrapbook-words';
-import { PET_ICONS } from '../avatar/pet-icons';
+import { itemIcon } from '../avatar/item-icons';
 
 /**
  * What the child has done, in the order it happened.
@@ -59,10 +59,12 @@ export class ScrapbookComponent implements OnInit {
     return item ? ({ ...this.avatar, [item.slot]: item.id } as Avatar) : this.avatar;
   }
 
-  /** A pet won is shown by itself: beside the stand, it is not in a head-and-shoulders picture. */
-  petIcon(entry: Keepsake): string {
-    const item = this.item(entry);
-    return item && item.slot === 'pet' ? PET_ICONS[item.id] || '' : '';
+  /**
+   * A pet or something for the back is shown by itself: beside the stand or
+   * behind the character, it is not in a picture taken from the front.
+   */
+  icon(entry: Keepsake): string {
+    return itemIcon(this.item(entry));
   }
 
   /** Clothes need the shoulders; hats and glasses do not. */

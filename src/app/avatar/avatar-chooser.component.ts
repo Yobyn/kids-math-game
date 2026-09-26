@@ -22,7 +22,7 @@ import {
   isUnlocked
 } from './avatar-model';
 import { BODY_ROW, ChooserRow, SECTIONS, SectionId } from './chooser-sections';
-import { PET_ICONS } from './pet-icons';
+import { ICON_SLOTS, itemIcon } from './item-icons';
 import { CHOOSER_WORDS } from './chooser-words';
 import { findEvent, nextOpening } from '../events/next-opening';
 import { itemsForSlot, nextUnlock } from './wardrobe-lookups';
@@ -190,9 +190,14 @@ export class AvatarChooserComponent implements OnInit {
     return `${this.itemName(item)} — ${this.languageService.translate('level')} ${item.unlockLevel}`;
   }
 
-  /** A pet's swatch: the pet by itself (see PET_ICONS). */
-  petIcon(item: WardrobeItem): string {
-    return PET_ICONS[item.id] || PET_ICONS[NO_ITEM];
+  /** Whether a row's swatches are the things themselves: pets, and what goes on the back (see ITEM_ICONS). */
+  iconRow(row: ChooserRow): boolean {
+    return !!row.slot && ICON_SLOTS.indexOf(row.slot) >= 0;
+  }
+
+  /** Such a swatch: the thing by itself. */
+  icon(item: WardrobeItem): string {
+    return itemIcon(item);
   }
 
   /** A bare character, so an item's own swatch is not lost under a hat. */

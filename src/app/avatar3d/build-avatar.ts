@@ -7,6 +7,7 @@ import {
 import { at, crownGrid, part, scale, starShape, surfaceGeometry, toon } from './toon';
 import { buildGlasses, buildHat } from './wardrobe3d';
 import { buildPet } from './pets';
+import { BackMap, buildBackItem } from './back-items';
 import { WAVING_SIDE } from './motion';
 import { Figure, chinY, figureFor, hang, torsoRadius, wrist } from './figure';
 
@@ -731,7 +732,56 @@ export function buildAvatar(avatar: Avatar): THREE.Group {
       root.add(item);
     }
   });
+  const back = buildBackBehind(avatar, figure, root);
+  if (back) {
+    root.add(back);
+  }
   return root;
+}
+
+/**
+ * How much further back an arm can reach than it hangs. An arm turns at the
+ * shoulder about z, which keeps every point's depth; only the elbow's soft
+ * bend, easing out on a wave, tips the forearm, and by little.
+ */
+export const ARM_TIP_BACK = 0.1;
+
+/**
+ * The backpack or cape, built round the character already on the stand:
+ * everything but its arms (which it goes behind or inside), the stands and
+ * the pet. See back-items.ts.
+ */
+function buildBackBehind(avatar: Avatar, figure: Figure, root: THREE.Group): THREE.Group | null {
+  const item = avatar.back && avatar.back !== NO_ITEM ? findItem('back', avatar.back) : undefined;
+  if (!item) {
+    return null;
+  }
+  root.updateMatrixWorld(true);
+  const meshes: THREE.Mesh[] = [];
+  let armBack = 0;
+  const visit = (node: THREE.Object3D, arm: boolean) => {
+    if (node.name === 'pedestal' || node.name === 'pet') {
+      return;
+    }
+    const inArm = arm || node.name === ARM_RIG;
+    const mesh = node as THREE.Mesh;
+    if (mesh.isMesh && !node.name.endsWith(':outline')) {
+      if (inArm) {
+        const position = mesh.geometry.attributes.position as THREE.BufferAttribute;
+        const p = new THREE.Vector3();
+        for (let i = 0; i < position.count; i++) {
+          armBack = Math.max(armBack, -p.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld).z);
+        }
+      } else {
+        meshes.push(mesh);
+      }
+    }
+    node.children.forEach(child => visit(child, inArm));
+  };
+  visit(root, false);
+  const reach = figure.shoulder[0] + figure.armRadii[0] * 2;
+  const map = new BackMap(meshes, -reach, reach, figure.ankle[1], chinY(figure) + 1);
+  return buildBackItem(item.id, item.colour, figure, { map, armBack: armBack + ARM_TIP_BACK, meshes });
 }
 
 /** Frees every geometry and material under a built character. */
