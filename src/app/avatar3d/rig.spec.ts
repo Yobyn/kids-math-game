@@ -21,14 +21,16 @@ function boxOf(node: THREE.Object3D): THREE.Box3 {
   return new THREE.Box3().setFromObject(node);
 }
 
-/** The first moment the eyes are fully shut. */
+/** The moment in the first blink the eyes are most shut. */
 function shutMoment(): number {
-  for (let t = 0; t < 20; t += 0.001) {
-    if (eyesOpen(t) < 0.02) {
-      return t;
+  let most = 0;
+  for (let t = 0; t < 10; t += 0.0005) {
+    if (eyesOpen(t) < eyesOpen(most)) {
+      most = t;
     }
   }
-  throw new Error('no blink');
+  expect(eyesOpen(most)).toBeLessThan(0.01);
+  return most;
 }
 
 describe('Rig', () => {
@@ -86,7 +88,8 @@ describe('Rig', () => {
     rig.pose(t, null);
     eyes.forEach((eye, i) => {
       expect(eye.scale.y).toBeLessThan(open[i] * 0.15);
-      expect(eye.scale.y).toBeGreaterThan(0);
+      // Shut to the lid's line, never to nothing
+      expect(eye.scale.y).toBeGreaterThan(open[i] * 0.05);
       // Only the height: a blink does not change the eye's width
       expect(eye.scale.x).toBe(1);
     });

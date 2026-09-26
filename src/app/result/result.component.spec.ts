@@ -370,6 +370,11 @@ describe('ResultComponent levels', () => {
   });
 
   it('fills the bar to where the child actually stands', fakeAsync(() => {
+    // Silent: the round's tune fetches the sound engine, and fetching a chunk
+    // leaves a loader timer that fakeAsync would find still queued
+    const sound = TestBed.inject(SoundService);
+    spyOn(sound, 'playStar');
+    spyOn(sound, 'playRoundDone');
     progress.addXp(xpToReach(3));
     render(60);
 

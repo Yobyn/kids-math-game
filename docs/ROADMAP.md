@@ -394,7 +394,18 @@ frame after frame, still under reduced motion or switched off, a wave for
 something new and not for a new face or on arrival, the arm back down
 after, 30 frames a second standing and full speed waving, no drawing
 after closing), the hop on the avatar and on the result screen, and none
-under reduced motion. 1,569 unit tests. SWEEP_PLACEHOLDER
+under reduced motion. 1,570 unit tests. The mutation sweep caught 32 of 36
+at first. One survivor cannot be caught: it only changes the wave's
+boundary check to one that gives the same answer. The other three were
+gaps, now closed: blinks only ever later than usual, never sooner; an arm
+moving at full speed from the start instead of easing; eyes squashed to
+nothing instead of the lid's line. A re-run catches all three.
+
+On the way, a test that had been failing now and then was made reliable:
+the result screen's level-bar test let the round's tune fetch the sound
+engine inside `fakeAsync`, whose chunk loader leaves a timer behind the
+first time only, so the test failed or passed with the random order. It
+is silent now.
 
 WHAT IS NEXT, in the order the runs should take them:
 

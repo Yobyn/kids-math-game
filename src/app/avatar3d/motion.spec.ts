@@ -67,6 +67,9 @@ describe('motion', () => {
       expect(gaps.filter(gap => gap < BLINK_GAP - BLINK_JITTER - 0.01 || gap > BLINK_GAP + BLINK_JITTER + 0.01)).toEqual([]);
       const rounded = new Set(gaps.map(gap => gap.toFixed(1)));
       expect(rounded.size).toBeGreaterThan(3);
+      // Sooner than usual and later than usual, both
+      expect(Math.min(...gaps)).toBeLessThan(BLINK_GAP - BLINK_JITTER / 2);
+      expect(Math.max(...gaps)).toBeGreaterThan(BLINK_GAP + BLINK_JITTER / 2);
     });
 
     it('does not blink the moment the character arrives', () => {
@@ -98,6 +101,16 @@ describe('motion', () => {
       expect(Math.max(...lifts)).toBeCloseTo(WAVE_LIFT, 6);
       expect(wave(WAVE_SECONDS / 2).lift).toBeCloseTo(WAVE_LIFT, 6);
       expect(Math.min(...lifts)).toBeGreaterThanOrEqual(0);
+    });
+
+    it('starts and finishes slowly, as an arm does, rather than at full speed', () => {
+      const early = wave(0.035).lift;
+      const late = wave(WAVE_SECONDS - 0.035).lift;
+      expect(early).toBeGreaterThan(0);
+      expect(early).toBeLessThan(WAVE_LIFT * 0.05);
+      expect(late).toBeLessThan(WAVE_LIFT * 0.05);
+      // and is well on its way by halfway up
+      expect(wave(0.175).lift).toBeCloseTo(WAVE_LIFT / 2, 6);
     });
 
     it('moves smoothly: no jump from one moment to the next', () => {
