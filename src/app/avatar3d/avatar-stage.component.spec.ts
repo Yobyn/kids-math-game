@@ -7,7 +7,8 @@ import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, ea
 
 describe('framing', () => {
   it('keeps the usual distance for a character of ordinary height', () => {
-    expect(framing(-0.2, 14.8, 30, 1.1)).toEqual({ distance: BASE_DISTANCE, centre: BASE_CENTRE });
+    // The stylised character with short hair and a cap, stand to cap: about 13
+    expect(framing(-0.2, 13, 30, 1.1)).toEqual({ distance: BASE_DISTANCE, centre: BASE_CENTRE });
   });
 
   it('backs off, and looks higher, for a tall hat or a big afro', () => {

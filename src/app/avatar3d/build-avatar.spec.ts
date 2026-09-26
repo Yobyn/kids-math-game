@@ -279,16 +279,16 @@ describe('buildAvatar', () => {
       root.updateMatrixWorld(true);
       const head = new THREE.Box3().setFromObject(find(root, 'head')[0]);
       const headHeight = head.max.y - head.min.y;
-      // A little over four heads tall, stylised (figure.ts, STYLE); an oval face is itself a longer head
-      expect(head.max.y / headHeight).toBeGreaterThan(faceShape === 'oval' ? 3.7 : 3.95, `${bodyType}/${faceShape}`);
-      expect(head.max.y / headHeight).toBeLessThan(4.8, `${bodyType}/${faceShape}`);
+      // About three and a third heads tall, stylised (figure.ts, STYLE); an oval face is itself a longer head
+      expect(head.max.y / headHeight).toBeGreaterThan(faceShape === 'oval' ? 2.9 : 3.1, `${bodyType}/${faceShape}`);
+      expect(head.max.y / headHeight).toBeLessThan(3.8, `${bodyType}/${faceShape}`);
       // The chin rests just above the collar: no gap under it, not sunk into the body
       const collar = figure.torso[figure.torso.length - 1][1];
       expect(head.min.y - collar).toBeGreaterThan(0, `${bodyType}/${faceShape}`);
       expect(head.min.y - collar).toBeLessThan(0.8, `${bodyType}/${faceShape}`);
-      // Shoulders wider than the head
+      // Shoulders wider than the head, big as a stylised head is
       const body = new THREE.Box3().setFromObject(find(root, 'body')[0]);
-      expect(body.max.x - body.min.x).toBeGreaterThan((head.max.x - head.min.x) * 2);
+      expect(body.max.x - body.min.x).toBeGreaterThan((head.max.x - head.min.x) * 1.5);
       disposeAvatar(root);
     }));
   });

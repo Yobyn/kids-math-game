@@ -59,6 +59,8 @@ export interface Figure {
   armRadii: [number, number, number];
   /** How far the arms hang out from the body, in radians from straight down. */
   armSwing: number;
+  /** How far the forearms bend forward at the elbow at rest, in radians: 0 is a straight arm. */
+  elbowBend: number;
   handLength: number;
   neckRadius: number;
   /** A shoe's length and width. */
@@ -88,6 +90,7 @@ const BOY: Figure = {
   forearm: 1.15 * HH,
   armRadii: [0.5, 0.42, 0.33],
   armSwing: 0.3,
+  elbowBend: 0,
   handLength: 0.55 * HH,
   neckRadius: 0.44,
   foot: [0.95 * HH, 0.47 * HH]
@@ -114,6 +117,7 @@ const GIRL: Figure = {
   forearm: 1.1 * HH,
   armRadii: [0.42, 0.35, 0.28],
   armSwing: 0.3,
+  elbowBend: 0,
   handLength: 0.5 * HH,
   neckRadius: 0.38,
   foot: [0.86 * HH, 0.42 * HH]
@@ -123,15 +127,16 @@ const GIRL: Figure = {
 export const MEASURED: { [type in BodyType]: Figure } = { boy: BOY, girl: GIRL };
 
 /**
- * HOW STYLISED THE CHARACTER IS (Yobyn, 2026-09-26): "in between what we had
- * and what we have now". What we had was chibi, about two and a half heads
- * tall, all head and eyes; what we have now is the reference measured as it
- * is, over seven heads tall. In between is a game character of a little over
- * four heads (the middle of 2.5 and 7.3 as a ratio, not a difference): a
- * bigger head on a shorter, sturdier body.
+ * HOW STYLISED THE CHARACTER IS (Yobyn, 2026-09-26). What we had first was
+ * chibi, about two and a half heads tall, all head and eyes; the reference
+ * measured as it is is over seven. Yobyn asked for "in between", then, with
+ * that on screen, for it "smaller again like the original look more": so
+ * the character is about three and a third heads, nearer the chibi than the
+ * reference, on a shorter, sturdier body, standing relaxed rather than in
+ * the reference's A-pose.
  *
  * The measured figure stays the truth; the stylised one is made from it by
- * three numbers, so the look can be moved along the line without anything
+ * a few numbers, so the look can be moved along the line without anything
  * being re-fitted. Everything on the head (hair, hats, glasses) shares the
  * head's transform, so it grows with it and fits by construction.
  */
@@ -142,9 +147,16 @@ export interface Style {
   body: number;
   /** How much sturdier: widths and limb thickness. */
   build: number;
+  /**
+   * How the character stands. The reference is an A-pose, arms held out
+   * straight, which is how a model is measured and not how anyone stands;
+   * a relaxed stance brings the arms in and softens the elbows.
+   */
+  armSwing?: number;
+  elbowBend?: number;
 }
 
-export const STYLE: Style = { head: 1.55, body: 0.82, build: 1.1 };
+export const STYLE: Style = { head: 1.8, body: 0.66, build: 1.15, armSwing: 0.24, elbowBend: 0.35 };
 
 /** A measured figure made into the stylised one (see STYLE). */
 export function stylise(measured: Figure, style: Style): Figure {
@@ -155,7 +167,7 @@ export function stylise(measured: Figure, style: Style): Figure {
   // The chin stays on the collar: it comes down with the body, and the head
   // grows up from it
   const chin = y(chinY(measured));
-  return {
+  const stylised: Figure = {
     ...measured,
     headScale,
     headY: chin + headScale[1],
@@ -174,9 +186,42 @@ export function stylise(measured: Figure, style: Style): Figure {
     forearm: y(measured.forearm),
     armRadii: measured.armRadii.map(w) as [number, number, number],
     handLength: y(measured.handLength) * style.build,
+    armSwing: style.armSwing ?? measured.armSwing,
+    elbowBend: style.elbowBend ?? measured.elbowBend,
     neckRadius: w(measured.neckRadius) * Math.sqrt(style.head),
     foot: [measured.foot[0] * style.build, w(measured.foot[1])]
   };
+  return clearOfChest(stylised);
+}
+
+/**
+ * How far an arm's inside edge may reach past the torso's outline (where
+ * the sleeve brushes the side), and how clear the stylised arm is kept.
+ */
+export const ARM_TOUCH = 0.1;
+const ARM_CLEARANCE = 0.05;
+
+/**
+ * The figure with its shoulders moved out, if they must be, so that each arm
+ * hangs clear of the chest all the way down: from a third of the way down
+ * the upper arm (above that it joins the shoulder) to the wrist. A short,
+ * sturdy body puts the widest chest right under the arm, so the stylised
+ * figure may need this; the measured one does not, and comes back as it is.
+ */
+export function clearOfChest(figure: Figure): Figure {
+  let need = 0;
+  const elbow = hang(figure.shoulder, figure.upperArm, figure.armSwing, 1);
+  const [wx, wy] = wrist(figure);
+  const [rShoulder, rElbow, rWrist] = figure.armRadii;
+  for (let t = 0.3; t <= 2; t += 0.05) {
+    const upper = t <= 1;
+    const k = upper ? t : t - 1;
+    const x = upper ? figure.shoulder[0] + (elbow[0] - figure.shoulder[0]) * k : elbow[0] + (wx - elbow[0]) * k;
+    const y = upper ? figure.shoulder[1] + (elbow[1] - figure.shoulder[1]) * k : elbow[1] + (wy - elbow[1]) * k;
+    const r = upper ? rShoulder + (rElbow - rShoulder) * k : rElbow + (rWrist - rElbow) * k;
+    need = Math.max(need, torsoRadius(figure, y) - ARM_TOUCH + ARM_CLEARANCE - (x - r));
+  }
+  return need > ARM_CLEARANCE ? { ...figure, shoulder: [figure.shoulder[0] + need, figure.shoulder[1]] } : figure;
 }
 
 /** The figures the character is drawn in: the measured ones, stylised. */

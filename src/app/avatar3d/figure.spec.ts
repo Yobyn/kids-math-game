@@ -1,4 +1,4 @@
-import { FIGURES, HH, MEASURED, STYLE, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist } from './figure';
+import { ARM_TOUCH, FIGURES, HH, MEASURED, STYLE, clearOfChest, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist } from './figure';
 
 const BODY_TYPES_HERE = ['boy', 'girl'] as const;
 
@@ -106,16 +106,16 @@ describe('figure', () => {
         const x = upper ? figure.shoulder[0] + (elbow[0] - figure.shoulder[0]) * k : elbow[0] + (wx - elbow[0]) * k;
         const y = upper ? figure.shoulder[1] + (elbow[1] - figure.shoulder[1]) * k : elbow[1] + (wy - elbow[1]) * k;
         const r = upper ? rShoulder + (rElbow - rShoulder) * k : rElbow + (rWrist - rElbow) * k;
-        expect(x - r).toBeGreaterThan(torsoRadius(figure, y) - 0.1, `${type} arm into the body at ${y.toFixed(2)}`);
+        expect(x - r).toBeGreaterThan(torsoRadius(figure, y) - ARM_TOUCH, `${type} arm into the body at ${y.toFixed(2)}`);
       }
     });
   });
 
   describe('stylised: in between the chibi character and the reference (Yobyn, 2026-09-26)', () => {
-    it('stands a little over four heads tall: between two and a half and seven', () => {
+    it('stands about three and a third heads tall: nearer the chibi two and a half than the measured seven', () => {
       BODY_TYPES_HERE.forEach(type => {
-        expect(headsTall(FIGURES[type])).toBeGreaterThan(4);
-        expect(headsTall(FIGURES[type])).toBeLessThan(4.7);
+        expect(headsTall(FIGURES[type])).toBeGreaterThan(3);
+        expect(headsTall(FIGURES[type])).toBeLessThan(3.7);
         expect(headsTall(FIGURES[type])).toBeLessThan(headsTall(MEASURED[type]) - 2);
       });
     });
@@ -148,7 +148,19 @@ describe('figure', () => {
     it('moves the shoulder out by as much as the arm thickened, so a thicker arm is not in the chest', () => {
       const m = MEASURED.boy;
       const s = FIGURES.boy;
-      expect(s.shoulder[0] - (s.armRadii[0] - m.armRadii[0])).toBeCloseTo(m.shoulder[0] * STYLE.build, 9);
+      // At least as far out as the arm grew; further if the chest would otherwise meet the arm
+      expect(s.shoulder[0] - (s.armRadii[0] - m.armRadii[0])).toBeGreaterThanOrEqual(m.shoulder[0] * STYLE.build - 1e-9);
+      // And the measured figures needed no moving at all
+      BODY_TYPES_HERE.forEach(type => expect(clearOfChest(MEASURED[type])).toBe(MEASURED[type]));
+    });
+
+    it('stands relaxed, not in the reference\u2019s A-pose: arms nearer the body, elbows soft', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        expect(FIGURES[type].armSwing).toBeLessThan(MEASURED[type].armSwing);
+        expect(FIGURES[type].elbowBend).toBeGreaterThan(0.2);
+        expect(FIGURES[type].elbowBend).toBeLessThan(0.6);
+        expect(MEASURED[type].elbowBend).toBe(0);
+      });
     });
 
     it('is the measured figure exactly when nothing is stylised', () => {
