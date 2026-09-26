@@ -507,8 +507,16 @@ Tests: the stylised figure is between 4 and 4.7 heads tall, bigger-headed
 and shorter than measured by exactly the style's numbers, chin still on
 the collar, shoulders out by the arm's extra thickness, and the measured
 figure exactly when nothing is stylised; every fit test (hair, hats,
-glasses, braids, arms, the wave, pets, stills) runs on it. 1,596 unit
-tests. SWEEP_PLACEHOLDER
+glasses, braids, arms, the wave, pets, stills) runs on it, and the face:
+eyes bigger but inside a round lens, a big iris inside the white of every
+eye shape, a smaller nose. 1,599 unit tests.
+
+The mutation sweep (cut in two by a container restart, and finished
+afterwards) caught 14 of 22 at first. The survivors were gaps: the neck,
+hands and feet in `stylise`, and the eye, iris and nose sizes had no test;
+they have one now, and a re-run catches them all. One survivor stays, by
+design: `STILL_VERSION` is a number bumped by hand when the look changes,
+and a test could only pin today's value.
 
 WHAT IS NEXT, in the order the runs should take them:
 
