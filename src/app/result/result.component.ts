@@ -43,6 +43,8 @@ export class ResultComponent implements OnInit, OnDestroy {
   message = '';
   starsEarned: StarCount = 0;
   starsShown = 0;
+  /** The character's hop for joy, as the round's tune plays. */
+  hopping = false;
   /** What the child did this round, shown as tiles — see round-card.ts. */
   tiles: Tile[] = [];
   tilesShown = 0;
@@ -238,7 +240,11 @@ export class ResultComponent implements OnInit, OnDestroy {
       this.soundService.playStar(i);
     }, at)));
     const afterStars = timeline.stars.length ? timeline.stars[timeline.stars.length - 1] + ROUND_TUNE_AFTER_STARS_MS : 0;
-    this.timers.push(window.setTimeout(() => this.soundService.playRoundDone(), afterStars));
+    // The character hops for joy as the round's tune plays
+    this.timers.push(window.setTimeout(() => {
+      this.soundService.playRoundDone();
+      this.hopping = true;
+    }, afterStars));
     timeline.tiles.forEach((at, i) => this.timers.push(window.setTimeout(() => this.tilesShown = i + 1, at)));
   }
 

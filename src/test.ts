@@ -7,6 +7,7 @@ import {
   platformBrowserDynamicTesting
 } from '@angular/platform-browser-dynamic/testing';
 import { AvatarStillService } from './app/avatar/avatar-still.service';
+import { AvatarStageComponent } from './app/avatar3d/avatar-stage.component';
 
 declare const require: {
   context(path: string, deep?: boolean, filter?: RegExp): {
@@ -48,6 +49,13 @@ afterEach(() => document.documentElement.setAttribute('data-fit', 'stack'));
  * turn them on and test them.
  */
 AvatarStillService.enabledByDefault = false;
+
+/**
+ * The same for the 3D character breathing and blinking: a stage that never
+ * stops drawing would keep the test browser busy for every spec that opens
+ * the dressing-up screen. The stage's own tests turn it on.
+ */
+AvatarStageComponent.alive = false;
 
 // Then we find all the tests.
 const context = require.context('./', true, /\.spec\.ts$/);

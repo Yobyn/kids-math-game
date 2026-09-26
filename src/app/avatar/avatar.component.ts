@@ -37,6 +37,8 @@ export class AvatarComponent implements OnChanges {
    * dozens of options at once.
    */
   @Input() look: '3d' | 'flat' = '3d';
+  /** A happy hop, twice, when this turns true: the end of a round. Not under reduced motion (the CSS's rule). */
+  @Input() hop = false;
 
   /** The picture of the 3D character, when there is one. */
   still: string | null = null;

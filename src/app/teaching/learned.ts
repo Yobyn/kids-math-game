@@ -73,21 +73,6 @@ export function rememberLearned(
   return [entry, ...rest].slice(0, Math.max(0, limit));
 }
 
-/** What stuck within the last `days` days, newest first. */
-export function learnedSince(
-  learned: LearnedFact[],
-  now: Date,
-  days = LEARNED_WINDOW_DAYS
-): LearnedFact[] {
-  const earliest = new Date(now.getFullYear(), now.getMonth(), now.getDate() - Math.max(0, days - 1));
-  const from = dayKey(earliest);
-  const today = dayKey(now);
-
-  return (learned || [])
-    .filter(item => item && typeof item.on === 'string' && item.on >= from && item.on <= today)
-    .sort((a, b) => (a.on < b.on ? 1 : a.on > b.on ? -1 : 0));
-}
-
 /**
  * Anything a store hands back, made safe. A half-written entry is dropped
  * rather than patched: a fact with no numbers in it cannot be written out,

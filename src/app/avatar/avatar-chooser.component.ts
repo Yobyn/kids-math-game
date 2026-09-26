@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { AvatarService } from '../services/avatar.service';
 import { LanguageService, TranslationKeys } from '../services/language.service';
 import { ProgressService } from '../services/progress.service';
-import { findEvent, nextOpening } from '../events/seasonal-events';
+
 import { levelForXp } from '../levels/level-curve';
 import {
   BODY_TYPES,
@@ -19,12 +19,12 @@ import {
   NO_ITEM,
   SKIN_TONES,
   WardrobeItem,
-  isUnlocked,
-  itemsForSlot,
-  nextUnlock
+  isUnlocked
 } from './avatar-model';
 import { BODY_ROW, ChooserRow, SECTIONS, SectionId } from './chooser-sections';
 import { CHOOSER_WORDS } from './chooser-words';
+import { findEvent, nextOpening } from '../events/next-opening';
+import { itemsForSlot, nextUnlock } from './wardrobe-lookups';
 
 const LABEL_ICONS: { [value: string]: string } = { boy: '👦', girl: '👧' };
 

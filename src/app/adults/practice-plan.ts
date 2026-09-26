@@ -1,7 +1,8 @@
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
 import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
-import { LearnedFact, learnedSince } from '../teaching/learned';
+import { LearnedFact } from '../teaching/learned';
+import { learnedSince } from '../teaching/learned-since';
 
 /**
  * What an adult is shown about a child's practice, and — more importantly —

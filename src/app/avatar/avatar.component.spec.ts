@@ -358,6 +358,36 @@ describe('AvatarComponent: the 3D still', () => {
     expect(img()!.getAttribute('src')).toBe('data:image/png;base64,beanie');
   });
 
+  it('hops, as a picture or a drawing, only when told to', () => {
+    show();
+    expect(svg()!.classList.contains('hop')).toBeFalse();
+    component.hop = true;
+    fixture.detectChanges();
+    expect(svg()!.classList.contains('hop')).toBeTrue();
+    (stills.cached as jasmine.Spy).and.returnValue('data:image/png;base64,kept');
+    show({ hat: 'crown' });
+    expect(img()!.classList.contains('hop')).toBeTrue();
+  });
+
+  it('hops from its feet, and not at all under reduced motion', () => {
+    component.hop = true;
+    show();
+    const style = getComputedStyle(svg()!);
+    expect(style.animationName).toBe('avatar-hop');
+    expect(style.transformOrigin.endsWith(`${svg()!.getBoundingClientRect().height}px`)).toBeTrue();
+    const reduced = Array.from(document.styleSheets)
+      .reduce((rules: CSSRule[], sheet) => {
+        try {
+          return rules.concat(Array.from(sheet.cssRules));
+        } catch {
+          return rules;
+        }
+      }, [])
+      .filter((rule): rule is CSSMediaRule => rule instanceof CSSMediaRule && rule.conditionText.includes('prefers-reduced-motion'))
+      .some(rule => Array.from(rule.cssRules).some(inner => (inner as CSSStyleRule).selectorText?.includes('.hop') && (inner as CSSStyleRule).style.animationName === 'none'));
+    expect(reduced).toBeTrue();
+  });
+
   it('stays 2D when asked to look flat, as the dressing-up swatches do', () => {
     (stills.cached as jasmine.Spy).and.returnValue('data:image/png;base64,kept');
     component.look = 'flat';

@@ -2,11 +2,11 @@ import {
   LEARNED_WINDOW_DAYS,
   LearnedFact,
   MAX_LEARNED,
-  learnedSince,
   parseLearned,
   rememberLearned
 } from './learned';
 import { dayKey } from './review-schedule';
+import { learnedSince } from './learned-since';
 
 const TODAY = new Date(2026, 8, 23, 12);
 

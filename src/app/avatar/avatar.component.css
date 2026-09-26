@@ -4,3 +4,22 @@
   display: block;
   overflow: visible;
 }
+
+/* The end of a round: the character hops for joy, twice, from its feet */
+.hop {
+  transform-origin: 50% 100%;
+  animation: avatar-hop 0.8s cubic-bezier(0.3, 0.7, 0.4, 1) 2;
+}
+
+@keyframes avatar-hop {
+  0%, 100% { transform: none; }
+  15% { transform: scale(1.05, 0.93); }
+  45% { transform: translateY(-16%) scale(0.96, 1.05); }
+  75% { transform: scale(1.03, 0.96); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hop {
+    animation: none;
+  }
+}

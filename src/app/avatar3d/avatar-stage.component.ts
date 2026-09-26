@@ -5,6 +5,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Avatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
+import { WAVE_SECONDS, putOnSomethingNew } from './motion';
+import { Rig } from './rig';
 
 /** The usual camera distance, for a character of ordinary height. */
 export const BASE_DISTANCE = 32;
@@ -114,6 +116,23 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   private destroyed = false;
   private angle = 0;
   @ViewChild('canvas') canvasRef?: ElementRef<HTMLCanvasElement>;
+
+  /**
+   * Whether the character breathes, blinks and waves. Off in the unit tests
+   * of every other screen (src/test.ts), where a stage that never stops
+   * drawing would keep Karma's browser busy; the stage's own tests turn it on.
+   */
+  static alive = true;
+  /** The joints of the character on stage, posed every frame while it is alive. */
+  rig?: Rig;
+  /** When the character arrived, for its breathing and blinking. */
+  private born = performance.now();
+  /** When a wave started, or null when not waving. */
+  private waveStart: number | null = null;
+  /** What the character had on at the last rebuild, to see what is new. */
+  private worn?: { hat?: string; glasses?: string; top?: string };
+  /** When the last idle frame was drawn: breathing needs no more than 30 a second. */
+  private drawnAt = 0;
 
   webgl = AvatarStageComponent.canUseWebGL();
   /** Exposed so tests can see what is on stage. */
@@ -252,6 +271,12 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
     }
     this.model = buildAvatar(this.avatar);
     this.scene.add(this.model);
+    this.rig = new Rig(this.model);
+    // Something new on: a wave, to show it off
+    if (this.living() && putOnSomethingNew(this.worn, this.avatar)) {
+      this.waveStart = performance.now();
+    }
+    this.worn = { hat: this.avatar.hat, glasses: this.avatar.glasses, top: this.avatar.top };
     this.frameModel();
     this.requestRender();
     if (!this.introduced) {
@@ -337,6 +362,33 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
     this.requestRender();
   }
 
+  /** Whether the character moves by itself: never under reduced motion. */
+  private living(): boolean {
+    return AvatarStageComponent.alive && !reducedMotion();
+  }
+
+  /** Poses the character for this moment; false when it is not moving by itself. */
+  private animate(now: number): boolean {
+    if (!this.rig || !this.living()) {
+      return false;
+    }
+    let waving: number | null = null;
+    if (this.waveStart !== null) {
+      waving = (now - this.waveStart) / 1000;
+      if (waving >= WAVE_SECONDS) {
+        this.waveStart = null;
+        waving = null;
+      }
+    }
+    this.rig.pose((now - this.born) / 1000, waving);
+    return true;
+  }
+
+  /** Whether a wave is under way. */
+  get waving(): boolean {
+    return this.waveStart !== null;
+  }
+
   private requestRender() {
     if (this.frame || this.destroyed) {
       return;
@@ -363,10 +415,15 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
           this.spin = undefined;
         }
       }
-      // Keep drawing only while a turn is under way or easing out
+      // Keep drawing while a turn is under way or easing out, and while the
+      // character is alive; standing still, it needs only 30 frames a second
       const moving = this.controls ? this.controls.update() : false;
-      this.renderNow();
-      if (moving || turning) {
+      const alive = this.animate(now);
+      if (moving || turning || this.waving || !alive || now - this.drawnAt >= 32) {
+        this.drawnAt = now;
+        this.renderNow();
+      }
+      if (moving || turning || alive) {
         this.requestRender();
       }
     });
