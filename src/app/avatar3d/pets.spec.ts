@@ -3,7 +3,7 @@ import { Avatar, BODY_TYPES, NO_ITEM, PET_ITEMS, defaultAvatar } from '../avatar
 import { BASE_CENTRE, BASE_DISTANCE, bodyFraming } from './avatar-stage.component';
 import { PET_STAND_RADIUS, buildAvatar, disposeAvatar } from './build-avatar';
 import { figureFor } from './figure';
-import { WAVE_SECONDS } from './motion';
+import { WAVE_SECONDS, WAVING_SIDE } from './motion';
 import { PET_IDS, PET_TAIL, PET_WING, buildPet } from './pets';
 import { Rig } from './rig';
 import { framedBox } from './still-renderer';
@@ -85,6 +85,17 @@ describe('pets', () => {
       expect(height).toBeGreaterThan(figure.knee[1] * 0.6, `${bodyType} ${item.id}`);
       expect(height).toBeLessThan(figure.knee[1] * 1.05, `${bodyType} ${item.id}`);
     }));
+  });
+
+  it('sits on the side away from the waving arm, so the wave is never over it', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const root = keep(buildAvatar(avatar({ bodyType, pet: 'puppy' })));
+      const centre = new THREE.Vector3();
+      root.getObjectByName('pet')!.getWorldPosition(centre);
+      expect(Math.sign(centre.x)).toBe(-WAVING_SIDE);
+      // And turned a little towards the character, not away
+      expect(Math.sign(root.getObjectByName('pet')!.rotation.y)).toBe(WAVING_SIDE);
+    });
   });
 
   it('never touches the character, standing, breathing or waving, whatever it wears', () => {

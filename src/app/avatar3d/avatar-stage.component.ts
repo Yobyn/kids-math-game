@@ -68,11 +68,10 @@ export function bodyFraming(
   const reach = Math.max(-beside.min.x, beside.max.x, -beside.min.z, beside.max.z);
   const tan = Math.tan((fov * Math.PI) / 360);
   const fit = tan * Math.min(1, aspect || 1);
-  // Across: the far side of the reach, seen side on, a reach nearer the camera
-  const wide = (reach * 1.12) / fit + reach;
-  // Up and down: the top at the middle's depth, the pet's front edge a reach nearer
+  // The top at the middle's depth, the pet's front edge a reach nearer: far
+  // enough back for both (which also leaves room for the pet across)
   const deep = (((box.max.y - box.min.y) * 1.12) / fit + reach) / 2;
-  const distance = Math.max(tall.distance, wide, deep);
+  const distance = Math.max(tall.distance, deep);
   const centre = Math.min(tall.centre, box.max.y - (distance * fit) / 1.12);
   return { distance, centre };
 }
