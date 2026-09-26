@@ -228,6 +228,17 @@ describe('back items', () => {
     expect(misses.slice(0, 5)).toEqual([]);
   }));
 
+  it('lets hair fall over the straps: the straps go the same way whatever the hair', () => {
+    BODY_TYPES.forEach(bodyType => {
+      // From where they leave the bag, which sits on long hair: past the first two rings
+      const straps = (hairStyle: HairStyle) => meshesOf(build(dress(bodyType, 'backpack', { hairStyle, hat: NO_ITEM })))
+        .filter(mesh => mesh.name === 'backpack-strap')
+        .map(strap => vertices([strap]).slice(8).map(p => p.toArray().map(v => v.toFixed(6)).join()));
+      const short = straps('short');
+      (['long', 'braids', 'locs', 'afro'] as HairStyle[]).forEach(hairStyle => expect(straps(hairStyle)).withContext(hairStyle).toEqual(short));
+    });
+  });
+
   it('never meets an arm, standing, breathing or waving: the bag and cape are behind them, the straps inside them', () => {
     const misses: string[] = [];
     BODY_TYPES.forEach(bodyType => ITEMS.forEach(id => (['long', 'braids'] as HairStyle[]).forEach(hairStyle => {
