@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { Avatar, BACK_ITEMS, BODY_TYPES, BodyType, HAIR_STYLES, HairStyle, NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
-import { BACK, BACK_GAP, BACK_IDS, BackMap, buildBackItem, eachSurfacePoint, roundedBox, taut } from './back-items';
+import { BACK, BACK_IDS, BackMap, buildBackItem, eachSurfacePoint, roundedBox, taut } from './back-items';
 import { ARM_RIG, buildAvatar, disposeAvatar } from './build-avatar';
 import { figureFor, torsoRadius } from './figure';
 import { BREATH_SECONDS, WAVE_SECONDS } from './motion';
@@ -8,6 +8,11 @@ import { Rig } from './rig';
 import { framedBox } from './still-renderer';
 
 const ITEMS = BACK_ITEMS.filter(item => item.id !== NO_ITEM).map(item => item.id);
+/**
+ * The least room between a back item and what it is clear of: enough for
+ * both outlines, the top's (0.05) and the item's (up to 0.04), not to meet.
+ */
+const ROOM = 0.09;
 /** What goes over the shoulders and down the front, rather than on the back. */
 const OVER_SHOULDER = ['backpack-strap', 'backpack-buckle'];
 
@@ -143,7 +148,7 @@ describe('back items', () => {
       const { item, rest } = sort(root);
       const behind = backmost(rest);
       item.filter(mesh => OVER_SHOULDER.indexOf(mesh.name) < 0).forEach(mesh => vertices([mesh]).forEach(p => {
-        if (p.z > behind(p.x, p.y) - BACK_GAP / 2) {
+        if (p.z > behind(p.x, p.y) - ROOM) {
           misses.push(`${bodyType} ${hairStyle} ${top} ${id}: ${mesh.name} at (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`);
         }
       }));
@@ -198,11 +203,11 @@ describe('back items', () => {
         rig.pose(BREATH_SECONDS / 2 + t, t);
         const arms = vertices(sort(root).arms);
         const back = Math.min(...arms.map(p => p.z));
-        if (back < front + BACK_GAP / 2) {
+        if (back < front + ROOM) {
           misses.push(`${bodyType} ${hairStyle} ${id}: an arm ${(front - back).toFixed(2)} into the ${id} at ${t.toFixed(2)}s`);
         }
         const nearest = Math.min(...arms.map(p => Math.abs(p.x)));
-        if (overShoulder.length && nearest < inside + BACK_GAP / 2) {
+        if (overShoulder.length && nearest < inside + ROOM) {
           misses.push(`${bodyType} ${hairStyle}: an arm over a strap at ${t.toFixed(2)}s`);
         }
       }
