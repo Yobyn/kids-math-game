@@ -74,6 +74,19 @@ export class BackMap {
   }
 }
 
+/** The parts on the head: hair, hat, glasses and the head itself. */
+export const ON_HEAD = ['head-group', 'hair', 'hat', 'glasses'];
+
+/** Whether a mesh is on the body rather than on the head. */
+export function onBody(mesh: THREE.Object3D): boolean {
+  for (let node: THREE.Object3D | null = mesh; node; node = node.parent) {
+    if (ON_HEAD.indexOf(node.name) >= 0) {
+      return false;
+    }
+  }
+  return true;
+}
+
 /** A mesh's bounds, in world space. */
 function worldBox(mesh: THREE.Mesh): THREE.Box3 {
   if (!mesh.geometry.boundingBox) {
@@ -189,8 +202,9 @@ function backpack(colour: string, figure: Figure, around: Around): THREE.Group {
 /**
  * A strap's path over the shoulder at `x`, as (y, z) points: from the bag's
  * top behind, up over the shoulder and down the chest to `endY`. It follows
- * the outline of whatever is in that slice of the character below the chin
- * — the top, a hood, hair lying on the shoulders — with the gap to spare.
+ * the outline of the body and what is worn on it in that slice — the top, a
+ * hood — with the gap to spare. Not the hair: that falls over the straps, as
+ * long hair does, and the bag sits on it.
  */
 export function strapPath(meshes: THREE.Mesh[], x: number, halfWidth: number, figure: Figure, startY: number, startZ: number, endY: number): THREE.Vector2[] {
   const centre = new THREE.Vector2(figure.shoulder[1] - (figure.shoulder[1] - figure.belt) * 0.45, 0);
@@ -199,7 +213,7 @@ export function strapPath(meshes: THREE.Mesh[], x: number, halfWidth: number, fi
   const top = chinY(figure);
   const binOf = (angle: number) => Math.floor(((angle + Math.PI) / (Math.PI * 2)) * bins) % bins;
   const slice = new THREE.Box3(new THREE.Vector3(x - halfWidth - BACK_GAP, -Infinity, -Infinity), new THREE.Vector3(x + halfWidth + BACK_GAP, top, Infinity));
-  meshes.filter(mesh => worldBox(mesh).intersectsBox(slice)).forEach(mesh => eachSurfacePoint(mesh, 0.06, (px, py, pz) => {
+  meshes.filter(mesh => onBody(mesh) && worldBox(mesh).intersectsBox(slice)).forEach(mesh => eachSurfacePoint(mesh, 0.06, (px, py, pz) => {
     if (Math.abs(px - x) <= halfWidth + BACK_GAP && py <= top) {
       // An angle from straight up, forwards (+z) positive
       const dy = py - centre.x;

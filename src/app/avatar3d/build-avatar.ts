@@ -7,7 +7,7 @@ import {
 import { at, crownGrid, part, scale, starShape, surfaceGeometry, toon } from './toon';
 import { buildGlasses, buildHat } from './wardrobe3d';
 import { buildPet } from './pets';
-import { BackMap, buildBackItem } from './back-items';
+import { Around, BackMap, buildBackItem } from './back-items';
 import { WAVING_SIDE } from './motion';
 import { Figure, chinY, figureFor, hang, torsoRadius, wrist } from './figure';
 
@@ -740,22 +740,26 @@ export function buildAvatar(avatar: Avatar): THREE.Group {
 }
 
 /**
- * How much further back an arm can reach than it hangs. An arm turns at the
- * shoulder about z, which keeps every point's depth; only the elbow's soft
- * bend, easing out on a wave, tips the forearm, and by little.
- */
-export const ARM_TIP_BACK = 0.1;
-
-/**
  * The backpack or cape, built round the character already on the stand:
  * everything but its arms (which it goes behind or inside), the stands and
  * the pet. See back-items.ts.
  */
 function buildBackBehind(avatar: Avatar, figure: Figure, root: THREE.Group): THREE.Group | null {
   const item = avatar.back && avatar.back !== NO_ITEM ? findItem('back', avatar.back) : undefined;
-  if (!item) {
-    return null;
-  }
+  return item ? buildBackItem(item.id, item.colour, figure, aroundCharacter(root, figure)) : null;
+}
+
+/**
+ * What a back item is built round (back-items.ts `Around`): the map of
+ * everything on the stand but the arms, the stands and the pet; how far back
+ * the arms reach; and the meshes the straps go over.
+ *
+ * How far back the arms reach is measured as they hang, and holds however
+ * they move: an arm turns at the shoulder about z, which keeps every point's
+ * depth, and the elbow's soft bend eases out only as the arm comes up, when
+ * the forearm is out to the side (a test holds it through a whole wave).
+ */
+export function aroundCharacter(root: THREE.Group, figure: Figure): Around {
   root.updateMatrixWorld(true);
   const meshes: THREE.Mesh[] = [];
   let armBack = 0;
@@ -781,7 +785,7 @@ function buildBackBehind(avatar: Avatar, figure: Figure, root: THREE.Group): THR
   visit(root, false);
   const reach = figure.shoulder[0] + figure.armRadii[0] * 2;
   const map = new BackMap(meshes, -reach, reach, figure.ankle[1], chinY(figure) + 1);
-  return buildBackItem(item.id, item.colour, figure, { map, armBack: armBack + ARM_TIP_BACK, meshes });
+  return { map, armBack, meshes };
 }
 
 /** Frees every geometry and material under a built character. */

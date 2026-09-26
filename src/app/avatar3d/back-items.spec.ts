@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { Avatar, BACK_ITEMS, BODY_TYPES, BodyType, HAIR_STYLES, HairStyle, NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
 import { BACK, BACK_IDS, BackMap, buildBackItem, eachSurfacePoint, roundedBox, taut } from './back-items';
-import { ARM_RIG, buildAvatar, disposeAvatar } from './build-avatar';
+import { ARM_RIG, aroundCharacter, buildAvatar, disposeAvatar } from './build-avatar';
 import { figureFor, torsoRadius } from './figure';
 import { BREATH_SECONDS, WAVE_SECONDS } from './motion';
 import { Rig } from './rig';
@@ -36,6 +36,22 @@ function sort(root: THREE.Object3D): { item: THREE.Mesh[]; arms: THREE.Mesh[]; r
   };
   visit(root, null);
   return sorted;
+}
+
+/** Whether a mesh is on the head: the head, hair, a hat or glasses. */
+function onHead(mesh: THREE.Object3D): boolean {
+  for (let node: THREE.Object3D | null = mesh; node; node = node.parent) {
+    if (['head-group', 'hair', 'hat', 'glasses'].indexOf(node.name) >= 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function meshesOf(root: THREE.Object3D): THREE.Mesh[] {
+  const out: THREE.Mesh[] = [];
+  root.traverse(node => (node as THREE.Mesh).isMesh && !node.name.endsWith(':outline') && out.push(node as THREE.Mesh));
+  return out;
 }
 
 function vertices(meshes: THREE.Mesh[]): THREE.Vector3[] {
@@ -179,6 +195,29 @@ describe('back items', () => {
           misses.push(`${bodyType} ${hairStyle} ${top}: strap in the head at (${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)})`);
         }
       });
+      // Clear of what they go over — the top, a hood — by room for both
+      // outlines, from where they leave the bag. Hair falls over them.
+      const near = new THREE.Box3().setFromPoints(straps).expandByScalar(0.3);
+      const over: THREE.Vector3[] = [];
+      rest.filter(mesh => !onHead(mesh)).forEach(mesh => eachSurfacePoint(mesh, 0.05, (x, y, z) => over.push(new THREE.Vector3(x, y, z)), near));
+      item.filter(mesh => mesh.name === 'backpack-strap').forEach(strap => {
+        const rings = vertices([strap]);
+        for (let k = 4; k < rings.length; k++) {
+          const p = rings[k];
+          const nearest = Math.min(...over.filter(q => Math.abs(q.x - p.x) < 0.3).map(q => q.distanceTo(p)));
+          if (nearest < 0.06) {
+            misses.push(`${bodyType} ${hairStyle} ${top}: strap ${nearest.toFixed(3)} from what it goes over at y ${p.y.toFixed(2)}`);
+          }
+        }
+        // Pulled taut: seen from the side, it only ever turns one way over the top
+        const path = rings.filter((_, k) => k % 4 === 0).slice(1);
+        for (let k = 0; k + 2 < path.length; k++) {
+          const [a, b, c] = [path[k], path[k + 1], path[k + 2]];
+          if ((b.z - a.z) * (c.y - b.y) - (b.y - a.y) * (c.z - b.z) > 1e-9) {
+            misses.push(`${bodyType} ${hairStyle} ${top}: strap slack at y ${b.y.toFixed(2)}`);
+          }
+        }
+      });
       // Seen from the front and from behind, coming over the shoulder
       const zs = straps.map(p => p.z);
       if (!(Math.max(...zs) > torsoRadius(figure, figure.belt) * figure.torsoDepth && Math.min(...zs) < -torsoRadius(figure, figure.belt) * figure.torsoDepth)) {
@@ -214,6 +253,49 @@ describe('back items', () => {
       disposeAvatar(built.pop()!);
     })));
     expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('lets the cape fall, never tuck back in at the waist: down the middle, it only ever hangs further back', () => {
+    BODY_TYPES.forEach(bodyType => ['long', 'short'].forEach(hairStyle => {
+      const root = build(dress(bodyType, 'cape', { hairStyle: hairStyle as HairStyle, top: 'striped' }));
+      const points = vertices([root.getObjectByName('cape') as THREE.Mesh]);
+      const across = points.filter(p => p.y === points[0].y).length;
+      const middle = points.filter((_, i) => i % across === (across - 1) / 2);
+      middle.forEach(p => expect(p.x).toBeCloseTo(0, 9));
+      for (let i = 1; i < middle.length; i++) {
+        expect(middle[i].z).withContext(`${bodyType} ${hairStyle} at y ${middle[i].y.toFixed(2)}`).toBeLessThanOrEqual(middle[i - 1].z + 1e-9);
+      }
+    }));
+  });
+
+  it('keeps the cape further back than an arm reaches, even where there is nothing else to clear', () => {
+    const figure = figureFor('boy');
+    const cape = buildBackItem('cape', '#c8324a', figure, { map: new BackMap([], -5, 5, -1, 20), armBack: 2, meshes: [] })!;
+    cape.updateMatrixWorld(true);
+    expect(Math.max(...vertices(meshesOf(cape)).map(p => p.z))).toBeLessThan(-2 - ROOM);
+  });
+
+  it('measures how far back the arms reach, waving too, and leaves them out of what the items clear', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const figure = figureFor(bodyType);
+      const root = build(dress(bodyType, NO_ITEM, { hairStyle: 'long' }));
+      const arms = sort(root).arms;
+      const atRest = Math.max(...vertices(arms).map(p => -p.z));
+      const around = aroundCharacter(root, figure);
+      expect(around.armBack).toBeCloseTo(atRest, 9);
+      arms.forEach(mesh => expect(around.meshes.indexOf(mesh)).toBe(-1));
+      // Where a hand hangs, beside the legs, there is nothing to clear
+      const hand = new THREE.Box3().setFromObject(root.getObjectByName('hand')!).getCenter(new THREE.Vector3());
+      expect(around.map.furthest(hand.x, 0.05, hand.y, hand.y)).toBe(-Infinity);
+      // However an arm moves, it is never further back than that
+      const rig = new Rig(root);
+      let reach = 0;
+      for (let t = 0; t <= WAVE_SECONDS; t += 0.05) {
+        rig.pose(BREATH_SECONDS / 2 + t, t);
+        reach = Math.max(reach, ...vertices(sort(root).arms).map(p => -p.z));
+      }
+      expect(reach).toBeLessThanOrEqual(around.armBack);
+    });
   });
 
   it('is not in the pictures of the character on other screens, which are taken from the front', () => {

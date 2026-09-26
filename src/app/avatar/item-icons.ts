@@ -19,10 +19,7 @@ export const ITEM_ICONS: { [id: string]: string } = {
 /** The slots whose items are shown by an icon rather than worn by the character. */
 export const ICON_SLOTS = ['pet', 'back'];
 
-/** The icon for an item in one of those slots, or '' for anything the character is shown wearing. */
+/** The icon for an item in one of those slots (each has its own), or '' for anything the character is shown wearing. */
 export function itemIcon(item: WardrobeItem | undefined): string {
-  if (!item || ICON_SLOTS.indexOf(item.slot) < 0) {
-    return '';
-  }
-  return ITEM_ICONS[item.id] || ITEM_ICONS[NO_ITEM];
+  return item && ICON_SLOTS.indexOf(item.slot) >= 0 ? ITEM_ICONS[item.id] : '';
 }
