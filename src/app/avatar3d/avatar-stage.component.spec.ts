@@ -257,4 +257,111 @@ describe('AvatarStageComponent', () => {
       expect((component as any).introduced).toBe(true);
     });
   });
+
+
+  describe('alive', () => {
+    const notReduced = () => spyOn(window, 'matchMedia').and.callFake(() => ({ matches: false } as MediaQueryList));
+    const reduced = () => spyOn(window, 'matchMedia').and.callFake((query: string) =>
+      ({ matches: query === '(prefers-reduced-motion: reduce)' } as MediaQueryList));
+    const change = (avatar: any) => {
+      component.avatar = avatar;
+      component.ngOnChanges({ avatar: new SimpleChange(null, avatar, false) });
+    };
+
+    beforeEach(async () => {
+      AvatarStageComponent.alive = true;
+      await create(true);
+    });
+    afterEach(() => (AvatarStageComponent.alive = false));
+
+    it('breathes and blinks by itself, frame after frame', () => {
+      notReduced();
+      const pose = spyOn(component.rig!, 'pose').and.callThrough();
+      expect((component as any).animate(performance.now())).toBeTrue();
+      expect(pose).toHaveBeenCalled();
+      const raf = spyOn(window, 'requestAnimationFrame').and.returnValue(0);
+      (component as any).frame = 0;
+      (component as any).requestRender();
+      const draw = raf.calls.mostRecent().args[0] as FrameRequestCallback;
+      raf.calls.reset();
+      draw(performance.now());
+      // Asked for the next frame, though nothing is turning
+      expect(raf).toHaveBeenCalled();
+    });
+
+    it('stands still under reduced motion: no pose, no endless drawing', () => {
+      reduced();
+      const pose = spyOn(component.rig!, 'pose');
+      expect((component as any).animate(performance.now())).toBeFalse();
+      expect(pose).not.toHaveBeenCalled();
+      change({ ...component.avatar, hat: 'crown' });
+      expect(component.waving).toBeFalse();
+    });
+
+    it('stands still when switched off', () => {
+      notReduced();
+      AvatarStageComponent.alive = false;
+      expect((component as any).animate(performance.now())).toBeFalse();
+    });
+
+    it('waves when something new is put on, and not for a new face', () => {
+      notReduced();
+      change({ ...component.avatar, eyeShape: 'wide' });
+      expect(component.waving).toBeFalse();
+      change({ ...component.avatar, glasses: 'shades' });
+      expect(component.waving).toBeTrue();
+    });
+
+    it('does not wave when the screen first opens', () => {
+      expect(component.waving).toBeFalse();
+    });
+
+    it('puts the arm back down when the wave is over', () => {
+      notReduced();
+      change({ ...component.avatar, top: 'striped' });
+      const start = (component as any).waveStart as number;
+      (component as any).animate(start + 800);
+      let raised = 0;
+      component.model!.traverse(node => (raised = node.name === 'arm-rig' ? Math.max(raised, Math.abs(node.rotation.z)) : raised));
+      expect(raised).toBeGreaterThan(1);
+      (component as any).animate(start + 5000);
+      expect(component.waving).toBeFalse();
+      let after = 0;
+      component.model!.traverse(node => (after = node.name === 'arm-rig' ? Math.max(after, Math.abs(node.rotation.z)) : after));
+      expect(after).toBeLessThan(0.1);
+    });
+
+    it('draws breathing at no more than about 30 frames a second, but a wave at full speed', () => {
+      notReduced();
+      const draw = spyOn(component as any, 'renderNow').and.callThrough();
+      const raf = spyOn(window, 'requestAnimationFrame').and.returnValue(0);
+      const tick = (now: number) => {
+        (component as any).frame = 0;
+        (component as any).requestRender();
+        (raf.calls.mostRecent().args[0] as FrameRequestCallback)(now);
+      };
+      (component as any).spin = undefined;
+      (component as any).glide = undefined;
+      const t0 = performance.now() + 10000;
+      for (let i = 0; i < 60; i++) {
+        tick(t0 + i * 1000 / 60);
+      }
+      const idle = draw.calls.count();
+      expect(idle).toBeGreaterThan(20);
+      expect(idle).toBeLessThan(40);
+      draw.calls.reset();
+      (component as any).waveStart = t0 + 1000;
+      for (let i = 0; i < 60; i++) {
+        tick(t0 + 1000 + i * 1000 / 60);
+      }
+      expect(draw.calls.count()).toBe(60);
+    });
+
+    it('stops drawing when the screen closes, alive or not', () => {
+      const raf = spyOn(window, 'requestAnimationFrame').and.callThrough();
+      fixture.destroy();
+      (component as any).requestRender();
+      expect(raf).not.toHaveBeenCalled();
+    });
+  });
 });

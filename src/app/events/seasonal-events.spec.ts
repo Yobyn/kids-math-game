@@ -1,10 +1,9 @@
 import {
   SEASONAL_EVENTS,
   activeEvent,
-  findEvent,
-  isEventOn,
-  nextOpening
+  isEventOn
 } from './seasonal-events';
+import { findEvent, nextOpening } from './next-opening';
 
 /** Local midnight, so the comparisons never depend on the test's timezone. */
 function on(year: number, month: number, day: number): Date {

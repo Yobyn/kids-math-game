@@ -1,10 +1,12 @@
 <img *ngIf="still"
      class="avatar still"
+     [class.hop]="hop"
      [src]="still"
      [attr.width]="size"
      [attr.height]="height"
      alt="Your character">
 <svg class="avatar"
+     [class.hop]="hop"
      *ngIf="!still"
      [attr.width]="size"
      [attr.height]="height"

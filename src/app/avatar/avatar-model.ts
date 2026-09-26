@@ -317,10 +317,6 @@ export function levelItems(): WardrobeItem[] {
   return WARDROBE.filter(item => item.id !== NO_ITEM && !item.event);
 }
 
-export function itemsForSlot(slot: ItemSlot): WardrobeItem[] {
-  return WARDROBE.filter(item => item.slot === slot);
-}
-
 export function findItem(slot: ItemSlot, id: string): WardrobeItem | undefined {
   return WARDROBE.find(item => item.slot === slot && item.id === id);
 }
@@ -356,13 +352,6 @@ export function isUnlocked(
  */
 export function itemsUnlockedAt(level: number): WardrobeItem[] {
   return levelItems().filter(item => item.unlockLevel === level);
-}
-
-/** The next thing to want, so a child can see what they are climbing toward. */
-export function nextUnlock(level: number): WardrobeItem | undefined {
-  return levelItems()
-    .filter(item => item.unlockLevel > level)
-    .sort((a, b) => a.unlockLevel - b.unlockLevel)[0];
 }
 
 /**
@@ -406,12 +395,6 @@ export const TOP_ITEMS: WardrobeItem[] = [
 ];
 
 WARDROBE.push(...TOP_ITEMS);
-
-/** The colour the shirt is drawn in, worn or not. */
-export function topColour(avatar: Avatar): string {
-  const item = findItem('top', avatar.top);
-  return item && item.colour ? item.colour : DEFAULT_TOP_COLOUR;
-}
 
 /**
  * What the seasonal events hand over. These have no level: a child earns one

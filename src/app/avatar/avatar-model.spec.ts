@@ -17,15 +17,14 @@ import {
   findItem,
   isUnlocked,
   itemForEvent,
-  itemsForSlot,
   itemsUnlockedAt,
   levelItems,
   lighten,
-  nextUnlock,
   normaliseAvatar
 } from './avatar-model';
 import { TEXTURE, avatarLayers } from './avatar-parts';
 import { SEASONAL_EVENTS } from '../events/seasonal-events';
+import { itemsForSlot, nextUnlock } from './wardrobe-lookups';
 
 describe('the character a child can make', () => {
   it('offers a range of skin tones wide enough to find yourself in', () => {

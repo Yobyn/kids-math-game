@@ -61,24 +61,3 @@ export function activeEvent(now: Date): SeasonalEvent | undefined {
   return SEASONAL_EVENTS.find(event => isEventOn(event, now));
 }
 
-export function findEvent(id: string): SeasonalEvent | undefined {
-  return SEASONAL_EVENTS.find(event => event.id === id);
-}
-
-/**
- * When this event next opens — today if it is already on, otherwise its next
- * start. Used to tell a child when something comes back rather than how long
- * they have left, which is the whole point.
- */
-export function nextOpening(event: SeasonalEvent, now: Date): Date {
-  if (isEventOn(event, now)) {
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  }
-
-  const thisYear = new Date(now.getFullYear(), event.startMonth - 1, event.startDay);
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  return thisYear >= today
-    ? thisYear
-    : new Date(now.getFullYear() + 1, event.startMonth - 1, event.startDay);
-}

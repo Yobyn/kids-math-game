@@ -8,6 +8,10 @@ import { at, crownGrid, part, scale, starShape, surfaceGeometry, toon } from './
 import { buildGlasses, buildHat } from './wardrobe3d';
 import { Figure, chinY, figureFor, hang, torsoRadius, wrist } from './figure';
 
+/** The joints an arm turns at, by name, for rig.ts. */
+export const ARM_RIG = 'arm-rig';
+export const FOREARM_RIG = 'forearm-rig';
+
 /**
  * The child's character, built in 3D from the same choices the 2D drawing
  * uses. Nothing here touches the DOM or WebGL: it makes a three.js group of
@@ -435,22 +439,40 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     const cap = part('shoulder', new THREE.SphereGeometry(rShoulder * 1.08, 20, 14), cloth, 0.04);
     cap.position.copy(shoulder);
     body.add(cap);
+    // The arm turns at the shoulder and bends at the elbow (motion.ts, rig.ts):
+    // the upper arm hangs from a joint at the shoulder, the forearm and hand
+    // from one at the elbow. At rest every part is exactly where it was built.
+    const upper = new THREE.Group();
+    upper.name = ARM_RIG;
+    upper.userData.side = side;
+    upper.position.copy(shoulder);
+    const lower = new THREE.Group();
+    lower.name = FOREARM_RIG;
+    lower.position.copy(elbow).sub(shoulder);
+    upper.add(lower);
+    body.add(upper);
+    const onUpper = (mesh: THREE.Object3D) => {
+      mesh.position.sub(shoulder);
+      upper.add(mesh);
+    };
+    const onLower = (mesh: THREE.Object3D) => {
+      mesh.position.sub(elbow);
+      lower.add(mesh);
+    };
     if (cut === 'short') {
       // A short sleeve ends above the elbow; below it is a bare arm
       const sleeveEnd = shoulder.clone().lerp(elbow, 0.55);
-      body.add(part('arm', limb([rShoulder * 1.05, rShoulder], shoulder, sleeveEnd), cloth, 0.04));
-      body.add(part('bare-arm', limb([rElbow * 0.8, rElbow * 0.78], sleeveEnd, elbow), skin, 0.035));
-      body.add(part('forearm', limb([rElbow * 0.78, rWrist * 0.75], elbow, wristV), skin, 0.035));
+      onUpper(part('arm', limb([rShoulder * 1.05, rShoulder], shoulder, sleeveEnd), cloth, 0.04));
+      onUpper(part('bare-arm', limb([rElbow * 0.8, rElbow * 0.78], sleeveEnd, elbow), skin, 0.035));
+      onLower(part('forearm', limb([rElbow * 0.78, rWrist * 0.75], elbow, wristV), skin, 0.035));
     } else {
-      body.add(part('arm', limb([rShoulder, rElbow * 1.05], shoulder, elbow), cloth, 0.04));
-      body.add(part('forearm', limb([rElbow, rWrist * 1.02], elbow, wristV), cloth, 0.04));
+      onUpper(part('arm', limb([rShoulder, rElbow * 1.05], shoulder, elbow), cloth, 0.04));
+      onLower(part('forearm', limb([rElbow, rWrist * 1.02], elbow, wristV), cloth, 0.04));
       // A ribbed cuff at the wrist
-      const cuff = part('cuff', limb([rWrist * 1.12, rWrist * 1.12], wristV.clone().lerp(elbow, 0.12), wristV), toon(shade(topColour, 0.12)), 0.02);
-      body.add(cuff);
+      onLower(part('cuff', limb([rWrist * 1.12, rWrist * 1.12], wristV.clone().lerp(elbow, 0.12), wristV), toon(shade(topColour, 0.12)), 0.02));
       if (cut === 'hoodie') {
         // The red of the shirt underneath shows at the wrist, as in the reference
-        const under = part('undershirt-cuff', limb([rWrist * 1.0, rWrist * 0.98], wristV, wristV.clone().add(wristV.clone().sub(elbow).normalize().multiplyScalar(0.12))), toon('#b5302b'), 0.015);
-        body.add(under);
+        onLower(part('undershirt-cuff', limb([rWrist * 1.0, rWrist * 0.98], wristV, wristV.clone().add(wristV.clone().sub(elbow).normalize().multiplyScalar(0.12))), toon('#b5302b'), 0.015));
       }
     }
     // A hand: palm, fingers together, and a thumb, hanging relaxed
@@ -471,7 +493,7 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     thumb.position.set(-side * 0.02, -figure.handLength * 0.36, 0.34);
     thumb.rotation.x = 0.5;
     hand.add(palm, fingers, thumb);
-    body.add(hand);
+    onLower(hand);
   });
 
   // The neck, from inside the collar up into the head

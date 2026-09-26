@@ -341,18 +341,88 @@ synchronous call and cannot overlap; a second catch; taking the stand
 out of a picture it was never in), and 5 were gaps, now closed with the
 tests above. A re-run of all 8 catches every one.
 
+**THE CHARACTER IS ALIVE — DONE (2026-09-26).** On the dressing-up screen
+the character stood as still as a shop dummy. Now it moves the way a
+person standing still does, and says hello to what it is given:
+
+- It breathes: every four seconds the head, and everything on it, rises a
+  little and the arms ease out and back.
+- It blinks, at uneven gaps of two to five seconds; blinks on the dot look
+  mechanical. Not in the first moment on screen.
+- It waves when a hat, glasses or a top goes on that was not on before:
+  the right arm comes up level with the shoulder, the forearm points up,
+  the hand rocks three times, and the arm comes back down. Not for a new
+  face or hair, not for taking something off, and not on arrival (the
+  arrival already has its full turn).
+- At the end of a round it hops for joy, twice, from its feet, as the
+  round's tune plays after the stars (the result screen's picture, in CSS).
+- Everywhere else the picture stays still, on purpose: a character that
+  moves in the header while a child works out a sum pulls the eye off the
+  sum.
+
+None of it runs under reduced motion: the stage stands still and draws
+nothing it does not need to, and the hop is off.
+
+How: the arms turn at the shoulder and bend at the elbow now
+(`build-avatar.ts`: an `arm-rig` joint at the shoulder holding the upper
+arm and a `forearm-rig` joint at the elbow holding the forearm, cuff and
+hand). At rest every part is exactly where it was built, so every fit
+test and every still picture is unchanged. `avatar3d/motion.ts` is the
+timing as pure numbers; `avatar3d/rig.ts` puts them on a model. The stage
+draws breathing at no more than 30 frames a second (a wave, a turn or a
+glide at full speed), only on the dressing-up screen, and never after it
+closes. The loop is off in other screens' unit tests (`src/test.ts`,
+`AvatarStageComponent.alive`), as the stills are.
+
+Bundle: the hop is a few hundred bytes of CSS in the first load. Paid for,
+and some of #69's debt with it: the helpers only the dressing-up and
+grown-ups' screens ask moved next to them (`avatar/wardrobe-lookups.ts`,
+`events/next-opening.ts`, `teaching/learned-since.ts`), and `topColour`,
+which nothing called, is gone. 488.07 → 487.86 kB. THE DEBT IS NOW 1.05 kB
+(486.81 before #69).
+
+Tests: `motion.spec.ts` (a breath's shape and rate; blinks rare, full,
+uneven, not at arrival, shutting faster than opening; a wave's rest at
+both ends, height, smoothness, three swings, forearm up and never across
+the face; what earns a wave), `rig.spec.ts` (on both figures: the joints
+found, the character exactly as built at rest and after `rest()`, the
+head and everything on it rising together, eyes shut to a line and open
+again, the waving hand above the shoulder with the other by the hips,
+and no hand or forearm ever in the head or across the body through a
+whole wave, even under an afro and a wizard's hat), the stage (breathing
+frame after frame, still under reduced motion or switched off, a wave for
+something new and not for a new face or on arrival, the arm back down
+after, 30 frames a second standing and full speed waving, no drawing
+after closing), the hop on the avatar and on the result screen, and none
+under reduced motion. 1,570 unit tests. The mutation sweep caught 32 of 36
+at first. One survivor cannot be caught: it only changes the wave's
+boundary check to one that gives the same answer. The other three were
+gaps, now closed: blinks only ever later than usual, never sooner; an arm
+moving at full speed from the start instead of easing; eyes squashed to
+nothing instead of the lid's line. A re-run catches all three.
+
+On the way, a test that had been failing now and then was made reliable:
+the result screen's level-bar test let the round's tune fetch the sound
+engine inside `fakeAsync`, whose chunk loader leaves a timer behind the
+first time only, so the test failed or passed with the random order. It
+is silent now. And CI found a second one, older than this change: the
+header's sound-picker test failed when the first test in the random order
+only injected a service. TestBed then throws away Angular's queue of
+modules waiting to give their components their scope, so the picker,
+created from its lazy chunk outside TestBed, had no *ngFor. `src/test.ts`
+now gives every module its scope once all specs are loaded (the built app
+is compiled ahead of time and never had the queue), and prints the random
+seed, so an order-only failure can be run again in exactly that order.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **Make it feel alive.** An idle bob and blink, a little wave when a new
-   item is put on, a happy jump on the result screen when a round is done.
-   All under reduced motion rules.
-2. **More to earn.** More items per slot (shoes, backpacks, capes, pets
+1. **More to earn.** More items per slot (shoes, backpacks, capes, pets
    beside the stand), and colour choices for tops. Every new item goes
    through the same fit tests on every face and style.
-3. **Better materials.** Hair strands or clumps rather than one smooth
+2. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
-4. **Offline.** The dressing-up chunk is only cached once it has been
+3. **Offline.** The dressing-up chunk is only cached once it has been
    opened. A child who installs and goes offline before opening it gets no
    dressing-up screen. Precache the lazy chunks in the service worker
    (the still renderer's chunks too, so the pictures work offline).

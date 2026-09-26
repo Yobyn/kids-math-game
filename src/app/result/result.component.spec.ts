@@ -370,6 +370,11 @@ describe('ResultComponent levels', () => {
   });
 
   it('fills the bar to where the child actually stands', fakeAsync(() => {
+    // Silent: the round's tune fetches the sound engine, and fetching a chunk
+    // leaves a loader timer that fakeAsync would find still queued
+    const sound = TestBed.inject(SoundService);
+    spyOn(sound, 'playStar');
+    spyOn(sound, 'playRoundDone');
     progress.addXp(xpToReach(3));
     render(60);
 
@@ -1014,6 +1019,32 @@ describe('ResultComponent: the end of a round is a reward, not a report', () => 
     } finally {
       jasmine.clock().uninstall();
     }
+  });
+
+  it('makes the character hop for joy as the round\u2019s tune plays, and not before', () => {
+    spyOn(TestBed.inject(SoundService), 'playRoundDone');
+    spyOn(window, 'matchMedia').and.callFake(() => ({ matches: false } as MediaQueryList));
+    jasmine.clock().install();
+    try {
+      finishAt(10);
+      jasmine.clock().tick(STAR_STEP_MS * 3 + ROUND_TUNE_AFTER_STARS_MS - 1);
+      expect(fixture.componentInstance.hopping).toBeFalse();
+      jasmine.clock().tick(1);
+      expect(fixture.componentInstance.hopping).toBeTrue();
+      fixture.detectChanges();
+      // Bound as a property on the (undeclared, in this spec) avatar element
+      const hero = fixture.nativeElement.querySelector('.hero .ring app-avatar') as HTMLElement & { hop?: boolean };
+      expect(hero.hop).toBeTrue();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('does not make the character hop under reduced motion', () => {
+    spyOn(window, 'matchMedia').and.callFake(query =>
+      ({ matches: query === '(prefers-reduced-motion: reduce)' } as MediaQueryList));
+    finishAt(10);
+    expect(fixture.componentInstance.hopping).toBeFalse();
   });
 
   it('plays just the tune, once, under reduced motion', () => {
