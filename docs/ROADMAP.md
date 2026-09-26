@@ -518,6 +518,40 @@ they have one now, and a re-run catches them all. One survivor stays, by
 design: `STILL_VERSION` is a number bumped by hand when the look changes,
 and a test could only pin today's value.
 
+**SMALLER AGAIN, AND STANDING RELAXED — DONE (2026-09-26).** Yobyn: "The
+poster does not look great, and lets make them smaller again like the
+original look more, the pet can stay the same size - pet will be a bit
+smalle as avatar which is perfect." Read as the posture: the reference's
+A-pose (arms held out stiffly, elbows locked) looked like a mannequin.
+
+- About 3.3 heads tall (was 4.3), nearer the original chibi's 2.5: `STYLE`
+  is now head 1.8, body 0.66, build 1.15.
+- A relaxed stance: the arms hang nearer the body (`armSwing` 0.24) with
+  the elbows soft, bent a little forward (`elbowBend` 0.35, on the forearm
+  joint). The waving elbow straightens as the arm comes up and softens
+  again after (`rig.ts`), so the wave looks the same as before.
+- `clearOfChest` (`figure.ts`) replaces the rule of thumb that moved the
+  shoulder out by the arm's extra thickness: it moves the shoulder out
+  exactly as far as the arm needs to clear the chest, whatever the style.
+- Pets are the size they were, so they are now a bit smaller than the
+  character: 20 to 40 per cent of its height.
+- The stage's usual distance and height are retuned for the shorter
+  figure (`BASE_DISTANCE` 28.5, `BASE_CENTRE` 6.2). `STILL_VERSION` 4.
+
+Tests: 3 to 3.7 heads tall; arms nearer the body than measured and elbows
+bent 0.2 to 0.6; hands in front of the elbows; the waving elbow half
+straight halfway up, straight at the top, soft again after; a shoulder
+squeezed in comes back with the arm exactly the clearance from the chest;
+the usual view shows the ordinary character whole with near-equal room
+above and below; pets 20 to 40 per cent of the character's height. And a
+test now ties `STILL_VERSION` to `STYLE`, so changing the look without
+bumping it fails. 1,604 unit tests.
+
+The mutation sweep caught 16 of 19 at first. The three survivors were
+gaps: moving the shoulder only half as far as needed, the stage's usual
+height, and the still version. Each has a test now, and a re-run catches
+all 19.
+
 WHAT IS NEXT, in the order the runs should take them:
 
 1. **More to earn, still.** Pets are in. Next: shoes and a back
