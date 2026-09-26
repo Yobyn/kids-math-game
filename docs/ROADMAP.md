@@ -405,7 +405,14 @@ On the way, a test that had been failing now and then was made reliable:
 the result screen's level-bar test let the round's tune fetch the sound
 engine inside `fakeAsync`, whose chunk loader leaves a timer behind the
 first time only, so the test failed or passed with the random order. It
-is silent now.
+is silent now. And CI found a second one, older than this change: the
+header's sound-picker test failed when the first test in the random order
+only injected a service. TestBed then throws away Angular's queue of
+modules waiting to give their components their scope, so the picker,
+created from its lazy chunk outside TestBed, had no *ngFor. `src/test.ts`
+now gives every module its scope once all specs are loaded (the built app
+is compiled ahead of time and never had the queue), and prints the random
+seed, so an order-only failure can be run again in exactly that order.
 
 WHAT IS NEXT, in the order the runs should take them:
 

@@ -1,6 +1,7 @@
 // This file is required by karma.conf.js and loads recursively all the .spec and framework files
 
 import 'zone.js/testing';
+import { ɵflushModuleScopingQueueAsMuchAsPossible as giveModulesTheirScope } from '@angular/core';
 import { getTestBed } from '@angular/core/testing';
 import {
   BrowserDynamicTestingModule,
@@ -57,7 +58,27 @@ AvatarStillService.enabledByDefault = false;
  */
 AvatarStageComponent.alive = false;
 
+/**
+ * The order the tests ran in, so a failure that only happens in some orders
+ * can be run again in exactly that order (karma.conf.js, client.jasmine.seed).
+ */
+jasmine.getEnv().addReporter({
+  jasmineDone: result => console.log(`Tests ran in random order, seed ${result.order.seed}`)
+});
+
 // Then we find all the tests.
 const context = require.context('./', true, /\.spec\.ts$/);
 // And load the modules.
 context.keys().map(context);
+
+/**
+ * Every NgModule loaded above waits in a queue to give its components their
+ * scope (CommonModule's *ngFor, *ngIf...). The queue is emptied the first
+ * time any component compiles — or thrown away by TestBed when the first
+ * test in the random order only injected a service and compiled nothing.
+ * Then a component created outside TestBed, as the header creates the sound
+ * picker from its lazy chunk, has no *ngFor, and its tests fail in some
+ * orders only. Give every module its scope now, before any test runs. (The
+ * built app is compiled ahead of time and has no such queue.)
+ */
+giveModulesTheirScope();
