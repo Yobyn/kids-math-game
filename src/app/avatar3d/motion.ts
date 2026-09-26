@@ -105,8 +105,8 @@ function ease(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
-/** The wardrobe slots: something new in one of these is worth a wave (a new pet, a hello). */
-const WORN = ['hat', 'glasses', 'top', 'pet'] as const;
+/** The wardrobe slots: something new in one of these is worth a wave (a new pet, a cape, a hello). */
+const WORN = ['hat', 'glasses', 'top', 'pet', 'back'] as const;
 
 /**
  * Whether going from `before` to `after` put something new on: a hat,

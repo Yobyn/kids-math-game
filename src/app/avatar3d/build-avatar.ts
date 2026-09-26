@@ -7,6 +7,7 @@ import {
 import { at, crownGrid, part, scale, starShape, surfaceGeometry, toon } from './toon';
 import { buildGlasses, buildHat } from './wardrobe3d';
 import { buildPet } from './pets';
+import { Around, BackMap, buildBackItem } from './back-items';
 import { WAVING_SIDE } from './motion';
 import { Figure, chinY, figureFor, hang, torsoRadius, wrist } from './figure';
 
@@ -731,7 +732,60 @@ export function buildAvatar(avatar: Avatar): THREE.Group {
       root.add(item);
     }
   });
+  const back = buildBackBehind(avatar, figure, root);
+  if (back) {
+    root.add(back);
+  }
   return root;
+}
+
+/**
+ * The backpack or cape, built round the character already on the stand:
+ * everything but its arms (which it goes behind or inside), the stands and
+ * the pet. See back-items.ts.
+ */
+function buildBackBehind(avatar: Avatar, figure: Figure, root: THREE.Group): THREE.Group | null {
+  const item = avatar.back && avatar.back !== NO_ITEM ? findItem('back', avatar.back) : undefined;
+  return item ? buildBackItem(item.id, item.colour, figure, aroundCharacter(root, figure)) : null;
+}
+
+/**
+ * What a back item is built round (back-items.ts `Around`): the map of
+ * everything on the stand but the arms, the stands and the pet; how far back
+ * the arms reach; and the meshes the straps go over.
+ *
+ * How far back the arms reach is measured as they hang, and holds however
+ * they move: an arm turns at the shoulder about z, which keeps every point's
+ * depth, and the elbow's soft bend eases out only as the arm comes up, when
+ * the forearm is out to the side (a test holds it through a whole wave).
+ */
+export function aroundCharacter(root: THREE.Group, figure: Figure): Around {
+  root.updateMatrixWorld(true);
+  const meshes: THREE.Mesh[] = [];
+  let armBack = 0;
+  const visit = (node: THREE.Object3D, arm: boolean) => {
+    if (node.name === 'pedestal' || node.name === 'pet') {
+      return;
+    }
+    const inArm = arm || node.name === ARM_RIG;
+    const mesh = node as THREE.Mesh;
+    if (mesh.isMesh && !node.name.endsWith(':outline')) {
+      if (inArm) {
+        const position = mesh.geometry.attributes.position as THREE.BufferAttribute;
+        const p = new THREE.Vector3();
+        for (let i = 0; i < position.count; i++) {
+          armBack = Math.max(armBack, -p.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld).z);
+        }
+      } else {
+        meshes.push(mesh);
+      }
+    }
+    node.children.forEach(child => visit(child, inArm));
+  };
+  visit(root, false);
+  const reach = figure.shoulder[0] + figure.armRadii[0] * 2;
+  const map = new BackMap(meshes, -reach, reach, figure.ankle[1], chinY(figure) + 1);
+  return { map, armBack, meshes };
 }
 
 /** Frees every geometry and material under a built character. */

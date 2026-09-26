@@ -118,12 +118,15 @@ export type TranslationKeys =
   | 'try-easier'
   | 'tops'
   | 'pets'
+  | 'on-your-back'
   | 'item-striped'
   | 'item-star-tee'
   | 'item-hoodie'
   | 'item-kitten'
   | 'item-puppy'
   | 'item-dragon'
+  | 'item-backpack'
+  | 'item-cape'
   | 'one-way'
   | 'event-earned'
   | 'back-in'
@@ -320,6 +323,8 @@ export class LanguageService {
       'item-kitten': 'Kitten',
       'item-puppy': 'Puppy',
       'item-dragon': 'Baby dragon',
+      'item-backpack': 'Backpack',
+      'item-cape': 'Cape',
       'one-way': 'One way to do it:',
       'event-earned': 'You were here for the event! You earned the',
       'item-bobble-hat': 'Bobble hat',
@@ -445,6 +450,8 @@ export class LanguageService {
       'item-kitten': 'Poesje',
       'item-puppy': 'Puppy',
       'item-dragon': 'Draakje',
+      'item-backpack': 'Rugzak',
+      'item-cape': 'Cape',
       'one-way': 'Zo kan het ook:',
       'event-earned': 'Je was erbij! Je hebt verdiend:',
       'item-bobble-hat': 'Muts met pompon',
@@ -570,6 +577,8 @@ export class LanguageService {
       'item-kitten': 'Gatito',
       'item-puppy': 'Cachorro',
       'item-dragon': 'Dragoncito',
+      'item-backpack': 'Mochila',
+      'item-cape': 'Capa',
       'one-way': 'Una forma de hacerlo:',
       'event-earned': '¡Estuviste aquí! Has ganado:',
       'item-bobble-hat': 'Gorro con pompón',

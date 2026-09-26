@@ -552,12 +552,57 @@ gaps: moving the shoulder only half as far as needed, the stage's usual
 height, and the still version. Each has a test now, and a re-run catches
 all 19.
 
+**SOMETHING FOR THE BACK — DONE (2026-09-26).** A new `back` slot with
+a backpack (level 11, the one early level that won nothing) and a cape
+(level 19, between the puppy and the dragon): a reason to turn the
+character round.
+
+- Neither is fitted by hand. Everything on the character but its arms is
+  sampled, triangle by triangle, into a map of how far back it reaches
+  (`BackMap` in `avatar3d/back-items.ts`). The bag sits against the
+  furthest point behind it, up to the top of its handle, so long hair or a
+  hood lies under it. The cape hangs from the collar to the calves, clear
+  of the furthest point above each row: it falls from the shoulder blades,
+  a hood or hair, never tucks in at the waist, and stays further back
+  than an arm reaches.
+- An arm turns at the shoulder about z, which keeps every point's depth,
+  so how far back the arms reach is measured as they hang
+  (`aroundCharacter` in build-avatar.ts), and a test holds it through a
+  whole wave.
+- The straps follow the outline of the body and what is worn on it over
+  each shoulder, pulled taut (`taut`) across the dip between a hood's roll
+  and the chest, and inside where an arm turns. Hair falls over them.
+- Chooser: an "On your back" row with icon swatches, as pets have
+  (`avatar/item-icons.ts`, was pet-icons.ts); the scrapbook shows a won
+  backpack or cape by its icon. A new back item earns a wave. Saves from
+  before have nothing on the back. Named in English, Dutch and Spanish.
+- A rebuild with a backpack takes about 28 ms more, with a cape about 14.
+  The first load grew 0.34 kB, to 459.54 kB, for the item names.
+
+Tests: every figure × hair style × top keeps the bag and cape clear of
+everything behind them by room for both outlines (a check with its own,
+plainer map); the straps keep that room from what they go over, stay
+taut, come over the shoulder front and back, and stay under the chin;
+hair never changes where the straps go; the bag and cape stay behind the
+arms and the straps inside them through a whole wave; the cape falls
+further back down its middle, and stays behind the arms with nothing
+else to clear; neither item is in the pictures on other screens. Every
+pet and back item has its own icon, and every item is named in every
+language. 1,633 unit tests.
+
+The mutation sweep caught 25 of 34 at first. The survivors were gaps: the
+tests measured clearance by the item's own gap, not a fixed room; the
+straps' gap, tautness and thickness side; the cape's arm rule and running
+maximum; the arm measurement; the icon fallback (dead, removed); a Dutch
+item name. One margin, `ARM_TIP_BACK`, turned out to be dead once
+measured (an arm never reaches further back waving than hanging) and was
+removed. A re-run catches all of them.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **More to earn, still.** Pets are in. Next: shoes and a back
-   slot (a backpack, a cape) and colour choices for tops. A back item must
-   stay clear of long hair, braids and the hood, and never swallow the
-   waving arm; test it through a whole wave, as the pets are.
+1. **More to earn, still.** Pets and back items are in. Next: shoes and
+   colour choices for tops. Shoes must fit both figures' feet and the
+   stand; a colour choice is a choice of an earned top, not a new slot.
 2. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.

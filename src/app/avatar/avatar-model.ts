@@ -44,9 +44,11 @@ export interface Avatar {
   top: string;
   /** A companion sitting beside the stand; not worn, but earned the same way. */
   pet: string;
+  /** Something worn on the back: a backpack, a cape. */
+  back: string;
 }
 
-export type ItemSlot = 'hat' | 'glasses' | 'top' | 'pet';
+export type ItemSlot = 'hat' | 'glasses' | 'top' | 'pet' | 'back';
 
 /** Wearing nothing in a slot is always available and never locked. */
 export const NO_ITEM = 'none';
@@ -160,7 +162,8 @@ export function defaultAvatar(): Avatar {
     hat: NO_ITEM,
     glasses: NO_ITEM,
     top: NO_ITEM,
-    pet: NO_ITEM
+    pet: NO_ITEM,
+    back: NO_ITEM
   };
 }
 
@@ -200,7 +203,9 @@ export function normaliseAvatar(raw: any, level = 1, earnedEvents: string[] = []
     glasses: wearable('glasses', raw.glasses, level, earnedEvents),
     top: wearable('top', raw.top, level, earnedEvents),
     // Absent on every character saved before pets: no pet, as before
-    pet: wearable('pet', raw.pet, level, earnedEvents)
+    pet: wearable('pet', raw.pet, level, earnedEvents),
+    // Absent on every character saved before there was anything to wear on the back
+    back: wearable('back', raw.back, level, earnedEvents)
   };
 }
 
@@ -430,6 +435,29 @@ export const PET_ITEMS: WardrobeItem[] = [
 ];
 
 WARDROBE.push(...PET_ITEMS);
+
+/**
+ * Worn on the back, and so seen when the character is turned round: a reason
+ * to turn it. The backpack fills the one early level that won nothing; the
+ * cape comes between the puppy and the dragon.
+ */
+export const BACK_ITEMS: WardrobeItem[] = [
+  { id: NO_ITEM, slot: 'back', unlockLevel: 1, colour: '' },
+  {
+    id: 'backpack',
+    slot: 'back',
+    unlockLevel: 11,
+    colour: '#e8742c',
+  },
+  {
+    id: 'cape',
+    slot: 'back',
+    unlockLevel: 19,
+    colour: '#c8324a',
+  }
+];
+
+WARDROBE.push(...BACK_ITEMS);
 
 /**
  * What the seasonal events hand over. These have no level: a child earns one

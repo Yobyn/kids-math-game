@@ -1,4 +1,5 @@
 import {
+  BACK_ITEMS,
   BODY_TYPES,
   AVATAR_CHOICES,
   Avatar,
@@ -99,7 +100,8 @@ describe('reading a stored character', () => {
       hat: NO_ITEM,
       glasses: NO_ITEM,
       top: NO_ITEM,
-      pet: 'kitten'
+      pet: 'kitten',
+      back: 'backpack'
     };
 
     expect(normaliseAvatar(chosen, 14)).toEqual(chosen);
@@ -232,8 +234,29 @@ describe('the wardrobe', () => {
     expect(nextUnlock(highest)).toBeUndefined();
   });
 
+  it('keeps something on the back only once it is won, and gives a character saved before there was one nothing', () => {
+    expect(BACK_ITEMS.filter(item => item.id !== NO_ITEM).map(item => [item.id, item.unlockLevel])).toEqual([['backpack', 11], ['cape', 19]]);
+    const cape = { ...defaultAvatar(), back: 'cape' };
+    expect(normaliseAvatar(cape, 18).back).toBe(NO_ITEM);
+    expect(normaliseAvatar(cape, 19).back).toBe('cape');
+    const { back, ...before } = defaultAvatar();
+    expect(back).toBe(NO_ITEM);
+    expect(normaliseAvatar(before, 30).back).toBe(NO_ITEM);
+    // A kitten is not something to wear on the back
+    expect(normaliseAvatar({ ...defaultAvatar(), back: 'kitten' }, 30).back).toBe(NO_ITEM);
+  });
+
+  it('fills the one early level that won nothing with the backpack, and puts the cape between two pets', () => {
+    expect(itemsUnlockedAt(11).map(item => item.id)).toEqual(['backpack']);
+    const early = levelItems().filter(item => item.unlockLevel <= 12).map(item => item.unlockLevel);
+    for (let level = 2; level <= 12; level++) {
+      expect(early).toContain(level);
+    }
+    expect(itemsUnlockedAt(19).map(item => item.id)).toEqual(['cape']);
+  });
+
   it('keeps something to climb for after the last hat, glasses and top: a pet', () => {
-    const worn = levelItems().filter(item => item.slot !== 'pet');
+    const worn = levelItems().filter(item => ['hat', 'glasses', 'top'].indexOf(item.slot) >= 0);
     const pets = levelItems().filter(item => item.slot === 'pet');
     const lastWorn = Math.max(...worn.map(item => item.unlockLevel));
     expect(pets.length).toBe(3);

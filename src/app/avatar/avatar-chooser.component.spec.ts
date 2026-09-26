@@ -293,7 +293,7 @@ describe('AvatarChooserComponent wardrobe', () => {
       .find(r => r.querySelector('h2')!.textContent!.trim() === component.languageService.translate('pets' as any))!;
     expect(row).toBeTruthy();
     const swatches = Array.from(row.querySelectorAll('.swatch')) as HTMLButtonElement[];
-    expect(swatches.map(s => s.querySelector('.pet-icon')!.textContent!.trim())).toEqual(['○', '🐱', '🐶', '🐲']);
+    expect(swatches.map(s => s.querySelector('.item-icon')!.textContent!.trim())).toEqual(['○', '🐱', '🐶', '🐲']);
     expect(row.querySelector('app-avatar')).toBeNull();
     // Won up to the puppy; the dragon still to climb for, and says where
     expect(swatches.map(s => s.disabled)).toEqual([false, false, false, true]);
@@ -303,6 +303,23 @@ describe('AvatarChooserComponent wardrobe', () => {
     fixture.detectChanges();
     expect(component.avatar.pet).toBe('puppy');
     expect(service.get().pet).toBe('puppy');
+  });
+
+  it('offers what goes on the back in a row of its own, each shown by itself', () => {
+    openAtLevel(12);
+    const row = Array.from(fixture.nativeElement.querySelectorAll('.section .choice-row') as NodeListOf<HTMLElement>)
+      .find(r => r.querySelector('h2')!.textContent!.trim() === component.languageService.translate('on-your-back' as any))!;
+    expect(row).toBeTruthy();
+    const swatches = Array.from(row.querySelectorAll('.swatch')) as HTMLButtonElement[];
+    expect(swatches.map(s => s.querySelector('.item-icon')!.textContent!.trim())).toEqual(['○', '🎒', '🦸']);
+    expect(row.querySelector('app-avatar')).toBeNull();
+    // The backpack won at 11; the cape still to climb for, and says where
+    expect(swatches.map(s => s.disabled)).toEqual([false, false, true]);
+    expect(swatches[2].textContent).toContain('19');
+    swatches[1].click();
+    fixture.detectChanges();
+    expect(component.avatar.back).toBe('backpack');
+    expect(service.get().back).toBe('backpack');
   });
 
   it('shows the child their whole character on the stage, in 3D', () => {

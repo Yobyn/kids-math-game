@@ -2,6 +2,7 @@ import { ADULTS_WORDS } from '../adults/adults-words';
 import { SCRAPBOOK_WORDS } from '../scrapbook/scrapbook-words';
 import { PROGRESS_WORDS } from '../progress/progress-words';
 import { CHOOSER_WORDS } from '../avatar/chooser-words';
+import { NO_ITEM, WARDROBE } from '../avatar/avatar-model';
 import { LanguageService, SUPPORTED_LANGUAGES, Words } from './language.service';
 
 describe('LanguageService', () => {
@@ -60,6 +61,18 @@ describe('LanguageService', () => {
       service.setLanguage(lang);
       keys.forEach(key => {
         expect(service.translate(key)).toBeTruthy();
+      });
+    });
+  });
+
+  it('names everything a child can earn, in every language, from the first load', () => {
+    const service = new LanguageService();
+    SUPPORTED_LANGUAGES.forEach(lang => {
+      service.setLanguage(lang);
+      WARDROBE.filter(item => item.id !== NO_ITEM).forEach(item => {
+        const key = `item-${item.id}` as Parameters<LanguageService['translate']>[0];
+        expect(service.translate(key)).withContext(`${lang} ${item.id}`).toBeTruthy();
+        expect(service.translate(key)).withContext(`${lang} ${item.id}`).not.toBe(key);
       });
     });
   });
