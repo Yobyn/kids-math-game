@@ -92,7 +92,7 @@ export const EYE_WHITE = 0.13;
 export const IRIS = 0.098;
 
 /** How wide and how open each eye shape is, before the head's own narrowing. */
-const EYE_SCALE: { [shape: string]: [number, number] } = {
+export const EYE_SCALE: { [shape: string]: [number, number] } = {
   round: [1.35, 0.66],
   almond: [1.5, 0.5],
   wide: [1.6, 0.68],

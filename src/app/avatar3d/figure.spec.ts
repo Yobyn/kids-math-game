@@ -129,6 +129,11 @@ describe('figure', () => {
         expect(s.legRadii[0]).toBeCloseTo(m.legRadii[0] * STYLE.build, 9);
         expect(torsoRadius(s, s.hem)).toBeCloseTo(torsoRadius(m, m.hem) * STYLE.build, 6);
         expect(s.upperArm).toBeCloseTo(m.upperArm * STYLE.body, 9);
+        // A neck fit for a bigger head, hands and feet in proportion
+        expect(s.neckRadius).toBeCloseTo(m.neckRadius * STYLE.build * Math.sqrt(STYLE.head), 9);
+        expect(s.handLength).toBeCloseTo(m.handLength * STYLE.body * STYLE.build, 9);
+        expect(s.foot[0]).toBeCloseTo(m.foot[0] * STYLE.build, 9);
+        expect(s.foot[1]).toBeCloseTo(m.foot[1] * STYLE.build, 9);
       });
     });
 
