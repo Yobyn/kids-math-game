@@ -74,10 +74,12 @@
                 [attr.aria-pressed]="wearing(row.slot) === item.id"
                 [attr.aria-label]="itemLabel(item)"
                 (click)="wear(row.slot, item)">
-          <app-avatar [avatar]="withItem(row.slot, item)"
+          <app-avatar *ngIf="row.slot !== 'pet'"
+                      [avatar]="withItem(row.slot, item)"
                       [size]="44"
                       [framing]="framingForRow(row)"
                       look="flat"></app-avatar>
+          <span class="pet-icon" *ngIf="row.slot === 'pet'" aria-hidden="true">{{ petIcon(item) }}</span>
           <span class="lock" *ngIf="!canWear(item) && !item.event" aria-hidden="true">🔒{{ item.unlockLevel }}</span>
           <span class="lock event-lock" *ngIf="!canWear(item) && item.event" aria-hidden="true">🎁</span>
         </button>

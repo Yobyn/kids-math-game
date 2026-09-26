@@ -46,6 +46,37 @@ export function framing(bottom: number, top: number, fov: number, aspect: number
   return { distance: fit, centre: (top + bottom) / 2 };
 }
 
+/**
+ * The body's framing: the character's height, as `framing`, and, when a pet
+ * sits beside it, room for the pet all the way round. The pet's stand is the
+ * furthest thing from the middle, so turned towards the camera it is also
+ * the nearest, and a near thing looks lower: its front edge must still clear
+ * the bottom of the view while the top of the head clears the top. The
+ * camera backs off and looks a little lower to fit both. Without a pet
+ * nothing changes, so an ordinary outfit does not jump about.
+ */
+export function bodyFraming(
+  box: { min: THREE.Vector3; max: THREE.Vector3 },
+  fov: number,
+  aspect: number,
+  beside?: { min: THREE.Vector3; max: THREE.Vector3 }
+): { distance: number; centre: number } {
+  const tall = framing(box.min.y, box.max.y, fov, aspect);
+  if (!beside) {
+    return tall;
+  }
+  const reach = Math.max(-beside.min.x, beside.max.x, -beside.min.z, beside.max.z);
+  const tan = Math.tan((fov * Math.PI) / 360);
+  const fit = tan * Math.min(1, aspect || 1);
+  // Across: the far side of the reach, seen side on, a reach nearer the camera
+  const wide = (reach * 1.12) / fit + reach;
+  // Up and down: the top at the middle's depth, the pet's front edge a reach nearer
+  const deep = (((box.max.y - box.min.y) * 1.12) / fit + reach) / 2;
+  const distance = Math.max(tall.distance, wide, deep);
+  const centre = Math.min(tall.centre, box.max.y - (distance * fit) / 1.12);
+  return { distance, centre };
+}
+
 function reducedMotion(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
@@ -318,7 +349,9 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
       return { target: new THREE.Vector3(0, centre, 0), distance };
     }
     box.setFromObject(this.model!);
-    const { distance, centre } = framing(box.min.y, box.max.y, this.camera.fov, this.camera.aspect);
+    const pet = this.model!.getObjectByName('pet');
+    const beside = pet ? new THREE.Box3().setFromObject(pet) : undefined;
+    const { distance, centre } = bodyFraming(box, this.camera.fov, this.camera.aspect, beside);
     return { target: new THREE.Vector3(0, centre, 0), distance };
   }
 

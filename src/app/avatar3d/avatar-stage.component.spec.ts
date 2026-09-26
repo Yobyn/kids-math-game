@@ -333,7 +333,9 @@ describe('AvatarStageComponent', () => {
 
     it('draws breathing at no more than about 30 frames a second, but a wave at full speed', () => {
       notReduced();
-      const draw = spyOn(component as any, 'renderNow').and.callThrough();
+      // Counted, not drawn: 120 real frames in software WebGL take longer than
+      // the test browser may go without answering Karma
+      const draw = spyOn(component as any, 'renderNow').and.stub();
       const raf = spyOn(window, 'requestAnimationFrame').and.returnValue(0);
       const tick = (now: number) => {
         (component as any).frame = 0;

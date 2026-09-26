@@ -81,7 +81,8 @@ export const SECTIONS: ChooserSection[] = [
     rows: [
       { heading: 'hats', slot: 'hat', shape: true },
       { heading: 'glasses', slot: 'glasses', shape: true },
-      { heading: 'tops', slot: 'top', shape: true }
+      { heading: 'tops', slot: 'top', shape: true },
+      { heading: 'pets', slot: 'pet', shape: true }
     ]
   }
 ];

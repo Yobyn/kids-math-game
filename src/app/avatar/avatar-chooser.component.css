@@ -116,6 +116,15 @@
   justify-content: center;
 }
 
+/* A pet is shown by itself, at the size of a face in the other swatches */
+.pet-icon {
+  display: block;
+  font-size: 1.9rem;
+  line-height: 44px;
+  text-align: center;
+  color: var(--text-dim);
+}
+
 /* An event item is locked differently: not by a level it has to reach, but
    by a season that comes round again. */
 .swatch.locked .event-lock {

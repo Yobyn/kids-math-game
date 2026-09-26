@@ -42,9 +42,11 @@ export interface Avatar {
   hat: string;
   glasses: string;
   top: string;
+  /** A companion sitting beside the stand; not worn, but earned the same way. */
+  pet: string;
 }
 
-export type ItemSlot = 'hat' | 'glasses' | 'top';
+export type ItemSlot = 'hat' | 'glasses' | 'top' | 'pet';
 
 /** Wearing nothing in a slot is always available and never locked. */
 export const NO_ITEM = 'none';
@@ -157,7 +159,8 @@ export function defaultAvatar(): Avatar {
     mouthShape: 'smile',
     hat: NO_ITEM,
     glasses: NO_ITEM,
-    top: NO_ITEM
+    top: NO_ITEM,
+    pet: NO_ITEM
   };
 }
 
@@ -195,7 +198,9 @@ export function normaliseAvatar(raw: any, level = 1, earnedEvents: string[] = []
     mouthShape: pick(MOUTH_SHAPES, raw.mouthShape, fallback.mouthShape) as MouthShape,
     hat: wearable('hat', raw.hat, level, earnedEvents),
     glasses: wearable('glasses', raw.glasses, level, earnedEvents),
-    top: wearable('top', raw.top, level, earnedEvents)
+    top: wearable('top', raw.top, level, earnedEvents),
+    // Absent on every character saved before pets: no pet, as before
+    pet: wearable('pet', raw.pet, level, earnedEvents)
   };
 }
 
@@ -395,6 +400,36 @@ export const TOP_ITEMS: WardrobeItem[] = [
 ];
 
 WARDROBE.push(...TOP_ITEMS);
+
+/**
+ * Pets sit beside the stand in 3D. They are the rewards for the long climb:
+ * every hat, pair of glasses and top is won by level 12, and a child keeps
+ * climbing for long after that with nothing new to want. A companion is
+ * worth waiting for, so they come further apart.
+ */
+export const PET_ITEMS: WardrobeItem[] = [
+  { id: NO_ITEM, slot: 'pet', unlockLevel: 1, colour: '' },
+  {
+    id: 'kitten',
+    slot: 'pet',
+    unlockLevel: 14,
+    colour: '#e59a4b',
+  },
+  {
+    id: 'puppy',
+    slot: 'pet',
+    unlockLevel: 17,
+    colour: '#a8744a',
+  },
+  {
+    id: 'dragon',
+    slot: 'pet',
+    unlockLevel: 21,
+    colour: '#4fae6a',
+  }
+];
+
+WARDROBE.push(...PET_ITEMS);
 
 /**
  * What the seasonal events hand over. These have no level: a child earns one

@@ -25,7 +25,8 @@ import {
   WARDROBE,
   FULL_VIEW_BOX,
   PORTRAIT_VIEW_BOX,
-  findItem
+  findItem,
+  levelItems
 } from './avatar-model';
 
 describe('AvatarChooserComponent', () => {
@@ -249,7 +250,7 @@ describe('AvatarChooserComponent wardrobe', () => {
   });
 
   it('stops promising once everything is won', () => {
-    openAtLevel(20);
+    openAtLevel(Math.max(...levelItems().map(item => item.unlockLevel)));
 
     expect(component.nextReward).toBeUndefined();
     expect(fixture.nativeElement.querySelector('.next-unlock')).toBeNull();
@@ -284,6 +285,24 @@ describe('AvatarChooserComponent wardrobe', () => {
       expect(swatches.length).withContext(section).toBeGreaterThan(3);
       swatches.forEach(swatch => expect((swatch.componentInstance as AvatarComponent).look).withContext(section).toBe('flat'));
     });
+  });
+
+  it('offers the pets in a row of their own, each shown by itself, the way up the ladder', () => {
+    openAtLevel(17);
+    const row = Array.from(fixture.nativeElement.querySelectorAll('.section .choice-row') as NodeListOf<HTMLElement>)
+      .find(r => r.querySelector('h2')!.textContent!.trim() === component.languageService.translate('pets' as any))!;
+    expect(row).toBeTruthy();
+    const swatches = Array.from(row.querySelectorAll('.swatch')) as HTMLButtonElement[];
+    expect(swatches.map(s => s.querySelector('.pet-icon')!.textContent!.trim())).toEqual(['○', '🐱', '🐶', '🐲']);
+    expect(row.querySelector('app-avatar')).toBeNull();
+    // Won up to the puppy; the dragon still to climb for, and says where
+    expect(swatches.map(s => s.disabled)).toEqual([false, false, false, true]);
+    expect(swatches[3].textContent).toContain('21');
+    expect(swatches[2].getAttribute('aria-label')).toBe(component.languageService.translate('item-puppy'));
+    swatches[2].click();
+    fixture.detectChanges();
+    expect(component.avatar.pet).toBe('puppy');
+    expect(service.get().pet).toBe('puppy');
   });
 
   it('shows the child their whole character on the stage, in 3D', () => {

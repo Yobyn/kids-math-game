@@ -117,9 +117,13 @@ export type TranslationKeys =
   | 'try-harder'
   | 'try-easier'
   | 'tops'
+  | 'pets'
   | 'item-striped'
   | 'item-star-tee'
   | 'item-hoodie'
+  | 'item-kitten'
+  | 'item-puppy'
+  | 'item-dragon'
   | 'one-way'
   | 'event-earned'
   | 'back-in'
@@ -313,6 +317,9 @@ export class LanguageService {
       'item-striped': 'Striped shirt',
       'item-star-tee': 'Star shirt',
       'item-hoodie': 'Hoodie',
+      'item-kitten': 'Kitten',
+      'item-puppy': 'Puppy',
+      'item-dragon': 'Baby dragon',
       'one-way': 'One way to do it:',
       'event-earned': 'You were here for the event! You earned the',
       'item-bobble-hat': 'Bobble hat',
@@ -435,6 +442,9 @@ export class LanguageService {
       'item-striped': 'Gestreept shirt',
       'item-star-tee': 'Sterrenshirt',
       'item-hoodie': 'Hoodie',
+      'item-kitten': 'Poesje',
+      'item-puppy': 'Puppy',
+      'item-dragon': 'Draakje',
       'one-way': 'Zo kan het ook:',
       'event-earned': 'Je was erbij! Je hebt verdiend:',
       'item-bobble-hat': 'Muts met pompon',
@@ -557,6 +567,9 @@ export class LanguageService {
       'item-striped': 'Camiseta de rayas',
       'item-star-tee': 'Camiseta de estrella',
       'item-hoodie': 'Sudadera',
+      'item-kitten': 'Gatito',
+      'item-puppy': 'Cachorro',
+      'item-dragon': 'Dragoncito',
       'one-way': 'Una forma de hacerlo:',
       'event-earned': '¡Estuviste aquí! Has ganado:',
       'item-bobble-hat': 'Gorro con pompón',

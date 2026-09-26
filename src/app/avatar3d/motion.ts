@@ -28,6 +28,8 @@ export const BLINK_JITTER = 1.6;
 
 /** A wave, from the arm leaving the side to it being back, in seconds. */
 export const WAVE_SECONDS = 1.7;
+/** The character's right arm waves (on the viewer's left, facing them); a pet sits on the other side. */
+export const WAVING_SIDE = -1;
 /** The upper arm out from the side at the top of a wave, in radians: about level with the shoulder. */
 export const WAVE_LIFT = 1.3;
 /** The forearm bent up at the elbow while waving, in radians: pointing up. */
@@ -103,8 +105,8 @@ function ease(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
-/** The wardrobe slots: something new in one of these is worth a wave. */
-const WORN = ['hat', 'glasses', 'top'] as const;
+/** The wardrobe slots: something new in one of these is worth a wave (a new pet, a hello). */
+const WORN = ['hat', 'glasses', 'top', 'pet'] as const;
 
 /**
  * Whether going from `before` to `after` put something new on: a hat,
@@ -122,4 +124,32 @@ export function putOnSomethingNew(
     const now = after[slot];
     return !!now && now !== NO_ITEM && now !== before[slot];
   });
+}
+
+/** A pet wags in bursts, as pets do: this long, every TAIL_EVERY seconds. */
+export const TAIL_BURST = 1.6;
+export const TAIL_EVERY = 5;
+/** How far the tail swings each way, radians, and how fast (seconds a swing and back). */
+export const TAIL_SWING = 0.45;
+export const TAIL_BEAT = 0.4;
+/** The dragon's wings: a slow flap, this far each way, this long a beat. */
+export const WING_FLAP = 0.2;
+export const WING_BEAT = 2.2;
+
+/**
+ * The pet's tail, `seconds` in: still, then a burst of wagging that swells
+ * and fades, then still again. The first burst comes a moment after arrival.
+ */
+export function tailWag(seconds: number): number {
+  const into = ((seconds - 1) % TAIL_EVERY + TAIL_EVERY) % TAIL_EVERY;
+  if (seconds < 1 || into >= TAIL_BURST) {
+    return 0;
+  }
+  const swell = Math.sin((into / TAIL_BURST) * Math.PI);
+  return Math.sin((into / TAIL_BEAT) * Math.PI * 2) * TAIL_SWING * swell;
+}
+
+/** The dragon's wings, `seconds` in: a slow, even flap, open and back. */
+export function wingFlap(seconds: number): number {
+  return Math.sin((seconds / WING_BEAT) * Math.PI * 2) * WING_FLAP;
 }
