@@ -478,6 +478,38 @@ pet's side, the tail at rest, and the typed title-screen fields, its
 submit and the answer box had no test, and have one now. A re-run
 catches every one.
 
+
+**IN BETWEEN CHIBI AND REALISTIC — DONE (2026-09-26).** Yobyn, with a
+screenshot of the first 3D character beside the flat one: "The characters
+needs to be in between what we had and what we have now." What we had was
+chibi, about 2.5 heads tall, all head and eyes; what we had now was his
+reference measured as it is, 7.3 heads. The character is now 4.3 heads
+tall, the middle of the two as a ratio (the square root of their
+product), not as a difference.
+
+- A head 1.55 times the measured size, on a body 0.82 times as tall and
+  1.1 times as sturdy (`figure.ts`: `STYLE`, `stylise`). The measured
+  figures stay as they were (`MEASURED`), still held to the reference by
+  their tests; the stylised ones are made from them, so the look can be
+  moved either way by changing three numbers and nothing needs refitting.
+- A friendlier face: eyes 1.18 times bigger (as big as fits inside a round
+  lens), irises about a third bigger (kept inside the white of even the
+  narrowest eye), and a smaller nose (`EYE_SIZE`, `IRIS`, `NOSE_SIZE` in
+  `build-avatar.ts`).
+- Hair, hats and glasses share the head's transform and fit by
+  construction. What did not fit was fixed at its root: braids hang only
+  as far as the figure lets them before the body (`braidEnd`), the
+  stripes spread over the torso's own height, and thicker arms move the
+  shoulder out rather than into the chest. Pets are a little smaller, still
+  up to the knee. `STILL_VERSION` 3, so no screen shows the old figure.
+
+Tests: the stylised figure is between 4 and 4.7 heads tall, bigger-headed
+and shorter than measured by exactly the style's numbers, chin still on
+the collar, shoulders out by the arm's extra thickness, and the measured
+figure exactly when nothing is stylised; every fit test (hair, hats,
+glasses, braids, arms, the wave, pets, stills) runs on it. 1,596 unit
+tests. SWEEP_PLACEHOLDER
+
 WHAT IS NEXT, in the order the runs should take them:
 
 1. **More to earn, still.** Pets are in. Next: shoes and a back
