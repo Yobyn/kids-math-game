@@ -2,12 +2,33 @@ import { NO_ERRORS_SCHEMA, SimpleChange } from '@angular/core';
 import * as THREE from 'three';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
-import { NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
+import { BODY_TYPES, NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
+import { buildAvatar, disposeAvatar } from './build-avatar';
 import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming } from './avatar-stage.component';
 
 describe('framing', () => {
   it('keeps the usual distance for a character of ordinary height', () => {
-    expect(framing(-0.2, 14.8, 30, 1.1)).toEqual({ distance: BASE_DISTANCE, centre: BASE_CENTRE });
+    // The stylised character with short hair and a cap, stand to cap: about 13
+    expect(framing(-0.2, 13, 30, 1.1)).toEqual({ distance: BASE_DISTANCE, centre: BASE_CENTRE });
+  });
+
+  it('shows an ordinary character whole at the usual distance, with as much room above as below', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const model = buildAvatar({ ...defaultAvatar(), bodyType, hat: 'cap', top: 'hoodie' });
+      const box = new THREE.Box3().setFromObject(model);
+      disposeAvatar(model);
+      // From where the stage first puts the camera
+      const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 200);
+      camera.position.set(0, BASE_CENTRE + 3, BASE_DISTANCE);
+      camera.lookAt(0, BASE_CENTRE, 0);
+      camera.updateMatrixWorld(true);
+      const top = new THREE.Vector3(0, box.max.y, 0).project(camera).y;
+      const bottom = new THREE.Vector3(0, box.min.y, box.max.z).project(camera).y;
+      expect(top).toBeLessThan(0.95, bodyType);
+      expect(bottom).toBeGreaterThan(-0.95, bodyType);
+      // Near enough: the girl is a little shorter, so has a little more room above
+      expect(Math.abs((1 - top) - (bottom + 1))).toBeLessThan(0.2, bodyType);
+    });
   });
 
   it('backs off, and looks higher, for a tall hat or a big afro', () => {

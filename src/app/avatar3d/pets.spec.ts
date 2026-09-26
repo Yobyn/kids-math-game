@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { Avatar, BODY_TYPES, NO_ITEM, PET_ITEMS, defaultAvatar } from '../avatar/avatar-model';
 import { BASE_CENTRE, BASE_DISTANCE, bodyFraming } from './avatar-stage.component';
 import { PET_STAND_RADIUS, buildAvatar, disposeAvatar } from './build-avatar';
-import { figureFor } from './figure';
+import { crownY, figureFor } from './figure';
 import { WAVE_SECONDS, WAVING_SIDE } from './motion';
 import { PET_IDS, PET_TAIL, PET_WING, buildPet } from './pets';
 import { Rig } from './rig';
@@ -66,7 +66,7 @@ describe('pets', () => {
     });
   });
 
-  it('sits on its own stand, beside the character’s, and comes up to about the knee', () => {
+  it('sits on its own stand, beside the character\u2019s, a bit smaller than the character', () => {
     BODY_TYPES.forEach(bodyType => PETS.forEach(item => {
       const figure = figureFor(bodyType);
       const root = keep(buildAvatar(avatar({ bodyType, pet: item.id })));
@@ -81,9 +81,11 @@ describe('pets', () => {
       expect(Math.abs(pet.min.y - boxOf(group.getObjectByName('pet-pedestal')!).max.y)).toBeLessThan(0.12, `${bodyType} ${item.id}`);
       // The two stands do not touch
       expect(Math.hypot(centre.x, centre.z) - radius('pedestal') - radius('pet-pedestal')).toBeGreaterThan(0.1, `${bodyType} ${item.id}`);
+      // Yobyn: the pet "a bit smaller" than the character, which is perfect
       const height = pet.max.y - pet.min.y;
-      expect(height).toBeGreaterThan(figure.knee[1] * 0.6, `${bodyType} ${item.id}`);
-      expect(height).toBeLessThan(figure.knee[1] * 1.05, `${bodyType} ${item.id}`);
+      const character = crownY(figure);
+      expect(height / character).toBeGreaterThan(0.2, `${bodyType} ${item.id}`);
+      expect(height / character).toBeLessThan(0.4, `${bodyType} ${item.id}`);
     }));
   });
 

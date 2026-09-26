@@ -9,9 +9,9 @@ import { WAVE_SECONDS, putOnSomethingNew } from './motion';
 import { Rig } from './rig';
 
 /** The usual camera distance, for a character of ordinary height. */
-export const BASE_DISTANCE = 32;
+export const BASE_DISTANCE = 28.5;
 /** Where the usual camera looks, part-way up an ordinary character. */
-export const BASE_CENTRE = 7.4;
+export const BASE_CENTRE = 6.2;
 
 /** What the camera is looking at: the whole figure, or a close-up of the head. */
 export type StageFocus = 'body' | 'head';

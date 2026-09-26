@@ -494,6 +494,8 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     const lower = new THREE.Group();
     lower.name = FOREARM_RIG;
     lower.position.copy(elbow).sub(shoulder);
+    // A relaxed arm, not a mannequin's: the forearm bends a little forward
+    lower.rotation.x = -figure.elbowBend;
     upper.add(lower);
     body.add(upper);
     const onUpper = (mesh: THREE.Object3D) => {

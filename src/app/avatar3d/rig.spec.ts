@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { BODY_TYPES, defaultAvatar } from '../avatar/avatar-model';
 import { ARM_RIG, FOREARM_RIG, buildAvatar, disposeAvatar } from './build-avatar';
 import { figureFor } from './figure';
-import { BREATH_RISE, BREATH_SECONDS, WAVE_SECONDS, eyesOpen } from './motion';
+import { BREATH_RISE, BREATH_SECONDS, WAVE_LIFT, WAVE_SECONDS, eyesOpen, wave } from './motion';
 import { Rig, WAVING_SIDE } from './rig';
 
 /** Every mesh's world position, so a pose can be checked to leave nothing behind. */
@@ -110,6 +110,36 @@ describe('Rig', () => {
       expect(waving.min.y).toBeGreaterThan(figure.shoulder[1]);
       expect(WAVING_SIDE * waving.getCenter(new THREE.Vector3()).x).toBeGreaterThan(figure.shoulder[0] + 1);
       expect(resting.max.y).toBeLessThan(figure.belt);
+    });
+  });
+
+  it('stands with soft elbows, hands a little forward, and straightens the waving elbow as the arm comes up', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const figure = figureFor(bodyType);
+      const model = build(bodyType);
+      const forearms: THREE.Object3D[] = [];
+      model.traverse(node => node.name === FOREARM_RIG && forearms.push(node));
+      const side = (node: THREE.Object3D) => node.parent!.userData.side;
+      // Bent forward at the elbow, as built: the hands in front of the elbows
+      forearms.forEach(node => expect(node.rotation.x).toBeCloseTo(-figure.elbowBend, 9));
+      const hands: THREE.Object3D[] = [];
+      model.traverse(node => node.name === 'hand' && hands.push(node));
+      hands.forEach(hand => {
+        const elbow = new THREE.Vector3();
+        hand.parent!.getWorldPosition(elbow);
+        expect(boxOf(hand).getCenter(new THREE.Vector3()).z).toBeGreaterThan(elbow.z + 0.1, bodyType);
+      });
+      const rig = new Rig(model);
+      // Halfway up, half straightened; at the top, straight; the other arm stays soft throughout
+      const halfway = [0.01, 0.1, 0.2, 0.3].find(t => wave(t).lift > WAVE_LIFT * 0.3 && wave(t).lift < WAVE_LIFT * 0.7)!;
+      rig.pose(0, halfway);
+      forearms.forEach(node => expect(node.rotation.x).toBeCloseTo(
+        side(node) === WAVING_SIDE ? -figure.elbowBend * (1 - wave(halfway).lift / WAVE_LIFT) : -figure.elbowBend, 9));
+      rig.pose(0, WAVE_SECONDS / 2);
+      forearms.forEach(node => expect(node.rotation.x).toBeCloseTo(side(node) === WAVING_SIDE ? 0 : -figure.elbowBend, 9));
+      // And soft again once the wave is done
+      rig.pose(0, WAVE_SECONDS);
+      forearms.forEach(node => expect(node.rotation.x).toBeCloseTo(-figure.elbowBend, 9));
     });
   });
 
