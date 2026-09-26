@@ -1,8 +1,10 @@
-import { FIGURES, HH, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist } from './figure';
+import { FIGURES, HH, MEASURED, STYLE, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist } from './figure';
+
+const BODY_TYPES_HERE = ['boy', 'girl'] as const;
 
 describe('figure', () => {
   describe('the boy, measured from the reference', () => {
-    const boy = FIGURES.boy;
+    const boy = MEASURED.boy;
     const inHH = (units: number) => units / HH;
 
     it('stands about 7.3 heads tall, as the reference does', () => {
@@ -44,10 +46,12 @@ describe('figure', () => {
   });
 
   describe('the girl', () => {
-    it('is a little shorter than the boy, and still about seven heads tall', () => {
+    it('is a little shorter than the boy, and measured about seven heads tall', () => {
+      expect(crownY(MEASURED.girl)).toBeLessThan(crownY(MEASURED.boy));
+      expect(headsTall(MEASURED.girl)).toBeGreaterThan(6.9);
+      expect(headsTall(MEASURED.girl)).toBeLessThan(7.4);
+      // And stays shorter once stylised
       expect(crownY(FIGURES.girl)).toBeLessThan(crownY(FIGURES.boy));
-      expect(headsTall(FIGURES.girl)).toBeGreaterThan(6.9);
-      expect(headsTall(FIGURES.girl)).toBeLessThan(7.4);
     });
 
     it('has a softer, narrower head', () => {
@@ -104,6 +108,48 @@ describe('figure', () => {
         const r = upper ? rShoulder + (rElbow - rShoulder) * k : rElbow + (rWrist - rElbow) * k;
         expect(x - r).toBeGreaterThan(torsoRadius(figure, y) - 0.1, `${type} arm into the body at ${y.toFixed(2)}`);
       }
+    });
+  });
+
+  describe('stylised: in between the chibi character and the reference (Yobyn, 2026-09-26)', () => {
+    it('stands a little over four heads tall: between two and a half and seven', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        expect(headsTall(FIGURES[type])).toBeGreaterThan(4);
+        expect(headsTall(FIGURES[type])).toBeLessThan(4.7);
+        expect(headsTall(FIGURES[type])).toBeLessThan(headsTall(MEASURED[type]) - 2);
+      });
+    });
+
+    it('has a bigger head and a shorter, sturdier body than measured', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        const [s, m] = [FIGURES[type], MEASURED[type]];
+        expect(s.headScale[1]).toBeCloseTo(m.headScale[1] * STYLE.head, 9);
+        expect(s.crotch).toBeCloseTo(m.crotch * STYLE.body, 9);
+        expect(s.knee[1]).toBeCloseTo(m.knee[1] * STYLE.body, 9);
+        expect(s.legRadii[0]).toBeCloseTo(m.legRadii[0] * STYLE.build, 9);
+        expect(torsoRadius(s, s.hem)).toBeCloseTo(torsoRadius(m, m.hem) * STYLE.build, 6);
+        expect(s.upperArm).toBeCloseTo(m.upperArm * STYLE.body, 9);
+      });
+    });
+
+    it('keeps the chin on the collar: the head grows up from where the chin was', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        const [s, m] = [FIGURES[type], MEASURED[type]];
+        expect(chinY(s)).toBeCloseTo(chinY(m) * STYLE.body, 9);
+        expect(crownY(s) - chinY(s)).toBeCloseTo((crownY(m) - chinY(m)) * STYLE.head, 9);
+      });
+    });
+
+    it('moves the shoulder out by as much as the arm thickened, so a thicker arm is not in the chest', () => {
+      const m = MEASURED.boy;
+      const s = FIGURES.boy;
+      expect(s.shoulder[0] - (s.armRadii[0] - m.armRadii[0])).toBeCloseTo(m.shoulder[0] * STYLE.build, 9);
+    });
+
+    it('is the measured figure exactly when nothing is stylised', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        expect(stylise(MEASURED[type], { head: 1, body: 1, build: 1 })).toEqual(MEASURED[type]);
+      });
     });
   });
 

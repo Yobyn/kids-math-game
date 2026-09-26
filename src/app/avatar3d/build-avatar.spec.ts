@@ -248,9 +248,9 @@ describe('buildAvatar', () => {
       root.updateMatrixWorld(true);
       const head = new THREE.Box3().setFromObject(find(root, 'head')[0]);
       const headHeight = head.max.y - head.min.y;
-      // About seven heads tall, as in the reference (an oval face is itself a longer head)
-      expect(head.max.y / headHeight).toBeGreaterThan(faceShape === 'oval' ? 6.3 : 6.8, `${bodyType}/${faceShape}`);
-      expect(head.max.y / headHeight).toBeLessThan(7.8, `${bodyType}/${faceShape}`);
+      // A little over four heads tall, stylised (figure.ts, STYLE); an oval face is itself a longer head
+      expect(head.max.y / headHeight).toBeGreaterThan(faceShape === 'oval' ? 3.7 : 3.95, `${bodyType}/${faceShape}`);
+      expect(head.max.y / headHeight).toBeLessThan(4.8, `${bodyType}/${faceShape}`);
       // The chin rests just above the collar: no gap under it, not sunk into the body
       const collar = figure.torso[figure.torso.length - 1][1];
       expect(head.min.y - collar).toBeGreaterThan(0, `${bodyType}/${faceShape}`);
