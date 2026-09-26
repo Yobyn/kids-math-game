@@ -21,15 +21,15 @@
 <div class="login-container">
   <h2>{{ isForgotPassword ? (languageService.translate('forgot-password')) : (isRegistering ? languageService.translate('register') : languageService.translate('login')) }}</h2>
   
-  <form (ngSubmit)="onSubmit()" #loginForm="ngForm">
+  <form novalidate (submit)="$event.preventDefault(); onSubmit()">
     <div class="form-group" *ngIf="!isForgotPassword">
       <input 
         type="text" 
-        [(ngModel)]="username" 
+        [value]="username"
         name="username" 
         [class.invalid]="!usernameValid"
         placeholder="{{ languageService.translate('username') }}"
-        (input)="validateForm()"
+        (input)="username = $any($event.target).value; validateForm()"
         required>
       <div class="validation-message" *ngIf="!usernameValid">
         {{ languageService.translate('username-requirements') }}
@@ -39,11 +39,11 @@
     <div class="form-group" *ngIf="!isForgotPassword">
       <input 
         type="password" 
-        [(ngModel)]="password" 
+        [value]="password"
         name="password" 
         [class.invalid]="!passwordValid"
         placeholder="{{ languageService.translate('password') }}"
-        (input)="validateForm()"
+        (input)="password = $any($event.target).value; validateForm()"
         required>
       <div class="validation-message" *ngIf="!passwordValid">
         {{ languageService.translate('password-requirements') }}
@@ -53,11 +53,11 @@
     <div class="form-group" *ngIf="isRegistering || isForgotPassword">
       <input 
         type="email" 
-        [(ngModel)]="email" 
+        [value]="email"
         name="email" 
         [class.invalid]="!emailValid"
         placeholder="{{ languageService.translate('email') }}"
-        (input)="validateForm()"
+        (input)="email = $any($event.target).value; validateForm()"
         required>
       <div class="validation-message" *ngIf="!emailValid">
         {{ languageService.translate('email-requirements') }}

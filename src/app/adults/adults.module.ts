@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { SharedModule } from '../shared/shared.module';
 import { AdultsComponent } from './adults.component';
 
@@ -11,6 +12,7 @@ import { AdultsComponent } from './adults.component';
   declarations: [AdultsComponent],
   imports: [
     SharedModule,
+    FormsModule,
     RouterModule.forChild([{ path: '', component: AdultsComponent }])
   ]
 })
