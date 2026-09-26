@@ -91,6 +91,11 @@ export const NOSE_SIZE = 0.72;
 export const EYE_WHITE = 0.13;
 export const IRIS = 0.098;
 
+/** The closed-eye line inside each eye, hidden until a blink is at its bottom. */
+export const EYE_SHUT = 'eye-shut';
+/** How far a shut eye's line curves down, as a share of the eye's width. */
+export const SHUT_CURVE = 0.3;
+
 /** How wide and how open each eye shape is, before the head's own narrowing. */
 export const EYE_SCALE: { [shape: string]: [number, number] } = {
   round: [1.35, 0.66],
@@ -132,7 +137,15 @@ function buildEyes(avatar: Avatar): THREE.Group {
     const lid = part('eye-lid', new THREE.TorusGeometry(0.13, 0.02, 6, 24, Math.PI), toon('#3a2230'), 0);
     lid.scale.set(sx, sy, 0.6);
     lid.position.z = 0.02;
-    eye.add(white, iris, pupil, glint, lid);
+    // The closed eye, shown only at the bottom of a blink (rig.ts): a soft
+    // dark line curving down. An eye pressed flat reads as white flecks at
+    // this size; this is what a shut eye looks like instead.
+    const shut = part(EYE_SHUT, new THREE.TorusGeometry(0.13, 0.024, 6, 24, Math.PI), toon('#3a2230'), 0);
+    shut.rotation.z = Math.PI;
+    shut.scale.set(sx, SHUT_CURVE, 0.6);
+    shut.position.z = 0.03;
+    shut.visible = false;
+    eye.add(white, iris, pupil, glint, lid, shut);
     if (girl) {
       // Lashes: a small flick at the outer corner
       const lash = part('eye-lash', new THREE.ConeGeometry(0.02, 0.09, 6), toon('#3a2230'), 0);

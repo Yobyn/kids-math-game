@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { ARM_RIG, FOREARM_RIG } from './build-avatar';
+import { ARM_RIG, EYE_SHUT, FOREARM_RIG, SHUT_CURVE } from './build-avatar';
 import { BREATH_ARMS, BREATH_RISE, WAVE_LIFT, WAVING_SIDE, breath, eyesOpen, tailWag, wave, wingFlap } from './motion';
 import { PET_TAIL, PET_WING } from './pets';
 
@@ -8,6 +8,8 @@ const HEAD_PARTS = ['head-group', 'hair', 'hat', 'glasses'];
 export { WAVING_SIDE };
 /** A shut eye is not squashed to nothing: the lid line stays. */
 const SHUT = 0.08;
+/** Below this much open, an eye is drawn as its closed line rather than squashed flatter. */
+export const SHUT_BELOW = 0.35;
 
 interface Joint {
   node: THREE.Object3D;
@@ -57,8 +59,7 @@ export class Rig {
   pose(seconds: number, waving: number | null) {
     const b = breath(seconds);
     this.heads.forEach(({ node, y }) => (node.position.y = y + BREATH_RISE * b));
-    const open = SHUT + (1 - SHUT) * eyesOpen(seconds);
-    this.eyes.forEach(({ node, y }) => (node.scale.y = y * open));
+    this.openEyes(SHUT + (1 - SHUT) * eyesOpen(seconds));
     const arm = waving === null ? { lift: 0, bend: 0 } : wave(waving);
     // An arm swings out to its own side: a positive turn about z for the
     // character's left (+x), negative for the right
@@ -76,10 +77,31 @@ export class Rig {
     this.wings.forEach(({ node, side, z }) => (node.rotation.z = z + side * wingFlap(seconds)));
   }
 
+  /**
+   * Opens the eyes this far, 1 wide open: each is pressed flat top to
+   * bottom, and near the bottom of a blink the closed line takes the place
+   * of the open eye. The line undoes the press on itself, so it keeps its
+   * shape however flat the eye is.
+   */
+  private openEyes(open: number) {
+    const shut = open < SHUT_BELOW;
+    this.eyes.forEach(({ node, y }) => {
+      node.scale.y = y * open;
+      node.children.forEach(child => {
+        if (child.name === EYE_SHUT) {
+          child.visible = shut;
+          child.scale.y = SHUT_CURVE / open;
+        } else {
+          child.visible = !shut;
+        }
+      });
+    });
+  }
+
   /** Every joint back where it was built. */
   rest() {
     this.heads.forEach(({ node, y }) => (node.position.y = y));
-    this.eyes.forEach(({ node, y }) => (node.scale.y = y));
+    this.openEyes(1);
     this.arms.forEach(({ node }) => (node.rotation.z = 0));
     this.forearms.forEach(({ node, bend }) => {
       node.rotation.z = 0;
