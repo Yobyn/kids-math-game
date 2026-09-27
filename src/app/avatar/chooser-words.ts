@@ -27,7 +27,11 @@ export type ChooserKey =
   | 'hats'
   | 'tops'
   | 'pets'
-  | 'on-your-back';
+  | 'on-your-back'
+  | 'shoes'
+  | 'skin'
+  | 'glasses'
+  | 'extras';
 
 export const CHOOSER_WORDS: Words<ChooserKey> = {
   en: {
@@ -52,7 +56,11 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'hats': 'Hats',
     'tops': 'Tops',
     'pets': 'Pets',
-    'on-your-back': 'On your back'
+    'on-your-back': 'On your back',
+    'shoes': 'Shoes',
+    'skin': 'Skin',
+    'glasses': 'Glasses',
+    'extras': 'Extras'
   },
   nl: {
     'body-type': 'Je bent een',
@@ -76,7 +84,11 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'hats': 'Hoeden',
     'tops': 'Kleding',
     'pets': 'Huisdieren',
-    'on-your-back': 'Op je rug'
+    'on-your-back': 'Op je rug',
+    'shoes': 'Schoenen',
+    'skin': 'Huid',
+    'glasses': 'Brillen',
+    'extras': "Extra's"
   },
   es: {
     'body-type': 'Eres',
@@ -100,6 +112,10 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'hats': 'Sombreros',
     'tops': 'Ropa',
     'pets': 'Mascotas',
-    'on-your-back': 'En la espalda'
+    'on-your-back': 'En la espalda',
+    'shoes': 'Zapatos',
+    'skin': 'Piel',
+    'glasses': 'Gafas',
+    'extras': 'Extras'
   }
 };

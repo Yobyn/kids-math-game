@@ -165,7 +165,7 @@ describe('buildAvatar', () => {
     expect(find(buildAvatar(avatar({ hairStyle: 'short' })), 'hair-long').length).toBe(0);
   });
 
-  it('builds every hat, pair of glasses and top in the wardrobe on every face', () => {
+  it('builds everything in the wardrobe on every face', () => {
     const items = WARDROBE.filter(item => item.id !== NO_ITEM);
     expect(items.length).toBeGreaterThan(10);
     items.forEach(item => FACE_SHAPES.forEach(faceShape => {
@@ -174,7 +174,8 @@ describe('buildAvatar', () => {
         const [torso] = find(root, 'torso') as THREE.Mesh[];
         expect((torso.material as THREE.MeshToonMaterial).color.getHexString()).toBe(item.colour.slice(1).toLowerCase(), item.id);
       } else {
-        const [worn] = find(root, item.slot);
+        // A pair of shoes is two shoes, each marked with what it is
+        const [worn] = item.slot === 'shoes' ? find(root, 'shoe').filter(shoe => shoe.userData.item === item.id) : find(root, item.slot);
         expect(worn).toBeTruthy(`${item.id} on ${faceShape}`);
         let meshes = 0;
         worn.traverse(o => { if ((o as THREE.Mesh).isMesh) { meshes++; } });

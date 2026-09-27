@@ -97,13 +97,11 @@ export type TranslationKeys =
   | 'your-character'
   | 'turn-left'
   | 'turn-right'
-  | 'skin'
   | 'hair-style'
   | 'hair-colour'
   | 'eyes'
   | 'done'
   | 'hats'
-  | 'glasses'
   | 'unlocked'
   | 'next-unlock'
   | 'item-none'
@@ -118,7 +116,11 @@ export type TranslationKeys =
   | 'try-easier'
   | 'tops'
   | 'pets'
+  | 'skin'
+  | 'glasses'
+  | 'extras'
   | 'on-your-back'
+  | 'shoes'
   | 'item-striped'
   | 'item-star-tee'
   | 'item-hoodie'
@@ -127,6 +129,9 @@ export type TranslationKeys =
   | 'item-dragon'
   | 'item-backpack'
   | 'item-cape'
+  | 'item-high-tops'
+  | 'item-boots'
+  | 'item-light-up'
   | 'one-way'
   | 'event-earned'
   | 'back-in'
@@ -303,9 +308,7 @@ export class LanguageService {
       'xp-to-next': 'XP to the next level',
       'level-up': 'Level up!',
       'your-character': 'Your character',
-      'skin': 'Skin',
       'done': 'Done',
-      'glasses': 'Glasses',
       'unlocked': 'You unlocked the',
       'item-none': 'Nothing',
       'item-cap': 'Cap',
@@ -325,6 +328,9 @@ export class LanguageService {
       'item-dragon': 'Baby dragon',
       'item-backpack': 'Backpack',
       'item-cape': 'Cape',
+      'item-high-tops': 'High-tops',
+      'item-boots': 'Boots',
+      'item-light-up': 'Light-up shoes',
       'one-way': 'One way to do it:',
       'event-earned': 'You were here for the event! You earned the',
       'item-bobble-hat': 'Bobble hat',
@@ -430,9 +436,7 @@ export class LanguageService {
       'xp-to-next': 'XP tot het volgende niveau',
       'level-up': 'Niveau omhoog!',
       'your-character': 'Jouw figuur',
-      'skin': 'Huid',
       'done': 'Klaar',
-      'glasses': 'Brillen',
       'unlocked': 'Je hebt verdiend:',
       'item-none': 'Niets',
       'item-cap': 'Pet',
@@ -452,6 +456,9 @@ export class LanguageService {
       'item-dragon': 'Draakje',
       'item-backpack': 'Rugzak',
       'item-cape': 'Cape',
+      'item-high-tops': 'Hoge sneakers',
+      'item-boots': 'Laarzen',
+      'item-light-up': 'Lichtschoenen',
       'one-way': 'Zo kan het ook:',
       'event-earned': 'Je was erbij! Je hebt verdiend:',
       'item-bobble-hat': 'Muts met pompon',
@@ -557,9 +564,7 @@ export class LanguageService {
       'xp-to-next': 'XP para el siguiente nivel',
       'level-up': '¡Subiste de nivel!',
       'your-character': 'Tu personaje',
-      'skin': 'Piel',
       'done': 'Listo',
-      'glasses': 'Gafas',
       'unlocked': 'Has desbloqueado:',
       'item-none': 'Nada',
       'item-cap': 'Gorra',
@@ -579,6 +584,9 @@ export class LanguageService {
       'item-dragon': 'Dragoncito',
       'item-backpack': 'Mochila',
       'item-cape': 'Capa',
+      'item-high-tops': 'Zapatillas altas',
+      'item-boots': 'Botas',
+      'item-light-up': 'Zapatillas con luz',
       'one-way': 'Una forma de hacerlo:',
       'event-earned': '¡Estuviste aquí! Has ganado:',
       'item-bobble-hat': 'Gorro con pompón',

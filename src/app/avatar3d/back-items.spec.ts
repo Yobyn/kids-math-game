@@ -173,6 +173,20 @@ describe('back items', () => {
     expect(misses.slice(0, 5)).toEqual([]);
   })));
 
+  it('hangs the cape clear of boots and high-tops too, coming up the leg', () => {
+    const misses: string[] = [];
+    BODY_TYPES.forEach(bodyType => ['boots', 'high-tops'].forEach(shoes => {
+      const { item, rest } = sort(build(dress(bodyType, 'cape', { shoes })));
+      const behind = backmost(rest);
+      vertices(item).forEach(p => {
+        if (p.z > behind(p.x, p.y) - ROOM) {
+          misses.push(`${bodyType} ${shoes}: cape at (${p.x.toFixed(2)}, ${p.y.toFixed(2)})`);
+        }
+      });
+    }));
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
   BODY_TYPES.forEach(bodyType => it(`lies a ${bodyType}’s straps on the top, over the shoulder and down the front, and under the chin`, () => {
     const misses: string[] = [];
     HAIR_STYLES.forEach((hairStyle: HairStyle) => ['striped', 'hoodie'].forEach(top => {

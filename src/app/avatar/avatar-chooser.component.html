@@ -5,7 +5,7 @@
        point of a swatch is seeing what it does. -->
   <div class="stage">
     <app-avatar-stage [avatar]="avatar" [label]="languageService.translate('your-character')"
-                      [focus]="open === 'wardrobe' ? 'body' : 'head'"
+                      [focus]="earned ? 'body' : 'head'"
                       [turnLeftLabel]="languageService.translate('turn-left')"
                       [turnRightLabel]="languageService.translate('turn-right')"></app-avatar-stage>
   </div>
@@ -27,7 +27,7 @@
     </div>
   </section>
 
-  <!-- Three sections rather than eight rows in one column. The face first,
+  <!-- Four sections rather than a dozen rows in one column. The face first,
        because it is what says who this is. -->
   <div class="tabs" role="tablist" [attr.aria-label]="languageService.translate('your-character')">
     <button type="button"
@@ -86,11 +86,11 @@
       </div>
     </section>
 
-    <p class="event-note" *ngIf="open === 'wardrobe'">
+    <p class="event-note" *ngIf="earned">
       {{ languageService.translate('events-return') }}
     </p>
 
-    <p class="next-unlock" *ngIf="open === 'wardrobe' && nextReward">
+    <p class="next-unlock" *ngIf="earned && nextReward">
       {{ languageService.translate('next-unlock') }}
       {{ itemName(nextReward) }} — {{ languageService.translate('level') }} {{ nextReward.unlockLevel }}
     </p>

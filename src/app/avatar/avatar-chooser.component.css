@@ -139,14 +139,14 @@
   color: var(--text-dim);
 }
 
-/* Three sections rather than eight rows in one column. The tabs are wide and
-   plain: a child reads them as three places to go, not as decoration. */
+/* Four sections rather than a dozen rows in one column. The tabs are wide and
+   plain: a child reads them as four places to go, not as decoration. */
 .tabs {
-  /* Three equal columns rather than a wrapping row: "Things to wear" is long
-     enough to drop onto a line of its own at 390px, which made the three
-     sections look like two and a stray. */
+  /* Two by two rather than a wrapping row: "Things to wear" is long enough
+     to drop onto a line of its own at 390px, and four across would squeeze
+     it onto three. */
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
   margin: 0 auto 1rem;
   max-width: 560px;

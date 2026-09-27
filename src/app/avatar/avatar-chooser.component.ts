@@ -21,7 +21,7 @@ import {
   WardrobeItem,
   isUnlocked
 } from './avatar-model';
-import { BODY_ROW, ChooserRow, SECTIONS, SectionId } from './chooser-sections';
+import { BODY_ROW, ChooserRow, EARNED_SECTIONS, SECTIONS, SectionId } from './chooser-sections';
 import { ICON_SLOTS, itemIcon } from './item-icons';
 import { CHOOSER_WORDS } from './chooser-words';
 import { findEvent, nextOpening } from '../events/next-opening';
@@ -106,6 +106,11 @@ export class AvatarChooserComponent implements OnInit {
   /** The section a child is looking at. */
   show(id: SectionId) {
     this.open = id;
+  }
+
+  /** Whether the section open is one with things to earn: the whole character is shown, and what comes next. */
+  get earned(): boolean {
+    return EARNED_SECTIONS.indexOf(this.open) >= 0;
   }
 
   get rows(): ChooserRow[] {
