@@ -73,6 +73,9 @@ describe('shoes', () => {
       expect(meshes(root, 'shoe-sole').length).toBe(2);
       // Nothing tucks in: without a collar a leg is its own width all the way
       [0, 0.3, 1, legLength(figure)].forEach(s => expect(legRadius(figure, s, 0)).toBe(legRadiusAlong(figure, s)));
+      // Full at the knee and flaring a touch at the hem, as they always were
+      const [, rKnee, rHem] = figure.legRadii;
+      expect(lowerLegRadii(figure)).toEqual([rKnee * 1.02, rKnee, rHem, rHem * 1.05]);
       expect(legRadiusAlong(figure, 0)).toBeCloseTo(lowerLegRadii(figure)[3], 9);
       expect(legRadiusAlong(figure, legLength(figure))).toBeCloseTo(lowerLegRadii(figure)[0], 9);
     });
@@ -109,6 +112,24 @@ describe('shoes', () => {
       const [left, right] = root.getObjectByName('body')!.children.filter(c => c.name === 'shoe')
         .map(shoe => new THREE.Box3().setFromObject(shoe)).sort((a, b) => a.min.x - b.min.x);
       expect(right.min.x - left.max.x).withContext(`${bodyType} ${id}`).toBeGreaterThan(0.05);
+    }));
+  });
+
+  it('stands a collar on its own shoe: down to the top of the sole, and no wider than it', () => {
+    BODY_TYPES.forEach(bodyType => WITH_COLLAR.forEach(id => {
+      const root = build(dress(bodyType, id));
+      root.getObjectByName('body')!.children.filter(c => c.name === 'shoe').forEach(shoe => {
+        const sole = meshes(shoe, 'shoe-sole')[0];
+        const top = new THREE.Box3().setFromObject(sole).max.y;
+        const shaft = vertices(meshes(shoe, 'shoe-shaft'));
+        const bottom = Math.min(...shaft.map(p => p.y));
+        expect(bottom).withContext(`${bodyType} ${id}`).toBeGreaterThan(top);
+        expect(bottom).withContext(`${bodyType} ${id}`).toBeLessThan(top + 0.1);
+        // Its bottom ring inside the sole's own width, so it does not hang over the edge
+        const centre = sole.getWorldPosition(new THREE.Vector3()).x;
+        shaft.filter(p => p.y < bottom + 0.01).forEach(p =>
+          expect(Math.abs(p.x - centre)).withContext(`${bodyType} ${id}`).toBeLessThan(sole.scale.x / 2));
+      });
     }));
   });
 

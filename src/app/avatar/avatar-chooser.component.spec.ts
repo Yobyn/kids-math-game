@@ -253,6 +253,16 @@ describe('AvatarChooserComponent wardrobe', () => {
       .toContain('Round glasses');
   });
 
+  it('names what comes next among the extras too, but not on the free sections', () => {
+    openAtLevel(12);
+    component.show('extras');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.next-unlock')).toBeTruthy();
+    component.show('face');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.next-unlock')).toBeNull();
+  });
+
   it('stops promising once everything is won', () => {
     openAtLevel(Math.max(...levelItems().map(item => item.unlockLevel)));
 
@@ -613,6 +623,10 @@ describe('AvatarChooserComponent: four sections rather than one long scroll', ()
     fixture.detectChanges();
     expect(focus()).toBe('head');
     component.show('wardrobe');
+    fixture.detectChanges();
+    expect(focus()).toBe('body');
+    // A pet beside the stand, a cape behind: the whole figure too
+    component.show('extras');
     fixture.detectChanges();
     expect(focus()).toBe('body');
   });
