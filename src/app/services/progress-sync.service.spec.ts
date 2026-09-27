@@ -6,6 +6,7 @@ import { ProgressService, accountOwner } from './progress.service';
 import { AvatarService } from './avatar.service';
 import { AuthService } from './auth.service';
 import { SyncedProgress } from './synced-progress';
+import { AppModule } from '../app.module';
 
 const API = 'http://localhost:3000/api/progress';
 
@@ -91,6 +92,30 @@ describe('ProgressSyncService', () => {
     const pushed = http.expectOne(request => request.method === 'PUT');
     expect(pushed.request.body.progress.roundHistory.length).toBe(1);
     expect(pushed.request.headers.get('Authorization')).toBe('Bearer a-token');
+    pushed.flush({ updatedAt: 'now' });
+  });
+
+  it('syncs as whoever is signed in now, after one child signs out and another signs in', () => {
+    // As the app runs it: with every HTTP interceptor it installs. One used
+    // to put back the token of whoever was signed in when the app opened
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ imports: [HttpClientTestingModule], providers: (AppModule as any).ɵinj.providers });
+    signIn('sam');
+    build();
+    // The app syncs as soon as it opens, while Sam is still signed in
+    sync.pull().subscribe();
+    http.expectOne(API).flush({ progress: null, updatedAt: null });
+    auth.logout();
+    auth.login('kim', 'secret').subscribe();
+    http.expectOne(request => request.url.endsWith('/auth/login')).flush({ token: 'kim-token' });
+    progress.record({ correctAnswers: 5, total: 10, percentage: 50, score: 50, grade: 1 });
+
+    sync.pull().subscribe();
+    const pulled = http.expectOne(API);
+    expect(pulled.request.headers.get('Authorization')).toBe('Bearer kim-token');
+    pulled.flush({ progress: null, updatedAt: null });
+    const pushed = http.expectOne(request => request.method === 'PUT');
+    expect(pushed.request.headers.get('Authorization')).toBe('Bearer kim-token');
     pushed.flush({ updatedAt: 'now' });
   });
 

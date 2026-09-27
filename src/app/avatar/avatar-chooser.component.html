@@ -53,8 +53,9 @@
                 [class.style-swatch]="!isColour(row)"
                 [class.chosen]="chosen(row, value)"
                 [attr.aria-pressed]="chosen(row, value)"
-                [attr.aria-label]="languageService.translate(row.heading)"
-                [style.background]="isColour(row) ? value : null"
+                [class.own-colour]="isColour(row) && !value"
+                [attr.aria-label]="swatchLabel(row, value)"
+                [style.background]="isColour(row) ? swatchColour(value) : null"
                 (click)="pickPart(row, value)">
           <app-avatar *ngIf="!isColour(row)"
                       [avatar]="withPart(row, value)"

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { TOP_COLOURS } from '../avatar/top-colours';
 import {
   Avatar, FACE_SHAPES, HAIR_STYLES, HAIR_TEXTURES, NO_ITEM, WARDROBE, defaultAvatar, findItem
 } from '../avatar/avatar-model';
@@ -183,6 +184,20 @@ describe('buildAvatar', () => {
       }
       disposeAvatar(root);
     }));
+  });
+
+  it('wears a top in the colour chosen for it, trims and all, and in its own for one not on offer', () => {
+    const colourOf = (root: THREE.Object3D, name: string) =>
+      ((find(root, name)[0] as THREE.Mesh).material as THREE.MeshToonMaterial).color.getHexString();
+    const chosen = buildAvatar(avatar({ top: 'hoodie', topColour: TOP_COLOURS[5] } as Partial<Avatar>));
+    expect(colourOf(chosen, 'torso')).toBe(TOP_COLOURS[5].slice(1));
+    // The hood and cuffs are a shade of it, not of the hoodie's own blue
+    const own = buildAvatar(avatar({ top: 'hoodie' } as Partial<Avatar>));
+    expect(colourOf(chosen, 'hood')).not.toBe(colourOf(own, 'hood'));
+    expect(colourOf(chosen, 'cuff')).not.toBe(colourOf(own, 'cuff'));
+    const odd = buildAvatar(avatar({ top: 'hoodie', topColour: '#123456' } as Partial<Avatar>));
+    expect(colourOf(odd, 'torso')).toBe(colourOf(own, 'torso'));
+    [chosen, own, odd].forEach(disposeAvatar);
   });
 
   it('wears nothing that was not chosen', () => {

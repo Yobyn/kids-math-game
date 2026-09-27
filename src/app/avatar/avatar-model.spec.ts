@@ -104,7 +104,8 @@ describe('reading a stored character', () => {
       top: NO_ITEM,
       pet: 'kitten',
       back: 'backpack',
-      shoes: 'high-tops'
+      shoes: 'high-tops',
+      topColour: '#8e5bd6'
     };
 
     expect(normaliseAvatar(chosen, 14)).toEqual(chosen);
@@ -247,6 +248,15 @@ describe('the wardrobe', () => {
     expect(normaliseAvatar(before, 30).back).toBe(NO_ITEM);
     // A kitten is not something to wear on the back
     expect(normaliseAvatar({ ...defaultAvatar(), back: 'kitten' }, 30).back).toBe(NO_ITEM);
+  });
+
+  it('carries a top’s colour through as it was saved, and none for a save from before', () => {
+    expect(defaultAvatar().topColour).toBe('');
+    expect(normaliseAvatar({ ...defaultAvatar(), topColour: '#8e5bd6' }).topColour).toBe('#8e5bd6');
+    const { topColour, ...before } = defaultAvatar();
+    expect(topColour).toBe('');
+    expect(normaliseAvatar(before).topColour).toBe('');
+    expect(normaliseAvatar({ ...defaultAvatar(), topColour: 42 }).topColour).toBe('');
   });
 
   it('knows every slot something can be earned for, and keeps each one on a saved character', () => {

@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AvatarService } from '../services/avatar.service';
 import { LanguageService, TranslationKeys } from '../services/language.service';
+import { TOP_COLOURS, ownTopColour } from './top-colours';
 import { ProgressService } from '../services/progress.service';
 
 import { levelForXp } from '../levels/level-curve';
@@ -58,7 +59,9 @@ export class AvatarChooserComponent implements OnInit {
     mouthShape: MOUTH_SHAPES,
     hairStyle: HAIR_STYLES,
     hairTexture: HAIR_TEXTURES,
-    hairColour: HAIR_COLOURS
+    hairColour: HAIR_COLOURS,
+    // '' is the top's own colour, first
+    topColour: ['', ...TOP_COLOURS]
   };
   level = 1;
   nextReward?: WardrobeItem;
@@ -125,6 +128,17 @@ export class AvatarChooserComponent implements OnInit {
 
   itemsFor(row: ChooserRow): WardrobeItem[] {
     return row.slot ? itemsForSlot(row.slot) : [];
+  }
+
+  /** A colour swatch's colour: the value, or for a top's own colour (''), that colour. */
+  swatchColour(value: string): string {
+    return value || ownTopColour(this.avatar);
+  }
+
+  /** What a colour swatch says to a screen reader: the row, and for '' that it is the top's own. */
+  swatchLabel(row: ChooserRow, value: string): string {
+    const heading = this.languageService.translate(row.heading);
+    return value ? heading : `${heading} — ${this.languageService.translate('own-colour' as TranslationKeys)}`;
   }
 
   /** True where the swatch shows a colour rather than drawing a character. */

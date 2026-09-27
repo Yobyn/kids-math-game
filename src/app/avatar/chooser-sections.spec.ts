@@ -61,10 +61,13 @@ describe('the character page, in sections', () => {
     // Two sections a child can open without ever meeting a lock.
     SECTIONS.forEach(section => {
       const hasSlots = section.rows.some(row => !!row.slot);
-      const allSlots = section.rows.every(row => !!row.slot);
       expect(hasSlots).toBe(EARNED_SECTIONS.indexOf(section.id) >= 0, section.id);
-      expect(allSlots).toBe(hasSlots, section.id);
+      // The one free row among them colours something worn there
+      if (hasSlots) {
+        section.rows.filter(row => !row.slot).forEach(row => expect(row.part).toBe('topColour', section.id));
+      }
     });
+    expect(sectionOfPart('topColour')).toBe('wardrobe');
     // What is worn together, and what the character has besides
     expect(sectionOfSlot('shoes')).toBe('wardrobe');
     expect(sectionOfSlot('back')).toBe('extras');
