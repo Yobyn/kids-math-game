@@ -48,6 +48,12 @@ export interface Avatar {
   back: string;
   /** What the character stands in; nothing won means the sneakers everyone has. */
   shoes: string;
+  /**
+   * The top in another colour, or '' for its own. Checked against the
+   * colours on offer where it is drawn (avatar3d/top-colours.ts), not here:
+   * the list stays out of the first load, and one not on it is ignored.
+   */
+  topColour: string;
 }
 
 export type ItemSlot = 'hat' | 'glasses' | 'top' | 'pet' | 'back' | 'shoes';
@@ -166,7 +172,8 @@ export function defaultAvatar(): Avatar {
     top: NO_ITEM,
     pet: NO_ITEM,
     back: NO_ITEM,
-    shoes: NO_ITEM
+    shoes: NO_ITEM,
+    topColour: ''
   };
 }
 
@@ -202,6 +209,7 @@ export function normaliseAvatar(raw: any, level = 1, earnedEvents: string[] = []
     eyeShape: pick(EYE_SHAPES, raw.eyeShape, fallback.eyeShape) as EyeShape,
     eyeColour: pick(EYE_COLOURS, raw.eyeColour, fallback.eyeColour),
     mouthShape: pick(MOUTH_SHAPES, raw.mouthShape, fallback.mouthShape) as MouthShape,
+    topColour: typeof raw.topColour === 'string' ? raw.topColour : '',
     // Every slot the same way: the item if it has been earned, otherwise
     // nothing. A slot absent on a character saved before it existed (pets,
     // the back, shoes) reads as nothing there, which is what it had
