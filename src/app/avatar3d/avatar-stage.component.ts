@@ -7,6 +7,7 @@ import { Avatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
 import { WAVE_SECONDS, putOnSomethingNew } from './motion';
 import { Rig } from './rig';
+import { CREATURE_HEAD } from './creatures';
 
 /** The usual camera distance, for a character of ordinary height. */
 export const BASE_DISTANCE = 28.5;
@@ -338,16 +339,25 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   view(): { target: THREE.Vector3; distance: number } {
     const box = new THREE.Box3();
     if (this.focus === 'head') {
-      ['head-group', 'hair', 'hat', 'glasses'].forEach(name => {
+      ['head-group', 'hair', 'hat', 'glasses', CREATURE_HEAD].forEach(name => {
         const part = this.model!.getObjectByName(name);
         if (part) {
           box.expandByObject(part);
         }
       });
-      const { distance, centre } = headFraming(box.min.y, box.max.y, this.camera.fov, this.camera.aspect);
-      return { target: new THREE.Vector3(0, centre, 0), distance };
+      // A character with no head to close in on is framed whole
+      if (!box.isEmpty()) {
+        const { distance, centre } = headFraming(box.min.y, box.max.y, this.camera.fov, this.camera.aspect);
+        return { target: new THREE.Vector3(0, centre, 0), distance };
+      }
     }
-    box.setFromObject(this.model!);
+    // Everything solid: a glow round a creature is light, not something to fit in
+    this.model!.updateMatrixWorld(true);
+    this.model!.traverse(node => {
+      if ((node as THREE.Mesh).isMesh) {
+        box.expandByObject(node);
+      }
+    });
     const pet = this.model!.getObjectByName('pet');
     const beside = pet ? new THREE.Box3().setFromObject(pet) : undefined;
     const { distance, centre } = bodyFraming(box, this.camera.fov, this.camera.aspect, beside);

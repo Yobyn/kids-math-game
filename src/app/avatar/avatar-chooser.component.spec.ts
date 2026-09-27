@@ -328,6 +328,63 @@ describe('AvatarChooserComponent wardrobe', () => {
     expect(service.get().pet).toBe('puppy');
   });
 
+  describe('families that grow (Yobyn, 2026-09-27)', () => {
+    const familyRow = () => fixture.nativeElement.querySelector('.family-row') as HTMLElement;
+    const stageRow = () => fixture.nativeElement.querySelector('.stage-row') as HTMLElement | null;
+
+    it('asks first what kind of character to be, a kid hero to start', () => {
+      openAtLevel(1);
+      const swatches = Array.from(familyRow().querySelectorAll('.swatch')) as HTMLButtonElement[];
+      expect(swatches.map(s => s.getAttribute('data-value'))).toEqual(['kid', 'creature']);
+      expect(swatches[0].classList).toContain('chosen');
+      // A kid hero has a face, hair and clothes to choose, and no stages yet
+      expect(fixture.nativeElement.querySelector('.tabs')).toBeTruthy();
+      expect(stageRow()).toBeNull();
+    });
+
+    it('turns into a dragon, which grows instead of dressing up', () => {
+      openAtLevel(1);
+      (familyRow().querySelectorAll('.swatch')[1] as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(component.avatar.family).toBe('creature');
+      expect(service.get().family).toBe('creature');
+      expect(fixture.nativeElement.querySelector('.tabs')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.body-row')).toBeNull();
+      expect(stageRow()).toBeTruthy();
+      // The whole dragon on the stage, never a close-up of a face it does not have
+      expect(fixture.debugElement.query(By.css('.stage app-avatar-stage')).properties.focus).toBe('body');
+    });
+
+    it('shows every stage, the ones still to come locked with the level they come at', () => {
+      openAtLevel(12);
+      component.pickFamily('creature');
+      fixture.detectChanges();
+      const stages = Array.from(stageRow()!.querySelectorAll('.swatch')) as HTMLButtonElement[];
+      expect(stages.map(s => s.disabled)).toEqual([false, false, true]);
+      expect(stages[2].textContent).toContain('15');
+      // Grown to the newest stage reached, by itself
+      expect(component.avatar.stage).toBe(2);
+      expect(stages[1].classList).toContain('chosen');
+    });
+
+    it('goes back to an earlier stage a child liked, and keeps it there until they pick the newest again', () => {
+      openAtLevel(16);
+      component.pickFamily('creature');
+      fixture.detectChanges();
+      const stages = () => Array.from(stageRow()!.querySelectorAll('.swatch')) as HTMLButtonElement[];
+      stages()[0].click();
+      fixture.detectChanges();
+      expect([service.get().stage, service.get().stagePinned]).toEqual([1, true]);
+      stages()[2].click();
+      fixture.detectChanges();
+      expect([service.get().stage, service.get().stagePinned]).toEqual([3, false]);
+      // A stage not reached cannot be picked, even by a stray call
+      component.level = 3;
+      component.pickStage(3);
+      expect(component.avatar.stage).toBe(3);
+    });
+  });
+
   it('offers a colour for the top, its own first, and wears the one picked', () => {
     openAtLevel(9);
     component.choose('top', 'hoodie');

@@ -8,6 +8,7 @@ import { SoundService } from '../services/sound.service';
 import { ScoreService } from '../services/score.service';
 import { ProgressService } from '../services/progress.service';
 import { AuthService } from '../services/auth.service';
+import { AvatarService } from '../services/avatar.service';
 import { Router } from '@angular/router';
 import { ROUND_COMPLETION_XP, xpForRound, xpToReach } from '../levels/level-curve';
 import { NO_ITEM, levelItems } from '../avatar/avatar-model';
@@ -302,6 +303,18 @@ describe('ResultComponent levels', () => {
   });
 
   afterEach(() => localStorage.clear());
+
+  it('grows the character on every screen when a round crosses into a new stage', () => {
+    progress.addXp(xpToReach(10) - 5);
+    const avatars = TestBed.inject(AvatarService);
+    avatars.refresh();
+    expect(avatars.get().stage).toBe(1);
+
+    render(100);
+
+    expect(component.level.level).toBe(10);
+    expect(avatars.get().stage).toBe(2);
+  });
 
   it('pays for a round that went badly', () => {
     render(0);

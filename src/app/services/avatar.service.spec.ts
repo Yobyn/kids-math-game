@@ -25,6 +25,14 @@ describe('AvatarService', () => {
     expect(service.hasChosen()).toBe(false);
   });
 
+  it('grows a character with the child, one never chosen too', () => {
+    TestBed.inject(ProgressService).addXp(xpToReach(15));
+    expect(fresh().get().stage).toBe(3);
+    service = fresh();
+    service.save({ ...service.get(), family: 'creature' });
+    expect(fresh().get().stage).toBe(3);
+  });
+
   it('remembers a choice for the next visit', () => {
     service.save({ ...service.get(), skin: SKIN_TONES[5] });
 
