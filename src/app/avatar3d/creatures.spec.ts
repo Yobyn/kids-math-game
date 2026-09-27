@@ -93,6 +93,17 @@ describe('the Creatures family: a dragon that grows', () => {
     });
   });
 
+  it('frees what is its own when put away, and not the plane every glow shares', () => {
+    const root = buildAvatar(dragon(3));
+    const glow = root.getObjectByName(CREATURE_GLOW) as THREE.Sprite;
+    const shared = spyOn(glow.geometry, 'dispose');
+    const body = root.getObjectByName('creature-body') as THREE.Mesh;
+    const own = spyOn(body.geometry, 'dispose').and.callThrough();
+    disposeAvatar(root);
+    expect(shared).not.toHaveBeenCalled();
+    expect(own).toHaveBeenCalled();
+  });
+
   it('builds a stage out of range as the nearest one there is', () => {
     expect(buildCreature(0).userData.stage).toBe(1);
     expect(buildCreature(7).userData.stage).toBe(3);
@@ -150,6 +161,10 @@ describe('the Creatures family: a dragon that grows', () => {
       expect(whole.equals(solidBox(root.getObjectByName(CREATURE)!))).withContext(`stage ${stage}`).toBeTrue();
       const head = new THREE.Box3().setFromObject(root.getObjectByName(CREATURE_HEAD)!);
       expect(portrait.containsBox(head)).withContext(`stage ${stage}`).toBeTrue();
+      // With room round it, not cut off at the ears
+      const room = (head.max.y - head.min.y) * 0.1;
+      expect(portrait.max.y - head.max.y).withContext(`stage ${stage}`).toBeGreaterThan(room);
+      expect(head.min.x - portrait.min.x).withContext(`stage ${stage}`).toBeGreaterThan(room);
       expect(portrait.max.y - portrait.min.y).withContext(`stage ${stage}`).toBeLessThan(whole.max.y - whole.min.y);
     });
   });

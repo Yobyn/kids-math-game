@@ -261,13 +261,12 @@ export class AvatarChooserComponent implements OnInit {
 
   /**
    * Any stage reached can be picked: the newest follows the child as they
-   * climb, an earlier one stays until they choose again.
+   * climb, an earlier one stays until they choose again. One not reached is
+   * never kept (normaliseAvatar), and its button is disabled anyway.
    */
   pickStage(stage: number) {
-    if (this.stageReached(stage)) {
-      this.avatarService.save({ ...this.avatar, stage, stagePinned: stage < stageForLevel(this.level) });
-      this.avatar = { ...this.avatarService.get() };
-    }
+    this.avatarService.save({ ...this.avatar, stage, stagePinned: stage < stageForLevel(this.level) });
+    this.avatar = { ...this.avatarService.get() };
   }
 
   /** Saved on every tap: a child should never lose a choice to a missed button. */

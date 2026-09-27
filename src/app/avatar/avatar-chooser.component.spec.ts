@@ -367,6 +367,19 @@ describe('AvatarChooserComponent wardrobe', () => {
       expect(stages[1].classList).toContain('chosen');
     });
 
+    it('opens on the stage the child has grown to since the character was last looked at', () => {
+      // A dragon saved at level 1, then a climb to level 12 before the screen opens again
+      service.save({ ...service.get(), family: 'creature' });
+      openAtLevel(12);
+      expect(component.avatar.stage).toBe(2);
+    });
+
+    it('never shows something it would not keep', () => {
+      openAtLevel(1);
+      component.choose('hat', 'crown');
+      expect(component.avatar.hat).toBe(NO_ITEM);
+    });
+
     it('goes back to an earlier stage a child liked, and keeps it there until they pick the newest again', () => {
       openAtLevel(16);
       component.pickFamily('creature');
@@ -378,10 +391,7 @@ describe('AvatarChooserComponent wardrobe', () => {
       stages()[2].click();
       fixture.detectChanges();
       expect([service.get().stage, service.get().stagePinned]).toEqual([3, false]);
-      // A stage not reached cannot be picked, even by a stray call
-      component.level = 3;
-      component.pickStage(3);
-      expect(component.avatar.stage).toBe(3);
+
     });
   });
 

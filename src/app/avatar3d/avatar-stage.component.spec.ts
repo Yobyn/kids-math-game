@@ -267,6 +267,16 @@ describe('AvatarStageComponent', () => {
       expect((component as any).camera.position.distanceTo((component as any).controls.target)).toBeCloseTo(distance, 6);
     });
 
+    it('frames a creature whole even when asked for a close-up, having no kid\u2019s head to close in on', () => {
+      component.avatar = { ...component.avatar, family: 'creature', stage: 2 };
+      component.ngOnChanges({ avatar: new SimpleChange(null, component.avatar, false) });
+      component.focus = 'head';
+      const { target, distance } = component.view();
+      expect(Number.isFinite(distance)).toBeTrue();
+      expect(Number.isFinite(target.y)).toBeTrue();
+      expect(distance).toBeGreaterThan(0);
+    });
+
     it('rebuilds the character when the character changes', () => {
       const model = component.model;
       component.avatar = { ...component.avatar, bodyType: 'girl' };
