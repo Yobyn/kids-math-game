@@ -19,7 +19,7 @@ import { TranslationKeys } from '../services/language.service';
  * that is the order of how much they say about who the child is, and because
  * the last of the three is the only one with anything locked in it.
  */
-export type SectionId = 'face' | 'hair' | 'wardrobe';
+export type SectionId = 'face' | 'hair' | 'wardrobe' | 'extras';
 
 /** A row of choices: either a part of the character, or a slot to fill. */
 export interface ChooserRow {
@@ -82,10 +82,24 @@ export const SECTIONS: ChooserSection[] = [
       { heading: 'hats', slot: 'hat', shape: true },
       { heading: 'glasses', slot: 'glasses', shape: true },
       { heading: 'tops', slot: 'top', shape: true },
+      // Free, like a hair colour, but about something worn: next to the tops
+      { heading: 'top-colour', part: 'topColour' },
+      { heading: 'shoes', slot: 'shoes', shape: true }
+    ]
+  },
+  {
+    // What a character has rather than wears: on its back, and beside it
+    id: 'extras',
+    heading: 'extras',
+    rows: [
+      { heading: 'on-your-back', slot: 'back', shape: true },
       { heading: 'pets', slot: 'pet', shape: true }
     ]
   }
 ];
+
+/** The sections with things to earn in them; the rest are free. */
+export const EARNED_SECTIONS: SectionId[] = ['wardrobe', 'extras'];
 
 /** Which section a part of the character lives in, or undefined for none. */
 export function sectionOfPart(part: keyof Avatar): SectionId | undefined {

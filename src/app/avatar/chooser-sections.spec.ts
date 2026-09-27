@@ -1,15 +1,15 @@
-import { AVATAR_CHOICES, Avatar, ItemSlot } from './avatar-model';
+import { AVATAR_CHOICES, Avatar, ITEM_SLOTS, ItemSlot } from './avatar-model';
 import {
-  BODY_ROW, SECTIONS, allRows, sectionOfPart, sectionOfSlot } from './chooser-sections';
+  BODY_ROW, EARNED_SECTIONS, SECTIONS, allRows, sectionOfPart, sectionOfSlot } from './chooser-sections';
 
-const SLOTS: ItemSlot[] = ['hat', 'glasses', 'top'];
+const SLOTS: ItemSlot[] = ITEM_SLOTS;
 
 describe('the character page, in sections', () => {
-  it('divides it into three', () => {
+  it('divides it into four', () => {
     // Eight rows in one column was 1862px at 390 wide — 2.2 screenfuls, and
     // 3.7 with the phone on its side
-    expect(SECTIONS.length).toBe(3);
-    expect(SECTIONS.map(section => section.id)).toEqual(['face', 'hair', 'wardrobe']);
+    expect(SECTIONS.length).toBe(4);
+    expect(SECTIONS.map(section => section.id)).toEqual(['face', 'hair', 'wardrobe', 'extras']);
   });
 
   it('opens on the face, which is what says who this is', () => {
@@ -56,13 +56,22 @@ describe('the character page, in sections', () => {
     SECTIONS.forEach(section => expect(section.heading).toBeTruthy());
   });
 
-  it('keeps everything earned in one section and nothing earned anywhere else', () => {
-    // Identity is free; only the things you wear are climbed to. Two
-    // sections a child can open without ever meeting a lock.
+  it('keeps everything earned in its own sections and nothing earned anywhere else', () => {
+    // Identity is free; only the things you wear and have are climbed to.
+    // Two sections a child can open without ever meeting a lock.
     SECTIONS.forEach(section => {
       const hasSlots = section.rows.some(row => !!row.slot);
-      expect(hasSlots).toBe(section.id === 'wardrobe', section.id);
+      expect(hasSlots).toBe(EARNED_SECTIONS.indexOf(section.id) >= 0, section.id);
+      // The one free row among them colours something worn there
+      if (hasSlots) {
+        section.rows.filter(row => !row.slot).forEach(row => expect(row.part).toBe('topColour', section.id));
+      }
     });
+    expect(sectionOfPart('topColour')).toBe('wardrobe');
+    // What is worn together, and what the character has besides
+    expect(sectionOfSlot('shoes')).toBe('wardrobe');
+    expect(sectionOfSlot('back')).toBe('extras');
+    expect(sectionOfSlot('pet')).toBe('extras');
   });
 
   it('answers nothing for a part that does not exist', () => {

@@ -1,4 +1,7 @@
 import {
+  BACK_ITEMS,
+  ITEM_SLOTS,
+  SHOE_ITEMS,
   BODY_TYPES,
   AVATAR_CHOICES,
   Avatar,
@@ -99,7 +102,10 @@ describe('reading a stored character', () => {
       hat: NO_ITEM,
       glasses: NO_ITEM,
       top: NO_ITEM,
-      pet: 'kitten'
+      pet: 'kitten',
+      back: 'backpack',
+      shoes: 'high-tops',
+      topColour: '#8e5bd6'
     };
 
     expect(normaliseAvatar(chosen, 14)).toEqual(chosen);
@@ -232,14 +238,71 @@ describe('the wardrobe', () => {
     expect(nextUnlock(highest)).toBeUndefined();
   });
 
-  it('keeps something to climb for after the last hat, glasses and top: a pet', () => {
-    const worn = levelItems().filter(item => item.slot !== 'pet');
+  it('keeps something on the back only once it is won, and gives a character saved before there was one nothing', () => {
+    expect(BACK_ITEMS.filter(item => item.id !== NO_ITEM).map(item => [item.id, item.unlockLevel])).toEqual([['backpack', 11], ['cape', 19]]);
+    const cape = { ...defaultAvatar(), back: 'cape' };
+    expect(normaliseAvatar(cape, 18).back).toBe(NO_ITEM);
+    expect(normaliseAvatar(cape, 19).back).toBe('cape');
+    const { back, ...before } = defaultAvatar();
+    expect(back).toBe(NO_ITEM);
+    expect(normaliseAvatar(before, 30).back).toBe(NO_ITEM);
+    // A kitten is not something to wear on the back
+    expect(normaliseAvatar({ ...defaultAvatar(), back: 'kitten' }, 30).back).toBe(NO_ITEM);
+  });
+
+  it('carries a top’s colour through as it was saved, and none for a save from before', () => {
+    expect(defaultAvatar().topColour).toBe('');
+    expect(normaliseAvatar({ ...defaultAvatar(), topColour: '#8e5bd6' }).topColour).toBe('#8e5bd6');
+    const { topColour, ...before } = defaultAvatar();
+    expect(topColour).toBe('');
+    expect(normaliseAvatar(before).topColour).toBe('');
+    expect(normaliseAvatar({ ...defaultAvatar(), topColour: 42 }).topColour).toBe('');
+  });
+
+  it('knows every slot something can be earned for, and keeps each one on a saved character', () => {
+    expect(ITEM_SLOTS.slice().sort()).toEqual(Array.from(new Set(WARDROBE.map(item => item.slot))).sort());
+    ITEM_SLOTS.forEach(slot => expect(defaultAvatar()[slot]).toBe(NO_ITEM));
+  });
+
+  it('keeps shoes only once they are won, and gives a character saved before there were any the sneakers', () => {
+    expect(SHOE_ITEMS.filter(item => item.id !== NO_ITEM).map(item => [item.id, item.unlockLevel])).toEqual([['high-tops', 13], ['boots', 16], ['light-up', 20]]);
+    const boots = { ...defaultAvatar(), shoes: 'boots' };
+    expect(normaliseAvatar(boots, 15).shoes).toBe(NO_ITEM);
+    expect(normaliseAvatar(boots, 16).shoes).toBe('boots');
+    const { shoes, ...before } = defaultAvatar();
+    expect(shoes).toBe(NO_ITEM);
+    expect(normaliseAvatar(before, 30).shoes).toBe(NO_ITEM);
+    expect(normaliseAvatar({ ...defaultAvatar(), shoes: 'cape' }, 30).shoes).toBe(NO_ITEM);
+  });
+
+  it('gives something at every level from 2 to 21 but two, now shoes fill the gaps between the pets', () => {
+    const won = new Set(levelItems().map(item => item.unlockLevel));
+    const empty: number[] = [];
+    for (let level = 2; level <= 21; level++) {
+      if (!won.has(level)) {
+        empty.push(level);
+      }
+    }
+    expect(empty).toEqual([15, 18]);
+  });
+
+  it('fills the one early level that won nothing with the backpack, and puts the cape between two pets', () => {
+    expect(itemsUnlockedAt(11).map(item => item.id)).toEqual(['backpack']);
+    const early = levelItems().filter(item => item.unlockLevel <= 12).map(item => item.unlockLevel);
+    for (let level = 2; level <= 12; level++) {
+      expect(early).toContain(level);
+    }
+    expect(itemsUnlockedAt(19).map(item => item.id)).toEqual(['cape']);
+  });
+
+  it('keeps something to climb for after the last hat, glasses and top: pets, and more besides', () => {
+    const worn = levelItems().filter(item => ['hat', 'glasses', 'top'].indexOf(item.slot) >= 0);
     const pets = levelItems().filter(item => item.slot === 'pet');
     const lastWorn = Math.max(...worn.map(item => item.unlockLevel));
     expect(pets.length).toBe(3);
     pets.forEach(pet => expect(pet.unlockLevel).toBeGreaterThan(lastWorn));
-    // And nextUnlock points at the first of them from the top of the rest
-    expect(nextUnlock(lastWorn)!.slot).toBe('pet');
+    // And nextUnlock points at something new from the top of the rest
+    expect(['hat', 'glasses', 'top']).not.toContain(nextUnlock(lastWorn)!.slot);
   });
 
   it('unlocks on reaching the level, not after it', () => {

@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpClientModule } from '@angular/common/http';
 
 import { AppRoutingModule } from './app-routing.module';
 import { SharedModule } from './shared/shared.module';
@@ -17,7 +17,6 @@ import { CoinPickerComponent } from './money/coin-picker.component';
 import { ParticlesComponent } from './particles/particles.component';
 import { RoundTrackComponent } from './question/round-track.component';
 import { TitleHeroComponent } from './login/title-hero.component';
-import { AuthInterceptor } from './auth.interceptor';
 
 @NgModule({
   declarations: [
@@ -41,9 +40,10 @@ import { AuthInterceptor } from './auth.interceptor';
     SharedModule,
     HttpClientModule,
   ],
-  providers: [
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true }
-  ],
+  // No HTTP interceptor: every request that needs a token sets its own, from
+  // AuthService as it stands (progress-sync.service.ts). One here used to
+  // hold the token from when the app opened and put it back over theirs
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

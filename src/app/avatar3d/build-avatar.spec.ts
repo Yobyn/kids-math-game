@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { TOP_COLOURS } from '../avatar/top-colours';
 import {
   Avatar, FACE_SHAPES, HAIR_STYLES, HAIR_TEXTURES, NO_ITEM, WARDROBE, defaultAvatar, findItem
 } from '../avatar/avatar-model';
@@ -165,7 +166,7 @@ describe('buildAvatar', () => {
     expect(find(buildAvatar(avatar({ hairStyle: 'short' })), 'hair-long').length).toBe(0);
   });
 
-  it('builds every hat, pair of glasses and top in the wardrobe on every face', () => {
+  it('builds everything in the wardrobe on every face', () => {
     const items = WARDROBE.filter(item => item.id !== NO_ITEM);
     expect(items.length).toBeGreaterThan(10);
     items.forEach(item => FACE_SHAPES.forEach(faceShape => {
@@ -174,7 +175,8 @@ describe('buildAvatar', () => {
         const [torso] = find(root, 'torso') as THREE.Mesh[];
         expect((torso.material as THREE.MeshToonMaterial).color.getHexString()).toBe(item.colour.slice(1).toLowerCase(), item.id);
       } else {
-        const [worn] = find(root, item.slot);
+        // A pair of shoes is two shoes, each marked with what it is
+        const [worn] = item.slot === 'shoes' ? find(root, 'shoe').filter(shoe => shoe.userData.item === item.id) : find(root, item.slot);
         expect(worn).toBeTruthy(`${item.id} on ${faceShape}`);
         let meshes = 0;
         worn.traverse(o => { if ((o as THREE.Mesh).isMesh) { meshes++; } });
@@ -182,6 +184,20 @@ describe('buildAvatar', () => {
       }
       disposeAvatar(root);
     }));
+  });
+
+  it('wears a top in the colour chosen for it, trims and all, and in its own for one not on offer', () => {
+    const colourOf = (root: THREE.Object3D, name: string) =>
+      ((find(root, name)[0] as THREE.Mesh).material as THREE.MeshToonMaterial).color.getHexString();
+    const chosen = buildAvatar(avatar({ top: 'hoodie', topColour: TOP_COLOURS[5] } as Partial<Avatar>));
+    expect(colourOf(chosen, 'torso')).toBe(TOP_COLOURS[5].slice(1));
+    // The hood and cuffs are a shade of it, not of the hoodie's own blue
+    const own = buildAvatar(avatar({ top: 'hoodie' } as Partial<Avatar>));
+    expect(colourOf(chosen, 'hood')).not.toBe(colourOf(own, 'hood'));
+    expect(colourOf(chosen, 'cuff')).not.toBe(colourOf(own, 'cuff'));
+    const odd = buildAvatar(avatar({ top: 'hoodie', topColour: '#123456' } as Partial<Avatar>));
+    expect(colourOf(odd, 'torso')).toBe(colourOf(own, 'torso'));
+    [chosen, own, odd].forEach(disposeAvatar);
   });
 
   it('wears nothing that was not chosen', () => {

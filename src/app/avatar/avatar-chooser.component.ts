@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AvatarService } from '../services/avatar.service';
 import { LanguageService, TranslationKeys } from '../services/language.service';
+import { TOP_COLOURS, ownTopColour } from './top-colours';
 import { ProgressService } from '../services/progress.service';
 
 import { levelForXp } from '../levels/level-curve';
@@ -21,8 +22,8 @@ import {
   WardrobeItem,
   isUnlocked
 } from './avatar-model';
-import { BODY_ROW, ChooserRow, SECTIONS, SectionId } from './chooser-sections';
-import { PET_ICONS } from './pet-icons';
+import { BODY_ROW, ChooserRow, EARNED_SECTIONS, SECTIONS, SectionId } from './chooser-sections';
+import { ICON_SLOTS, itemIcon } from './item-icons';
 import { CHOOSER_WORDS } from './chooser-words';
 import { findEvent, nextOpening } from '../events/next-opening';
 import { itemsForSlot, nextUnlock } from './wardrobe-lookups';
@@ -58,7 +59,9 @@ export class AvatarChooserComponent implements OnInit {
     mouthShape: MOUTH_SHAPES,
     hairStyle: HAIR_STYLES,
     hairTexture: HAIR_TEXTURES,
-    hairColour: HAIR_COLOURS
+    hairColour: HAIR_COLOURS,
+    // '' is the top's own colour, first
+    topColour: ['', ...TOP_COLOURS]
   };
   level = 1;
   nextReward?: WardrobeItem;
@@ -108,6 +111,11 @@ export class AvatarChooserComponent implements OnInit {
     this.open = id;
   }
 
+  /** Whether the section open is one with things to earn: the whole character is shown, and what comes next. */
+  get earned(): boolean {
+    return EARNED_SECTIONS.indexOf(this.open) >= 0;
+  }
+
   get rows(): ChooserRow[] {
     const section = SECTIONS.find(entry => entry.id === this.open);
     return section ? section.rows : [];
@@ -120,6 +128,17 @@ export class AvatarChooserComponent implements OnInit {
 
   itemsFor(row: ChooserRow): WardrobeItem[] {
     return row.slot ? itemsForSlot(row.slot) : [];
+  }
+
+  /** A colour swatch's colour: the value, or for a top's own colour (''), that colour. */
+  swatchColour(value: string): string {
+    return value || ownTopColour(this.avatar);
+  }
+
+  /** What a colour swatch says to a screen reader: the row, and for '' that it is the top's own. */
+  swatchLabel(row: ChooserRow, value: string): string {
+    const heading = this.languageService.translate(row.heading);
+    return value ? heading : `${heading} — ${this.languageService.translate('own-colour' as TranslationKeys)}`;
   }
 
   /** True where the swatch shows a colour rather than drawing a character. */
@@ -190,9 +209,14 @@ export class AvatarChooserComponent implements OnInit {
     return `${this.itemName(item)} — ${this.languageService.translate('level')} ${item.unlockLevel}`;
   }
 
-  /** A pet's swatch: the pet by itself (see PET_ICONS). */
-  petIcon(item: WardrobeItem): string {
-    return PET_ICONS[item.id] || PET_ICONS[NO_ITEM];
+  /** Whether a row's swatches are the things themselves: pets, and what goes on the back (see ITEM_ICONS). */
+  iconRow(row: ChooserRow): boolean {
+    return !!row.slot && ICON_SLOTS.indexOf(row.slot) >= 0;
+  }
+
+  /** Such a swatch: the thing by itself. */
+  icon(item: WardrobeItem): string {
+    return itemIcon(item);
   }
 
   /** A bare character, so an item's own swatch is not lost under a hat. */

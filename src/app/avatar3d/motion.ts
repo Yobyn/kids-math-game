@@ -105,8 +105,8 @@ function ease(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
-/** The wardrobe slots: something new in one of these is worth a wave (a new pet, a hello). */
-const WORN = ['hat', 'glasses', 'top', 'pet'] as const;
+/** The wardrobe slots: something new in one of these is worth a wave (a new pet, a cape, a hello). */
+const WORN = ['hat', 'glasses', 'top', 'pet', 'back', 'shoes'] as const;
 
 /**
  * Whether going from `before` to `after` put something new on: a hat,
@@ -149,6 +149,15 @@ export function tailWag(seconds: number): number {
   }
   const swell = Math.sin((into / TAIL_BURST) * Math.PI);
   return Math.sin((into / TAIL_BEAT) * Math.PI * 2) * TAIL_SWING * swell;
+}
+
+/** Light-up soles glow up and down this often, in seconds, from full to this dim and back. */
+export const GLOW_SECONDS = 1.6;
+export const GLOW_LOW = 0.55;
+
+/** How bright light-up soles are, `seconds` in: full at the first moment, as built. */
+export function glow(seconds: number): number {
+  return GLOW_LOW + (1 - GLOW_LOW) * (1 + Math.cos((seconds / GLOW_SECONDS) * Math.PI * 2)) / 2;
 }
 
 /** The dragon's wings, `seconds` in: a slow, even flap, open and back. */

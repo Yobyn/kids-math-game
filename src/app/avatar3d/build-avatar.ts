@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { Avatar, DEFAULT_TOP_COLOUR, findItem, NO_ITEM } from '../avatar/avatar-model';
+import { Avatar, findItem, NO_ITEM } from '../avatar/avatar-model';
+import { topColourOf } from '../avatar/top-colours';
 import { HATS_OVER_HAIR, shade } from '../avatar/avatar-parts';
 import {
   BROW_DIRS, EAR_DIRS, EYE_DIRS, HAT_CAP, Vec3, hairPoint, hairline, headPoint, normalise
@@ -7,8 +8,10 @@ import {
 import { at, crownGrid, part, scale, starShape, surfaceGeometry, toon } from './toon';
 import { buildGlasses, buildHat } from './wardrobe3d';
 import { buildPet } from './pets';
+import { buildShoe, collarShare, legRadius } from './shoes';
+import { Around, BackMap, buildBackItem } from './back-items';
 import { WAVING_SIDE } from './motion';
-import { Figure, chinY, figureFor, hang, torsoRadius, wrist } from './figure';
+import { Figure, KNEE_FORWARD, chinY, figureFor, hang, legLength, lowerLegRadii, torsoRadius, wrist } from './figure';
 
 /** The joints an arm turns at, by name, for rig.ts. */
 export const ARM_RIG = 'arm-rig';
@@ -376,9 +379,6 @@ function buildHair(avatar: Avatar, figure: Figure): THREE.Group {
 /** A body part in the trousers' colour. */
 const TROUSERS = '#a86f3f';
 const BELT = '#2f2a3a';
-const SHOE = '#2c3944';
-const SOLE = '#e4e9ea';
-const LACE = '#dfe6ea';
 
 /**
  * A rounded tube from `from` to `to`, its radius following `radii` along the
@@ -416,7 +416,8 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
   const body = new THREE.Group();
   body.name = 'body';
   const top = findItem('top', avatar.top);
-  const topColour = top && top.id !== NO_ITEM ? top.colour : DEFAULT_TOP_COLOUR;
+  // Its own colour, or the one the child chose for it (top-colours.ts)
+  const topColour = topColourOf(avatar);
   const cut = topCut(avatar.top);
   const cloth = toon(topColour);
   const skin = toon(avatar.skin);
@@ -451,11 +452,17 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
 
   [-1, 1].forEach(side => {
     const hip = new THREE.Vector3(side * figure.hip[0], figure.hip[1], 0);
-    const knee = new THREE.Vector3(side * figure.knee[0], figure.knee[1], 0.04);
+    const knee = new THREE.Vector3(side * figure.knee[0], figure.knee[1], KNEE_FORWARD);
     const ankle = new THREE.Vector3(side * figure.ankle[0], figure.ankle[1], 0);
-    const [rHip, rKnee, rHem] = figure.legRadii;
+    const [rHip] = figure.legRadii;
     body.add(part('leg', limb([rHip, rHip * 0.92], hip, knee), trousers, 0.04));
-    body.add(part('leg', limb([rKnee * 1.02, rKnee, rHem, rHem * 1.05], knee, ankle), trousers, 0.04));
+    // Tucked into a shoe that comes up the leg (shoes.ts), or down to the hem
+    const worn = avatar.shoes && avatar.shoes !== NO_ITEM ? findItem('shoes', avatar.shoes) : undefined;
+    const share = worn ? collarShare(worn.id) : 0;
+    const radii = share > 0
+      ? Array.from({ length: 17 }, (_, i) => legRadius(figure, legLength(figure) * (1 - i / 16), share))
+      : lowerLegRadii(figure);
+    body.add(part('leg', limb(radii, knee, ankle), trousers, 0.04));
     // Cargo pockets on the outside of each thigh, as in the reference
     const mid = hip.clone().lerp(knee, 0.45);
     const pocket = part('cargo-pocket', new THREE.BoxGeometry(0.14, 1.3, 0.8), toon(shade(TROUSERS, 0.08)), 0.02);
@@ -465,27 +472,8 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     flap.position.set(mid.x + side * (rHip * 0.94), mid.y + 0.62, 0);
     body.add(flap);
 
-    // Sneakers: a white sole, a dark upper, laces over the top
-    const [footLength, footWidth] = figure.foot;
-    const shoe = new THREE.Group();
-    shoe.name = 'shoe';
-    shoe.position.set(ankle.x, 0, 0.18 * footLength);
-    const sole = part('shoe-sole', new THREE.CylinderGeometry(0.5, 0.5, 0.26, 28), toon(SOLE), 0.02);
-    sole.scale.set(footWidth, 1, footLength);
-    sole.position.y = 0.13;
-    const upperShoe = part('shoe-upper', new THREE.SphereGeometry(0.5, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2), toon(SHOE), 0.025);
-    upperShoe.scale.set(footWidth * 0.94, 1.15, footLength * 0.94);
-    upperShoe.position.y = 0.24;
-    const toe = part('shoe-toe', new THREE.SphereGeometry(0.5, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), toon(SOLE), 0.02);
-    toe.scale.set(footWidth * 0.8, 0.5, footLength * 0.34);
-    toe.position.set(0, 0.24, footLength * 0.3);
-    shoe.add(sole, upperShoe, toe);
-    for (let i = 0; i < 3; i++) {
-      const lace = part('shoe-lace', new THREE.BoxGeometry(footWidth * 0.5, 0.05, 0.06), toon(LACE), 0.008);
-      lace.position.set(0, 0.62 + i * 0.1 - i * i * 0.02, footLength * (0.14 - i * 0.1));
-      shoe.add(lace);
-    }
-    body.add(shoe);
+    // What the character stands in (shoes.ts): the sneakers, or a pair won
+    body.add((worn && buildShoe(worn.id, worn.colour, figure, side)) || buildShoe(NO_ITEM, '', figure, side)!);
 
     // Arms hang from the shoulder: a round shoulder, then the upper arm and forearm
     const shoulder = new THREE.Vector3(side * figure.shoulder[0], figure.shoulder[1], 0);
@@ -744,7 +732,60 @@ export function buildAvatar(avatar: Avatar): THREE.Group {
       root.add(item);
     }
   });
+  const back = buildBackBehind(avatar, figure, root);
+  if (back) {
+    root.add(back);
+  }
   return root;
+}
+
+/**
+ * The backpack or cape, built round the character already on the stand:
+ * everything but its arms (which it goes behind or inside), the stands and
+ * the pet. See back-items.ts.
+ */
+function buildBackBehind(avatar: Avatar, figure: Figure, root: THREE.Group): THREE.Group | null {
+  const item = avatar.back && avatar.back !== NO_ITEM ? findItem('back', avatar.back) : undefined;
+  return item ? buildBackItem(item.id, item.colour, figure, aroundCharacter(root, figure)) : null;
+}
+
+/**
+ * What a back item is built round (back-items.ts `Around`): the map of
+ * everything on the stand but the arms, the stands and the pet; how far back
+ * the arms reach; and the meshes the straps go over.
+ *
+ * How far back the arms reach is measured as they hang, and holds however
+ * they move: an arm turns at the shoulder about z, which keeps every point's
+ * depth, and the elbow's soft bend eases out only as the arm comes up, when
+ * the forearm is out to the side (a test holds it through a whole wave).
+ */
+export function aroundCharacter(root: THREE.Group, figure: Figure): Around {
+  root.updateMatrixWorld(true);
+  const meshes: THREE.Mesh[] = [];
+  let armBack = 0;
+  const visit = (node: THREE.Object3D, arm: boolean) => {
+    if (node.name === 'pedestal' || node.name === 'pet') {
+      return;
+    }
+    const inArm = arm || node.name === ARM_RIG;
+    const mesh = node as THREE.Mesh;
+    if (mesh.isMesh && !node.name.endsWith(':outline')) {
+      if (inArm) {
+        const position = mesh.geometry.attributes.position as THREE.BufferAttribute;
+        const p = new THREE.Vector3();
+        for (let i = 0; i < position.count; i++) {
+          armBack = Math.max(armBack, -p.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld).z);
+        }
+      } else {
+        meshes.push(mesh);
+      }
+    }
+    node.children.forEach(child => visit(child, inArm));
+  };
+  visit(root, false);
+  const reach = figure.shoulder[0] + figure.armRadii[0] * 2;
+  const map = new BackMap(meshes, -reach, reach, figure.ankle[1], chinY(figure) + 1);
+  return { map, armBack, meshes };
 }
 
 /** Frees every geometry and material under a built character. */

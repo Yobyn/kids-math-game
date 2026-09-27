@@ -5,7 +5,7 @@
        point of a swatch is seeing what it does. -->
   <div class="stage">
     <app-avatar-stage [avatar]="avatar" [label]="languageService.translate('your-character')"
-                      [focus]="open === 'wardrobe' ? 'body' : 'head'"
+                      [focus]="earned ? 'body' : 'head'"
                       [turnLeftLabel]="languageService.translate('turn-left')"
                       [turnRightLabel]="languageService.translate('turn-right')"></app-avatar-stage>
   </div>
@@ -27,7 +27,7 @@
     </div>
   </section>
 
-  <!-- Three sections rather than eight rows in one column. The face first,
+  <!-- Four sections rather than a dozen rows in one column. The face first,
        because it is what says who this is. -->
   <div class="tabs" role="tablist" [attr.aria-label]="languageService.translate('your-character')">
     <button type="button"
@@ -53,8 +53,9 @@
                 [class.style-swatch]="!isColour(row)"
                 [class.chosen]="chosen(row, value)"
                 [attr.aria-pressed]="chosen(row, value)"
-                [attr.aria-label]="languageService.translate(row.heading)"
-                [style.background]="isColour(row) ? value : null"
+                [class.own-colour]="isColour(row) && !value"
+                [attr.aria-label]="swatchLabel(row, value)"
+                [style.background]="isColour(row) ? swatchColour(value) : null"
                 (click)="pickPart(row, value)">
           <app-avatar *ngIf="!isColour(row)"
                       [avatar]="withPart(row, value)"
@@ -74,23 +75,23 @@
                 [attr.aria-pressed]="wearing(row.slot) === item.id"
                 [attr.aria-label]="itemLabel(item)"
                 (click)="wear(row.slot, item)">
-          <app-avatar *ngIf="row.slot !== 'pet'"
+          <app-avatar *ngIf="!iconRow(row)"
                       [avatar]="withItem(row.slot, item)"
                       [size]="44"
                       [framing]="framingForRow(row)"
                       look="flat"></app-avatar>
-          <span class="pet-icon" *ngIf="row.slot === 'pet'" aria-hidden="true">{{ petIcon(item) }}</span>
+          <span class="item-icon" *ngIf="iconRow(row)" aria-hidden="true">{{ icon(item) }}</span>
           <span class="lock" *ngIf="!canWear(item) && !item.event" aria-hidden="true">🔒{{ item.unlockLevel }}</span>
           <span class="lock event-lock" *ngIf="!canWear(item) && item.event" aria-hidden="true">🎁</span>
         </button>
       </div>
     </section>
 
-    <p class="event-note" *ngIf="open === 'wardrobe'">
+    <p class="event-note" *ngIf="earned">
       {{ languageService.translate('events-return') }}
     </p>
 
-    <p class="next-unlock" *ngIf="open === 'wardrobe' && nextReward">
+    <p class="next-unlock" *ngIf="earned && nextReward">
       {{ languageService.translate('next-unlock') }}
       {{ itemName(nextReward) }} — {{ languageService.translate('level') }} {{ nextReward.unlockLevel }}
     </p>

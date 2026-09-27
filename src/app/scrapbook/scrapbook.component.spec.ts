@@ -130,13 +130,25 @@ describe('ScrapbookComponent', () => {
 
     const pup = component.entries.find(entry => entry.id === 'puppy')!;
     const crown = component.entries.find(entry => entry.id === 'crown')!;
-    expect(component.petIcon(pup)).toBe('🐶');
-    expect(component.petIcon(crown)).toBe('');
+    expect(component.icon(pup)).toBe('🐶');
+    expect(component.icon(crown)).toBe('');
     const pictures = Array.from(fixture.nativeElement.querySelectorAll('.entry .picture')) as HTMLElement[];
     const pupPicture = pictures.find(p => p.textContent!.includes('🐶'))!;
     expect(pupPicture).toBeTruthy();
     expect(pupPicture.querySelector('app-avatar')).toBeNull();
     expect(pictures.filter(p => p.querySelector('app-avatar')).length).toBe(1);
+  });
+
+  it('shows a backpack or cape that was won by itself too: a picture from the front would hardly show it', () => {
+    progress.keepItem('cape');
+    open();
+    fixture.detectChanges();
+
+    const cape = component.entries.find(entry => entry.id === 'cape')!;
+    expect(component.icon(cape)).toBe('🦸');
+    const picture = (Array.from(fixture.nativeElement.querySelectorAll('.entry .picture')) as HTMLElement[])
+      .find(p => p.textContent!.includes('🦸'))!;
+    expect(picture.querySelector('app-avatar')).toBeNull();
   });
 
   it('gives the milestones a mark of their own instead of a character', () => {

@@ -55,6 +55,22 @@
   background: var(--surface-input);
 }
 
+/* A top's own colour is a colour too, so it carries a mark saying it is the
+   top's own: a round arrow, "back to how it was". */
+.swatch.own-colour {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swatch.own-colour::after {
+  content: '↺';
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.7);
+}
+
 /* The chosen one is marked by a ring and a size change, not colour alone —
    half these swatches are colours, so colour cannot carry the signal. */
 .swatch.chosen {
@@ -117,7 +133,7 @@
 }
 
 /* A pet is shown by itself, at the size of a face in the other swatches */
-.pet-icon {
+.item-icon {
   display: block;
   font-size: 1.9rem;
   line-height: 44px;
@@ -139,14 +155,14 @@
   color: var(--text-dim);
 }
 
-/* Three sections rather than eight rows in one column. The tabs are wide and
-   plain: a child reads them as three places to go, not as decoration. */
+/* Four sections rather than a dozen rows in one column. The tabs are wide and
+   plain: a child reads them as four places to go, not as decoration. */
 .tabs {
-  /* Three equal columns rather than a wrapping row: "Things to wear" is long
-     enough to drop onto a line of its own at 390px, which made the three
-     sections look like two and a stray. */
+  /* Two by two rather than a wrapping row: "Things to wear" is long enough
+     to drop onto a line of its own at 390px, and four across would squeeze
+     it onto three. */
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
   margin: 0 auto 1rem;
   max-width: 560px;

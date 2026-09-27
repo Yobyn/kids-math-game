@@ -44,9 +44,19 @@ export interface Avatar {
   top: string;
   /** A companion sitting beside the stand; not worn, but earned the same way. */
   pet: string;
+  /** Something worn on the back: a backpack, a cape. */
+  back: string;
+  /** What the character stands in; nothing won means the sneakers everyone has. */
+  shoes: string;
+  /**
+   * The top in another colour, or '' for its own. Checked against the
+   * colours on offer where it is drawn (avatar3d/top-colours.ts), not here:
+   * the list stays out of the first load, and one not on it is ignored.
+   */
+  topColour: string;
 }
 
-export type ItemSlot = 'hat' | 'glasses' | 'top' | 'pet';
+export type ItemSlot = 'hat' | 'glasses' | 'top' | 'pet' | 'back' | 'shoes';
 
 /** Wearing nothing in a slot is always available and never locked. */
 export const NO_ITEM = 'none';
@@ -160,7 +170,10 @@ export function defaultAvatar(): Avatar {
     hat: NO_ITEM,
     glasses: NO_ITEM,
     top: NO_ITEM,
-    pet: NO_ITEM
+    pet: NO_ITEM,
+    back: NO_ITEM,
+    shoes: NO_ITEM,
+    topColour: ''
   };
 }
 
@@ -196,13 +209,16 @@ export function normaliseAvatar(raw: any, level = 1, earnedEvents: string[] = []
     eyeShape: pick(EYE_SHAPES, raw.eyeShape, fallback.eyeShape) as EyeShape,
     eyeColour: pick(EYE_COLOURS, raw.eyeColour, fallback.eyeColour),
     mouthShape: pick(MOUTH_SHAPES, raw.mouthShape, fallback.mouthShape) as MouthShape,
-    hat: wearable('hat', raw.hat, level, earnedEvents),
-    glasses: wearable('glasses', raw.glasses, level, earnedEvents),
-    top: wearable('top', raw.top, level, earnedEvents),
-    // Absent on every character saved before pets: no pet, as before
-    pet: wearable('pet', raw.pet, level, earnedEvents)
+    topColour: typeof raw.topColour === 'string' ? raw.topColour : '',
+    // Every slot the same way: the item if it has been earned, otherwise
+    // nothing. A slot absent on a character saved before it existed (pets,
+    // the back, shoes) reads as nothing there, which is what it had
+    ...ITEM_SLOTS.reduce((worn, slot) => ({ ...worn, [slot]: wearable(slot, raw[slot], level, earnedEvents) }), {} as { [slot in ItemSlot]: string })
   };
 }
+
+/** Every slot something can be earned for. */
+export const ITEM_SLOTS: ItemSlot[] = ['hat', 'glasses', 'top', 'pet', 'back', 'shoes'];
 
 /** The item if it exists and has been earned, otherwise nothing in that slot. */
 function wearable(slot: ItemSlot, id: any, level: number, earnedEvents: string[]): string {
@@ -430,6 +446,57 @@ export const PET_ITEMS: WardrobeItem[] = [
 ];
 
 WARDROBE.push(...PET_ITEMS);
+
+/**
+ * Worn on the back, and so seen when the character is turned round: a reason
+ * to turn it. The backpack fills the one early level that won nothing; the
+ * cape comes between the puppy and the dragon.
+ */
+export const BACK_ITEMS: WardrobeItem[] = [
+  { id: NO_ITEM, slot: 'back', unlockLevel: 1, colour: '' },
+  {
+    id: 'backpack',
+    slot: 'back',
+    unlockLevel: 11,
+    colour: '#e8742c',
+  },
+  {
+    id: 'cape',
+    slot: 'back',
+    unlockLevel: 19,
+    colour: '#c8324a',
+  }
+];
+
+WARDROBE.push(...BACK_ITEMS);
+
+/**
+ * What the character stands in. Everyone has sneakers; these fill three of
+ * the levels between the pets that won nothing.
+ */
+export const SHOE_ITEMS: WardrobeItem[] = [
+  { id: NO_ITEM, slot: 'shoes', unlockLevel: 1, colour: '' },
+  {
+    id: 'high-tops',
+    slot: 'shoes',
+    unlockLevel: 13,
+    colour: '#d63a3a',
+  },
+  {
+    id: 'boots',
+    slot: 'shoes',
+    unlockLevel: 16,
+    colour: '#8a5a33',
+  },
+  {
+    id: 'light-up',
+    slot: 'shoes',
+    unlockLevel: 20,
+    colour: '#3fd8ff',
+  }
+];
+
+WARDROBE.push(...SHOE_ITEMS);
 
 /**
  * What the seasonal events hand over. These have no level: a child earns one
