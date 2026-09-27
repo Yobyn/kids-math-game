@@ -100,15 +100,14 @@ export function buildShoe(id: string, colour: string, figure: Figure, side: numb
   // The foot: a sole, an upper over it, a toe cap and laces. A collar, round
   // the tucked-in trousers, is narrower than the foot it stands on (a test
   // holds it)
-  const width = footWidth;
   const foot = new THREE.Group();
   foot.position.set(ankle.x, 0, 0.18 * footLength);
   const sole = part(id === 'light-up' ? SHOE_GLOW : 'shoe-sole', new THREE.CylinderGeometry(0.5, 0.5, style.soleHeight, 28), style.sole, 0.02);
-  sole.scale.set(width, 1, footLength);
+  sole.scale.set(footWidth, 1, footLength);
   sole.position.y = style.soleHeight / 2;
   const rise = style.soleHeight - 0.26;
   const upper = part('shoe-upper', new THREE.SphereGeometry(0.5, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2), toon(style.upper), 0.025);
-  upper.scale.set(width * 0.94, 1.15, footLength * 0.94);
+  upper.scale.set(footWidth * 0.94, 1.15, footLength * 0.94);
   upper.position.y = 0.24 + rise;
   foot.add(sole, upper);
   if (style.toe) {
