@@ -113,7 +113,8 @@ export class AvatarService {
 
   private read(owner: string): Avatar {
     const stored = this.stored(owner);
-    return stored === null ? defaultAvatar() : normaliseAvatar(stored, this.level(), this.earned());
+    // Never chosen is the default character, at the stage this level has earned
+    return normaliseAvatar(stored === null ? defaultAvatar() : stored, this.level(), this.earned());
   }
 
   /** The raw stored object, or null when this player has never chosen. */

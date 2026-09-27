@@ -9,6 +9,7 @@ import { at, crownGrid, part, scale, starShape, surfaceGeometry, toon } from './
 import { buildGlasses, buildHat } from './wardrobe3d';
 import { buildPet } from './pets';
 import { buildShoe, collarShare, legRadius } from './shoes';
+import { buildCreature } from './creatures';
 import { Around, BackMap, buildBackItem } from './back-items';
 import { WAVING_SIDE } from './motion';
 import { Figure, KNEE_FORWARD, chinY, figureFor, hang, legLength, lowerLegRadii, torsoRadius, wrist } from './figure';
@@ -698,6 +699,9 @@ function buildPetBeside(avatar: Avatar, standRadius: number): THREE.Group | null
  * here, on every figure.
  */
 export function buildAvatar(avatar: Avatar): THREE.Group {
+  if (avatar.family === 'creature') {
+    return buildCreatureOnStand(avatar);
+  }
   const figure = figureFor(avatar.bodyType);
   const root = new THREE.Group();
   root.name = 'avatar';
@@ -775,11 +779,29 @@ export function aroundCharacter(root: THREE.Group, figure: Figure): Around {
   return { map, armBack, meshes };
 }
 
+/** A creature's stand: a little wider than the kid hero's, for a grown dragon's feet. */
+export const CREATURE_STAND_RADIUS = 3.1;
+
+/**
+ * A character from another family (creatures.ts) on its stand, at the stage
+ * it has grown to. The kid hero's wardrobe, pet and back items are the kid
+ * hero's: a creature's look is its stage.
+ */
+function buildCreatureOnStand(avatar: Avatar): THREE.Group {
+  const root = new THREE.Group();
+  root.name = 'avatar';
+  root.userData.family = avatar.family;
+  root.add(buildPedestal(CREATURE_STAND_RADIUS));
+  root.add(buildCreature(avatar.stage));
+  return root;
+}
+
 /** Frees every geometry and material under a built character. */
 export function disposeAvatar(root: THREE.Object3D) {
   root.traverse(object => {
     const mesh = object as THREE.Mesh;
-    if (mesh.geometry) {
+    // A sprite's geometry is one plane every sprite shares: not this character's to free
+    if (mesh.geometry && !(object as THREE.Sprite).isSprite) {
       mesh.geometry.dispose();
     }
     const material = mesh.material as THREE.Material | THREE.Material[] | undefined;

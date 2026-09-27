@@ -1,5 +1,7 @@
 import {
   BACK_ITEMS,
+  stageForLevel,
+  tierForLevel,
   ITEM_SLOTS,
   SHOE_ITEMS,
   BODY_TYPES,
@@ -90,6 +92,10 @@ describe('reading a stored character', () => {
 
   it('keeps every choice that is still valid', () => {
     const chosen: Avatar = {
+      family: 'kid',
+      // Level 14 has earned stage 2
+      stage: 2,
+      stagePinned: false,
       bodyType: 'girl',
       skin: SKIN_TONES[4],
       faceShape: 'square',
@@ -257,6 +263,43 @@ describe('the wardrobe', () => {
     expect(topColour).toBe('');
     expect(normaliseAvatar(before).topColour).toBe('');
     expect(normaliseAvatar({ ...defaultAvatar(), topColour: 42 }).topColour).toBe('');
+  });
+
+  describe('families and stages (Yobyn, 2026-09-27)', () => {
+    it('groups levels into five tiers, and tiers into three stages', () => {
+      expect([1, 4, 5, 9, 10, 14, 15, 19, 20, 40].map(tierForLevel)).toEqual([1, 1, 2, 2, 3, 3, 4, 4, 5, 5]);
+      expect([1, 9, 10, 14, 15, 40].map(stageForLevel)).toEqual([1, 1, 2, 2, 3, 3]);
+      expect(tierForLevel(0)).toBe(1);
+    });
+
+    it('keeps a character saved before there were families a kid hero, at the stage earned', () => {
+      const { family, stage, stagePinned, ...before } = defaultAvatar();
+      expect([family, stage, stagePinned]).toEqual(['kid', 1, false]);
+      const loaded = normaliseAvatar(before, 12);
+      expect([loaded.family, loaded.stage, loaded.stagePinned]).toEqual(['kid', 2, false]);
+      expect(normaliseAvatar({ ...defaultAvatar(), family: 'unicorn' }).family).toBe('kid');
+      expect(normaliseAvatar({ ...defaultAvatar(), family: 'creature' }).family).toBe('creature');
+      // Never chosen at all: the default, grown to the level
+      expect(normaliseAvatar(null, 16).stage).toBe(3);
+    });
+
+    it('grows with the child, unless the child went back to an earlier stage they liked', () => {
+      const dragon = { ...defaultAvatar(), family: 'creature' };
+      // Follows the level while nothing is pinned, whatever stage was stored
+      expect(normaliseAvatar({ ...dragon, stage: 1, stagePinned: false }, 16).stage).toBe(3);
+      // An earlier stage, pinned, stays
+      const pinned = normaliseAvatar({ ...dragon, stage: 1, stagePinned: true }, 16);
+      expect([pinned.stage, pinned.stagePinned]).toEqual([1, true]);
+      // Pinning the newest stage is just following it
+      const newest = normaliseAvatar({ ...dragon, stage: 3, stagePinned: true }, 16);
+      expect([newest.stage, newest.stagePinned]).toEqual([3, false]);
+      // Never a stage above what the level has earned, pinned or not
+      const early = normaliseAvatar({ ...dragon, stage: 3, stagePinned: true }, 2);
+      expect([early.stage, early.stagePinned]).toEqual([1, false]);
+      // Nor anything that is not a stage
+      [0, 2.5, '2', -1, null].forEach(stage =>
+        expect(normaliseAvatar({ ...dragon, stage, stagePinned: true }, 16).stage).withContext(String(stage)).toBe(3));
+    });
   });
 
   it('knows every slot something can be earned for, and keeps each one on a saved character', () => {

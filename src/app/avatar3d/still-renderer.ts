@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { CREATURE, CREATURE_GLOW, CREATURE_HEAD } from './creatures';
 import { Avatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
 import { Figure, figureFor } from './figure';
@@ -37,6 +38,10 @@ export const STILL_MARGIN = 1.08;
  */
 export function framedBox(model: THREE.Object3D, framing: StillFraming, figure: Figure): THREE.Box3 {
   model.updateMatrixWorld(true);
+  const creature = model.getObjectByName(CREATURE);
+  if (creature) {
+    return creatureBox(creature, framing);
+  }
   const box = new THREE.Box3();
   if (framing === 'portrait') {
     ['head-group', 'hair', 'hat', 'glasses'].forEach(name => {
@@ -68,6 +73,21 @@ export function framedBox(model: THREE.Object3D, framing: StillFraming, figure: 
   box.min.x = Math.max(box.min.x, -reach);
   box.max.x = Math.min(box.max.x, reach);
   return box;
+}
+
+/**
+ * A creature's picture: its head, a little beyond, for a portrait; all of it
+ * but its glow for the fuller framing. It has no figure to measure by.
+ */
+function creatureBox(creature: THREE.Object3D, framing: StillFraming): THREE.Box3 {
+  const box = new THREE.Box3();
+  const whole = framing === 'full' ? creature : creature.getObjectByName(CREATURE_HEAD) || creature;
+  whole.traverse(node => {
+    if ((node as THREE.Mesh).isMesh && node.name !== CREATURE_GLOW) {
+      box.expandByObject(node);
+    }
+  });
+  return framing === 'full' ? box : box.expandByScalar(box.getSize(new THREE.Vector3()).y * 0.15);
 }
 
 /**
