@@ -82,6 +82,8 @@ export const SECTIONS: ChooserSection[] = [
       { heading: 'hats', slot: 'hat', shape: true },
       { heading: 'glasses', slot: 'glasses', shape: true },
       { heading: 'tops', slot: 'top', shape: true },
+      // Free, like a hair colour, but about something worn: next to the tops
+      { heading: 'top-colour', part: 'topColour' },
       { heading: 'shoes', slot: 'shoes', shape: true }
     ]
   },

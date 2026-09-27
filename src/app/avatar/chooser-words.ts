@@ -31,7 +31,9 @@ export type ChooserKey =
   | 'shoes'
   | 'skin'
   | 'glasses'
-  | 'extras';
+  | 'extras'
+  | 'top-colour'
+  | 'own-colour';
 
 export const CHOOSER_WORDS: Words<ChooserKey> = {
   en: {
@@ -60,7 +62,9 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'shoes': 'Shoes',
     'skin': 'Skin',
     'glasses': 'Glasses',
-    'extras': 'Extras'
+    'extras': 'Extras',
+    'top-colour': 'Top colour',
+    'own-colour': 'Its own colour'
   },
   nl: {
     'body-type': 'Je bent een',
@@ -88,7 +92,9 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'shoes': 'Schoenen',
     'skin': 'Huid',
     'glasses': 'Brillen',
-    'extras': "Extra's"
+    'extras': "Extra's",
+    'top-colour': 'Kleur van je shirt',
+    'own-colour': 'Eigen kleur'
   },
   es: {
     'body-type': 'Eres',
@@ -116,6 +122,8 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'shoes': 'Zapatos',
     'skin': 'Piel',
     'glasses': 'Gafas',
-    'extras': 'Extras'
+    'extras': 'Extras',
+    'top-colour': 'Color de tu camiseta',
+    'own-colour': 'Su propio color'
   }
 };

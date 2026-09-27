@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import { Avatar, DEFAULT_TOP_COLOUR, findItem, NO_ITEM } from '../avatar/avatar-model';
+import { Avatar, findItem, NO_ITEM } from '../avatar/avatar-model';
+import { topColourOf } from '../avatar/top-colours';
 import { HATS_OVER_HAIR, shade } from '../avatar/avatar-parts';
 import {
   BROW_DIRS, EAR_DIRS, EYE_DIRS, HAT_CAP, Vec3, hairPoint, hairline, headPoint, normalise
@@ -402,7 +403,8 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
   const body = new THREE.Group();
   body.name = 'body';
   const top = findItem('top', avatar.top);
-  const topColour = top && top.id !== NO_ITEM ? top.colour : DEFAULT_TOP_COLOUR;
+  // Its own colour, or the one the child chose for it (top-colours.ts)
+  const topColour = topColourOf(avatar);
   const cut = topCut(avatar.top);
   const cloth = toon(topColour);
   const skin = toon(avatar.skin);

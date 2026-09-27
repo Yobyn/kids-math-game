@@ -55,6 +55,22 @@
   background: var(--surface-input);
 }
 
+/* A top's own colour is a colour too, so it carries a mark saying it is the
+   top's own: a round arrow, "back to how it was". */
+.swatch.own-colour {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.swatch.own-colour::after {
+  content: '↺';
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-shadow: 0 0 3px rgba(0, 0, 0, 0.7);
+}
+
 /* The chosen one is marked by a ring and a size change, not colour alone —
    half these swatches are colours, so colour cannot carry the signal. */
 .swatch.chosen {

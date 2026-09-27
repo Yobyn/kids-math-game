@@ -119,6 +119,8 @@ export type TranslationKeys =
   | 'skin'
   | 'glasses'
   | 'extras'
+  | 'top-colour'
+  | 'own-colour'
   | 'on-your-back'
   | 'shoes'
   | 'item-striped'

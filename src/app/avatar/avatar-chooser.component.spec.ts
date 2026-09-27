@@ -11,6 +11,7 @@ import { AvatarService } from '../services/avatar.service';
 import { ProgressService } from '../services/progress.service';
 import { xpToReach } from '../levels/level-curve';
 import { SECTIONS, allRows } from './chooser-sections';
+import { TOP_COLOURS } from './top-colours';
 import {
   BODY_TYPES,
   EYE_COLOURS,
@@ -28,6 +29,12 @@ import {
   findItem,
   levelItems
 } from './avatar-model';
+
+/** A colour as the browser reads back a style it was given. */
+function hexToRgb(hex: string): string {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgb(${n >> 16}, ${(n >> 8) & 255}, ${n & 255})`;
+}
 
 describe('AvatarChooserComponent', () => {
   let fixture: ComponentFixture<AvatarChooserComponent>;
@@ -319,6 +326,32 @@ describe('AvatarChooserComponent wardrobe', () => {
     fixture.detectChanges();
     expect(component.avatar.pet).toBe('puppy');
     expect(service.get().pet).toBe('puppy');
+  });
+
+  it('offers a colour for the top, its own first, and wears the one picked', () => {
+    openAtLevel(9);
+    component.choose('top', 'hoodie');
+    fixture.detectChanges();
+    const row = Array.from(fixture.nativeElement.querySelectorAll('.section .choice-row') as NodeListOf<HTMLElement>)
+      .find(r => r.querySelector('h2')!.textContent!.trim() === component.languageService.translate('top-colour' as any))!;
+    expect(row).toBeTruthy();
+    const swatches = Array.from(row.querySelectorAll('.swatch')) as HTMLButtonElement[];
+    expect(swatches.length).toBe(TOP_COLOURS.length + 1);
+    // The first is the hoodie's own colour, marked as such, and chosen
+    expect(swatches[0].classList).toContain('own-colour');
+    expect(swatches[0].style.background).toBe(hexToRgb(findItem('top', 'hoodie')!.colour));
+    expect(swatches[0].getAttribute('aria-label')).toContain(component.languageService.translate('own-colour' as any));
+    expect(swatches[0].classList).toContain('chosen');
+    expect(swatches.slice(1).map(s => s.style.background)).toEqual(TOP_COLOURS.map(hexToRgb));
+    swatches[3].click();
+    fixture.detectChanges();
+    expect(component.avatar.topColour).toBe(TOP_COLOURS[2]);
+    expect(service.get().topColour).toBe(TOP_COLOURS[2]);
+    expect(swatches[3].classList).toContain('chosen');
+    expect(swatches[0].classList).not.toContain('chosen');
+    // And back to its own
+    swatches[0].click();
+    expect(component.avatar.topColour).toBe('');
   });
 
   it('offers shoes in a row of their own, each shown by itself, the sneakers first', () => {
