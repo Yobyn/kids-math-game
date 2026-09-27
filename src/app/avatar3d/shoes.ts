@@ -97,9 +97,10 @@ export function buildShoe(id: string, colour: string, figure: Figure, side: numb
   group.name = 'shoe';
   group.userData.item = id;
 
-  // The foot: a sole, an upper over it, a toe cap and laces. Under a collar
-  // the foot is as wide as the collar's foot, so the collar stands on it
-  const width = style.collar > 0 ? Math.max(footWidth, (legRadius(figure, 0, style.collar) + SHOE_GAP + 0.02) * 2) : footWidth;
+  // The foot: a sole, an upper over it, a toe cap and laces. A collar, round
+  // the tucked-in trousers, is narrower than the foot it stands on (a test
+  // holds it)
+  const width = footWidth;
   const foot = new THREE.Group();
   foot.position.set(ankle.x, 0, 0.18 * footLength);
   const sole = part(id === 'light-up' ? SHOE_GLOW : 'shoe-sole', new THREE.CylinderGeometry(0.5, 0.5, style.soleHeight, 28), style.sole, 0.02);
