@@ -644,15 +644,37 @@ widening under a collar was dead once the trousers tucked in, and was
 removed. One is equivalent: the knee's small forward offset changes the
 leg's length by 0.0003 units.
 
+**A COLOUR FOR THE TOP, AND A SIGN-IN FIX — DONE (2026-09-27).**
+
+- A "Top colour" row in "Things to wear", next to the tops: the top's own
+  colour first (marked ↺), then eight plain colours. Any top takes it,
+  the starting shirt too; the hood, cuffs, hem and pocket follow as
+  shades of it, and stripes and the star keep their own. The palette and
+  the check against it live in `avatar/top-colours.ts`, used only by the
+  lazy dressing-up screen and 3D character; the saved character carries
+  `topColour` as saved, and one not on offer is ignored where the top is
+  drawn. A test keeps every colour on offer clearly apart, by eye, from
+  the others and from every top's own (the first palette had a sky blue a
+  whisker from the hoodie's).
+- The fix that paid for it, and mattered more: the HTTP interceptor used a
+  stale second AuthService (`src/app/auth.service.ts`) that read the token
+  once when the app opened, and set it over the one progress sync sets
+  itself. After one child signed out and another signed in without a
+  reload, the second child's progress synced to the first child's
+  account. Every request that needs a token sets its own, so the
+  interceptor and the stale service are gone (Yobyn chose this). A test
+  signs Sam in, syncs, signs out, signs Kim in and syncs again with every
+  provider the app installs. The first load dropped 1.43 kB, to
+  **458.59 kB**.
+
+Tests: 1,659 unit tests. The mutation sweep caught all 11 of 11.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **Colour choices for tops.** A choice on an earned top, not a new
-   slot. The first load has 0.04 kB to spare: anything eager must save
-   first (the chooser, stage and 3D are lazy; the model is not).
-2. **Better materials.** Hair strands or clumps rather than one smooth
+1. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
-3. **Offline.** The dressing-up chunk is only cached once it has been
+2. **Offline.** The dressing-up chunk is only cached once it has been
    opened. A child who installs and goes offline before opening it gets no
    dressing-up screen. Precache the lazy chunks in the service worker
    (the still renderer's chunks too, so the pictures work offline).
