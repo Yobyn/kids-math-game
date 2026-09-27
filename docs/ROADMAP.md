@@ -669,12 +669,50 @@ leg's length by 0.0003 units.
 
 Tests: 1,659 unit tests. The mutation sweep caught all 11 of 11.
 
+**FAMILIES THAT GROW — STARTED (Yobyn, 2026-09-27).** Yobyn: "Each
+character family has 3 visual stages that change as the player advances
+tiers, so the avatar visibly grows with the kid's skill." Families:
+Creatures (egg → baby dragon; young dragon, small wings; full dragon with
+glow), Robots (round bot; adds arms and antenna; mech with jetpack),
+Animals (plain animal in hoodie; gear for its hobby; pro with trophy),
+Space (alien in a pod; ray gun and boots; captain with ship behind), Kid
+heroes (beginner, trained, legend outfit with cape), Silly objects (plain
+pizza slice; with cape; super pizza, extra toppings). Evolution is
+automatic, a child can switch back to an earlier stage, and an evolution
+plays a short celebration (about 3 s) the next time the avatar screen
+opens.
+
+Done in this first part:
+- Tiers group levels: 1–4, 5–9, 10–14, 15–19, 20+ (`TIER_STARTS`,
+  `tierForLevel`; the game had levels, not tiers, so this was chosen).
+  Stage 1 is tiers 1–2, stage 2 tier 3, stage 3 tiers 4–5
+  (`stageForLevel`).
+- The avatar has `family` ('kid' — the character so far — or 'creature')
+  and `stage` + `stagePinned`. The stage is re-resolved from the level on
+  every load and after every round; a pinned earlier stage stays, a later
+  one is never kept.
+- Creatures in 3D (`avatar3d/creatures.ts`), alive through the rig as it
+  was (blink, breath, tail, wings, a pulsing halo), on a stand of radius
+  3.1, framed by its own head or whole in the stills.
+- Dressing-up screen: "Be a" (kid hero or dragon) at the top; a dragon
+  shows "Your dragon grows" with its three stages instead of face, hair
+  and clothes. The screen re-reads the character on opening and adopts it
+  as saved after every choice.
+- First load 459.04 kB. 1,679 unit tests. The sweep caught 16 of 19 at
+  first; the gaps got tests and two dead guards went.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **Better materials.** Hair strands or clumps rather than one smooth
+1. **The evolution celebration**: about 3 s the next time the dressing-up
+   screen opens after a new stage (remember the last stage seen per
+   child; reduced motion gets a still version).
+2. **The other families, one per run**: Kid heroes' three outfits (the
+   kid family already exists; its stages need beginner / trained /
+   legend-with-cape outfits), Robots, Animals, Space, Silly objects.
+3. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
-2. **Offline.** The dressing-up chunk is only cached once it has been
+4. **Offline.** The dressing-up chunk is only cached once it has been
    opened. A child who installs and goes offline before opening it gets no
    dressing-up screen. Precache the lazy chunks in the service worker
    (the still renderer's chunks too, so the pictures work offline).

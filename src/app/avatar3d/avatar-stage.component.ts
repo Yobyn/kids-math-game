@@ -345,11 +345,9 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
           box.expandByObject(part);
         }
       });
-      // A character with no head to close in on is framed whole
-      if (!box.isEmpty()) {
-        const { distance, centre } = headFraming(box.min.y, box.max.y, this.camera.fov, this.camera.aspect);
-        return { target: new THREE.Vector3(0, centre, 0), distance };
-      }
+      // Every family has a head to close in on: a kid hero's, or a creature's own
+      const { distance, centre } = headFraming(box.min.y, box.max.y, this.camera.fov, this.camera.aspect);
+      return { target: new THREE.Vector3(0, centre, 0), distance };
     }
     // Everything solid: a glow round a creature is light, not something to fit in
     this.model!.updateMatrixWorld(true);
