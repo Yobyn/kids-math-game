@@ -104,7 +104,8 @@ describe('reading a stored character', () => {
       top: NO_ITEM,
       pet: 'kitten',
       back: 'backpack',
-      shoes: 'high-tops'
+      shoes: 'high-tops',
+      topColour: '#8e5bd6'
     };
 
     expect(normaliseAvatar(chosen, 14)).toEqual(chosen);
