@@ -171,6 +171,11 @@ describe('motion', () => {
       expect(putOnSomethingNew({ ...was, pet: 'kitten' }, { ...was, pet: 'none' })).toBeFalse();
     });
 
+    it('waves to show off new shoes', () => {
+      expect(putOnSomethingNew({ ...was, shoes: 'none' }, { ...was, shoes: 'boots' })).toBeTrue();
+      expect(putOnSomethingNew({ ...was, shoes: 'boots' }, { ...was, shoes: 'none' })).toBeFalse();
+    });
+
     it('waves to show off a backpack or a cape', () => {
       expect(putOnSomethingNew({ ...was, back: 'none' }, { ...was, back: 'backpack' })).toBeTrue();
       expect(putOnSomethingNew({ ...was, back: 'backpack' }, { ...was, back: 'cape' })).toBeTrue();

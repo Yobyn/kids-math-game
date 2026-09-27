@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { ARM_RIG, FOREARM_RIG } from './build-avatar';
-import { BREATH_ARMS, BREATH_RISE, WAVE_LIFT, WAVING_SIDE, breath, eyesOpen, tailWag, wave, wingFlap } from './motion';
+import { BREATH_ARMS, BREATH_RISE, WAVE_LIFT, WAVING_SIDE, breath, eyesOpen, glow, tailWag, wave, wingFlap } from './motion';
+import { SHOE_GLOW } from './shoes';
 import { PET_TAIL, PET_WING } from './pets';
 
 /** The parts that share the head's transform, and so rise with it on a breath. */
@@ -27,6 +28,7 @@ export class Rig {
   private forearms: (Joint & { bend: number })[] = [];
   private tails: THREE.Object3D[] = [];
   private wings: { node: THREE.Object3D; side: number; z: number }[] = [];
+  private glows: { colour: THREE.Color; built: THREE.Color }[] = [];
 
   constructor(model: THREE.Object3D) {
     HEAD_PARTS.forEach(name => {
@@ -46,6 +48,9 @@ export class Rig {
         this.tails.push(node);
       } else if (node.name === PET_WING) {
         this.wings.push({ node, side: node.userData.side, z: node.rotation.z });
+      } else if (node.name === SHOE_GLOW) {
+        const colour = ((node as THREE.Mesh).material as THREE.MeshBasicMaterial).color;
+        this.glows.push({ colour, built: colour.clone() });
       }
     });
   }
@@ -74,6 +79,9 @@ export class Rig {
     // The pet's tail wags side to side, about its root
     this.tails.forEach(node => (node.rotation.y = tailWag(seconds)));
     this.wings.forEach(({ node, side, z }) => (node.rotation.z = z + side * wingFlap(seconds)));
+    // Light-up soles glow up and down
+    const bright = glow(seconds);
+    this.glows.forEach(({ colour, built }) => colour.copy(built).multiplyScalar(bright));
   }
 
   /** Every joint back where it was built. */
@@ -87,5 +95,6 @@ export class Rig {
     });
     this.tails.forEach(node => (node.rotation.y = 0));
     this.wings.forEach(({ node, z }) => (node.rotation.z = z));
+    this.glows.forEach(({ colour, built }) => colour.copy(built));
   }
 }

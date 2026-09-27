@@ -186,10 +186,14 @@ describe('AvatarChooserComponent wardrobe', () => {
   it('shows locked items rather than hiding them', () => {
     openAtLevel(1);
 
-    const locked = fixture.nativeElement.querySelectorAll('.swatch.locked');
-    // Everything but the two empty options is still to be won at level 1
-    expect(locked.length).toBe(WARDROBE.filter(i => i.id !== NO_ITEM).length);
-    expect(locked.length).toBeGreaterThan(0);
+    // Everything but the empty options is still to be won at level 1, in
+    // the two sections with things to earn
+    let locked = fixture.nativeElement.querySelectorAll('.swatch.locked').length;
+    component.show('extras');
+    fixture.detectChanges();
+    locked += fixture.nativeElement.querySelectorAll('.swatch.locked').length;
+    expect(locked).toBe(WARDROBE.filter(i => i.id !== NO_ITEM).length);
+    expect(locked).toBeGreaterThan(0);
   });
 
   it('writes the price on a locked item, for eyes and for screen readers', () => {
@@ -249,6 +253,16 @@ describe('AvatarChooserComponent wardrobe', () => {
       .toContain('Round glasses');
   });
 
+  it('names what comes next among the extras too, but not on the free sections', () => {
+    openAtLevel(12);
+    component.show('extras');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.next-unlock')).toBeTruthy();
+    component.show('face');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.next-unlock')).toBeNull();
+  });
+
   it('stops promising once everything is won', () => {
     openAtLevel(Math.max(...levelItems().map(item => item.unlockLevel)));
 
@@ -289,6 +303,8 @@ describe('AvatarChooserComponent wardrobe', () => {
 
   it('offers the pets in a row of their own, each shown by itself, the way up the ladder', () => {
     openAtLevel(17);
+    component.show('extras');
+    fixture.detectChanges();
     const row = Array.from(fixture.nativeElement.querySelectorAll('.section .choice-row') as NodeListOf<HTMLElement>)
       .find(r => r.querySelector('h2')!.textContent!.trim() === component.languageService.translate('pets' as any))!;
     expect(row).toBeTruthy();
@@ -305,8 +321,24 @@ describe('AvatarChooserComponent wardrobe', () => {
     expect(service.get().pet).toBe('puppy');
   });
 
+  it('offers shoes in a row of their own, each shown by itself, the sneakers first', () => {
+    openAtLevel(16);
+    const row = Array.from(fixture.nativeElement.querySelectorAll('.section .choice-row') as NodeListOf<HTMLElement>)
+      .find(r => r.querySelector('h2')!.textContent!.trim() === component.languageService.translate('shoes' as any))!;
+    expect(row).toBeTruthy();
+    const swatches = Array.from(row.querySelectorAll('.swatch')) as HTMLButtonElement[];
+    expect(swatches.map(s => s.querySelector('.item-icon')!.textContent!.trim())).toEqual(['○', '👟', '🥾', '✨']);
+    expect(swatches.map(s => s.disabled)).toEqual([false, false, false, true]);
+    expect(swatches[3].textContent).toContain('20');
+    swatches[2].click();
+    fixture.detectChanges();
+    expect(component.avatar.shoes).toBe('boots');
+  });
+
   it('offers what goes on the back in a row of its own, each shown by itself', () => {
     openAtLevel(12);
+    component.show('extras');
+    fixture.detectChanges();
     const row = Array.from(fixture.nativeElement.querySelectorAll('.section .choice-row') as NodeListOf<HTMLElement>)
       .find(r => r.querySelector('h2')!.textContent!.trim() === component.languageService.translate('on-your-back' as any))!;
     expect(row).toBeTruthy();
@@ -465,7 +497,7 @@ describe('AvatarChooserComponent and event items', () => {
   });
 });
 
-describe('AvatarChooserComponent: three sections rather than one long scroll', () => {
+describe('AvatarChooserComponent: four sections rather than one long scroll', () => {
   let fixture: ComponentFixture<AvatarChooserComponent>;
   let component: AvatarChooserComponent;
 
@@ -538,8 +570,8 @@ describe('AvatarChooserComponent: three sections rather than one long scroll', (
 
   it('reaches every row of the page through some tab', () => {
     const reachable: string[] = [];
-    (['face', 'hair', 'wardrobe'] as const).forEach(section => {
-      component.show(section);
+    SECTIONS.forEach(section => {
+      component.show(section.id);
       fixture.detectChanges();
       headings().forEach(heading => reachable.push(heading));
     });
@@ -591,6 +623,10 @@ describe('AvatarChooserComponent: three sections rather than one long scroll', (
     fixture.detectChanges();
     expect(focus()).toBe('head');
     component.show('wardrobe');
+    fixture.detectChanges();
+    expect(focus()).toBe('body');
+    // A pet beside the stand, a cape behind: the whole figure too
+    component.show('extras');
     fixture.detectChanges();
     expect(focus()).toBe('body');
   });

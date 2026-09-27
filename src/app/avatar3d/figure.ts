@@ -274,3 +274,33 @@ export function wrist(figure: Figure): [number, number] {
   const elbow = hang(figure.shoulder, figure.upperArm, figure.armSwing, 1);
   return hang(elbow, figure.forearm, figure.armSwing * 0.8, 1);
 }
+
+/**
+ * The lower trouser leg's radii, knee to hem, evenly spaced along it: a
+ * little full at the knee, narrowing, and flaring a touch at the hem. The
+ * leg is built from these, and a shoe that comes up the leg is built round
+ * them.
+ */
+export function lowerLegRadii(figure: Figure): number[] {
+  const [, rKnee, rHem] = figure.legRadii;
+  return [rKnee * 1.02, rKnee, rHem, rHem * 1.05];
+}
+
+/** How far forward the knee is of the ankle, in units: a leg is not quite straight. */
+export const KNEE_FORWARD = 0.04;
+
+/** Ankle to knee, along the leg. */
+export function legLength(figure: Figure): number {
+  return Math.hypot(figure.knee[0] - figure.ankle[0], figure.knee[1] - figure.ankle[1], KNEE_FORWARD);
+}
+
+/** The lower leg's radius `s` up from the ankle, along the leg (0 at the ankle; the hem's below it). */
+export function legRadiusAlong(figure: Figure, s: number): number {
+  const radii = lowerLegRadii(figure);
+  const length = legLength(figure);
+  // radii[last] is at the ankle, radii[0] at the knee
+  const at = Math.min(Math.max(s / length, 0), 1) * (radii.length - 1);
+  const i = Math.min(Math.floor(at), radii.length - 2);
+  const [low, high] = [radii[radii.length - 1 - i], radii[radii.length - 2 - i]];
+  return low + (high - low) * (at - i);
+}

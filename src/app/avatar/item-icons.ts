@@ -3,9 +3,9 @@ import { NO_ITEM, WardrobeItem } from './avatar-model';
 /**
  * What an item looks like where the character is a head and shoulders, or
  * flat: the dressing-up screen's swatches and the scrapbook. A pet sits
- * beside the stand and a backpack or cape is on the back, so a picture of the
- * character from the front looks much the same with one as without; the
- * thing is shown by itself instead.
+ * beside the stand, a backpack or cape is on the back, and shoes are below
+ * the frame, so a picture of the character looks much the same with one as
+ * without; the thing is shown by itself instead.
  */
 export const ITEM_ICONS: { [id: string]: string } = {
   [NO_ITEM]: '○',
@@ -13,11 +13,14 @@ export const ITEM_ICONS: { [id: string]: string } = {
   puppy: '🐶',
   dragon: '🐲',
   backpack: '🎒',
-  cape: '🦸'
+  cape: '🦸',
+  'high-tops': '👟',
+  boots: '🥾',
+  'light-up': '✨'
 };
 
 /** The slots whose items are shown by an icon rather than worn by the character. */
-export const ICON_SLOTS = ['pet', 'back'];
+export const ICON_SLOTS = ['pet', 'back', 'shoes'];
 
 /** The icon for an item in one of those slots (each has its own), or '' for anything the character is shown wearing. */
 export function itemIcon(item: WardrobeItem | undefined): string {

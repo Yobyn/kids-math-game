@@ -598,11 +598,57 @@ item name. One margin, `ARM_TIP_BACK`, turned out to be dead once
 measured (an arm never reaches further back waving than hanging) and was
 removed. A re-run catches all of them.
 
+**SHOES — DONE (2026-09-27).** A new `shoes` slot: high-tops (13), boots
+(16) and light-up trainers (20), filling three of the levels between the
+pets that won nothing (only 15 and 18 of 2–21 now win nothing). Nothing
+won is the sneakers everyone had, exactly as before.
+
+- Every shoe is built on the figure's own foot, flat on the stand
+  (`avatar3d/shoes.ts`). The high-tops' collar and a boot's shaft come up
+  the leg round the trousers, along the leg's own slant.
+- The legs stand a fifth of a head apart, too close for a tube round the
+  full hem: two collars and their rims met in the middle. So the trousers
+  tuck in: inside a collar the leg narrows to `TUCKED` (0.78) of the hem,
+  tapering back over `TAPER` above it (`legRadius`), and the collar is
+  that plus `SHOE_GAP`. The leg is built from the same function, so the
+  two fit on both figures by construction. Tucked in, a collar is narrower
+  than the foot it stands on.
+- The light-up soles are unlit, so they read as light, and glow up and
+  down (`glow` in motion.ts, on the sole's colour in rig.ts); `rest()`
+  puts them back exactly as built.
+- The lower leg's radii and length are shared (`lowerLegRadii`,
+  `legRadiusAlong`, `legLength`, `KNEE_FORWARD` in figure.ts).
+- Chooser: a Shoes row in "Things to wear". What a character has rather
+  than wears — what's on its back, and pets — moves to a fourth section,
+  Extras, so every section stays a handful of rows; the tabs are two by
+  two. Both earned sections show the whole figure and what comes next.
+- The first load had to pay for the item names: the Skin and Glasses
+  headings moved to the chooser's own words, and `normaliseAvatar` reads
+  every slot in one loop (`ITEM_SLOTS`). **459.96 kB: 0.04 kB under the
+  warning.** The next eager change must save first.
+
+Tests: every pair stands flat on the stand and inside it, on both
+figures; the two shoes of a pair keep room between them; the trousers
+tuck in and widen back exactly over the taper; every collar and rim keeps
+room for both outlines from the leg in it, measured as true distance in
+the leg's own cross-section; a collar reaches down to its sole and no
+wider; the cape clears boots and high-tops; shoes are not in the stills;
+the glow is full at first, dimmest halfway, back at rest; the sneakers
+and the hem flare are as they were; every slot is read on a saved
+character. 1,651 unit tests.
+
+The mutation sweep caught 25 of 30 at first. The survivors: a collar
+standing on its sole and the hem flare had no test, and Extras showing
+the whole figure and the next unlock had none; they do now. The foot
+widening under a collar was dead once the trousers tucked in, and was
+removed. One is equivalent: the knee's small forward offset changes the
+leg's length by 0.0003 units.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **More to earn, still.** Pets and back items are in. Next: shoes and
-   colour choices for tops. Shoes must fit both figures' feet and the
-   stand; a colour choice is a choice of an earned top, not a new slot.
+1. **Colour choices for tops.** A choice on an earned top, not a new
+   slot. The first load has 0.04 kB to spare: anything eager must save
+   first (the chooser, stage and 3D are lazy; the model is not).
 2. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
