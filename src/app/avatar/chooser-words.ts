@@ -38,6 +38,11 @@ export type ChooserKey =
   | 'family-kid'
   | 'family-creature'
   | 'creature-grows'
+  | 'kid-grows'
+  | 'kid-grew'
+  | 'kid-stage-1'
+  | 'kid-stage-2'
+  | 'kid-stage-3'
   | 'creature-grew'
   | 'creature-stage-1'
   | 'creature-stage-2'
@@ -77,6 +82,11 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'family-kid': 'Kid hero',
     'family-creature': 'Dragon',
     'creature-grows': 'Your dragon grows',
+    'kid-grows': 'Your hero grows',
+    'kid-grew': 'Your hero got stronger!',
+    'kid-stage-1': 'Beginner',
+    'kid-stage-2': 'Trained',
+    'kid-stage-3': 'Legend',
     'creature-grew': 'Your dragon grew!',
     'creature-stage-1': 'Baby dragon',
     'creature-stage-2': 'Young dragon',
@@ -115,6 +125,11 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'family-kid': 'Held',
     'family-creature': 'Draak',
     'creature-grows': 'Je draak groeit',
+    'kid-grows': 'Je held groeit',
+    'kid-grew': 'Je held is sterker geworden!',
+    'kid-stage-1': 'Beginner',
+    'kid-stage-2': 'Getraind',
+    'kid-stage-3': 'Legende',
     'creature-grew': 'Je draak is gegroeid!',
     'creature-stage-1': 'Babydraakje',
     'creature-stage-2': 'Jonge draak',
@@ -153,6 +168,11 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'family-kid': 'Héroe',
     'family-creature': 'Dragón',
     'creature-grows': 'Tu dragón crece',
+    'kid-grows': 'Tu héroe crece',
+    'kid-grew': '¡Tu héroe se hizo más fuerte!',
+    'kid-stage-1': 'Principiante',
+    'kid-stage-2': 'Entrenado',
+    'kid-stage-3': 'Leyenda',
     'creature-grew': '¡Tu dragón creció!',
     'creature-stage-1': 'Dragón bebé',
     'creature-stage-2': 'Dragón joven',

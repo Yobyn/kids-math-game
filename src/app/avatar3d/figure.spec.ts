@@ -186,7 +186,7 @@ describe('figure', () => {
       // Saved pictures are kept by version; a new STYLE with the old version
       // would leave every screen showing the old character
       expect({ version: STILL_VERSION, style: STYLE }).toEqual({
-        version: 4, style: { head: 1.8, body: 0.66, build: 1.15, armSwing: 0.24, elbowBend: 0.35 }
+        version: 5, style: { head: 1.8, body: 0.66, build: 1.15, armSwing: 0.24, elbowBend: 0.35 }
       });
     });
 
