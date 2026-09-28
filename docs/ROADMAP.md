@@ -784,7 +784,14 @@ bands, a shoulder ledge, box pockets) with a realistic face. Now:
   retuned. `STILL_VERSION` 6. First load unchanged at 459.04 kB.
 - Found on the way: a hoodie string between two points on a round chest
   cut into it in the middle; it now hangs straight, clear of the fullest
-  point. The mutation sweep: running.
+  point. 1,730 unit tests. The mutation sweep caught 27 of 37 at first:
+  the tests that lived compared values with the constants that made them;
+  they now hold the design (tummy height and fullness, every point on the
+  egg's curve, tall eyes mostly iris, a button nose, elbows as wide as the
+  arm, a snug hood, a cape that starts on the shoulders), and all nine are
+  caught. The shoulder's first place never mattered and went. Found with
+  them: on a tummy wider than the shoulders, an arm must hang out beside it;
+  the puffy shoulder ball bridges the gap.
 
 WHAT IS NEXT, in the order the runs should take them:
 
