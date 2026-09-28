@@ -349,6 +349,11 @@ person standing still does, and says hello to what it is given:
   little and the arms ease out and back.
 - It blinks, at uneven gaps of two to five seconds; blinks on the dot look
   mechanical. Not in the first moment on screen.
+  At the bottom of a blink the eye is drawn as a soft dark line curving
+  down, in place of the eye pressed flat, which on a phone read as white
+  flecks (nightly run, 2026-09-26, with before and after screenshots). The
+  line undoes the press on itself so it keeps its shape (`rig.ts`,
+  `openEyes`; tested in `rig.spec.ts` on both figures).
 - It waves when a hat, glasses or a top goes on that was not on before:
   the right arm comes up level with the shoulder, the forearm points up,
   the hand rocks three times, and the arm comes back down. Not for a new
