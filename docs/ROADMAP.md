@@ -760,17 +760,45 @@ outfit / trained outfit / legend outfit with cape."
 - Asked of Yobyn: whether the beginner stage should have a visible item of
   its own (it is the child's own clothes now).
 
+**THE KID HERO, ROUND LIKE THE DRAGON — DONE (Yobyn, 2026-09-28).** "The
+dragon graphics look good and rounded but not happy with the Kid Hero
+graphics." Side by side, the dragon is a big round head on one round body
+with stubby limbs and a friendly face; the kid was tall, boxy (straight
+bands, a shoulder ledge, box pockets) with a realistic face. Now:
+- Chibi proportions, about 2.4 heads tall (`STYLE` head 2.4, body 0.52,
+  build 1.45, `round: true`).
+- The torso is one egg (`eggProfile`): widest at the tummy (`TUMMY_AT`),
+  rounding over the shoulders into the neck, sampled round the curve so
+  neither end is a shelf; the arms join it at its side (`SHOULDER_SET`).
+- The head sits on the body with no neck showing: `seatedFigure(avatar)`
+  seats each face shape by its own chin on the collar; hair, hats, glasses
+  and the stills use it.
+- The dragon's face: taller eyes, bigger irises, two shines, a button nose,
+  rosy cheeks, softer brows.
+- Round elbows and knees, mitten hands, no box pockets on the legs; a
+  snug hood roll, strings hanging straight clear of the round chest, the
+  pouch pocket curved round the tummy.
+- Kept fitting: the stand reaches past the hands, a pet stands further
+  out, a cape starts on the shoulders and its clasps sit behind long hair,
+  a boot's shaft starts clear of the sole on a slanted leg, the camera is
+  retuned. `STILL_VERSION` 6. First load unchanged at 459.04 kB.
+- Found on the way: a hoodie string between two points on a round chest
+  cut into it in the middle; it now hangs straight, clear of the fullest
+  point. The mutation sweep: running.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **The other families, one per run**: Robots, Animals, Space, Silly
+1. **Yobyn's answer on the round kid hero** (rounder still? anything to
+   change?) before anything else.
+2. **The other families, one per run**: Robots, Animals, Space, Silly
    objects. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
    the celebration too.
-2. **The full dragon's halo is cut off** at the sides of the stage's
+3. **The full dragon's halo is cut off** at the sides of the stage's
    canvas: make it fit (or the canvas wider) and bump `STILL_VERSION`.
-3. **Better materials.** Hair strands or clumps rather than one smooth
+4. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
-4. **Offline.** The dressing-up chunk is only cached once it has been
+5. **Offline.** The dressing-up chunk is only cached once it has been
    opened. A child who installs and goes offline before opening it gets no
    dressing-up screen. Precache the lazy chunks in the service worker
    (the still renderer's chunks too, so the pictures work offline).
