@@ -455,6 +455,21 @@ describe('AvatarChooserComponent wardrobe', () => {
         expect(sound).not.toHaveBeenCalled();
       });
 
+      it('does not celebrate a dragon the child comes back to, grown while they were a kid hero', () => {
+        service.save({ ...service.get(), family: 'creature' });
+        openAtLevel(1);
+        component.pickFamily('kid');
+        progress.addXp(xpToReach(12));
+        reopen();
+        // Picked again: already seen as it is now, on the stage in front of them
+        component.pickFamily('creature');
+        expect(component.avatar.stage).toBe(2);
+        reopen();
+        expect(component.evolveFrom).toBeNull();
+        expect(banner()).toBeNull();
+        expect(sound).not.toHaveBeenCalled();
+      });
+
       it('never celebrates for a kid hero', () => {
         openAtLevel(1);
         progress.addXp(xpToReach(16));

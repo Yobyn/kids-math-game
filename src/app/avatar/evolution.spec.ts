@@ -64,8 +64,11 @@ describe('evolvedFrom: what the character grew from since the child last looked'
       expect(evolvedFrom(dragon(2), 2)).withContext(junk).toBeNull();
       expect(JSON.parse(localStorage.getItem('evolution-seen:guest')!)).withContext(junk).toEqual({ creature: 2 });
     });
-    localStorage.setItem('evolution-seen:guest', JSON.stringify({ creature: 'one' }));
-    expect(evolvedFrom(dragon(2), 2)).toBeNull();
+    // Only a whole stage counts, not something that would pass for one
+    [{ creature: 'one' }, { creature: '1' }, { creature: 1.5 }, { creature: null }].forEach(junk => {
+      localStorage.setItem('evolution-seen:guest', JSON.stringify(junk));
+      expect(evolvedFrom(dragon(2), 2)).withContext(JSON.stringify(junk)).toBeNull();
+    });
   });
 
   it('celebrates nothing, and does not break, without storage', () => {

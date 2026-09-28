@@ -722,9 +722,11 @@ screen opens."
 - A bug found on the way: the stage's head close-up measured a freshly
   built model before its world positions were worked out, leaving a
   creature's own scale out. `view()` now works them out first.
-- First load unchanged at 459.04 kB. The mutation sweep: the first 20 of 48
-  mutants caught 19; the one that lived (no second camera look at the swap)
-  led to the head framing fix above. The rest of the sweep runs from a
+- First load unchanged at 459.04 kB. 1,706 unit tests. The mutation sweep
+  caught 45 of 48 at first. The three that lived got tests: no second
+  camera look at the swap (which led to the head framing fix above), a
+  stored stage that is only a string like '1', and a dragon picked again
+  after growing while the child was a kid hero. The sweep now runs from a
   scratch git worktree, so the working tree is never left with a mutant in
   it.
 
