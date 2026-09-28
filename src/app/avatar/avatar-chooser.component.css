@@ -22,10 +22,10 @@
   position: relative;
 }
 
-/* An evolution's words: up over the stand while it grows, then away */
+/* An evolution's words: above the character while it grows, then away */
 .evolved {
   position: absolute;
-  top: 1.5rem;
+  top: -0.4rem;
   left: 50%;
   transform: translateX(-50%);
   margin: 0;
