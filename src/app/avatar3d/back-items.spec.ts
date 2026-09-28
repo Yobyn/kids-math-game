@@ -213,14 +213,27 @@ describe('back items', () => {
       // outlines, from where they leave the bag. Hair falls over them.
       const near = new THREE.Box3().setFromPoints(straps).expandByScalar(0.3);
       const over: THREE.Vector3[] = [];
-      rest.filter(mesh => !onHead(mesh)).forEach(mesh => eachSurfacePoint(mesh, 0.05, (x, y, z) => over.push(new THREE.Vector3(x, y, z)), near));
+      const overName: string[] = [];
+      rest.filter(mesh => !onHead(mesh)).forEach(mesh => eachSurfacePoint(mesh, 0.05, (x, y, z) => {
+        over.push(new THREE.Vector3(x, y, z));
+        overName.push(mesh.name);
+      }, near));
       item.filter(mesh => mesh.name === 'backpack-strap').forEach(strap => {
         const rings = vertices([strap]);
         for (let k = 4; k < rings.length; k++) {
           const p = rings[k];
-          const nearest = Math.min(...over.filter(q => Math.abs(q.x - p.x) < 0.3).map(q => q.distanceTo(p)));
+          let nearest = Infinity;
+          let closest = '';
+          for (let i = 0; i < over.length; i++) {
+            if (Math.abs(over[i].x - p.x) < 0.3) {
+              const d = over[i].distanceTo(p);
+              if (d < nearest) {
+                [nearest, closest] = [d, overName[i]];
+              }
+            }
+          }
           if (nearest < 0.06) {
-            misses.push(`${bodyType} ${hairStyle} ${top}: strap ${nearest.toFixed(3)} from what it goes over at y ${p.y.toFixed(2)}`);
+            misses.push(`${bodyType} ${hairStyle} ${top}: strap ${nearest.toFixed(3)} from what it goes over (${closest}) at y ${p.y.toFixed(2)}`);
           }
         }
         // Pulled taut: seen from the side, it only ever turns one way over the top

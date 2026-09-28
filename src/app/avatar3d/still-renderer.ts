@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import { CREATURE, CREATURE_GLOW, CREATURE_HEAD } from './creatures';
 import { Avatar } from '../avatar/avatar-model';
-import { buildAvatar, disposeAvatar } from './build-avatar';
-import { Figure, figureFor } from './figure';
+import { buildAvatar, disposeAvatar, seatedFigure } from './build-avatar';
+import { Figure } from './figure';
 
 /**
  * The 3D character as a still picture, for every screen that is not the
@@ -116,7 +116,7 @@ export class StillRenderer {
     const model = buildAvatar(avatar);
     this.scene.add(model);
     try {
-      const box = framedBox(model, framing, figureFor(avatar.bodyType));
+      const box = framedBox(model, framing, seatedFigure(avatar));
       const size = box.getSize(new THREE.Vector3());
       const centre = box.getCenter(new THREE.Vector3());
       const aspect = width / height;

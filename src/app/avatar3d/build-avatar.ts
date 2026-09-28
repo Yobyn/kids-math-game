@@ -253,7 +253,7 @@ export function braidEnd(figure: Figure): number {
   return -1.3;
 }
 
-export function curtainGeometry(avatar: Avatar, figure: Figure = figureFor(avatar.bodyType)): THREE.BufferGeometry {
+export function curtainGeometry(avatar: Avatar, figure: Figure = seatedFigure(avatar)): THREE.BufferGeometry {
   const columns = 48;
   const rows = 32;
   const top = 0.1;
@@ -570,7 +570,7 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     // drawstrings with metal tips; a pouch pocket — all read off the reference
     // A thick roll right round the neck, open in a V at the front
     const gap = Math.PI * 0.28;
-    const hoodRing = new THREE.TorusGeometry(HOOD_RING * figure.neckRadius, 0.22, 14, 40, Math.PI * 2 - gap);
+    const hoodRing = new THREE.TorusGeometry(HOOD_RING * figure.neckRadius, 0.18, 14, 40, Math.PI * 2 - gap);
     hoodRing.rotateX(Math.PI / 2);
     hoodRing.rotateY(-(Math.PI / 2 + gap / 2));
     const hood = part('hood', hoodRing, toon(shade(topColour, 0.06)), 0.04);
@@ -579,7 +579,7 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     hood.scale.set(1.05, 1, 1);
     // Round off the two ends of the roll either side of the V
     [Math.PI / 2 + gap / 2, Math.PI / 2 - gap / 2].forEach(angle => {
-      const end = part('hood-end', new THREE.SphereGeometry(0.22, 14, 10), toon(shade(topColour, 0.06)), 0.03);
+      const end = part('hood-end', new THREE.SphereGeometry(0.18, 14, 10), toon(shade(topColour, 0.06)), 0.03);
       end.position.set(Math.cos(angle) * figure.neckRadius * HOOD_RING, 0, Math.sin(angle) * figure.neckRadius * HOOD_RING);
       hood.add(end);
     });
@@ -723,6 +723,22 @@ function buildPetBeside(avatar: Avatar, standRadius: number): THREE.Group | null
   return group;
 }
 
+/** How far above the collar the chin rests: the head sits on the body, with no neck showing, as the dragon's does. */
+export const CHIN_REST = 0.05;
+
+/**
+ * The figure of the body type picked, with the head seated on it for this
+ * face: a round face, a square one and an oval one reach down to different
+ * depths, and each chin rests just on the collar. Everything on the head
+ * (hair, a hat, glasses) is built on this figure, so it moves with the head.
+ */
+export function seatedFigure(avatar: Avatar): Figure {
+  const figure = figureFor(avatar.bodyType);
+  const collar = figure.torso[figure.torso.length - 1][1];
+  const chin = headPoint(avatar.faceShape, [0, -1, 0])[1];
+  return { ...figure, headY: collar + CHIN_REST - chin * figure.headScale[1] };
+}
+
 /**
  * The whole character, standing on the origin, in the figure of the body
  * type picked. The head and everything on it (hair, a hat, glasses) share
@@ -733,7 +749,7 @@ export function buildAvatar(avatar: Avatar): THREE.Group {
   if (avatar.family === 'creature') {
     return buildCreatureOnStand(avatar);
   }
-  const figure = figureFor(avatar.bodyType);
+  const figure = seatedFigure(avatar);
   const root = new THREE.Group();
   root.name = 'avatar';
   // Wide enough for the feet, and for the hands hanging out at the sides: nothing reaches past it towards a pet

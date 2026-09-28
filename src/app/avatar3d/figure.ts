@@ -206,7 +206,7 @@ export function stylise(measured: Figure, style: Style): Figure {
   const stylised: Figure = {
     ...measured,
     headScale,
-    headY: chin + headScale[1] + (style.head - 1) * HEAD_LIFT,
+    headY: chin + headScale[1],
     torso: (style.round ? eggProfile : (points: [number, number][]) => points)(measured.torso.map(([r, h]) => [w(r), y(h)] as [number, number])),
     hem: y(measured.hem),
     belt: y(measured.belt),
@@ -233,13 +233,6 @@ export function stylise(measured: Figure, style: Style): Figure {
   }
   return clearOfChest(stylised);
 }
-
-/**
- * How much a grown head is lifted for each time bigger it is: a big head's
- * rounder faces reach a little below the chin line, and the chin should rest
- * on the collar, not sink into it.
- */
-export const HEAD_LIFT = 0.12;
 
 /** How far out from the torso's side the shoulder joint is, in arm widths. */
 export const SHOULDER_SET = 0.35;

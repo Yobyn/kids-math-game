@@ -1,4 +1,4 @@
-import { ARM_CLEARANCE, ARM_TOUCH, Figure, FIGURES, HH, MEASURED, STYLE, clearOfChest, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist, PROFILE_SAMPLES, SHOULDER_SET, TUMMY_AT, HEAD_LIFT } from './figure';
+import { ARM_CLEARANCE, ARM_TOUCH, Figure, FIGURES, HH, MEASURED, STYLE, clearOfChest, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist, PROFILE_SAMPLES, SHOULDER_SET, TUMMY_AT } from './figure';
 import { STILL_VERSION } from '../avatar/avatar-still.service';
 
 const BODY_TYPES_HERE = ['boy', 'girl'] as const;
@@ -185,7 +185,7 @@ describe('figure', () => {
     it('keeps the chin on the collar: the head grows up from where the chin was', () => {
       BODY_TYPES_HERE.forEach(type => {
         const [s, m] = [FIGURES[type], MEASURED[type]];
-        expect(chinY(s)).toBeCloseTo(chinY(m) * STYLE.body + (STYLE.head - 1) * HEAD_LIFT, 9);
+        expect(chinY(s)).toBeCloseTo(chinY(m) * STYLE.body, 9);
         expect(crownY(s) - chinY(s)).toBeCloseTo((crownY(m) - chinY(m)) * STYLE.head, 9);
       });
     });

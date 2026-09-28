@@ -344,10 +344,11 @@ describe('buildAvatar', () => {
       // About two and a half heads tall, round like the dragon (figure.ts, STYLE); an oval face is itself a longer head
       expect(head.max.y / headHeight).toBeGreaterThan(faceShape === 'oval' ? 2 : 2.2, `${bodyType}/${faceShape}`);
       expect(head.max.y / headHeight).toBeLessThan(2.8, `${bodyType}/${faceShape}`);
-      // The chin rests just above the collar: no gap under it, not sunk into the body
+      // The head sits on the body, as the dragon's does: no neck showing under
+      // the chin, which may rest a little into the collar but never sinks in
       const collar = figure.torso[figure.torso.length - 1][1];
-      expect(head.min.y - collar).toBeGreaterThan(0, `${bodyType}/${faceShape}`);
-      expect(head.min.y - collar).toBeLessThan(0.8, `${bodyType}/${faceShape}`);
+      expect(head.min.y - collar).toBeGreaterThan(-0.15, `${bodyType}/${faceShape}`);
+      expect(head.min.y - collar).toBeLessThan(0.25, `${bodyType}/${faceShape}`);
       // Shoulders wider than the head, big as a stylised head is
       const body = new THREE.Box3().setFromObject(find(root, 'body')[0]);
       expect(body.max.x - body.min.x).toBeGreaterThan((head.max.x - head.min.x) * 1.5);
