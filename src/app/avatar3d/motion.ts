@@ -151,6 +151,49 @@ export function tailWag(seconds: number): number {
   return Math.sin((into / TAIL_BEAT) * Math.PI * 2) * TAIL_SWING * swell;
 }
 
+/**
+ * An evolution (Yobyn: "a short celebration, about 3 seconds"): the old
+ * stage gathers a glow, a flash, the new stage pops in, and it shows itself
+ * off. The swap happens at EVOLVE_SWAP, under the brightest of the flash.
+ */
+export const EVOLVE_SECONDS = 3;
+export const EVOLVE_SWAP = 1;
+/** How long the new stage takes to pop into place after the swap. */
+export const EVOLVE_POP = 0.6;
+
+export interface EvolutionMoment {
+  /** Whether the new stage is showing yet. */
+  grown: boolean;
+  /** The character's size, 1 as built. */
+  scale: number;
+  /** The flash round it: 0 none, 1 full. */
+  flash: number;
+  /** Whether the celebration is over. */
+  done: boolean;
+}
+
+/** The evolution `seconds` in. */
+export function evolution(seconds: number): EvolutionMoment {
+  const t = Math.max(seconds, 0);
+  if (t >= EVOLVE_SECONDS) {
+    return { grown: true, scale: 1, flash: 0, done: true };
+  }
+  if (t < EVOLVE_SWAP) {
+    // Gathering: a shiver that grows as the light builds
+    const k = t / EVOLVE_SWAP;
+    return { grown: false, scale: 1 + 0.06 * k * Math.sin(k * Math.PI * 10), flash: k * k, done: false };
+  }
+  if (t >= EVOLVE_SWAP + EVOLVE_POP) {
+    // Grown, and showing itself off
+    return { grown: true, scale: 1, flash: 0, done: false };
+  }
+  const k = (t - EVOLVE_SWAP) / EVOLVE_POP;
+  // Popping in from small, a little past full size, and settling
+  const pop = 1 - Math.pow(1 - k, 3);
+  const overshoot = 0.12 * Math.sin(k * Math.PI);
+  return { grown: true, scale: 0.7 + 0.3 * pop + overshoot, flash: 1 - k, done: false };
+}
+
 /** Light-up soles glow up and down this often, in seconds, from full to this dim and back. */
 export const GLOW_SECONDS = 1.6;
 export const GLOW_LOW = 0.55;

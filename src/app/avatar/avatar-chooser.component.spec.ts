@@ -1,7 +1,7 @@
 import { CHOOSER_WORDS } from './chooser-words';
 import { LanguageService } from '../services/language.service';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -9,6 +9,8 @@ import { AvatarChooserComponent } from './avatar-chooser.component';
 import { AvatarComponent } from './avatar.component';
 import { AvatarService } from '../services/avatar.service';
 import { ProgressService } from '../services/progress.service';
+import { SoundService } from '../services/sound.service';
+import { CELEBRATION_MS } from './evolution';
 import { xpToReach } from '../levels/level-curve';
 import { SECTIONS, allRows } from './chooser-sections';
 import { TOP_COLOURS } from './top-colours';
@@ -392,6 +394,87 @@ describe('AvatarChooserComponent wardrobe', () => {
       fixture.detectChanges();
       expect([service.get().stage, service.get().stagePinned]).toEqual([3, false]);
 
+    });
+
+    describe('growing, celebrated the next time the screen opens (Yobyn, 2026-09-27)', () => {
+      let sound: jasmine.Spy;
+      const banner = () => fixture.nativeElement.querySelector('.stage .evolved') as HTMLElement | null;
+      const stage = () => fixture.debugElement.query(By.css('.stage app-avatar-stage'));
+      /** Opens the screen again, as the child is now. */
+      const reopen = () => {
+        fixture?.destroy();
+        fixture = TestBed.createComponent(AvatarChooserComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+      };
+      beforeEach(() => (sound = spyOn(TestBed.inject(SoundService), 'playRoundDone')));
+
+      it('celebrates a new stage once, for about three seconds, and not again', fakeAsync(() => {
+        service.save({ ...service.get(), family: 'creature' });
+        openAtLevel(1);
+        // The first look: nothing grown yet
+        expect(banner()).toBeNull();
+        expect(component.evolveFrom).toBeNull();
+        progress.addXp(xpToReach(10));
+        reopen();
+        expect(component.avatar.stage).toBe(2);
+        expect(component.evolveFrom).toBe(1);
+        expect(stage().properties.evolveFrom).toBe(1);
+        expect(banner()!.textContent).toContain(component.languageService.translate('creature-grew' as any));
+        expect(banner()!.getAttribute('role')).toBe('status');
+        expect(sound).toHaveBeenCalledTimes(1);
+        tick(CELEBRATION_MS - 1);
+        fixture.detectChanges();
+        expect(banner()).toBeTruthy();
+        tick(1);
+        fixture.detectChanges();
+        expect(banner()).toBeNull();
+        reopen();
+        expect(component.evolveFrom).toBeNull();
+        expect(banner()).toBeNull();
+        expect(sound).toHaveBeenCalledTimes(1);
+      }));
+
+      it('says so in every language the game speaks', () => {
+        (['en', 'nl', 'es'] as const).forEach(language =>
+          expect(CHOOSER_WORDS[language]['creature-grew' as keyof typeof CHOOSER_WORDS.en]).toMatch(/!$/));
+      });
+
+      it('does not celebrate a family just picked, or a stage the child chose to go back to', () => {
+        openAtLevel(12);
+        component.pickFamily('creature');
+        reopen();
+        expect(component.evolveFrom).toBeNull();
+        // Back to the egg, then a climb to the next tier: it stays an egg, as chosen
+        component.pickStage(1);
+        progress.addXp(xpToReach(16) - xpToReach(12));
+        reopen();
+        expect(component.avatar.stage).toBe(1);
+        expect(component.evolveFrom).toBeNull();
+        expect(banner()).toBeNull();
+        expect(sound).not.toHaveBeenCalled();
+      });
+
+      it('never celebrates for a kid hero', () => {
+        openAtLevel(1);
+        progress.addXp(xpToReach(16));
+        reopen();
+        expect(component.evolveFrom).toBeNull();
+        expect(banner()).toBeNull();
+      });
+
+      it('stops its clock when the screen closes', fakeAsync(() => {
+        service.save({ ...service.get(), family: 'creature' });
+        openAtLevel(1);
+        progress.addXp(xpToReach(10));
+        reopen();
+        expect(component.celebrating).toBeTrue();
+        const closed = component;
+        fixture.destroy();
+        // Nothing left waiting to change a screen that is gone
+        tick(CELEBRATION_MS);
+        expect(closed.celebrating).toBeTrue();
+      }));
     });
   });
 

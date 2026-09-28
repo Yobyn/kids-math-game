@@ -4,6 +4,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BODY_TYPES, NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
+import { CREATURE } from './creatures';
+import { EVOLVE_SECONDS, EVOLVE_SWAP, evolution } from './motion';
 import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming } from './avatar-stage.component';
 
 describe('framing', () => {
@@ -88,8 +90,9 @@ describe('AvatarStageComponent', () => {
   let fixture: ComponentFixture<AvatarStageComponent>;
   let component: AvatarStageComponent;
 
-  async function create(webgl: boolean) {
-    spyOn(AvatarStageComponent, 'canUseWebGL').and.returnValue(webgl);
+  async function create(webgl: boolean, before?: () => void) {
+    const canUse = AvatarStageComponent.canUseWebGL;
+    (jasmine.isSpy(canUse) ? (canUse as jasmine.Spy) : spyOn(AvatarStageComponent, 'canUseWebGL')).and.returnValue(webgl);
     await TestBed.configureTestingModule({
       declarations: [AvatarStageComponent],
       schemas: [NO_ERRORS_SCHEMA]
@@ -100,6 +103,7 @@ describe('AvatarStageComponent', () => {
     component.label = 'Your character';
     component.turnLeftLabel = 'Turn left';
     component.turnRightLabel = 'Turn right';
+    before?.();
     fixture.detectChanges();
   }
 
@@ -388,6 +392,137 @@ describe('AvatarStageComponent', () => {
         tick(t0 + 1000 + i * 1000 / 60);
       }
       expect(draw.calls.count()).toBe(60);
+    });
+
+    describe('an evolution', () => {
+      const flashIn = () => component['scene'].getObjectByName('evolution-flash') as THREE.Sprite | undefined;
+      const creature = () => component.model!.getObjectByName(CREATURE)!;
+      const egg = () => component.model!.getObjectByName('creature-egg');
+      /** The stage opened on a dragon grown to stage 2 since it was last seen, at stage 1. */
+      async function grownSince(from: number, to = 2) {
+        fixture.destroy();
+        TestBed.resetTestingModule();
+        await create(true, () => {
+          component.avatar = { ...defaultAvatar(), family: 'creature', stage: to };
+          component.evolveFrom = from;
+        });
+      }
+
+      it('shows the stage it grew from first, in a light that has not come up yet', async () => {
+        notReduced();
+        await grownSince(1);
+        expect(component.evolving).toBeTrue();
+        expect(egg()).toBeTruthy();
+        expect(flashIn()!.material.opacity).toBe(0);
+        expect(flashIn()!.material.blending).toBe(THREE.AdditiveBlending);
+        // The evolution turns it round, once grown: not the usual turn on arrival as well
+        expect((component as any).spin).toBeUndefined();
+      });
+
+      it('shivers in a gathering light, grows under the flash, and turns round once to show itself', async () => {
+        notReduced();
+        await grownSince(1);
+        const size = creature().scale.x;
+        component.evolveAt(0.55);
+        expect(egg()).toBeTruthy();
+        expect(creature().scale.x).toBeCloseTo(size * evolution(0.55).scale, 9);
+        expect(flashIn()!.material.opacity).toBeCloseTo(evolution(0.55).flash, 9);
+        // Round the character, and as big as it
+        const box = new THREE.Box3().setFromObject(creature());
+        expect(flashIn()!.position.distanceTo(box.getCenter(new THREE.Vector3()))).toBeLessThan(0.5);
+        expect(flashIn()!.scale.x).toBeGreaterThan(box.getSize(new THREE.Vector3()).y);
+
+        const old = component.model;
+        component.evolveAt(EVOLVE_SWAP + 0.05);
+        expect(component.model).not.toBe(old);
+        expect(egg()).toBeUndefined();
+        expect(component.model!.getObjectByName('pet-wing')).toBeTruthy();
+        expect(creature().scale.x).toBeCloseTo(STAGE_TWO_SCALE() * evolution(EVOLVE_SWAP + 0.05).scale, 9);
+        expect(creature().scale.x).toBeLessThan(STAGE_TWO_SCALE());
+        const spin = (component as any).spin;
+        expect(spin.to - spin.from).toBeCloseTo(Math.PI * 2, 9);
+        expect(spin.ms).toBe((EVOLVE_SECONDS - EVOLVE_SWAP) * 1000);
+        // Grown only once: later moments do not build it again
+        const grown = component.model;
+        component.evolveAt(2);
+        expect(component.model).toBe(grown);
+        expect(creature().scale.x).toBe(STAGE_TWO_SCALE());
+      });
+
+      it('is over after about three seconds: the light gone, the dragon as built', async () => {
+        notReduced();
+        await grownSince(1);
+        const flash = flashIn()!;
+        const freed = spyOn(flash.material, 'dispose').and.callThrough();
+        component.evolveAt(EVOLVE_SECONDS);
+        expect(component.evolving).toBeFalse();
+        expect(flashIn()).toBeUndefined();
+        expect(freed).toHaveBeenCalled();
+        expect(creature().scale.x).toBe(STAGE_TWO_SCALE());
+        expect(egg()).toBeUndefined();
+      });
+
+      it('plays by itself, frame by frame, at full speed', async () => {
+        notReduced();
+        await grownSince(1);
+        const at = spyOn(component, 'evolveAt').and.callThrough();
+        const start = (component as any).evolveStart as number;
+        (component as any).animate(start + 1500);
+        expect(at).toHaveBeenCalledWith(1.5);
+        const draw = spyOn(component as any, 'renderNow').and.stub();
+        const raf = spyOn(window, 'requestAnimationFrame').and.returnValue(0);
+        (component as any).spin = undefined;
+        (component as any).drawnAt = start + 1500;
+        (component as any).frame = 0;
+        (component as any).requestRender();
+        (raf.calls.mostRecent().args[0] as FrameRequestCallback)(start + 1510);
+        expect(draw).toHaveBeenCalled();
+      });
+
+      it('plays once: a change afterwards shows the character as it is now', async () => {
+        notReduced();
+        await grownSince(1);
+        component.evolveAt(EVOLVE_SECONDS);
+        change({ ...component.avatar, stage: 2 });
+        expect(component.evolving).toBeFalse();
+        expect(egg()).toBeUndefined();
+        expect(flashIn()).toBeUndefined();
+      });
+
+      it('shows the new stage straight away under reduced motion, and never plays it later', async () => {
+        reduced();
+        await grownSince(1);
+        expect(component.evolving).toBeFalse();
+        expect(egg()).toBeUndefined();
+        expect(flashIn()).toBeUndefined();
+        change({ ...component.avatar });
+        expect(component.evolving).toBeFalse();
+      });
+
+      it('has nothing to play without a stage below the one it is at', async () => {
+        notReduced();
+        await grownSince(2);
+        expect(component.evolving).toBeFalse();
+        expect(flashIn()).toBeUndefined();
+        await grownSince(null as any);
+        expect(component.evolving).toBeFalse();
+      });
+
+      it('puts the light away if the screen closes mid-way', async () => {
+        notReduced();
+        await grownSince(1);
+        const freed = spyOn(flashIn()!.material, 'dispose').and.callThrough();
+        fixture.destroy();
+        expect(freed).toHaveBeenCalled();
+      });
+
+      /** How big a stage-2 dragon is built. */
+      function STAGE_TWO_SCALE(): number {
+        const root = buildAvatar({ ...defaultAvatar(), family: 'creature', stage: 2 });
+        const scale = root.getObjectByName(CREATURE)!.scale.x;
+        disposeAvatar(root);
+        return scale;
+      }
     });
 
     it('stops drawing when the screen closes, alive or not', () => {

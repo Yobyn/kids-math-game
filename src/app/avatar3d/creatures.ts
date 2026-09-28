@@ -184,6 +184,26 @@ function dragon(colour: string, stage: number): THREE.Group {
  * and shared: the glow round the full dragon.
  */
 let halo: THREE.Texture | null = null;
+let burst: THREE.Texture | null = null;
+
+/** A round light, brightest in the middle: the flash of an evolution. Drawn once and shared. */
+export function burstTexture(): THREE.Texture {
+  if (!burst) {
+    const size = 128;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const context = canvas.getContext('2d')!;
+    const gradient = context.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    gradient.addColorStop(0, 'rgba(255,255,255,1)');
+    gradient.addColorStop(0.35, 'rgba(255,255,255,0.75)');
+    gradient.addColorStop(1, 'rgba(255,255,255,0)');
+    context.fillStyle = gradient;
+    context.fillRect(0, 0, size, size);
+    burst = new THREE.CanvasTexture(canvas);
+  }
+  return burst;
+}
+
 export function haloTexture(): THREE.Texture {
   if (!halo) {
     const size = 128;

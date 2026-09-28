@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AvatarService } from '../services/avatar.service';
 import { LanguageService, TranslationKeys } from '../services/language.service';
@@ -7,6 +7,8 @@ import { TOP_COLOURS, ownTopColour } from './top-colours';
 /** What each family looks like on its swatch. */
 const FAMILY_ICONS: { [family in Family]: string } = { kid: '🧒', creature: '🐲' };
 import { ProgressService } from '../services/progress.service';
+import { SoundService } from '../services/sound.service';
+import { CELEBRATION_MS, evolvedFrom } from './evolution';
 
 import { levelForXp } from '../levels/level-curve';
 import {
@@ -50,7 +52,7 @@ const LABEL_ICONS: { [value: string]: string } = { boy: '👦', girl: '👧' };
   templateUrl: './avatar-chooser.component.html',
   styleUrls: ['./avatar-chooser.component.css']
 })
-export class AvatarChooserComponent implements OnInit {
+export class AvatarChooserComponent implements OnInit, OnDestroy {
   avatar!: Avatar;
   readonly sections = SECTIONS;
   /** The section on screen. The face first: it is what says who this is. */
@@ -73,12 +75,18 @@ export class AvatarChooserComponent implements OnInit {
   level = 1;
   nextReward?: WardrobeItem;
   earnedEvents: string[] = [];
+  /** The stage the character grew from since the child last looked: the stage plays the evolution from it. */
+  evolveFrom: number | null = null;
+  /** Whether the words and sparkles of an evolution are up. */
+  celebrating = false;
+  private celebration?: ReturnType<typeof setTimeout>;
 
   constructor(
     private avatarService: AvatarService,
     private progressService: ProgressService,
     private router: Router,
-    public languageService: LanguageService
+    public languageService: LanguageService,
+    private soundService: SoundService
   ) {
     languageService.extend(CHOOSER_WORDS);
   }
@@ -90,6 +98,17 @@ export class AvatarChooserComponent implements OnInit {
     this.level = levelForXp(this.progressService.getXp());
     this.earnedEvents = this.progressService.getEarnedEvents();
     this.nextReward = nextUnlock(this.level);
+    // Grown since last time: once, now, about three seconds of it
+    this.evolveFrom = evolvedFrom(this.avatar, stageForLevel(this.level));
+    if (this.evolveFrom !== null) {
+      this.celebrating = true;
+      this.soundService.playRoundDone();
+      this.celebration = setTimeout(() => (this.celebrating = false), CELEBRATION_MS);
+    }
+  }
+
+  ngOnDestroy() {
+    clearTimeout(this.celebration);
   }
 
   /**
@@ -245,8 +264,10 @@ export class AvatarChooserComponent implements OnInit {
     return FAMILY_ICONS[family];
   }
 
+  /** A family picked is seen as it is now: nothing to celebrate the next time. */
   pickFamily(family: Family) {
     this.choose('family', family);
+    evolvedFrom(this.avatar, stageForLevel(this.level));
   }
 
   /** Whether the child has climbed far enough for this stage. */
