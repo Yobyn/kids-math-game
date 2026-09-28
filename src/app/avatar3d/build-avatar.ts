@@ -12,6 +12,7 @@ import { buildShoe, collarShare, legRadius } from './shoes';
 import { buildCreature } from './creatures';
 import { Around, BackMap, buildBackItem } from './back-items';
 import { WAVING_SIDE } from './motion';
+import { BELT_DROP, BELT_HEIGHT, beltColour, heroBuckle, legendCape, wearsGear, wristband, BAND_TO } from './hero-gear';
 import { Figure, KNEE_FORWARD, chinY, figureFor, hang, legLength, lowerLegRadii, torsoRadius, wrist } from './figure';
 
 /** The joints an arm turns at, by name, for rig.ts. */
@@ -429,14 +430,24 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
   const pelvis = part('hips', new THREE.LatheGeometry(lower.map(([r, y]) => new THREE.Vector2(r * 1.01, y)), 40), trousers, 0.05);
   pelvis.scale.z = depth;
   body.add(pelvis);
-  const [beltR] = girth(figure, figure.belt);
-  const belt = part('belt', new THREE.CylinderGeometry(beltR * 1.04, beltR * 1.04, 0.2, 40, 1, true), toon(BELT, { side: THREE.DoubleSide }), 0.02);
-  belt.position.y = figure.belt;
+  // The trousers' own belt, or a hero's from the trained stage on (hero-gear.ts)
+  const heroBelt = beltColour(avatar.stage, topColour);
+  const beltHeight = heroBelt ? BELT_HEIGHT : 0.2;
+  const beltY = figure.belt - (heroBelt ? BELT_DROP : 0);
+  const beltR = Math.max(...[-0.5, 0, 0.5].map(k => girth(figure, beltY + k * beltHeight)[0])) * 1.04;
+  const belt = part('belt', new THREE.CylinderGeometry(beltR, beltR, beltHeight, 40, 1, true), toon(heroBelt || BELT, { side: THREE.DoubleSide }), 0.02);
+  belt.position.y = beltY;
   belt.scale.z = depth;
   body.add(belt);
-  const buckle = part('buckle', new THREE.BoxGeometry(0.34, 0.24, 0.06), toon('#c9a54a'), 0.015);
-  buckle.position.set(0, figure.belt, beltR * 1.04 * depth + 0.02);
-  body.add(buckle);
+  if (heroBelt) {
+    const buckle = heroBuckle(avatar.stage, topColour);
+    buckle.position.set(0, beltY, beltR * depth + 0.05);
+    body.add(buckle);
+  } else {
+    const buckle = part('buckle', new THREE.BoxGeometry(0.34, 0.24, 0.06), toon('#c9a54a'), 0.015);
+    buckle.position.set(0, beltY, beltR * depth + 0.02);
+    body.add(buckle);
+  }
 
   [-1, 1].forEach(side => {
     const hip = new THREE.Vector3(side * figure.hip[0], figure.hip[1], 0);
@@ -510,6 +521,12 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
         // The red of the shirt underneath shows at the wrist, as in the reference
         onLower(part('undershirt-cuff', limb([rWrist * 1.0, rWrist * 0.98], wristV, wristV.clone().add(wristV.clone().sub(elbow).normalize().multiplyScalar(0.12))), toon('#b5302b'), 0.015));
       }
+    }
+    if (wearsGear(avatar.stage)) {
+      // A wristband over the sleeve, or the bare arm, just above the hand
+      const [atWrist, atElbow] = cut === 'short' ? [rWrist * 0.75, rElbow * 0.78] : [rWrist * 1.12, rElbow];
+      const under = Math.max(atWrist, atWrist + (atElbow - atWrist) * BAND_TO);
+      onLower(wristband(avatar.stage, topColour, wristV, elbow, under + 0.05));
     }
     // A hand: palm, fingers together, and a thumb, hanging relaxed
     const hand = new THREE.Group();
@@ -737,7 +754,16 @@ export function buildAvatar(avatar: Avatar): THREE.Group {
  */
 function buildBackBehind(avatar: Avatar, figure: Figure, root: THREE.Group): THREE.Group | null {
   const item = avatar.back && avatar.back !== NO_ITEM ? findItem('back', avatar.back) : undefined;
-  return item ? buildBackItem(item.id, item.colour, figure, aroundCharacter(root, figure)) : null;
+  if (item) {
+    return buildBackItem(item.id, item.colour, figure, aroundCharacter(root, figure));
+  }
+  // A legend's cape, with nothing else on their back (hero-gear.ts)
+  const legend = legendCape(avatar.stage, avatar.back, topColourOf(avatar));
+  const cape = legend ? buildBackItem('cape', legend, figure, aroundCharacter(root, figure)) : null;
+  if (cape) {
+    cape.userData.legend = true;
+  }
+  return cape;
 }
 
 /**

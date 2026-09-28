@@ -730,12 +730,41 @@ screen opens."
   scratch git worktree, so the working tree is never left with a mutant in
   it.
 
+**THE KID HERO GROWS — DONE (Yobyn, 2026-09-27).** "Kid heroes: beginner
+outfit / trained outfit / legend outfit with cape."
+- The child's own face, hair and clothes stay theirs at every stage. The
+  stages add hero gear over them, where nothing else is worn
+  (`avatar3d/hero-gear.ts`):
+  - Beginner: their own clothes.
+  - Trained: a hero belt (taller, a little lower than the trousers' own)
+    with a star on a round buckle, and a wristband on each forearm just
+    above the hand, over the sleeve or the bare arm, moving with it.
+  - Legend: belt, buckle and wristbands in gold, the star shining (unlit),
+    and a cape in the hero colour when the back slot is empty. A backpack
+    or the child's own cape wins over it.
+  - The hero colour is red, or blue on a red, orange or pink top.
+- The dressing-up screen shows the kid's stages ("Your hero grows":
+  Beginner / Trained / Legend). 'kid' is in `FAMILIES_THAT_GROW`: "Your
+  hero got stronger!", with the whole hero on screen while it plays.
+- The celebration now grows everything on the stand but the stand and
+  the pet, positions and sizes together, so a kid's head stays on its
+  body. The words sit above the character, clear of a cap.
+- `STILL_VERSION` 5. First load unchanged at 459.04 kB. 1,722 unit tests.
+  The mutation sweep caught 29 of 37 at first; all eight that lived got
+  tests: the hero belt shows as a broad band under the hem; the plate is
+  silver, then gold; the star is on the front of its plate; a wristband
+  covers only the last third of the forearm and is clear of the hand; the
+  belt wraps the body at every height it covers, and a wristband clears
+  the arm's outline as well as the arm (both found by casting rays at the
+  real surface, since a straight limb has no vertices in between).
+- Asked of Yobyn: whether the beginner stage should have a visible item of
+  its own (it is the child's own clothes now).
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **The other families, one per run**: Kid heroes' three outfits (the
-   kid family already exists; its stages need beginner / trained /
-   legend-with-cape outfits), Robots, Animals, Space, Silly objects.
-   Each one joins `FAMILIES_THAT_GROW` so it gets the celebration too.
+1. **The other families, one per run**: Robots, Animals, Space, Silly
+   objects. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
+   the celebration too.
 2. **The full dragon's halo is cut off** at the sides of the stage's
    canvas: make it fit (or the canvas wider) and bump `STILL_VERSION`.
 3. **Better materials.** Hair strands or clumps rather than one smooth

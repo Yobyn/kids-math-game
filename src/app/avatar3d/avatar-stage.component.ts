@@ -7,7 +7,7 @@ import { Avatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
 import { EVOLVE_SECONDS, EVOLVE_SWAP, WAVE_SECONDS, evolution, putOnSomethingNew } from './motion';
 import { Rig } from './rig';
-import { CREATURE, CREATURE_HEAD, burstTexture } from './creatures';
+import { CREATURE_HEAD, burstTexture } from './creatures';
 
 /** The usual camera distance, for a character of ordinary height. */
 export const BASE_DISTANCE = 28.5;
@@ -174,8 +174,8 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   private flash?: THREE.Sprite;
   /** Whether the stage an evolution grows from is the one on the stand. */
   private unGrown = false;
-  /** What an evolution grows, and its size as built. */
-  private growing?: { node: THREE.Object3D; scale: number };
+  /** What an evolution grows, where each part stands and its size as built. */
+  private growing: { node: THREE.Object3D; position: THREE.Vector3; scale: THREE.Vector3 }[] = [];
   /** What the character had on at the last rebuild, to see what is new. */
   private worn?: { hat?: string; glasses?: string; top?: string };
   /** When the last idle frame was drawn: breathing needs no more than 30 a second. */
@@ -436,8 +436,10 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
     this.model = buildAvatar(avatar);
     this.scene.add(this.model);
     this.rig = new Rig(this.model);
-    const node = this.model.getObjectByName(CREATURE) || this.model;
-    this.growing = { node, scale: node.scale.x };
+    // Everything on the stand grows, from the stand up: not the stand, or the pet beside it
+    this.growing = this.model.children
+      .filter(node => node.name !== 'pedestal' && node.name !== 'pet')
+      .map(node => ({ node, position: node.position.clone(), scale: node.scale.clone() }));
   }
 
   /** The light of an evolution, round the character, starting dark. */
@@ -470,13 +472,14 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
       this.frameModel();
       this.animateTurn(this.angle, this.angle + Math.PI * 2, (EVOLVE_SECONDS - EVOLVE_SWAP) * 1000);
     }
-    if (this.growing) {
-      this.growing.node.scale.setScalar(this.growing.scale * moment.scale);
-    }
-    if (this.flash && this.growing) {
+    this.growing.forEach(({ node, position, scale }) => {
+      node.position.copy(position).multiplyScalar(moment.scale);
+      node.scale.copy(scale).multiplyScalar(moment.scale);
+    });
+    if (this.flash) {
       const box = new THREE.Box3();
-      this.growing.node.updateMatrixWorld(true);
-      this.growing.node.traverse(node => (node as THREE.Mesh).isMesh && box.expandByObject(node));
+      this.model!.updateMatrixWorld(true);
+      this.growing.forEach(({ node }) => node.traverse(part => (part as THREE.Mesh).isMesh && box.expandByObject(part)));
       const size = box.getSize(new THREE.Vector3());
       this.flash.position.copy(box.getCenter(new THREE.Vector3()));
       this.flash.scale.setScalar(Math.max(size.x, size.y) * 1.25);

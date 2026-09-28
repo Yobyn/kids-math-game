@@ -471,6 +471,44 @@ describe('AvatarStageComponent', () => {
         expect(camera.position.distanceTo(target)).toBeCloseTo(grown.distance, 6);
       });
 
+      it('grows a kid hero into its new gear the same way, the stand and pet staying as they are', async () => {
+        notReduced();
+        fixture.destroy();
+        TestBed.resetTestingModule();
+        const kid = { ...defaultAvatar(), family: 'kid' as const, stage: 3, pet: 'puppy' };
+        await create(true, () => {
+          component.avatar = kid;
+          component.evolveFrom = 1;
+        });
+        // The beginner first, in their own clothes
+        expect(component.model!.getObjectByName('wristband')).toBeUndefined();
+        const at = EVOLVE_SWAP + 0.05;
+        component.evolveAt(at);
+        const model = component.model!;
+        expect(model.getObjectByName('wristband')).toBeTruthy();
+        expect(model.getObjectByName('back')!.userData.legend).toBeTrue();
+        const size = evolution(at).scale;
+        const asBuilt = buildAvatar(kid);
+        const byName = (root: THREE.Object3D, name: string) => root.children.find(child => child.name === name)!;
+        ['pedestal', 'pet'].forEach(name => {
+          expect(byName(model, name).scale.equals(byName(asBuilt, name).scale)).withContext(name).toBeTrue();
+          expect(byName(model, name).position.equals(byName(asBuilt, name).position)).withContext(name).toBeTrue();
+        });
+        // Everything else together, from the stand up: the head stays on the body
+        ['body', 'head-group', 'hair', 'back'].forEach(name => {
+          const grown = byName(model, name);
+          const built = byName(asBuilt, name);
+          expect(grown.scale.x).withContext(name).toBeCloseTo(built.scale.x * size, 9);
+          expect(grown.position.y).withContext(name).toBeCloseTo(built.position.y * size, 9);
+        });
+        component.evolveAt(EVOLVE_SECONDS);
+        ['body', 'head-group'].forEach(name => {
+          expect(byName(model, name).scale.equals(byName(asBuilt, name).scale)).withContext(name).toBeTrue();
+          expect(byName(model, name).position.equals(byName(asBuilt, name).position)).withContext(name).toBeTrue();
+        });
+        disposeAvatar(asBuilt);
+      });
+
       it('is over after about three seconds: the light gone, the dragon as built', async () => {
         notReduced();
         await grownSince(1);
