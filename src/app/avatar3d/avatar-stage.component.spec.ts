@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BODY_TYPES, NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
-import { CREATURE } from './creatures';
+import { CREATURE, CREATURE_HEAD } from './creatures';
 import { EVOLVE_SECONDS, EVOLVE_SWAP, evolution } from './motion';
 import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming } from './avatar-stage.component';
 
@@ -279,6 +279,10 @@ describe('AvatarStageComponent', () => {
       expect(Number.isFinite(distance)).toBeTrue();
       expect(Number.isFinite(target.y)).toBeTrue();
       expect(distance).toBeGreaterThan(0);
+      // On the head where it really is, the dragon's own size included, straight after it is built
+      component.model!.updateMatrixWorld(true);
+      const head = new THREE.Box3().setFromObject(component.model!.getObjectByName(CREATURE_HEAD)!);
+      expect(target.y).toBeCloseTo((head.min.y + head.max.y) / 2, 6);
     });
 
     it('rebuilds the character when the character changes', () => {
@@ -447,6 +451,24 @@ describe('AvatarStageComponent', () => {
         component.evolveAt(2);
         expect(component.model).toBe(grown);
         expect(creature().scale.x).toBe(STAGE_TWO_SCALE());
+      });
+
+      it('looks again at what it grew into, for a close-up on the head too', async () => {
+        notReduced();
+        await grownSince(1);
+        component.focus = 'head';
+        component.evolveAt(0.5);
+        component['frameModel']();
+        const egg = component.view();
+        component.evolveAt(EVOLVE_SWAP + 0.05);
+        const camera = component['camera'] as THREE.PerspectiveCamera;
+        const target = component['controls']!.target as THREE.Vector3;
+        // The grown head, as it stands once it has settled
+        component.evolveAt(EVOLVE_SECONDS);
+        const grown = component.view();
+        expect(Math.abs(grown.target.y - egg.target.y)).toBeGreaterThan(0.5);
+        expect(target.y).toBeCloseTo(grown.target.y, 6);
+        expect(camera.position.distanceTo(target)).toBeCloseTo(grown.distance, 6);
       });
 
       it('is over after about three seconds: the light gone, the dragon as built', async () => {

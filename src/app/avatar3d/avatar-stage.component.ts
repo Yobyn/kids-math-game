@@ -362,6 +362,8 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   /** Where the camera should look, and from how far, for the current focus. */
   view(): { target: THREE.Vector3; distance: number } {
     const box = new THREE.Box3();
+    // Where every part is now, a creature's scale included, even if it has not been drawn yet
+    this.model!.updateMatrixWorld(true);
     if (this.focus === 'head') {
       ['head-group', 'hair', 'hat', 'glasses', CREATURE_HEAD].forEach(name => {
         const part = this.model!.getObjectByName(name);
@@ -374,7 +376,6 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
       return { target: new THREE.Vector3(0, centre, 0), distance };
     }
     // Everything solid: a glow round a creature is light, not something to fit in
-    this.model!.updateMatrixWorld(true);
     this.model!.traverse(node => {
       if ((node as THREE.Mesh).isMesh) {
         box.expandByObject(node);
