@@ -765,8 +765,16 @@ WHAT IS NEXT, in the order the runs should take them:
 1. **The other families, one per run**: Robots, Animals, Space, Silly
    objects. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
    the celebration too.
-2. **The full dragon's halo is cut off** at the sides of the stage's
-   canvas: make it fit (or the canvas wider) and bump `STILL_VERSION`.
+2. **The full dragon's halo — DONE on the stage (nightly run,
+   2026-09-28).** On a phone it was cut off on all four sides, because the
+   stage framed only solid meshes. The whole-figure view now counts the
+   `creature-glow` sprite too, so the ring shows whole on a 390 and a 360
+   wide phone and on a phone on its side. The kid hero and the young dragon
+   have no glow and frame exactly as before (tested). The dragon stands a
+   little smaller to make room. STILL: the pictures on other screens
+   (`still-renderer.ts`, `creatureBox`) still leave the glow out of the
+   full framing. Check them, and if they clip, fit them and bump
+   `STILL_VERSION`.
 3. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.

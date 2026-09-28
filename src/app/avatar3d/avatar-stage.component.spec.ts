@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BODY_TYPES, NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
-import { CREATURE, CREATURE_HEAD } from './creatures';
+import { CREATURE, CREATURE_GLOW, CREATURE_HEAD } from './creatures';
 import { EVOLVE_SECONDS, EVOLVE_SWAP, evolution } from './motion';
 import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming } from './avatar-stage.component';
 
@@ -283,6 +283,37 @@ describe('AvatarStageComponent', () => {
       component.model!.updateMatrixWorld(true);
       const head = new THREE.Box3().setFromObject(component.model!.getObjectByName(CREATURE_HEAD)!);
       expect(target.y).toBeCloseTo((head.min.y + head.max.y) / 2, 6);
+    });
+
+    it('stands far enough back to show the full dragon\u2019s whole glow, on a phone and on its side', () => {
+      component.avatar = { ...component.avatar, family: 'creature', stage: 3 };
+      component.ngOnChanges({ avatar: new SimpleChange(null, component.avatar, false) });
+      component.focus = 'body';
+      const camera: THREE.PerspectiveCamera = (component as any).camera;
+      [0.9, 2.2].forEach(aspect => {
+        camera.aspect = aspect;
+        const { target, distance } = component.view();
+        component.model!.updateMatrixWorld(true);
+        const glow = new THREE.Box3().setFromObject(component.model!.getObjectByName(CREATURE_GLOW)!);
+        // What the camera sees at the dragon's depth, up and across
+        const half = Math.tan((camera.fov * Math.PI) / 360) * distance;
+        expect(glow.max.y).toBeLessThanOrEqual(target.y + half);
+        expect(glow.min.y).toBeGreaterThanOrEqual(target.y - half);
+        expect(Math.max(-glow.min.x, glow.max.x)).toBeLessThanOrEqual(half * aspect);
+      });
+    });
+
+    it('frames a kid hero as before: there is no glow to make room for', () => {
+      component.focus = 'body';
+      const before = component.view();
+      expect(component.model!.getObjectByName(CREATURE_GLOW)).toBeUndefined();
+      component.avatar = { ...component.avatar, family: 'creature', stage: 2 };
+      component.ngOnChanges({ avatar: new SimpleChange(null, component.avatar, false) });
+      // A young dragon has no glow either
+      expect(component.model!.getObjectByName(CREATURE_GLOW)).toBeUndefined();
+      component.avatar = { ...component.avatar, family: 'kid', stage: 1 };
+      component.ngOnChanges({ avatar: new SimpleChange(null, component.avatar, false) });
+      expect(component.view().distance).toBeCloseTo(before.distance, 9);
     });
 
     it('rebuilds the character when the character changes', () => {

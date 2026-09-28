@@ -7,7 +7,7 @@ import { Avatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
 import { EVOLVE_SECONDS, EVOLVE_SWAP, WAVE_SECONDS, evolution, putOnSomethingNew } from './motion';
 import { Rig } from './rig';
-import { CREATURE_HEAD, burstTexture } from './creatures';
+import { CREATURE_GLOW, CREATURE_HEAD, burstTexture } from './creatures';
 
 /** The usual camera distance, for a character of ordinary height. */
 export const BASE_DISTANCE = 28.5;
@@ -375,9 +375,11 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
       const { distance, centre } = headFraming(box.min.y, box.max.y, this.camera.fov, this.camera.aspect);
       return { target: new THREE.Vector3(0, centre, 0), distance };
     }
-    // Everything solid: a glow round a creature is light, not something to fit in
+    // Everything solid, and the full dragon's glow: it is part of how the
+    // grown dragon looks, and cut off at the canvas's edges it read as a
+    // mistake. Its sprite is a square facing the camera, so its box is too
     this.model!.traverse(node => {
-      if ((node as THREE.Mesh).isMesh) {
+      if ((node as THREE.Mesh).isMesh || node.name === CREATURE_GLOW) {
         box.expandByObject(node);
       }
     });
