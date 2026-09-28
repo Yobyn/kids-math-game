@@ -3,6 +3,7 @@ import { BODY_TYPES, defaultAvatar } from '../avatar/avatar-model';
 import { ARM_RIG, EYE_SHUT, FOREARM_RIG, buildAvatar, disposeAvatar } from './build-avatar';
 import { figureFor } from './figure';
 import { BREATH_RISE, BREATH_SECONDS, WAVE_LIFT, WAVE_SECONDS, eyesOpen, wave } from './motion';
+import { buildCreature } from './creatures';
 import { Rig, SHUT_BELOW, WAVING_SIDE } from './rig';
 
 /** Every mesh's world position, so a pose can be checked to leave nothing behind. */
@@ -144,6 +145,23 @@ describe('Rig', () => {
       rig.pose(t, null);
       rig.rest();
       lines.forEach(line => expect(line.visible).toBe(false));
+    });
+  });
+
+  it('only presses a creature\'s eyes flat, never hiding them, as it has no closed line', () => {
+    [1, 2, 3].forEach(stage => {
+      const model = buildCreature(stage);
+      models.push(model);
+      const rig = new Rig(model);
+      const eyes: THREE.Object3D[] = [];
+      model.traverse(node => node.name === 'eye' && eyes.push(node));
+      expect(eyes.length).toBeGreaterThan(0);
+      const open = eyes.map(eye => eye.scale.y);
+      rig.pose(shutMoment(), null);
+      eyes.forEach((eye, i) => {
+        expect(eye.scale.y).toBeLessThan(open[i] * 0.15);
+        eye.traverse(node => expect(node.visible).toBe(true));
+      });
     });
   });
 

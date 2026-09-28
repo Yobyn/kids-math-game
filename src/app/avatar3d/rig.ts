@@ -88,14 +88,19 @@ export class Rig {
 
   /**
    * Opens the eyes this far, 1 wide open: each is pressed flat top to
-   * bottom, and near the bottom of a blink the closed line takes the place
-   * of the open eye. The line undoes the press on itself, so it keeps its
+   * bottom, and near the bottom of a blink the closed line, where the eye
+   * has one, takes the place of the open eye. The line undoes the press on itself, so it keeps its
    * shape however flat the eye is.
    */
   private openEyes(open: number) {
     const shut = open < SHUT_BELOW;
     this.eyes.forEach(({ node, y }) => {
       node.scale.y = y * open;
+      // Only an eye built with a closed line swaps to it: a creature's or a
+      // pet's eyes have none, and are just pressed flat
+      if (!node.getObjectByName(EYE_SHUT)) {
+        return;
+      }
       node.children.forEach(child => {
         if (child.name === EYE_SHUT) {
           child.visible = shut;
