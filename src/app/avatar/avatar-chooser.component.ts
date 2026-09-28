@@ -1,9 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { AvatarService } from '../services/avatar.service';
 import { LanguageService, TranslationKeys } from '../services/language.service';
 import { TOP_COLOURS, ownTopColour } from './top-colours';
+
+/** What each family looks like on its swatch. */
+const FAMILY_ICONS: { [family in Family]: string } = { kid: '🧒', creature: '🐲' };
 import { ProgressService } from '../services/progress.service';
+import { SoundService } from '../services/sound.service';
+import { CELEBRATION_MS, evolvedFrom } from './evolution';
 
 import { levelForXp } from '../levels/level-curve';
 import {
@@ -20,7 +25,11 @@ import {
   NO_ITEM,
   SKIN_TONES,
   WardrobeItem,
-  isUnlocked
+  isUnlocked,
+  FAMILIES,
+  Family,
+  TIER_STARTS,
+  stageForLevel
 } from './avatar-model';
 import { BODY_ROW, ChooserRow, EARNED_SECTIONS, SECTIONS, SectionId } from './chooser-sections';
 import { ICON_SLOTS, itemIcon } from './item-icons';
@@ -43,7 +52,7 @@ const LABEL_ICONS: { [value: string]: string } = { boy: '👦', girl: '👧' };
   templateUrl: './avatar-chooser.component.html',
   styleUrls: ['./avatar-chooser.component.css']
 })
-export class AvatarChooserComponent implements OnInit {
+export class AvatarChooserComponent implements OnInit, OnDestroy {
   avatar!: Avatar;
   readonly sections = SECTIONS;
   /** The section on screen. The face first: it is what says who this is. */
@@ -66,21 +75,40 @@ export class AvatarChooserComponent implements OnInit {
   level = 1;
   nextReward?: WardrobeItem;
   earnedEvents: string[] = [];
+  /** The stage the character grew from since the child last looked: the stage plays the evolution from it. */
+  evolveFrom: number | null = null;
+  /** Whether the words and sparkles of an evolution are up. */
+  celebrating = false;
+  private celebration?: ReturnType<typeof setTimeout>;
 
   constructor(
     private avatarService: AvatarService,
     private progressService: ProgressService,
     private router: Router,
-    public languageService: LanguageService
+    public languageService: LanguageService,
+    private soundService: SoundService
   ) {
     languageService.extend(CHOOSER_WORDS);
   }
 
   ngOnInit() {
+    // As the child is now: a level gained since it was last read can mean a new stage
+    this.avatarService.refresh();
     this.avatar = { ...this.avatarService.get() };
     this.level = levelForXp(this.progressService.getXp());
     this.earnedEvents = this.progressService.getEarnedEvents();
     this.nextReward = nextUnlock(this.level);
+    // Grown since last time: once, now, about three seconds of it
+    this.evolveFrom = evolvedFrom(this.avatar, stageForLevel(this.level));
+    if (this.evolveFrom !== null) {
+      this.celebrating = true;
+      this.soundService.playRoundDone();
+      this.celebration = setTimeout(() => (this.celebrating = false), CELEBRATION_MS);
+    }
+  }
+
+  ngOnDestroy() {
+    clearTimeout(this.celebration);
   }
 
   /**
@@ -224,10 +252,49 @@ export class AvatarChooserComponent implements OnInit {
     return item.id === NO_ITEM;
   }
 
+  readonly families = FAMILIES;
+  readonly stages = [1, 2, 3];
+
+  /** The kid hero has a face, hair and a wardrobe to choose; the other families grow instead. */
+  get isKid(): boolean {
+    return this.avatar.family === 'kid';
+  }
+
+  familyIcon(family: Family): string {
+    return FAMILY_ICONS[family];
+  }
+
+  /** A family picked is seen as it is now: nothing to celebrate the next time. */
+  pickFamily(family: Family) {
+    this.choose('family', family);
+    evolvedFrom(this.avatar, stageForLevel(this.level));
+  }
+
+  /** Whether the child has climbed far enough for this stage. */
+  stageReached(stage: number): boolean {
+    return stage <= stageForLevel(this.level);
+  }
+
+  /** The level a stage is reached at: the start of its tier (tier 3 for stage 2, tier 4 for stage 3). */
+  stageLevel(stage: number): number {
+    return stage === 1 ? 1 : TIER_STARTS[stage];
+  }
+
+  /**
+   * Any stage reached can be picked: the newest follows the child as they
+   * climb, an earlier one stays until they choose again. One not reached is
+   * never kept (normaliseAvatar), and its button is disabled anyway.
+   */
+  pickStage(stage: number) {
+    this.avatarService.save({ ...this.avatar, stage, stagePinned: stage < stageForLevel(this.level) });
+    this.avatar = { ...this.avatarService.get() };
+  }
+
   /** Saved on every tap: a child should never lose a choice to a missed button. */
   choose(part: keyof Avatar, value: string) {
-    this.avatar = { ...this.avatar, [part]: value } as Avatar;
-    this.avatarService.save(this.avatar);
+    this.avatarService.save({ ...this.avatar, [part]: value } as Avatar);
+    // As saved: a new family starts at the stage the child has reached
+    this.avatar = { ...this.avatarService.get() };
   }
 
   done() {

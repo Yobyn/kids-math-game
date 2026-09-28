@@ -669,12 +669,108 @@ leg's length by 0.0003 units.
 
 Tests: 1,659 unit tests. The mutation sweep caught all 11 of 11.
 
+**FAMILIES THAT GROW — STARTED (Yobyn, 2026-09-27).** Yobyn: "Each
+character family has 3 visual stages that change as the player advances
+tiers, so the avatar visibly grows with the kid's skill." Families:
+Creatures (egg → baby dragon; young dragon, small wings; full dragon with
+glow), Robots (round bot; adds arms and antenna; mech with jetpack),
+Animals (plain animal in hoodie; gear for its hobby; pro with trophy),
+Space (alien in a pod; ray gun and boots; captain with ship behind), Kid
+heroes (beginner, trained, legend outfit with cape), Silly objects (plain
+pizza slice; with cape; super pizza, extra toppings). Evolution is
+automatic, a child can switch back to an earlier stage, and an evolution
+plays a short celebration (about 3 s) the next time the avatar screen
+opens.
+
+Done in this first part:
+- Tiers group levels: 1–4, 5–9, 10–14, 15–19, 20+ (`TIER_STARTS`,
+  `tierForLevel`; the game had levels, not tiers, so this was chosen).
+  Stage 1 is tiers 1–2, stage 2 tier 3, stage 3 tiers 4–5
+  (`stageForLevel`).
+- The avatar has `family` ('kid' — the character so far — or 'creature')
+  and `stage` + `stagePinned`. The stage is re-resolved from the level on
+  every load and after every round; a pinned earlier stage stays, a later
+  one is never kept.
+- Creatures in 3D (`avatar3d/creatures.ts`), alive through the rig as it
+  was (blink, breath, tail, wings, a pulsing halo), on a stand of radius
+  3.1, framed by its own head or whole in the stills.
+- Dressing-up screen: "Be a" (kid hero or dragon) at the top; a dragon
+  shows "Your dragon grows" with its three stages instead of face, hair
+  and clothes. The screen re-reads the character on opening and adopts it
+  as saved after every choice.
+- First load 459.04 kB. 1,679 unit tests. The sweep caught 16 of 19 at
+  first; the gaps got tests and two dead guards went.
+
+**THE EVOLUTION CELEBRATION — DONE (Yobyn, 2026-09-27).** "An evolution
+plays a short celebration (about 3 seconds) the next time the avatar
+screen opens."
+- `avatar/evolution.ts` remembers, per child (`evolution-seen:<owner>`)
+  and per family, the last stage the character was seen at, and says
+  which stage it grew from since. Never on the first look, never for a
+  family just picked, never for a stage the child chose to go back to,
+  and not for the kid hero (`FAMILIES_THAT_GROW` is `['creature']`; add
+  'kid' once its outfits differ by stage).
+- The stage (`evolveFrom` input, `motion.ts` `evolution`): for 1 s the
+  old stage shivers in a gathering light; at 1 s the new stage swaps in
+  under the flash at 70% size, pops a little past full size by 1.6 s and
+  turns round once; over at 3 s. The flash is an additive sprite
+  (`burstTexture`). Played once.
+- The dressing-up screen: "Your dragon grew!" / "Je draak is gegroeid!" /
+  "¡Tu dragón creció!" with sparkles for 3 s, a status for screen
+  readers, and the round-done sound. Reduced motion: the new stage at
+  once, and the words without movement.
+- A bug found on the way: the stage's head close-up measured a freshly
+  built model before its world positions were worked out, leaving a
+  creature's own scale out. `view()` now works them out first.
+- First load unchanged at 459.04 kB. 1,706 unit tests. The mutation sweep
+  caught 45 of 48 at first. The three that lived got tests: no second
+  camera look at the swap (which led to the head framing fix above), a
+  stored stage that is only a string like '1', and a dragon picked again
+  after growing while the child was a kid hero. The sweep now runs from a
+  scratch git worktree, so the working tree is never left with a mutant in
+  it.
+
+**THE KID HERO GROWS — DONE (Yobyn, 2026-09-27).** "Kid heroes: beginner
+outfit / trained outfit / legend outfit with cape."
+- The child's own face, hair and clothes stay theirs at every stage. The
+  stages add hero gear over them, where nothing else is worn
+  (`avatar3d/hero-gear.ts`):
+  - Beginner: their own clothes.
+  - Trained: a hero belt (taller, a little lower than the trousers' own)
+    with a star on a round buckle, and a wristband on each forearm just
+    above the hand, over the sleeve or the bare arm, moving with it.
+  - Legend: belt, buckle and wristbands in gold, the star shining (unlit),
+    and a cape in the hero colour when the back slot is empty. A backpack
+    or the child's own cape wins over it.
+  - The hero colour is red, or blue on a red, orange or pink top.
+- The dressing-up screen shows the kid's stages ("Your hero grows":
+  Beginner / Trained / Legend). 'kid' is in `FAMILIES_THAT_GROW`: "Your
+  hero got stronger!", with the whole hero on screen while it plays.
+- The celebration now grows everything on the stand but the stand and
+  the pet, positions and sizes together, so a kid's head stays on its
+  body. The words sit above the character, clear of a cap.
+- `STILL_VERSION` 5. First load unchanged at 459.04 kB. 1,722 unit tests.
+  The mutation sweep caught 29 of 37 at first; all eight that lived got
+  tests: the hero belt shows as a broad band under the hem; the plate is
+  silver, then gold; the star is on the front of its plate; a wristband
+  covers only the last third of the forearm and is clear of the hand; the
+  belt wraps the body at every height it covers, and a wristband clears
+  the arm's outline as well as the arm (both found by casting rays at the
+  real surface, since a straight limb has no vertices in between).
+- Asked of Yobyn: whether the beginner stage should have a visible item of
+  its own (it is the child's own clothes now).
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **Better materials.** Hair strands or clumps rather than one smooth
+1. **The other families, one per run**: Robots, Animals, Space, Silly
+   objects. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
+   the celebration too.
+2. **The full dragon's halo is cut off** at the sides of the stage's
+   canvas: make it fit (or the canvas wider) and bump `STILL_VERSION`.
+3. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
-2. **Offline — DONE (nightly run, 2026-09-27).** It was worse than this
+4. **Offline — DONE (nightly run, 2026-09-27).** It was worse than this
    item said. The worker precached `index.html` and a few assets, and
    cached bundles only when the page next asked for them. The first visit's
    own bundles (main, runtime, polyfills, styles) were fetched before the

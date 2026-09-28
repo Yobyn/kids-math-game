@@ -281,6 +281,9 @@ export class ResultComponent implements OnInit, OnDestroy {
     const before = levelProgress(this.progressService.getXp());
     this.progressService.addXp(this.xpEarned);
     this.level = levelProgress(this.progressService.getXp());
+    // A new tier can mean a new stage: every screen showing the character
+    // should see it grow, not just the dressing-up screen
+    this.avatarService.refresh();
     this.leveledUp = this.level.level > before.level;
 
     // Every level crossed on this round, not just the last — a big round can

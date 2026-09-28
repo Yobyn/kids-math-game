@@ -33,7 +33,20 @@ export type ChooserKey =
   | 'glasses'
   | 'extras'
   | 'top-colour'
-  | 'own-colour';
+  | 'own-colour'
+  | 'be-a'
+  | 'family-kid'
+  | 'family-creature'
+  | 'creature-grows'
+  | 'kid-grows'
+  | 'kid-grew'
+  | 'kid-stage-1'
+  | 'kid-stage-2'
+  | 'kid-stage-3'
+  | 'creature-grew'
+  | 'creature-stage-1'
+  | 'creature-stage-2'
+  | 'creature-stage-3';
 
 export const CHOOSER_WORDS: Words<ChooserKey> = {
   en: {
@@ -64,7 +77,20 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'glasses': 'Glasses',
     'extras': 'Extras',
     'top-colour': 'Top colour',
-    'own-colour': 'Its own colour'
+    'own-colour': 'Its own colour',
+    'be-a': 'Be a',
+    'family-kid': 'Kid hero',
+    'family-creature': 'Dragon',
+    'creature-grows': 'Your dragon grows',
+    'kid-grows': 'Your hero grows',
+    'kid-grew': 'Your hero got stronger!',
+    'kid-stage-1': 'Beginner',
+    'kid-stage-2': 'Trained',
+    'kid-stage-3': 'Legend',
+    'creature-grew': 'Your dragon grew!',
+    'creature-stage-1': 'Baby dragon',
+    'creature-stage-2': 'Young dragon',
+    'creature-stage-3': 'Big dragon'
   },
   nl: {
     'body-type': 'Je bent een',
@@ -94,7 +120,20 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'glasses': 'Brillen',
     'extras': "Extra's",
     'top-colour': 'Kleur van je shirt',
-    'own-colour': 'Eigen kleur'
+    'own-colour': 'Eigen kleur',
+    'be-a': 'Wees een',
+    'family-kid': 'Held',
+    'family-creature': 'Draak',
+    'creature-grows': 'Je draak groeit',
+    'kid-grows': 'Je held groeit',
+    'kid-grew': 'Je held is sterker geworden!',
+    'kid-stage-1': 'Beginner',
+    'kid-stage-2': 'Getraind',
+    'kid-stage-3': 'Legende',
+    'creature-grew': 'Je draak is gegroeid!',
+    'creature-stage-1': 'Babydraakje',
+    'creature-stage-2': 'Jonge draak',
+    'creature-stage-3': 'Grote draak'
   },
   es: {
     'body-type': 'Eres',
@@ -124,6 +163,19 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'glasses': 'Gafas',
     'extras': 'Extras',
     'top-colour': 'Color de tu camiseta',
-    'own-colour': 'Su propio color'
+    'own-colour': 'Su propio color',
+    'be-a': 'Sé un',
+    'family-kid': 'Héroe',
+    'family-creature': 'Dragón',
+    'creature-grows': 'Tu dragón crece',
+    'kid-grows': 'Tu héroe crece',
+    'kid-grew': '¡Tu héroe se hizo más fuerte!',
+    'kid-stage-1': 'Principiante',
+    'kid-stage-2': 'Entrenado',
+    'kid-stage-3': 'Leyenda',
+    'creature-grew': '¡Tu dragón creció!',
+    'creature-stage-1': 'Dragón bebé',
+    'creature-stage-2': 'Dragón joven',
+    'creature-stage-3': 'Gran dragón'
   }
 };

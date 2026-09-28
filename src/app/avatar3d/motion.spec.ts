@@ -3,6 +3,9 @@ import {
   BLINK_JITTER,
   BLINK_SECONDS,
   BREATH_SECONDS,
+  EVOLVE_POP,
+  EVOLVE_SECONDS,
+  EVOLVE_SWAP,
   TAIL_BEAT,
   TAIL_BURST,
   TAIL_EVERY,
@@ -15,6 +18,7 @@ import {
   WAVE_SWING,
   WAVE_SWINGS,
   breath,
+  evolution,
   eyesOpen,
   putOnSomethingNew,
   tailWag,
@@ -32,6 +36,49 @@ function samples<T>(from: number, to: number, step: number, f: (t: number) => T)
 }
 
 describe('motion', () => {
+  describe('an evolution (Yobyn, 2026-09-27: about 3 seconds)', () => {
+    it('lasts about three seconds, and grows a third of the way in', () => {
+      expect(EVOLVE_SECONDS).toBe(3);
+      expect(EVOLVE_SWAP).toBe(1);
+      expect(EVOLVE_SWAP + EVOLVE_POP).toBeLessThan(EVOLVE_SECONDS);
+      expect(evolution(0)).toEqual({ grown: false, scale: 1, flash: 0, done: false });
+      expect(evolution(EVOLVE_SWAP - 0.01).grown).toBeFalse();
+      expect(evolution(EVOLVE_SWAP).grown).toBeTrue();
+      expect(evolution(EVOLVE_SECONDS - 0.01).done).toBeFalse();
+      expect(evolution(EVOLVE_SECONDS)).toEqual({ grown: true, scale: 1, flash: 0, done: true });
+      expect(evolution(60)).toEqual(evolution(EVOLVE_SECONDS));
+      expect(evolution(-2)).toEqual(evolution(0));
+    });
+
+    it('gathers light while the old stage shivers, faster and brighter towards the change', () => {
+      const before = samples(0, EVOLVE_SWAP - 0.01, 0.01, evolution);
+      before.forEach(({ t, v }, i) => {
+        expect(v.flash).withContext(`${t}`).toBeCloseTo((t / EVOLVE_SWAP) ** 2, 9);
+        expect(Math.abs(v.scale - 1)).withContext(`${t}`).toBeLessThanOrEqual(0.06 * t / EVOLVE_SWAP + 1e-9);
+        if (i > 0) {
+          expect(v.flash).toBeGreaterThan(before[i - 1].v.flash);
+        }
+      });
+      // It shivers: both bigger and smaller than it is
+      expect(Math.max(...before.map(s => s.v.scale))).toBeGreaterThan(1.02);
+      expect(Math.min(...before.map(s => s.v.scale))).toBeLessThan(0.98);
+      expect(evolution(0.99).flash).toBeGreaterThan(0.95);
+    });
+
+    it('pops the new stage in from smaller, a little too big, then just right, as the light fades', () => {
+      expect(evolution(EVOLVE_SWAP).scale).toBeCloseTo(0.7, 9);
+      expect(evolution(EVOLVE_SWAP).flash).toBeCloseTo(1, 9);
+      const pop = samples(EVOLVE_SWAP, EVOLVE_SWAP + EVOLVE_POP, 0.01, evolution);
+      expect(Math.max(...pop.map(s => s.v.scale))).toBeGreaterThan(1.03);
+      expect(Math.max(...pop.map(s => s.v.scale))).toBeLessThan(1.1);
+      pop.slice(1).forEach(({ t, v }, i) => expect(v.flash).withContext(`${t}`).toBeLessThan(pop[i].v.flash));
+      expect(evolution(EVOLVE_SWAP + EVOLVE_POP / 2).flash).toBeCloseTo(0.5, 9);
+      // Settled well before the end, and still until it
+      samples(EVOLVE_SWAP + EVOLVE_POP, EVOLVE_SECONDS - 0.01, 0.05, evolution).forEach(({ t, v }) =>
+        expect([v.scale, v.flash, v.grown, v.done]).withContext(`${t}`).toEqual([1, 0, true, false]));
+    });
+  });
+
   describe('breathing', () => {
     it('starts breathed out, is breathed in half a breath later, and out again after a whole one', () => {
       expect(breath(0)).toBeCloseTo(0, 9);
