@@ -19,6 +19,54 @@
   display: flex;
   justify-content: center;
   padding: 1rem 0 1.5rem;
+  position: relative;
+}
+
+/* An evolution's words: up over the stand while it grows, then away */
+.evolved {
+  position: absolute;
+  top: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 2px solid var(--accent-magenta);
+  font-weight: 800;
+  font-size: 1.25rem;
+  white-space: nowrap;
+  box-shadow: var(--glow);
+  pointer-events: none;
+  animation: evolved 3s ease-out both;
+}
+
+.evolved .sparkle {
+  display: inline-block;
+  margin: 0 0.3rem;
+  animation: sparkle 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes evolved {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.6); }
+  33% { opacity: 0; transform: translateX(-50%) scale(0.6); }
+  45% { opacity: 1; transform: translateX(-50%) scale(1.12); }
+  55% { transform: translateX(-50%) scale(1); }
+  90% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes sparkle {
+  from { transform: scale(0.8) rotate(-15deg); }
+  to { transform: scale(1.2) rotate(15deg); }
+}
+
+/* Still, for a child who has asked for less movement: the words, and nothing moving */
+@media (prefers-reduced-motion: reduce) {
+  .evolved, .evolved .sparkle {
+    animation: none;
+  }
 }
 
 .choice-row {

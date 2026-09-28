@@ -5,9 +5,14 @@
        point of a swatch is seeing what it does. -->
   <div class="stage">
     <app-avatar-stage [avatar]="avatar" [label]="languageService.translate('your-character')"
+                      [evolveFrom]="evolveFrom"
                       [focus]="earned || !isKid ? 'body' : 'head'"
                       [turnLeftLabel]="languageService.translate('turn-left')"
                       [turnRightLabel]="languageService.translate('turn-right')"></app-avatar-stage>
+    <!-- Grown since last time: said out loud, with sparkles round it -->
+    <p class="evolved" *ngIf="celebrating" role="status">
+      <span class="sparkle" aria-hidden="true">✨</span>{{ languageService.translate($any(avatar.family + '-grew')) }}<span class="sparkle" aria-hidden="true">✨</span>
+    </p>
   </div>
 
   <!-- Which kind of character, above everything: a kid hero, or a creature that grows -->

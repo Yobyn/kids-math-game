@@ -701,14 +701,43 @@ Done in this first part:
 - First load 459.04 kB. 1,679 unit tests. The sweep caught 16 of 19 at
   first; the gaps got tests and two dead guards went.
 
+**THE EVOLUTION CELEBRATION — DONE (Yobyn, 2026-09-27).** "An evolution
+plays a short celebration (about 3 seconds) the next time the avatar
+screen opens."
+- `avatar/evolution.ts` remembers, per child (`evolution-seen:<owner>`)
+  and per family, the last stage the character was seen at, and says
+  which stage it grew from since. Never on the first look, never for a
+  family just picked, never for a stage the child chose to go back to,
+  and not for the kid hero (`FAMILIES_THAT_GROW` is `['creature']`; add
+  'kid' once its outfits differ by stage).
+- The stage (`evolveFrom` input, `motion.ts` `evolution`): for 1 s the
+  old stage shivers in a gathering light; at 1 s the new stage swaps in
+  under the flash at 70% size, pops a little past full size by 1.6 s and
+  turns round once; over at 3 s. The flash is an additive sprite
+  (`burstTexture`). Played once.
+- The dressing-up screen: "Your dragon grew!" / "Je draak is gegroeid!" /
+  "¡Tu dragón creció!" with sparkles for 3 s, a status for screen
+  readers, and the round-done sound. Reduced motion: the new stage at
+  once, and the words without movement.
+- A bug found on the way: the stage's head close-up measured a freshly
+  built model before its world positions were worked out, leaving a
+  creature's own scale out. `view()` now works them out first.
+- First load unchanged at 459.04 kB. 1,706 unit tests. The mutation sweep
+  caught 45 of 48 at first. The three that lived got tests: no second
+  camera look at the swap (which led to the head framing fix above), a
+  stored stage that is only a string like '1', and a dragon picked again
+  after growing while the child was a kid hero. The sweep now runs from a
+  scratch git worktree, so the working tree is never left with a mutant in
+  it.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **The evolution celebration**: about 3 s the next time the dressing-up
-   screen opens after a new stage (remember the last stage seen per
-   child; reduced motion gets a still version).
-2. **The other families, one per run**: Kid heroes' three outfits (the
+1. **The other families, one per run**: Kid heroes' three outfits (the
    kid family already exists; its stages need beginner / trained /
    legend-with-cape outfits), Robots, Animals, Space, Silly objects.
+   Each one joins `FAMILIES_THAT_GROW` so it gets the celebration too.
+2. **The full dragon's halo is cut off** at the sides of the stage's
+   canvas: make it fit (or the canvas wider) and bump `STILL_VERSION`.
 3. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
