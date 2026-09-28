@@ -749,8 +749,14 @@ outfit / trained outfit / legend outfit with cape."
 - The celebration now grows everything on the stand but the stand and
   the pet, positions and sizes together, so a kid's head stays on its
   body. The words sit above the character, clear of a cap.
-- `STILL_VERSION` 5. First load unchanged at 459.04 kB. 1,718 unit tests.
-  The mutation sweep: running.
+- `STILL_VERSION` 5. First load unchanged at 459.04 kB. 1,722 unit tests.
+  The mutation sweep caught 29 of 37 at first; all eight that lived got
+  tests: the hero belt shows as a broad band under the hem; the plate is
+  silver, then gold; the star is on the front of its plate; a wristband
+  covers only the last third of the forearm and is clear of the hand; the
+  belt wraps the body at every height it covers, and a wristband clears
+  the arm's outline as well as the arm (both found by casting rays at the
+  real surface, since a straight limb has no vertices in between).
 - Asked of Yobyn: whether the beginner stage should have a visible item of
   its own (it is the child's own clothes now).
 

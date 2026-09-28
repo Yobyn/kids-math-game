@@ -110,6 +110,28 @@ describe('the kid hero grows: hero gear by stage (Yobyn, 2026-09-27)', () => {
     expect(legendCape(2, NO_ITEM, '#3880ff')).toBeNull();
   });
 
+  it('shows the hero belt as a broad band under the top, well over twice what the trousers’ own shows', () => {
+    const shown = (root: THREE.Object3D) => {
+      const belt = root.getObjectByName('belt') as THREE.Mesh;
+      const band = root.getObjectByName('hem-band') as THREE.Mesh;
+      const bottom = (mesh: THREE.Mesh) => mesh.position.y - (mesh.geometry as THREE.CylinderGeometry).parameters.height / 2;
+      return bottom(band) - bottom(belt);
+    };
+    BODY_TYPES.forEach(bodyType => {
+      const plain = shown(build(hero(1, { bodyType })));
+      [2, 3].forEach(stage => {
+        const broad = shown(build(hero(stage, { bodyType })));
+        expect(broad).withContext(`${bodyType} ${stage}`).toBeGreaterThan(0.2);
+        expect(broad).withContext(`${bodyType} ${stage}`).toBeGreaterThan(plain * 2.2);
+      });
+    });
+  });
+
+  it('puts the star on a silver plate for a trained hero, and a gold one for a legend', () => {
+    expect(colourOf(build(hero(2)).getObjectByName('hero-buckle-plate')!)).toBe('#d9dde3');
+    expect(colourOf(build(hero(3)).getObjectByName('hero-buckle-plate')!)).toBe(GOLD);
+  });
+
   it('wraps the hero belt round the trousers and the top’s hem, never inside them, on both figures', () => {
     const misses: string[] = [];
     BODY_TYPES.forEach(bodyType => [2, 3].forEach(stage => {
@@ -118,20 +140,23 @@ describe('the kid hero grows: hero gear by stage (Yobyn, 2026-09-27)', () => {
       const { radiusTop, height } = (belt.geometry as THREE.CylinderGeometry).parameters;
       expect(height).toBe(BELT_HEIGHT);
       expect(belt.position.y).toBeCloseTo(figureFor(bodyType).belt - BELT_DROP, 9);
-      ['hips', 'torso'].forEach(name => {
-        const mesh = root.getObjectByName(name) as THREE.Mesh;
-        const position = mesh.geometry.attributes.position as THREE.BufferAttribute;
-        const p = new THREE.Vector3();
-        for (let i = 0; i < position.count; i++) {
-          p.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld);
-          if (Math.abs(p.y - belt.position.y) <= height / 2) {
+      // The body's own surface at every height the belt covers, found by looking in at it from all round
+      const body = ['hips', 'torso'].map(name => root.getObjectByName(name)!);
+      for (let k = -0.49; k <= 0.49; k += 0.07) {
+        const y = belt.position.y + k * height;
+        for (let a = 0; a < 24; a++) {
+          const angle = (a / 24) * Math.PI * 2;
+          const inward = new THREE.Vector3(-Math.cos(angle), 0, -Math.sin(angle));
+          const hit = new THREE.Raycaster(new THREE.Vector3(0, y, 0).addScaledVector(inward, -5), inward).intersectObjects(body, false)[0];
+          if (hit) {
+            const p = hit.point;
             const inside = (p.x / radiusTop) ** 2 + (p.z / (radiusTop * belt.scale.z)) ** 2;
             if (inside > 1 + 1e-6) {
-              misses.push(`${bodyType} ${stage} ${name} at y ${p.y.toFixed(2)}: ${inside.toFixed(3)}`);
+              misses.push(`${bodyType} ${stage} ${hit.object.name} at y ${y.toFixed(2)}: ${inside.toFixed(3)}`);
             }
           }
         }
-      });
+      }
       // The buckle on the front of it, facing out
       const buckle = root.getObjectByName('hero-buckle')!;
       expect(buckle.position.y).toBe(belt.position.y);
@@ -169,7 +194,8 @@ describe('the kid hero grows: hero gear by stage (Yobyn, 2026-09-27)', () => {
             if (hit) {
               const across = 3 - hit.distance;
               snug = Math.min(snug, radiusTop - across);
-              if (across > radiusTop - 0.01) {
+              // Clear of the arm and of its dark outline (0.04 at most on an arm), which would show through
+              if (across > radiusTop - 0.045) {
                 misses.push(`${bodyType} ${top} ${hit.object.name} ${across.toFixed(3)} > ${radiusTop.toFixed(3)}`);
               }
             }
@@ -181,6 +207,37 @@ describe('the kid hero grows: hero gear by stage (Yobyn, 2026-09-27)', () => {
     }));
     expect(misses.slice(0, 5)).toEqual([]);
     expect(BAND_FROM).toBeLessThan(BAND_TO);
+  });
+
+  it('sets the star on the front of its plate, where it can be seen', () => {
+    [2, 3].forEach(stage => {
+      const buckle = build(hero(stage)).getObjectByName('hero-buckle')!;
+      const plate = buckle.getObjectByName('hero-buckle-plate') as THREE.Mesh;
+      const star = buckle.getObjectByName('hero-star')!;
+      const front = plate.position.z + (plate.geometry as THREE.CylinderGeometry).parameters.height / 2;
+      expect(star.position.z).withContext(`${stage}`).toBeGreaterThan(front);
+      expect(star.position.z).withContext(`${stage}`).toBeLessThan(front + 0.02);
+    });
+  });
+
+  it('wears each wristband just above the hand: the last third of the forearm, clear of the hand itself', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const root = build(hero(2, { bodyType }));
+      named(root, FOREARM_RIG).forEach(rig => {
+        // In the forearm's own space the elbow is where it turns, and the hand hangs from the wrist
+        const band = rig.children.find(child => child.name === 'wristband') as THREE.Mesh;
+        const wristAt = rig.children.find(child => child.name === 'hand')!.position;
+        const length = wristAt.length();
+        const axis = new THREE.Vector3(0, 1, 0).applyQuaternion(band.quaternion);
+        const half = (band.geometry as THREE.CylinderGeometry).parameters.height / 2;
+        // How far up the forearm each end is, from the wrist towards the elbow: below 0 is in the hand
+        const up = wristAt.clone().negate().normalize();
+        const ends = [band.position.clone().addScaledVector(axis, -half), band.position.clone().addScaledVector(axis, half)]
+          .map(end => end.clone().sub(wristAt).dot(up) / length);
+        expect(Math.min(...ends)).withContext(bodyType).toBeGreaterThan(0.03);
+        expect(Math.max(...ends)).withContext(bodyType).toBeLessThan(0.34);
+      });
+    });
   });
 
   it('keeps the wristbands on through a whole wave, and back where they were built at rest', () => {
