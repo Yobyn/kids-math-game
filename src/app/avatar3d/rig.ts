@@ -2,10 +2,11 @@ import * as THREE from 'three';
 import { ARM_RIG, EYE_SHUT, FOREARM_RIG, SHUT_CURVE } from './build-avatar';
 import { BREATH_ARMS, BREATH_RISE, WAVE_LIFT, WAVING_SIDE, breath, eyesOpen, glow, tailWag, wave, wingFlap } from './motion';
 import { SHOE_GLOW } from './shoes';
+import { CREATURE_GLOW, CREATURE_HEAD } from './creatures';
 import { PET_TAIL, PET_WING } from './pets';
 
 /** The parts that share the head's transform, and so rise with it on a breath. */
-const HEAD_PARTS = ['head-group', 'hair', 'hat', 'glasses'];
+const HEAD_PARTS = ['head-group', 'hair', 'hat', 'glasses', CREATURE_HEAD];
 export { WAVING_SIDE };
 /** A shut eye is not squashed to nothing: the lid line stays. */
 const SHUT = 0.08;
@@ -50,7 +51,7 @@ export class Rig {
         this.tails.push(node);
       } else if (node.name === PET_WING) {
         this.wings.push({ node, side: node.userData.side, z: node.rotation.z });
-      } else if (node.name === SHOE_GLOW) {
+      } else if (node.name === SHOE_GLOW || node.name === CREATURE_GLOW) {
         const colour = ((node as THREE.Mesh).material as THREE.MeshBasicMaterial).color;
         this.glows.push({ colour, built: colour.clone() });
       }

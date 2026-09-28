@@ -28,6 +28,15 @@
  */
 
 export interface Avatar {
+  /** Which kind of character: a kid hero, or a creature that grows with them. */
+  family: Family;
+  /**
+   * The stage shown, 1 to 3. Normally the stage earned (`stageForLevel`);
+   * a child can go back to an earlier one they liked, and then
+   * `stagePinned` holds it there until they choose otherwise.
+   */
+  stage: number;
+  stagePinned: boolean;
   /** Which figure the 3D character has. */
   bodyType: BodyType;
   skin: string;
@@ -82,6 +91,31 @@ export type HairStyle =
 export type FaceShape = 'round' | 'oval' | 'square' | 'heart';
 
 export type BodyType = 'boy' | 'girl';
+
+/**
+ * The kinds of character a child can be (Yobyn, 2026-09-27). Each grows
+ * through three stages as the child climbs: the kid hero is the character
+ * the game has had all along. The rest are added family by family.
+ */
+export type Family = 'kid' | 'creature';
+export const FAMILIES: Family[] = ['kid', 'creature'];
+
+/**
+ * The level each tier starts at. The game climbs in levels; tiers group
+ * them, and a character's stage follows the tier: tiers 1 and 2 are stage
+ * 1, tier 3 is stage 2, and tiers 4 and 5 are stage 3.
+ */
+export const TIER_STARTS = [1, 5, 10, 15, 20];
+
+export function tierForLevel(level: number): number {
+  return TIER_STARTS.filter(start => level >= start).length || 1;
+}
+
+/** The stage a child has earned at this level. */
+export function stageForLevel(level: number): number {
+  const tier = tierForLevel(level);
+  return tier <= 2 ? 1 : tier === 3 ? 2 : 3;
+}
 
 /**
  * The shape of the eyes, which used to be one pair of circles on every child.
@@ -158,6 +192,9 @@ export const HAIR_TEXTURES: HairTexture[] = ['smooth', 'wavy', 'coily'];
 
 export function defaultAvatar(): Avatar {
   return {
+    family: 'kid',
+    stage: 1,
+    stagePinned: false,
     bodyType: 'boy',
     skin: SKIN_TONES[2],
     faceShape: 'round',
@@ -189,10 +226,18 @@ export function defaultAvatar(): Avatar {
 export function normaliseAvatar(raw: any, level = 1, earnedEvents: string[] = []): Avatar {
   const fallback = defaultAvatar();
   if (!raw || typeof raw !== 'object') {
-    return fallback;
+    return normaliseAvatar(fallback, level, earnedEvents);
   }
+  // The stage earned, unless the child went back to an earlier one they
+  // liked: a stage above what the level has earned is never kept
+  const earnedStage = stageForLevel(level);
+  const pinned = raw.stagePinned === true && Number.isInteger(raw.stage) && raw.stage >= 1 && raw.stage < earnedStage ? raw.stage : 0;
 
   return {
+    // Absent on every character saved before there were families: a kid hero, as before
+    family: pick(FAMILIES, raw.family, fallback.family) as Family,
+    stage: pinned || earnedStage,
+    stagePinned: pinned > 0,
     // Absent on every character saved before there was a choice; they keep
     // the figure they have been looking at, and can change it at the top of
     // the dressing-up screen

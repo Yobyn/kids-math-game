@@ -1,7 +1,7 @@
 import { CHOOSER_WORDS } from './chooser-words';
 import { LanguageService } from '../services/language.service';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -9,6 +9,8 @@ import { AvatarChooserComponent } from './avatar-chooser.component';
 import { AvatarComponent } from './avatar.component';
 import { AvatarService } from '../services/avatar.service';
 import { ProgressService } from '../services/progress.service';
+import { SoundService } from '../services/sound.service';
+import { CELEBRATION_MS } from './evolution';
 import { xpToReach } from '../levels/level-curve';
 import { SECTIONS, allRows } from './chooser-sections';
 import { TOP_COLOURS } from './top-colours';
@@ -195,10 +197,11 @@ describe('AvatarChooserComponent wardrobe', () => {
 
     // Everything but the empty options is still to be won at level 1, in
     // the two sections with things to earn
-    let locked = fixture.nativeElement.querySelectorAll('.swatch.locked').length;
+    // (In the sections: the stages still to grow into are locked too, above them)
+    let locked = fixture.nativeElement.querySelectorAll('.section .swatch.locked').length;
     component.show('extras');
     fixture.detectChanges();
-    locked += fixture.nativeElement.querySelectorAll('.swatch.locked').length;
+    locked += fixture.nativeElement.querySelectorAll('.section .swatch.locked').length;
     expect(locked).toBe(WARDROBE.filter(i => i.id !== NO_ITEM).length);
     expect(locked).toBeGreaterThan(0);
   });
@@ -207,7 +210,7 @@ describe('AvatarChooserComponent wardrobe', () => {
     openAtLevel(1);
 
     const cap = findItem('hat', 'cap')!;
-    const locked = Array.from(fixture.nativeElement.querySelectorAll('.swatch.locked'))
+    const locked = Array.from(fixture.nativeElement.querySelectorAll('.section .swatch.locked'))
       .find((el: any) => el.getAttribute('aria-label').startsWith('Cap')) as HTMLElement;
 
     expect(locked.textContent).toContain(String(cap.unlockLevel));
@@ -326,6 +329,185 @@ describe('AvatarChooserComponent wardrobe', () => {
     fixture.detectChanges();
     expect(component.avatar.pet).toBe('puppy');
     expect(service.get().pet).toBe('puppy');
+  });
+
+  describe('families that grow (Yobyn, 2026-09-27)', () => {
+    const familyRow = () => fixture.nativeElement.querySelector('.family-row') as HTMLElement;
+    const stageRow = () => fixture.nativeElement.querySelector('.stage-row') as HTMLElement | null;
+
+    it('asks first what kind of character to be, a kid hero to start', () => {
+      openAtLevel(1);
+      const swatches = Array.from(familyRow().querySelectorAll('.swatch')) as HTMLButtonElement[];
+      expect(swatches.map(s => s.getAttribute('data-value'))).toEqual(['kid', 'creature']);
+      expect(swatches[0].classList).toContain('chosen');
+      // A kid hero has a face, hair and clothes to choose, and grows too
+      expect(fixture.nativeElement.querySelector('.tabs')).toBeTruthy();
+      const stages = Array.from(stageRow()!.querySelectorAll('.swatch')) as HTMLButtonElement[];
+      expect(stages.map(s => s.textContent!.trim().split('🔒')[0])).toEqual(
+        [1, 2, 3].map(n => component.languageService.translate(('kid-stage-' + n) as any)));
+      expect(stageRow()!.querySelector('h2')!.textContent).toBe(component.languageService.translate('kid-grows' as any));
+      expect(stages.map(s => s.disabled)).toEqual([false, true, true]);
+    });
+
+    it('turns into a dragon, which grows instead of dressing up', () => {
+      openAtLevel(1);
+      (familyRow().querySelectorAll('.swatch')[1] as HTMLButtonElement).click();
+      fixture.detectChanges();
+      expect(component.avatar.family).toBe('creature');
+      expect(service.get().family).toBe('creature');
+      expect(fixture.nativeElement.querySelector('.tabs')).toBeNull();
+      expect(fixture.nativeElement.querySelector('.body-row')).toBeNull();
+      expect(stageRow()).toBeTruthy();
+      // The whole dragon on the stage, never a close-up of a face it does not have
+      expect(fixture.debugElement.query(By.css('.stage app-avatar-stage')).properties.focus).toBe('body');
+    });
+
+    it('shows every stage, the ones still to come locked with the level they come at', () => {
+      openAtLevel(12);
+      component.pickFamily('creature');
+      fixture.detectChanges();
+      const stages = Array.from(stageRow()!.querySelectorAll('.swatch')) as HTMLButtonElement[];
+      expect(stages.map(s => s.disabled)).toEqual([false, false, true]);
+      expect(stages[2].textContent).toContain('15');
+      // Grown to the newest stage reached, by itself
+      expect(component.avatar.stage).toBe(2);
+      expect(stages[1].classList).toContain('chosen');
+    });
+
+    it('opens on the stage the child has grown to since the character was last looked at', () => {
+      // A dragon saved at level 1, then a climb to level 12 before the screen opens again
+      service.save({ ...service.get(), family: 'creature' });
+      openAtLevel(12);
+      expect(component.avatar.stage).toBe(2);
+    });
+
+    it('never shows something it would not keep', () => {
+      openAtLevel(1);
+      component.choose('hat', 'crown');
+      expect(component.avatar.hat).toBe(NO_ITEM);
+    });
+
+    it('goes back to an earlier stage a child liked, and keeps it there until they pick the newest again', () => {
+      openAtLevel(16);
+      component.pickFamily('creature');
+      fixture.detectChanges();
+      const stages = () => Array.from(stageRow()!.querySelectorAll('.swatch')) as HTMLButtonElement[];
+      stages()[0].click();
+      fixture.detectChanges();
+      expect([service.get().stage, service.get().stagePinned]).toEqual([1, true]);
+      stages()[2].click();
+      fixture.detectChanges();
+      expect([service.get().stage, service.get().stagePinned]).toEqual([3, false]);
+
+    });
+
+    describe('growing, celebrated the next time the screen opens (Yobyn, 2026-09-27)', () => {
+      let sound: jasmine.Spy;
+      const banner = () => fixture.nativeElement.querySelector('.stage .evolved') as HTMLElement | null;
+      const stage = () => fixture.debugElement.query(By.css('.stage app-avatar-stage'));
+      /** Opens the screen again, as the child is now. */
+      const reopen = () => {
+        fixture?.destroy();
+        fixture = TestBed.createComponent(AvatarChooserComponent);
+        component = fixture.componentInstance;
+        fixture.detectChanges();
+      };
+      beforeEach(() => (sound = spyOn(TestBed.inject(SoundService), 'playRoundDone')));
+
+      it('celebrates a new stage once, for about three seconds, and not again', fakeAsync(() => {
+        service.save({ ...service.get(), family: 'creature' });
+        openAtLevel(1);
+        // The first look: nothing grown yet
+        expect(banner()).toBeNull();
+        expect(component.evolveFrom).toBeNull();
+        progress.addXp(xpToReach(10));
+        reopen();
+        expect(component.avatar.stage).toBe(2);
+        expect(component.evolveFrom).toBe(1);
+        expect(stage().properties.evolveFrom).toBe(1);
+        expect(banner()!.textContent).toContain(component.languageService.translate('creature-grew' as any));
+        expect(banner()!.getAttribute('role')).toBe('status');
+        expect(sound).toHaveBeenCalledTimes(1);
+        tick(CELEBRATION_MS - 1);
+        fixture.detectChanges();
+        expect(banner()).toBeTruthy();
+        tick(1);
+        fixture.detectChanges();
+        expect(banner()).toBeNull();
+        reopen();
+        expect(component.evolveFrom).toBeNull();
+        expect(banner()).toBeNull();
+        expect(sound).toHaveBeenCalledTimes(1);
+      }));
+
+      it('says so in every language the game speaks', () => {
+        (['en', 'nl', 'es'] as const).forEach(language => ['creature-grew', 'kid-grew'].forEach(key =>
+          expect(CHOOSER_WORDS[language][key as keyof typeof CHOOSER_WORDS.en]).withContext(`${language} ${key}`).toMatch(/!$/)));
+      });
+
+      it('does not celebrate a family just picked, or a stage the child chose to go back to', () => {
+        openAtLevel(12);
+        component.pickFamily('creature');
+        reopen();
+        expect(component.evolveFrom).toBeNull();
+        // Back to the egg, then a climb to the next tier: it stays an egg, as chosen
+        component.pickStage(1);
+        progress.addXp(xpToReach(16) - xpToReach(12));
+        reopen();
+        expect(component.avatar.stage).toBe(1);
+        expect(component.evolveFrom).toBeNull();
+        expect(banner()).toBeNull();
+        expect(sound).not.toHaveBeenCalled();
+      });
+
+      it('does not celebrate a dragon the child comes back to, grown while they were a kid hero', () => {
+        service.save({ ...service.get(), family: 'creature' });
+        openAtLevel(1);
+        component.pickFamily('kid');
+        progress.addXp(xpToReach(12));
+        reopen();
+        // The kid hero they were grew, and said so
+        expect(sound).toHaveBeenCalledTimes(1);
+        // Picked again: already seen as it is now, on the stage in front of them
+        component.pickFamily('creature');
+        expect(component.avatar.stage).toBe(2);
+        reopen();
+        expect(component.evolveFrom).toBeNull();
+        expect(banner()).toBeNull();
+        expect(sound).toHaveBeenCalledTimes(1);
+      });
+
+      it('celebrates the kid hero growing too, and shows the whole hero while it does', fakeAsync(() => {
+        openAtLevel(1);
+        const focus = () => stage().properties.focus;
+        component.show('face');
+        fixture.detectChanges();
+        expect(focus()).toBe('head');
+        progress.addXp(xpToReach(16));
+        reopen();
+        expect(component.avatar.stage).toBe(3);
+        expect(component.evolveFrom).toBe(1);
+        expect(banner()!.textContent).toContain(component.languageService.translate('kid-grew' as any));
+        // The gear it grew into is on the body, not the face: the whole hero, then back to the face
+        expect(focus()).toBe('body');
+        tick(CELEBRATION_MS);
+        fixture.detectChanges();
+        expect(focus()).toBe('head');
+      }));
+
+      it('stops its clock when the screen closes', fakeAsync(() => {
+        service.save({ ...service.get(), family: 'creature' });
+        openAtLevel(1);
+        progress.addXp(xpToReach(10));
+        reopen();
+        expect(component.celebrating).toBeTrue();
+        const closed = component;
+        fixture.destroy();
+        // Nothing left waiting to change a screen that is gone
+        tick(CELEBRATION_MS);
+        expect(closed.celebrating).toBeTrue();
+      }));
+    });
   });
 
   it('offers a colour for the top, its own first, and wears the one picked', () => {

@@ -5,8 +5,9 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Avatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
-import { WAVE_SECONDS, putOnSomethingNew } from './motion';
+import { EVOLVE_SECONDS, EVOLVE_SWAP, WAVE_SECONDS, evolution, putOnSomethingNew } from './motion';
 import { Rig } from './rig';
+import { CREATURE_HEAD, burstTexture } from './creatures';
 
 /** The usual camera distance, for a character of ordinary height. */
 export const BASE_DISTANCE = 28.5;
@@ -136,6 +137,12 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
    * phone is too small to see an eye shape change.
    */
   @Input() focus: StageFocus = 'body';
+  /**
+   * A stage to evolve from: the character is shown at this stage first and
+   * then grows into its own (motion.ts `evolution`). Set by the dressing-up
+   * screen after the child climbs into a new tier; played once.
+   */
+  @Input() evolveFrom: number | null = null;
   /** A move of the camera between focuses, eased. */
   private glide?: { fromTarget: THREE.Vector3; toTarget: THREE.Vector3; fromDistance: number; toDistance: number; start: number; ms: number };
   /** One press of a turn button: an eighth of the way round. */
@@ -159,6 +166,16 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   private born = performance.now();
   /** When a wave started, or null when not waving. */
   private waveStart: number | null = null;
+  /** When an evolution started, or null when none is playing. */
+  private evolveStart: number | null = null;
+  /** The stage an evolution was last played from, so it plays once. */
+  private evolvedFrom: number | null = null;
+  /** The light that flashes as the character grows. */
+  private flash?: THREE.Sprite;
+  /** Whether the stage an evolution grows from is the one on the stand. */
+  private unGrown = false;
+  /** What an evolution grows, where each part stands and its size as built. */
+  private growing: { node: THREE.Object3D; position: THREE.Vector3; scale: THREE.Vector3 }[] = [];
   /** What the character had on at the last rebuild, to see what is new. */
   private worn?: { hat?: string; glasses?: string; top?: string };
   /** When the last idle frame was drawn: breathing needs no more than 30 a second. */
@@ -233,6 +250,7 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
     if (this.model) {
       disposeAvatar(this.model);
     }
+    this.removeFlash();
     // Hand the GL context back now rather than whenever the page is
     // collected: a browser keeps only a handful alive at once
     this.renderer?.dispose();
@@ -295,13 +313,20 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   }
 
   private rebuild() {
-    if (this.model) {
-      this.scene.remove(this.model);
-      disposeAvatar(this.model);
+    // A new evolution to play: shown first as it was, then grown
+    const evolve = this.evolveFrom !== null && this.evolveFrom !== this.evolvedFrom && this.evolveFrom < this.avatar.stage;
+    if (evolve) {
+      this.evolvedFrom = this.evolveFrom;
     }
-    this.model = buildAvatar(this.avatar);
-    this.scene.add(this.model);
-    this.rig = new Rig(this.model);
+    const playing = evolve && this.living();
+    this.show(playing ? { ...this.avatar, stage: this.evolveFrom! } : this.avatar);
+    this.unGrown = playing;
+    if (playing) {
+      this.evolveStart = performance.now();
+      this.addFlash();
+      // The evolution turns it round itself, once grown
+      this.introduced = true;
+    }
     // Something new on: a wave, to show it off
     if (this.living() && putOnSomethingNew(this.worn, this.avatar)) {
       this.waveStart = performance.now();
@@ -337,17 +362,25 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   /** Where the camera should look, and from how far, for the current focus. */
   view(): { target: THREE.Vector3; distance: number } {
     const box = new THREE.Box3();
+    // Where every part is now, a creature's scale included, even if it has not been drawn yet
+    this.model!.updateMatrixWorld(true);
     if (this.focus === 'head') {
-      ['head-group', 'hair', 'hat', 'glasses'].forEach(name => {
+      ['head-group', 'hair', 'hat', 'glasses', CREATURE_HEAD].forEach(name => {
         const part = this.model!.getObjectByName(name);
         if (part) {
           box.expandByObject(part);
         }
       });
+      // Every family has a head to close in on: a kid hero's, or a creature's own
       const { distance, centre } = headFraming(box.min.y, box.max.y, this.camera.fov, this.camera.aspect);
       return { target: new THREE.Vector3(0, centre, 0), distance };
     }
-    box.setFromObject(this.model!);
+    // Everything solid: a glow round a creature is light, not something to fit in
+    this.model!.traverse(node => {
+      if ((node as THREE.Mesh).isMesh) {
+        box.expandByObject(node);
+      }
+    });
     const pet = this.model!.getObjectByName('pet');
     const beside = pet ? new THREE.Box3().setFromObject(pet) : undefined;
     const { distance, centre } = bodyFraming(box, this.camera.fov, this.camera.aspect, beside);
@@ -394,6 +427,75 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
     this.requestRender();
   }
 
+  /** Puts this character on the stand in place of whatever was there. */
+  private show(avatar: Avatar) {
+    if (this.model) {
+      this.scene.remove(this.model);
+      disposeAvatar(this.model);
+    }
+    this.model = buildAvatar(avatar);
+    this.scene.add(this.model);
+    this.rig = new Rig(this.model);
+    // Everything on the stand grows, from the stand up: not the stand, or the pet beside it
+    this.growing = this.model.children
+      .filter(node => node.name !== 'pedestal' && node.name !== 'pet')
+      .map(node => ({ node, position: node.position.clone(), scale: node.scale.clone() }));
+  }
+
+  /** The light of an evolution, round the character, starting dark. */
+  private addFlash() {
+    this.removeFlash();
+    this.flash = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: burstTexture(), color: '#fff6c2', transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending
+    }));
+    this.flash.name = 'evolution-flash';
+    this.scene.add(this.flash);
+  }
+
+  private removeFlash() {
+    if (this.flash) {
+      this.scene.remove(this.flash);
+      this.flash.material.dispose();
+      this.flash = undefined;
+    }
+  }
+
+  /**
+   * The evolution `seconds` in: the old stage shivers in a gathering light,
+   * the new one pops in under the flash, and turns once to show itself off.
+   */
+  evolveAt(seconds: number) {
+    const moment = evolution(seconds);
+    if (moment.grown && this.unGrown) {
+      this.unGrown = false;
+      this.show(this.avatar);
+      this.frameModel();
+      this.animateTurn(this.angle, this.angle + Math.PI * 2, (EVOLVE_SECONDS - EVOLVE_SWAP) * 1000);
+    }
+    this.growing.forEach(({ node, position, scale }) => {
+      node.position.copy(position).multiplyScalar(moment.scale);
+      node.scale.copy(scale).multiplyScalar(moment.scale);
+    });
+    if (this.flash) {
+      const box = new THREE.Box3();
+      this.model!.updateMatrixWorld(true);
+      this.growing.forEach(({ node }) => node.traverse(part => (part as THREE.Mesh).isMesh && box.expandByObject(part)));
+      const size = box.getSize(new THREE.Vector3());
+      this.flash.position.copy(box.getCenter(new THREE.Vector3()));
+      this.flash.scale.setScalar(Math.max(size.x, size.y) * 1.25);
+      this.flash.material.opacity = moment.flash;
+    }
+    if (moment.done) {
+      this.evolveStart = null;
+      this.removeFlash();
+    }
+  }
+
+  /** Whether an evolution is playing. */
+  get evolving(): boolean {
+    return this.evolveStart !== null;
+  }
+
   /** Whether the character moves by itself: never under reduced motion. */
   private living(): boolean {
     return AvatarStageComponent.alive && !reducedMotion();
@@ -413,6 +515,9 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
       }
     }
     this.rig.pose((now - this.born) / 1000, waving);
+    if (this.evolveStart !== null) {
+      this.evolveAt((now - this.evolveStart) / 1000);
+    }
     return true;
   }
 
@@ -451,7 +556,7 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
       // character is alive; standing still, it needs only 30 frames a second
       const moving = this.controls ? this.controls.update() : false;
       const alive = this.animate(now);
-      if (moving || turning || this.waving || !alive || now - this.drawnAt >= 32) {
+      if (moving || turning || this.waving || this.evolving || !alive || now - this.drawnAt >= 32) {
         this.drawnAt = now;
         this.renderNow();
       }

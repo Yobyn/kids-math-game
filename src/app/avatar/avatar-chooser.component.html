@@ -5,11 +5,53 @@
        point of a swatch is seeing what it does. -->
   <div class="stage">
     <app-avatar-stage [avatar]="avatar" [label]="languageService.translate('your-character')"
-                      [focus]="earned ? 'body' : 'head'"
+                      [evolveFrom]="evolveFrom"
+                      [focus]="earned || !isKid || celebrating ? 'body' : 'head'"
                       [turnLeftLabel]="languageService.translate('turn-left')"
                       [turnRightLabel]="languageService.translate('turn-right')"></app-avatar-stage>
+    <!-- Grown since last time: said out loud, with sparkles round it -->
+    <p class="evolved" *ngIf="celebrating" role="status">
+      <span class="sparkle" aria-hidden="true">✨</span>{{ languageService.translate($any(avatar.family + '-grew')) }}<span class="sparkle" aria-hidden="true">✨</span>
+    </p>
   </div>
 
+  <!-- Which kind of character, above everything: a kid hero, or a creature that grows -->
+  <section class="choice-row family-row">
+    <h2>{{ languageService.translate($any('be-a')) }}</h2>
+    <div class="swatches">
+      <button type="button"
+              class="swatch label-swatch"
+              *ngFor="let family of families"
+              [class.chosen]="avatar.family === family"
+              [attr.aria-pressed]="avatar.family === family"
+              [attr.data-value]="family"
+              (click)="pickFamily(family)">
+        <span class="label-icon" aria-hidden="true">{{ familyIcon(family) }}</span>
+        <span class="label-word">{{ languageService.translate($any('family-' + family)) }}</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- Every character grows with the child: every stage reached can be picked, the rest say when they come -->
+  <section class="choice-row stage-row">
+    <h2>{{ languageService.translate($any(avatar.family + '-grows')) }}</h2>
+    <div class="swatches">
+      <button type="button"
+              class="swatch label-swatch"
+              *ngFor="let stage of stages"
+              [class.chosen]="avatar.stage === stage"
+              [class.locked]="!stageReached(stage)"
+              [disabled]="!stageReached(stage)"
+              [attr.aria-pressed]="avatar.stage === stage"
+              [attr.data-stage]="stage"
+              (click)="pickStage(stage)">
+        <span class="label-word">{{ languageService.translate($any(avatar.family + '-stage-' + stage)) }}</span>
+        <span class="lock" *ngIf="!stageReached(stage)" aria-hidden="true">🔒{{ stageLevel(stage) }}</span>
+      </button>
+    </div>
+  </section>
+
+  <ng-container *ngIf="isKid">
   <!-- Boy or girl, above the sections: the figure everything else is chosen on -->
   <section class="choice-row body-row">
     <h2>{{ languageService.translate(bodyRow.heading) }}</h2>
@@ -96,6 +138,8 @@
       {{ itemName(nextReward) }} — {{ languageService.translate('level') }} {{ nextReward.unlockLevel }}
     </p>
   </div>
+
+  </ng-container>
 
   <button type="button" class="done-btn" (click)="done()">
     {{ languageService.translate('done') }}

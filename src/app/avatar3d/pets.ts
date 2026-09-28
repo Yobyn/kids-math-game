@@ -22,7 +22,7 @@ const EYE = '#1a1026';
 const NOSE_PINK = '#e58a9a';
 
 /** A round shape: a sphere scaled to [x, y, z] radii, at a point. */
-function blob(name: string, radii: [number, number, number], at: [number, number, number], material: THREE.Material, outline = 0.02): THREE.Mesh {
+export function blob(name: string, radii: [number, number, number], at: [number, number, number], material: THREE.Material, outline = 0.02): THREE.Mesh {
   const mesh = part(name, new THREE.SphereGeometry(1, 24, 18), material, outline);
   mesh.scale.set(...radii);
   mesh.position.set(...at);
@@ -30,7 +30,7 @@ function blob(name: string, radii: [number, number, number], at: [number, number
 }
 
 /** Two eyes with a glint, looking forward from a head centred at `head`. */
-function eyes(head: [number, number, number], spread: number, forward: number, size: number): THREE.Group {
+export function eyes(head: [number, number, number], spread: number, forward: number, size: number): THREE.Group {
   const group = new THREE.Group();
   group.name = 'pet-eyes';
   [-1, 1].forEach(side => {
@@ -47,7 +47,7 @@ function eyes(head: [number, number, number], spread: number, forward: number, s
 }
 
 /** A curled tail from the joint at its root, along a few points. */
-function tail(root: [number, number, number], points: [number, number, number][], radius: number, material: THREE.Material): THREE.Group {
+export function tail(root: [number, number, number], points: [number, number, number][], radius: number, material: THREE.Material): THREE.Group {
   const joint = new THREE.Group();
   joint.name = PET_TAIL;
   joint.position.set(...root);
