@@ -228,14 +228,14 @@ export function stylise(measured: Figure, style: Style): Figure {
     foot: [measured.foot[0] * style.build, w(measured.foot[1])]
   };
   if (style.round) {
-    // The arms join the body at its side, where the egg is at shoulder height
-    stylised.shoulder = [torsoRadius(stylised, stylised.shoulder[1]) + stylised.armRadii[0] * SHOULDER_SET, stylised.shoulder[1]];
+    // The arms start at the body's side, where the egg is at shoulder
+    // height, and move out from there only as far as the tummy needs
+    stylised.shoulder = [torsoRadius(stylised, stylised.shoulder[1]), stylised.shoulder[1]];
   }
   return clearOfChest(stylised);
 }
 
-/** How far out from the torso's side the shoulder joint is, in arm widths. */
-export const SHOULDER_SET = 0.35;
+
 
 /**
  * How far an arm's inside edge may reach past the torso's outline (where

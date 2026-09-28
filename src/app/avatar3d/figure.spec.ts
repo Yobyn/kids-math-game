@@ -1,4 +1,4 @@
-import { ARM_CLEARANCE, ARM_TOUCH, Figure, FIGURES, HH, MEASURED, STYLE, clearOfChest, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist, PROFILE_SAMPLES, SHOULDER_SET, TUMMY_AT } from './figure';
+import { ARM_CLEARANCE, ARM_TOUCH, Figure, FIGURES, HH, MEASURED, STYLE, clearOfChest, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist, PROFILE_SAMPLES, TUMMY_AT, FULL_ABOVE, FULL_BELOW } from './figure';
 import { STILL_VERSION } from '../avatar/avatar-still.service';
 
 const BODY_TYPES_HERE = ['boy', 'girl'] as const;
@@ -166,6 +166,43 @@ describe('figure', () => {
       });
     });
 
+    it('has a round tummy a little below the middle, and a full round bottom, not a cone', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        const s = FIGURES[type];
+        const radii = s.torso.map(([r]) => r);
+        const widest = Math.max(...radii);
+        const at = s.torso[radii.indexOf(widest)][1];
+        const [bottom, top] = [s.torso[0][1], s.torso[s.torso.length - 1][1]];
+        expect((at - bottom) / (top - bottom)).withContext(type).toBeGreaterThan(0.4);
+        expect((at - bottom) / (top - bottom)).withContext(type).toBeLessThan(0.5);
+        // Still nearly as wide at the belt
+        expect(torsoRadius(s, s.belt)).withContext(type).toBeGreaterThan(widest * 0.9);
+      });
+    });
+
+    it('lays every point of the egg on its curve, closer together where it turns', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        const s = FIGURES[type];
+        const radii = s.torso.map(([r]) => r);
+        const widest = Math.max(...radii);
+        const [bottomR, bottom] = s.torso[0];
+        const [topR, top] = s.torso[s.torso.length - 1];
+        const middle = bottom + (top - bottom) * TUMMY_AT;
+        s.torso.forEach(([r, y], i) => {
+          const [end, full, t] = y < middle
+            ? [bottomR, FULL_BELOW, (middle - y) / (middle - bottom)]
+            : [topR, FULL_ABOVE, (y - middle) / (top - middle)];
+          const across = (r - end) / (widest - end);
+          expect(Math.pow(across, full) + Math.pow(t, full)).withContext(`${type} ${i}`).toBeCloseTo(1, 6);
+        });
+        // Rounding in to the neck, the points come closer together up the body than round the tummy
+        const rise = (i: number) => s.torso[i + 1][1] - s.torso[i][1];
+        expect(rise(s.torso.length - 2)).withContext(type).toBeLessThan(rise(PROFILE_SAMPLES / 2) * 0.5);
+      });
+    });
+
+
+
     it('has a bigger head and a shorter, sturdier body than measured', () => {
       BODY_TYPES_HERE.forEach(type => {
         const [s, m] = [FIGURES[type], MEASURED[type]];
@@ -190,10 +227,10 @@ describe('figure', () => {
       });
     });
 
-    it('joins the arms to the egg\u2019s side, and moves them out only as far as the tummy needs', () => {
+    it('starts the arms at the egg\u2019s side, and moves them out only as far as the tummy needs', () => {
       BODY_TYPES_HERE.forEach(type => {
         const s = FIGURES[type];
-        const onSide = torsoRadius(s, s.shoulder[1]) + s.armRadii[0] * SHOULDER_SET;
+        const onSide = torsoRadius(s, s.shoulder[1]);
         // At the side of the body, never floating out from it; further only to hang clear of the tummy
         expect(s.shoulder[0]).withContext(type).toBeGreaterThanOrEqual(onSide - 1e-9);
         expect(clearOfChest({ ...s, shoulder: [onSide, s.shoulder[1]] }).shoulder[0]).withContext(type).toBeCloseTo(s.shoulder[0], 9);

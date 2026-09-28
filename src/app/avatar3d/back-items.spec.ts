@@ -153,6 +153,8 @@ describe('back items', () => {
       expect(across(box.min.y)).toBeGreaterThan(across(box.max.y) * 2);
       // As wide as the shoulders at the hem, so it shows either side from the front
       expect(across(box.min.y) / 2).toBeGreaterThan(figure.shoulder[0]);
+      // And starting on the shoulders: at the top, as wide as the round body is there
+      expect(across(box.max.y) / 2).withContext(bodyType).toBeGreaterThan(torsoRadius(figure, box.max.y));
     });
   });
 
