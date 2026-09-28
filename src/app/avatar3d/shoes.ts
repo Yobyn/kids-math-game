@@ -150,8 +150,10 @@ function collar(style: Look, figure: Figure, ankle: THREE.Vector3, knee: THREE.V
   const axis = knee.clone().sub(ankle);
   const length = axis.length() * style.collar;
   axis.normalize();
-  // From the top of the sole, below the ankle
-  const below = (ankle.y - style.soleHeight - 0.02) / axis.y;
+  // From the top of the sole, below the ankle: the ring tilts with the leg,
+  // so its lowest edge is kept clear of the sole too
+  const tilt = Math.sqrt(1 - axis.y * axis.y);
+  const below = (ankle.y - style.soleHeight - 0.02 - (legRadius(figure, 0, style.collar) + SHOE_GAP) * tilt) / axis.y;
   const points: THREE.Vector2[] = [];
   const steps = 12;
   for (let i = 0; i <= steps; i++) {
