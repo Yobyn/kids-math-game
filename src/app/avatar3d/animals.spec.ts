@@ -110,6 +110,22 @@ describe('the Animals family: a bear cub whose hobby is football (Yobyn, 2026-09
     expect(Math.sign(paws[0].getCenter(new THREE.Vector3()).x)).toBe(-Math.sign(paws[1].getCenter(new THREE.Vector3()).x));
   });
 
+  it('keeps each paw on the end of its own sleeve, down at its side or reaching forward to hold the trophy', () => {
+    [1, 2, 3].forEach(stage => {
+      const root = build(bear(stage));
+      root.updateMatrixWorld(true);
+      const sleeves = named(root, 'animal-sleeve').map(boxOf);
+      const paws = named(root, 'animal-paw').map(boxOf);
+      expect(sleeves.length).toBe(2);
+      expect(paws.length).toBe(2);
+      paws.forEach(paw => {
+        const side = Math.sign(paw.getCenter(new THREE.Vector3()).x);
+        const own = sleeves.find(sleeve => Math.sign(sleeve.getCenter(new THREE.Vector3()).x) === side)!;
+        expect(own.intersectsBox(paw)).withContext(`stage ${stage}`).toBeTrue();
+      });
+    });
+  });
+
   it('has the dragon’s friendly face: eyes that blink, a muzzle and a button nose in front, rosy cheeks, round ears', () => {
     [1, 2, 3].forEach(stage => {
       const root = build(bear(stage));

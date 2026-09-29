@@ -819,7 +819,7 @@ champion holding a gold trophy in both paws, a sparkle on it. Named as the
 dragon is, with its tail a `pet-tail` so it wags. "Be a: Bear" (🐻), Cub /
 Footballer / Champion, "Your bear levelled up!" (NL/ES). Yobyn was asked
 whether a bear playing football is right. First load 459.06 kB. 1,751 unit
-tests. The mutation sweep: running.
+tests. The mutation sweep caught 28 of 29; the one that lived (the champion's sleeves left hanging at its sides while its paws hold the trophy) got a test that keeps each paw on the end of its own sleeve.
 
 WHAT IS NEXT, in the order the runs should take them:
 
