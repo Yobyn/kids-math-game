@@ -793,12 +793,25 @@ bands, a shoulder ledge, box pockets) with a realistic face. Now:
   them: on a tummy wider than the shoulders, an arm must hang out beside it;
   the puffy shoulder ball bridges the gap.
 
+**ROBOTS — DONE (Yobyn, 2026-09-27: "round bot / adds arms and antenna /
+mech with jetpack").** `avatar3d/robots.ts`, in the dragon's soft round
+shapes: stage 1 a round bot (one ball that is all head, on two little
+feet); stage 2 a robot (a round body, arms with claw hands, legs, an
+antenna with a light); stage 3 a mech (chunkier, shoulder pads, fists, a
+glowing chest core, a jetpack with flames). A screen face on every stage:
+glowing eyes with a shine, a smile, pink cheeks. Named the way the dragon
+is (`creature`, `creature-head`, `eye`, `creature-glow`), so the stand,
+the rig (blink, breath, the lights pulse), the stills and the celebration
+all work unchanged; `buildAvatar` builds every non-kid family on the
+creature stand. Words: Robot, "Your robot grows", Round bot / Robot /
+Mech, "Your robot powered up!" (NL/ES too). Light has no ink line round
+it. First load 459.05 kB. 1,740 unit tests. The mutation sweep: running.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **Yobyn's answer on the round kid hero** (rounder still? anything to
-   change?) before anything else.
-2. **The other families, one per run**: Robots, Animals, Space, Silly
-   objects. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
+1. **Yobyn's answers** (the round kid hero; the robots) before anything
+   else.
+2. **The other families, one per run**: Animals, Space, Silly objects. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
    the celebration too.
 3. **The full dragon's halo is cut off** at the sides of the stage's
    canvas: make it fit (or the canvas wider) and bump `STILL_VERSION`.
