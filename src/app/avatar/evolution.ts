@@ -2,7 +2,7 @@ import { Avatar, Family } from './avatar-model';
 import { GUEST_OWNER, accountOwner } from '../services/progress.service';
 
 /** The families whose character looks different at each stage, and so has an evolution to celebrate. */
-export const FAMILIES_THAT_GROW: Family[] = ['kid', 'creature', 'robot'];
+export const FAMILIES_THAT_GROW: Family[] = ['kid', 'creature', 'robot', 'animal'];
 
 /** How long the dressing-up screen celebrates an evolution: as long as the stage takes to play it (motion.ts). */
 export const CELEBRATION_MS = 3000;
