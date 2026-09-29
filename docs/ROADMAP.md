@@ -805,7 +805,9 @@ the rig (blink, breath, the lights pulse), the stills and the celebration
 all work unchanged; `buildAvatar` builds every non-kid family on the
 creature stand. Words: Robot, "Your robot grows", Round bot / Robot /
 Mech, "Your robot powered up!" (NL/ES too). Light has no ink line round
-it. First load 459.05 kB. 1,740 unit tests. The mutation sweep: running.
+it. First load 459.05 kB. 1,740 unit tests. The mutation sweep caught 29
+of 30; the one that lived (a flame pointing up) got a test that each flame
+points down, away from its nozzle.
 
 WHAT IS NEXT, in the order the runs should take them:
 

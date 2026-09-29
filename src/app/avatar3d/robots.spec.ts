@@ -78,6 +78,10 @@ describe('the Robots family: a round bot that grows into a mech (Yobyn, 2026-09-
       const box = new THREE.Box3().setFromObject(flame);
       expect(box.max.y).toBeLessThan(tanks.min.y);
       expect(box.getCenter(new THREE.Vector3()).z).toBeLessThan(0);
+      // Its tip pointing down, away from the nozzle it comes out of
+      const cone = flame as THREE.Mesh;
+      const tip = new THREE.Vector3(0, (cone.geometry as THREE.ConeGeometry).parameters.height / 2, 0).applyMatrix4(cone.matrixWorld);
+      expect(tip.y).toBeLessThan(box.getCenter(new THREE.Vector3()).y);
     });
     // And the mech is chunkier than the robot: wider across the shoulders, heavier in the leg
     const across = (root: THREE.Object3D) => {
