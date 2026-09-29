@@ -10,6 +10,7 @@ import { buildGlasses, buildHat } from './wardrobe3d';
 import { buildPet } from './pets';
 import { buildShoe, collarShare, legRadius } from './shoes';
 import { buildCreature } from './creatures';
+import { buildRobot } from './robots';
 import { Around, BackMap, buildBackItem } from './back-items';
 import { WAVING_SIDE } from './motion';
 import { BELT_DROP, BELT_HEIGHT, beltColour, heroBuckle, legendCape, wearsGear, wristband, BAND_TO } from './hero-gear';
@@ -746,7 +747,7 @@ export function seatedFigure(avatar: Avatar): Figure {
  * here, on every figure.
  */
 export function buildAvatar(avatar: Avatar): THREE.Group {
-  if (avatar.family === 'creature') {
+  if (avatar.family !== 'kid') {
     return buildCreatureOnStand(avatar);
   }
   const figure = seatedFigure(avatar);
@@ -849,7 +850,7 @@ function buildCreatureOnStand(avatar: Avatar): THREE.Group {
   root.name = 'avatar';
   root.userData.family = avatar.family;
   root.add(buildPedestal(CREATURE_STAND_RADIUS));
-  root.add(buildCreature(avatar.stage));
+  root.add(avatar.family === 'robot' ? buildRobot(avatar.stage) : buildCreature(avatar.stage));
   return root;
 }
 
