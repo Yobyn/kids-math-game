@@ -809,11 +809,23 @@ it. First load 459.05 kB. 1,740 unit tests. The mutation sweep caught 29
 of 30; the one that lived (a flame pointing up) got a test that each flame
 points down, away from its nozzle.
 
+**ANIMALS — DONE (Yobyn, 2026-09-27: "plain animal in hoodie / adds gear
+for its hobby / pro version with trophy").** A bear cub whose hobby is
+football (`avatar3d/animals.ts`), in the dragon's round shapes: stage 1 a
+cub in a hoodie (hood behind its neck, strings, a pocket), round ears, a
+muzzle and button nose, rosy cheeks; stage 2 a footballer (a sweatband,
+football boots with a stripe, a ball at its feet on the stand); stage 3 a
+champion holding a gold trophy in both paws, a sparkle on it. Named as the
+dragon is, with its tail a `pet-tail` so it wags. "Be a: Bear" (🐻), Cub /
+Footballer / Champion, "Your bear levelled up!" (NL/ES). Yobyn was asked
+whether a bear playing football is right. First load 459.06 kB. 1,751 unit
+tests. The mutation sweep: running.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **Yobyn's answers** (the round kid hero; the robots) before anything
-   else.
-2. **The other families, one per run**: Animals, Space, Silly objects. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
+1. **Yobyn's answers** (the round kid hero; the robots; the bear) before
+   anything else.
+2. **The other families, one per run**: Space, Silly objects. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
    the celebration too.
 3. **The full dragon's halo is cut off** at the sides of the stage's
    canvas: make it fit (or the canvas wider) and bump `STILL_VERSION`.
