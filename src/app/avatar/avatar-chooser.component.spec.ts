@@ -338,7 +338,7 @@ describe('AvatarChooserComponent wardrobe', () => {
     it('asks first what kind of character to be, a kid hero to start', () => {
       openAtLevel(1);
       const swatches = Array.from(familyRow().querySelectorAll('.swatch')) as HTMLButtonElement[];
-      expect(swatches.map(s => s.getAttribute('data-value'))).toEqual(['kid', 'creature', 'robot']);
+      expect(swatches.map(s => s.getAttribute('data-value'))).toEqual(['kid', 'creature', 'robot', 'animal']);
       expect(swatches[0].classList).toContain('chosen');
       // A kid hero has a face, hair and clothes to choose, and grows too
       expect(fixture.nativeElement.querySelector('.tabs')).toBeTruthy();

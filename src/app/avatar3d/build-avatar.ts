@@ -11,6 +11,7 @@ import { buildPet } from './pets';
 import { buildShoe, collarShare, legRadius } from './shoes';
 import { buildCreature } from './creatures';
 import { buildRobot } from './robots';
+import { buildAnimal } from './animals';
 import { Around, BackMap, buildBackItem } from './back-items';
 import { WAVING_SIDE } from './motion';
 import { BELT_DROP, BELT_HEIGHT, beltColour, heroBuckle, legendCape, wearsGear, wristband, BAND_TO } from './hero-gear';
@@ -850,7 +851,8 @@ function buildCreatureOnStand(avatar: Avatar): THREE.Group {
   root.name = 'avatar';
   root.userData.family = avatar.family;
   root.add(buildPedestal(CREATURE_STAND_RADIUS));
-  root.add(avatar.family === 'robot' ? buildRobot(avatar.stage) : buildCreature(avatar.stage));
+  const build = { robot: buildRobot, animal: buildAnimal }[avatar.family as string] || buildCreature;
+  root.add(build(avatar.stage));
   return root;
 }
 

@@ -11,7 +11,7 @@ describe('evolvedFrom: what the character grew from since the child last looked'
 
   it('lasts as long as the stage plays it', () => {
     expect(CELEBRATION_MS).toBe(3000);
-    expect(FAMILIES_THAT_GROW).toEqual(['kid', 'creature', 'robot']);
+    expect(FAMILIES_THAT_GROW).toEqual(['kid', 'creature', 'robot', 'animal']);
   });
 
   it('has nothing to celebrate on the first look, and remembers it', () => {
