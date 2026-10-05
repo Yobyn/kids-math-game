@@ -846,7 +846,7 @@ face. Its face and crust are a `creature-face`, which a portrait frames in
 place of the head when a family has one (the pizza's head is the whole
 slice). "Be a: Pizza" (🍕), Slice / Caped pizza / Super pizza, "Your pizza
 levelled up!" (NL/ES). Every family Yobyn asked for is built. First load
-459.08 kB. 1,780 unit tests. The mutation sweep: running.
+459.08 kB. 1,781 unit tests. The mutation sweep caught 38 of 41; the three that lived (a mushroom moved onto its face, between the smile and a cheek; its arms floated off its sides; the cheese drips and arms pushed out into the air) got tests: toppings stay off the whole face, each arm starts on the slice, and each drip sits on the slice's edge.
 
 WHAT IS NEXT, in the order the runs should take them:
 

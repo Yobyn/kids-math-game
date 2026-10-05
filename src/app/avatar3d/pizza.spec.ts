@@ -51,6 +51,22 @@ function corners(box: THREE.Box3): THREE.Vector3[] {
   return out;
 }
 
+/**
+ * The slice's own frame, from its shape: the point at the bottom, as wide as
+ * the crust at the top. `local` takes a world point into it; `halfWidth` is
+ * how wide the slice is either side of its middle at a height in it.
+ */
+function sliceEdge(root: THREE.Object3D) {
+  const slice = root.getObjectByName('pizza-slice') as THREE.Mesh;
+  slice.geometry.computeBoundingBox();
+  const shape = slice.geometry.boundingBox!;
+  const toSlice = slice.matrixWorld.clone().invert();
+  return {
+    local: (world: THREE.Vector3) => world.clone().applyMatrix4(toSlice),
+    halfWidth: (y: number) => (shape.max.x * y) / shape.max.y
+  };
+}
+
 describe('the Silly objects family: a slice of pizza that grows into a super pizza (Yobyn, 2026-09-27)', () => {
   const built: THREE.Object3D[] = [];
   const build = (avatar: Avatar) => {
@@ -106,7 +122,9 @@ describe('the Silly objects family: a slice of pizza that grows into a super piz
       const shape = slice.geometry.boundingBox!;
       const toSlice = slice.matrixWorld.clone().invert();
       const cheese = boxOf(root.getObjectByName('pizza-cheese')!);
-      const face = [...named(root, 'eye'), ...named(root, 'pizza-smile'), ...named(root, 'pizza-cheek')].map(boxOf);
+      // Its face: all of it, from cheek to cheek and from its eyes to its smile
+      const face = new THREE.Box3();
+      [...named(root, 'eye'), ...named(root, 'pizza-smile'), ...named(root, 'pizza-cheek')].forEach(feature => face.union(boxOf(feature)));
       const scale = root.getObjectByName(CREATURE)!.scale.x;
       const misses: string[] = [];
       toppingsOf(root).forEach((topping, i) => {
@@ -123,7 +141,7 @@ describe('the Silly objects family: a slice of pizza that grows into a super piz
         if (Math.abs(box.min.z - cheese.max.z) > 0.08 * scale) {
           misses.push(`${name} not on the cheese`);
         }
-        if (face.some(feature => feature.intersectsBox(box))) {
+        if (face.intersectsBox(box)) {
           misses.push(`${name} on its face`);
         }
       });
@@ -193,10 +211,26 @@ describe('the Silly objects family: a slice of pizza that grows into a super piz
     expect(Math.sign(centreOf(sparkles[0]).x)).toBe(-Math.sign(centreOf(sparkles[1]).x));
   });
 
+  it('drips cheese over the edges of the slice', () => {
+    [1, 3].forEach(stage => {
+      const root = build(pizza(stage));
+      const edge = sliceEdge(root);
+      const drips = named(root, 'pizza-drip');
+      expect(drips.length).withContext(`stage ${stage}`).toBeGreaterThan(1);
+      drips.forEach(drip => {
+        // On the edge line, either side, not out in the air beside it
+        const at = edge.local(centreOf(drip));
+        expect(Math.abs(Math.abs(at.x) - edge.halfWidth(at.y))).withContext(`stage ${stage}`).toBeLessThan(0.2);
+      });
+      expect(new Set(drips.map(drip => Math.sign(centreOf(drip).x))).size).toBe(2);
+    });
+  });
+
   it('stands on little legs from its point, arms out of its sides, a glove on each', () => {
     [1, 2, 3].forEach(stage => {
       const root = build(pizza(stage));
       const slice = boxOf(root.getObjectByName('pizza-slice')!);
+      const edge = sliceEdge(root);
       const shoes = named(root, 'pizza-shoe').map(boxOf);
       const legs = named(root, 'pizza-leg').map(boxOf);
       expect(legs.length).withContext(`stage ${stage}`).toBe(2);
@@ -213,6 +247,10 @@ describe('the Silly objects family: a slice of pizza that grows into a super piz
         const middle = box.getCenter(new THREE.Vector3());
         const hand = hands.find(h => Math.sign(h.getCenter(new THREE.Vector3()).x) === Math.sign(middle.x))!;
         expect(hand.intersectsBox(box)).withContext(`stage ${stage}`).toBeTrue();
+        // From the slice itself: its inner end on the slice, not out in the air beside it
+        const ends = [1, -1].map(y => edge.local(new THREE.Vector3(0, y, 0).applyMatrix4(arm.matrixWorld)));
+        const inner = ends.reduce((a, b) => (Math.abs(a.x) < Math.abs(b.x) ? a : b));
+        expect(Math.abs(inner.x)).withContext(`stage ${stage}`).toBeLessThanOrEqual(edge.halfWidth(inner.y) + 0.1);
         // Out from its side, the glove further out than the arm's middle
         expect(Math.abs(hand.getCenter(new THREE.Vector3()).x)).toBeGreaterThan(Math.abs(middle.x));
         // The arm runs along its own length to the glove
