@@ -154,9 +154,45 @@ export interface Style {
    */
   armSwing?: number;
   elbowBend?: number;
+  /** Whether the torso is one round egg, arms at its side (eggProfile), rather than the measured outline. */
+  round?: boolean;
 }
 
-export const STYLE: Style = { head: 1.8, body: 0.66, build: 1.15, armSwing: 0.24, elbowBend: 0.35 };
+export const STYLE: Style = { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.35, round: true };
+
+/**
+ * The torso as one round shape, the way the dragon's body is (Yobyn,
+ * 2026-09-28: "the dragon graphics look good and rounded"): an egg from the
+ * crotch to the collar, widest at the tummy, rounding over the shoulders up
+ * into the neck, in place of the measured outline's straight bands and the
+ * ledge at the shoulders. It keeps the measured ends and the widest width,
+ * so a boy's and a girl's stay their own.
+ */
+export const PROFILE_SAMPLES = 48;
+/** How far up the torso the tummy is widest, and how full the egg is below it and above it. */
+export const TUMMY_AT = 0.45;
+export const FULL_BELOW = 2.6;
+export const FULL_ABOVE = 2;
+export function eggProfile(points: [number, number][]): [number, number][] {
+  const [bottomR, bottomY] = points[0];
+  const [topR, topY] = points[points.length - 1];
+  const widest = Math.max(...points.map(([r]) => r));
+  const middle = bottomY + (topY - bottomY) * TUMMY_AT;
+  const half = PROFILE_SAMPLES / 2;
+  // Sampled evenly round each half of the curve, not evenly up it: close
+  // together where it turns in to the neck and the crotch, so neither end is
+  // a flat shelf
+  const round = (angle: number, full: number) => [Math.pow(Math.cos(angle), 2 / full), Math.pow(Math.sin(angle), 2 / full)];
+  const below = Array.from({ length: half }, (_, i) => {
+    const [across, down] = round((Math.PI / 2) * (1 - i / half), FULL_BELOW);
+    return [bottomR + (widest - bottomR) * across, middle - (middle - bottomY) * down] as [number, number];
+  });
+  const above = Array.from({ length: half + 1 }, (_, i) => {
+    const [across, up] = round((Math.PI / 2) * (i / half), FULL_ABOVE);
+    return [topR + (widest - topR) * across, middle + (topY - middle) * up] as [number, number];
+  });
+  return [...below, ...above];
+}
 
 /** A measured figure made into the stylised one (see STYLE). */
 export function stylise(measured: Figure, style: Style): Figure {
@@ -171,7 +207,7 @@ export function stylise(measured: Figure, style: Style): Figure {
     ...measured,
     headScale,
     headY: chin + headScale[1],
-    torso: measured.torso.map(([r, h]) => [w(r), y(h)] as [number, number]),
+    torso: (style.round ? eggProfile : (points: [number, number][]) => points)(measured.torso.map(([r, h]) => [w(r), y(h)] as [number, number])),
     hem: y(measured.hem),
     belt: y(measured.belt),
     crotch: y(measured.crotch),
@@ -191,8 +227,15 @@ export function stylise(measured: Figure, style: Style): Figure {
     neckRadius: w(measured.neckRadius) * Math.sqrt(style.head),
     foot: [measured.foot[0] * style.build, w(measured.foot[1])]
   };
+  if (style.round) {
+    // The arms start at the body's side, where the egg is at shoulder
+    // height, and move out from there only as far as the tummy needs
+    stylised.shoulder = [torsoRadius(stylised, stylised.shoulder[1]), stylised.shoulder[1]];
+  }
   return clearOfChest(stylised);
 }
+
+
 
 /**
  * How far an arm's inside edge may reach past the torso's outline (where

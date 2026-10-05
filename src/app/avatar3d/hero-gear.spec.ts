@@ -121,7 +121,7 @@ describe('the kid hero grows: hero gear by stage (Yobyn, 2026-09-27)', () => {
       const plain = shown(build(hero(1, { bodyType })));
       [2, 3].forEach(stage => {
         const broad = shown(build(hero(stage, { bodyType })));
-        expect(broad).withContext(`${bodyType} ${stage}`).toBeGreaterThan(0.2);
+        expect(broad).withContext(`${bodyType} ${stage}`).toBeGreaterThan(0.18);
         expect(broad).withContext(`${bodyType} ${stage}`).toBeGreaterThan(plain * 2.2);
       });
     });

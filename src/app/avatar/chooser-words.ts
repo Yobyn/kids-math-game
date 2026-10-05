@@ -38,6 +38,24 @@ export type ChooserKey =
   | 'family-kid'
   | 'family-creature'
   | 'creature-grows'
+  | 'family-robot'
+  | 'family-animal'
+  | 'animal-grows'
+  | 'animal-grew'
+  | 'animal-stage-1'
+  | 'animal-stage-2'
+  | 'animal-stage-3'
+  | 'family-space'
+  | 'space-grows'
+  | 'space-grew'
+  | 'space-stage-1'
+  | 'space-stage-2'
+  | 'space-stage-3'
+  | 'robot-grows'
+  | 'robot-grew'
+  | 'robot-stage-1'
+  | 'robot-stage-2'
+  | 'robot-stage-3'
   | 'kid-grows'
   | 'kid-grew'
   | 'kid-stage-1'
@@ -82,6 +100,24 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'family-kid': 'Kid hero',
     'family-creature': 'Dragon',
     'creature-grows': 'Your dragon grows',
+    'family-robot': 'Robot',
+    'family-animal': 'Bear',
+    'animal-grows': 'Your bear grows',
+    'animal-grew': 'Your bear levelled up!',
+    'animal-stage-1': 'Cub',
+    'animal-stage-2': 'Footballer',
+    'animal-stage-3': 'Champion',
+    'family-space': 'Alien',
+    'space-grows': 'Your alien grows',
+    'space-grew': 'Your alien levelled up!',
+    'space-stage-1': 'Pod',
+    'space-stage-2': 'Space ranger',
+    'space-stage-3': 'Captain',
+    'robot-grows': 'Your robot grows',
+    'robot-grew': 'Your robot powered up!',
+    'robot-stage-1': 'Round bot',
+    'robot-stage-2': 'Robot',
+    'robot-stage-3': 'Mech',
     'kid-grows': 'Your hero grows',
     'kid-grew': 'Your hero got stronger!',
     'kid-stage-1': 'Beginner',
@@ -125,6 +161,24 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'family-kid': 'Held',
     'family-creature': 'Draak',
     'creature-grows': 'Je draak groeit',
+    'family-robot': 'Robot',
+    'family-animal': 'Beer',
+    'animal-grows': 'Je beer groeit',
+    'animal-grew': 'Je beer is een level hoger!',
+    'animal-stage-1': 'Welpje',
+    'animal-stage-2': 'Voetballer',
+    'animal-stage-3': 'Kampioen',
+    'family-space': 'Alien',
+    'space-grows': 'Je alien groeit',
+    'space-grew': 'Je alien is een level hoger!',
+    'space-stage-1': 'Capsule',
+    'space-stage-2': 'Ruimteranger',
+    'space-stage-3': 'Kapitein',
+    'robot-grows': 'Je robot groeit',
+    'robot-grew': 'Je robot is opgewaardeerd!',
+    'robot-stage-1': 'Rondbot',
+    'robot-stage-2': 'Robot',
+    'robot-stage-3': 'Mecha',
     'kid-grows': 'Je held groeit',
     'kid-grew': 'Je held is sterker geworden!',
     'kid-stage-1': 'Beginner',
@@ -168,6 +222,24 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'family-kid': 'Héroe',
     'family-creature': 'Dragón',
     'creature-grows': 'Tu dragón crece',
+    'family-robot': 'Robot',
+    'family-animal': 'Oso',
+    'animal-grows': 'Tu oso crece',
+    'animal-grew': '¡Tu oso subió de nivel!',
+    'animal-stage-1': 'Osezno',
+    'animal-stage-2': 'Futbolista',
+    'animal-stage-3': 'Campeón',
+    'family-space': 'Alienígena',
+    'space-grows': 'Tu alienígena crece',
+    'space-grew': '¡Tu alienígena subió de nivel!',
+    'space-stage-1': 'Cápsula',
+    'space-stage-2': 'Guardián espacial',
+    'space-stage-3': 'Capitán',
+    'robot-grows': 'Tu robot crece',
+    'robot-grew': '¡Tu robot se mejoró!',
+    'robot-stage-1': 'Bot redondo',
+    'robot-stage-2': 'Robot',
+    'robot-stage-3': 'Meca',
     'kid-grows': 'Tu héroe crece',
     'kid-grew': '¡Tu héroe se hizo más fuerte!',
     'kid-stage-1': 'Principiante',
