@@ -97,8 +97,8 @@ export type BodyType = 'boy' | 'girl';
  * through three stages as the child climbs: the kid hero is the character
  * the game has had all along. The rest are added family by family.
  */
-export type Family = 'kid' | 'creature' | 'robot' | 'animal' | 'space';
-export const FAMILIES: Family[] = ['kid', 'creature', 'robot', 'animal', 'space'];
+export type Family = 'kid' | 'creature' | 'robot' | 'animal' | 'space' | 'pizza';
+export const FAMILIES: Family[] = ['kid', 'creature', 'robot', 'animal', 'space', 'pizza'];
 
 /**
  * The level each tier starts at. The game climbs in levels; tiers group

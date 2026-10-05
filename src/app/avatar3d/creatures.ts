@@ -19,6 +19,11 @@ import { part, toon } from './toon';
 
 export const CREATURE = 'creature';
 export const CREATURE_HEAD = 'creature-head';
+/**
+ * Where a portrait closes in, for a character whose head is most of it (a
+ * slice of pizza is all head): its face. Without one, a portrait is the head.
+ */
+export const CREATURE_FACE = 'creature-face';
 /** The full dragon's glow, named so rig.ts can make it pulse. */
 export const CREATURE_GLOW = 'creature-glow';
 
