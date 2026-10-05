@@ -873,11 +873,13 @@ dragon) is picked at random per child (`hatchlingFor(owner)`, the same child
 always the same pet) and kept once saved. A pet the child has won and
 chosen takes its place. The celebration hatches it: the egg turns into the
 pet under the flash. The pet's stand is a little smaller and nearer
-(`PET_STAND_RADIUS` 1.35, `PET_STAND_GAP` 0.5), and the stage now also
-steps back for its width: it was cut off at the side of a 390 and a 360
-wide phone, which the old in-view test (at aspects 0.8, 1, 1.5) never
-tried. First load 459.38 kB (`hatchlingFor` is in the first load, for the
-service). 1,796 unit tests. The mutation sweep: running.
+(`PET_STAND_RADIUS` 1.35, `PET_STAND_GAP` 0.5): it was cut off at the side
+of a 390 and a 360 wide phone, which the old in-view test (at aspects 0.8,
+1, 1.5) never tried; it now tries the phones' own. First load 459.38 kB
+(`hatchlingFor` is in the first load, for the service). 1,796 unit tests.
+The mutation sweep caught 25 of 27; the two that lived were in a step back
+for the pet's width, which the smaller, nearer stand made unneeded, so it
+was taken out.
 
 YOBYN (2026-10-05) also said: robots perfect; the bear playing football
 awesome; the alien and the pizza awesome; and "Kid hero needs more graphics

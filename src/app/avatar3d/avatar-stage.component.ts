@@ -70,12 +70,9 @@ export function bodyFraming(
   const tan = Math.tan((fov * Math.PI) / 360);
   const fit = tan * Math.min(1, aspect || 1);
   // The top at the middle's depth, the pet's front edge a reach nearer: far
-  // enough back for both
+  // enough back for both (which also leaves room for the pet across)
   const deep = (((box.max.y - box.min.y) * 1.12) / fit + reach) / 2;
-  // And the pet's far edge on the screen across, turned to either side, with
-  // the camera looking down on it leaving a little room: on a narrow phone the width is the limit
-  const wide = reach / (Math.tan((fov * Math.PI) / 360) * (aspect || 1));
-  const distance = Math.max(tall.distance, deep, wide);
+  const distance = Math.max(tall.distance, deep);
   const centre = Math.min(tall.centre, box.max.y - (distance * fit) / 1.12);
   return { distance, centre };
 }
