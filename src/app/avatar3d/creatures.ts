@@ -172,12 +172,14 @@ function dragon(colour: string, stage: number): THREE.Group {
       creature.add(spike);
     }
     // And the glow: a soft ring of light round it, facing the camera from
-    // every side, clear in the middle so the dragon is not washed over
+    // every side, clear in the middle so the dragon is not washed over; its
+    // bright ring just round the tips of its wings and from its feet to its
+    // horns, and no wider, so it fits on a phone's stage
     const glow = new THREE.Sprite(new THREE.SpriteMaterial({
       map: haloTexture(), color: '#9dffb8', transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
     }));
     glow.name = CREATURE_GLOW;
-    glow.scale.set(9, 10, 1);
+    glow.scale.set(7.4, 8.6, 1);
     glow.position.y = 3.3;
     creature.add(glow);
   }
@@ -217,9 +219,9 @@ export function haloTexture(): THREE.Texture {
     const context = canvas.getContext('2d')!;
     const gradient = context.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
     gradient.addColorStop(0, 'rgba(255,255,255,0)');
-    gradient.addColorStop(0.45, 'rgba(255,255,255,0)');
-    gradient.addColorStop(0.62, 'rgba(255,255,255,0.55)');
-    gradient.addColorStop(0.8, 'rgba(255,255,255,0.18)');
+    gradient.addColorStop(0.6, 'rgba(255,255,255,0)');
+    gradient.addColorStop(0.76, 'rgba(255,255,255,0.55)');
+    gradient.addColorStop(0.9, 'rgba(255,255,255,0.18)');
     gradient.addColorStop(1, 'rgba(255,255,255,0)');
     context.fillStyle = gradient;
     context.fillRect(0, 0, size, size);
