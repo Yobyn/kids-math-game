@@ -208,7 +208,9 @@ describe('the Space family: an alien who grows from a pod to a captain (Yobyn, 2
       expect(eyes.length).withContext(`stage ${stage}`).toBe(2);
       eyes.forEach(eye => expect(eye.getWorldPosition(new THREE.Vector3()).z).toBeGreaterThan(skull.z));
       expect(named(root, 'space-cheek').length).toBe(2);
-      expect(centreOf(root.getObjectByName('space-smile')!).z).toBeGreaterThan(skull.z);
+      // The smile on the front of its face, where it shows: as far forward as the face is
+      const face = boxOf(root.getObjectByName('space-skull')!);
+      expect(boxOf(root.getObjectByName('space-smile')!).max.z).withContext(`stage ${stage}`).toBeGreaterThan(face.max.z - (face.max.z - face.min.z) * 0.05);
       const antennae = named(root, 'space-antenna');
       expect(antennae.length).withContext(`stage ${stage}`).toBe(2);
       antennae.forEach(antenna => {
