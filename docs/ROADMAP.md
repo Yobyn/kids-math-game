@@ -848,18 +848,29 @@ slice). "Be a: Pizza" (🍕), Slice / Caped pizza / Super pizza, "Your pizza
 levelled up!" (NL/ES). Every family Yobyn asked for is built. First load
 459.08 kB. 1,781 unit tests. The mutation sweep caught 38 of 41; the three that lived (a mushroom moved onto its face, between the smile and a cheek; its arms floated off its sides; the cheese drips and arms pushed out into the air) got tests: toppings stay off the whole face, each arm starts on the slice, and each drip sits on the slice's edge.
 
+**THE FULL DRAGON'S HALO FITS — DONE.** On a 360-wide phone the halo was
+8.3 units either side of the middle against 6.9 the stage shows, so its
+light was cut off at both sides. The halo is smaller now, its bright ring
+moved out towards its edge, so the ring still runs just round the wingtips
+and from the feet to over the horns while all of it is on the stage, the
+dragon as big as ever. On a narrower screen the stage already steps back
+for the dragon's height far enough for all of the glow too (tested from a
+tablet down to a 180-wide stage); a step back for the glow itself was tried
+and taken out again, as the mutation sweep showed it never changed
+anything. `STILL_VERSION` 7, so saved pictures of the dragon are drawn
+again. 1,784 unit tests. The mutation sweep caught 9 of 15: two lived on a
+test glow reaching as far up as down (now one reaches further each way),
+and four lived in the glow step-back, which was taken out.
+
 WHAT IS NEXT, in the order the runs should take them:
 
 1. **Yobyn's answers** (the round kid hero; the robots; the bear; the
    alien; the pizza) before anything else.
-2. **Every family is built.** Go on below. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
-   the celebration too.
-3. **The full dragon's halo is cut off** at the sides of the stage's
-   canvas: make it fit (or the canvas wider) and bump `STILL_VERSION`.
-4. **Better materials.** Hair strands or clumps rather than one smooth
+2. **Every family is built.** Go on below.
+3. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
-5. **Offline — DONE (nightly run, 2026-09-27).** It was worse than this
+4. **Offline — DONE (nightly run, 2026-09-27).** It was worse than this
    item said. The worker precached `index.html` and a few assets, and
    cached bundles only when the page next asked for them. The first visit's
    own bundles (main, runtime, polyfills, styles) were fetched before the
