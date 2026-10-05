@@ -891,15 +891,26 @@ YOBYN (2026-10-05) also said: robots perfect; the bear playing football
 awesome; the alien and the pizza awesome; and "Kid hero needs more graphics
 the posture is not perfect".
 
+**THE KID HERO'S POSTURE, STEP 1 — DONE (Yobyn, 2026-10-05: "the posture is
+not perfect").** It stood like a doll, feet pressed together and arms
+hanging dead straight. The feet now stand a little apart (`Style.stance`
+0.4 of the hips' width, each leg leaning out from its hip, the knee
+halfway) and the elbows bend softly (`elbowBend` 0.55); the arms stay in
+by the body (swung out further, they read as the stiff A-pose again).
+`STILL_VERSION` 8. 1,797 unit tests. The mutation sweep caught 8 of 8
+(the softer elbow only by the STYLE/STILL_VERSION pin). Before/after
+shots sent to Yobyn, asking whether this is the direction.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **The kid hero's posture, and more graphics** (Yobyn, 2026-10-05). It
-   stands like a doll: arms hanging dead straight and stiff with puffy
-   shoulders, legs straight and pressed together, flat and leaning back a
-   little from the side. Give it a relaxed, lively stance (feet apart,
-   weight on one leg, arms slightly out and bent, a little head tilt) and
-   more detail (the dragon's and the robot's level of finish), with before
-   and after shots for Yobyn.
+1. **The kid hero: more graphics, and the rest of the posture** (Yobyn,
+   2026-10-05). Feet apart and soft elbows are done (step 1). Next: the
+   puffy shoulders (the sleeve tops balloon out), a little life in the
+   stance (a slight head tilt; weight on one leg would break the mirror
+   the fit tests rely on, so only if it can be done safely), and more
+   finish to the dragon's and the robots' level (clothes with seams,
+   folds, a collar; shoes with laces and soles; small details), with
+   before and after shots for Yobyn. His answer to step 1 comes first.
 2. **Every family is built.** Go on below.
 3. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
