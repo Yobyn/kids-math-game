@@ -13,6 +13,7 @@ import { buildCreature } from './creatures';
 import { buildRobot } from './robots';
 import { buildAnimal } from './animals';
 import { buildSpace } from './space';
+import { buildPizza } from './pizza';
 import { Around, BackMap, buildBackItem } from './back-items';
 import { WAVING_SIDE } from './motion';
 import { BELT_DROP, BELT_HEIGHT, beltColour, heroBuckle, legendCape, wearsGear, wristband, BAND_TO } from './hero-gear';
@@ -852,7 +853,7 @@ function buildCreatureOnStand(avatar: Avatar): THREE.Group {
   root.name = 'avatar';
   root.userData.family = avatar.family;
   root.add(buildPedestal(CREATURE_STAND_RADIUS));
-  const build = { robot: buildRobot, animal: buildAnimal, space: buildSpace }[avatar.family as string] || buildCreature;
+  const build = { robot: buildRobot, animal: buildAnimal, space: buildSpace, pizza: buildPizza }[avatar.family as string] || buildCreature;
   root.add(build(avatar.stage));
   return root;
 }
