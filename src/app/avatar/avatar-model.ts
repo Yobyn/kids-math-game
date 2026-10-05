@@ -53,6 +53,11 @@ export interface Avatar {
   top: string;
   /** A companion sitting beside the stand; not worn, but earned the same way. */
   pet: string;
+  /**
+   * The pet the kid hero's egg hatches into (one of `HATCHLINGS`), picked at
+   * random for each child and kept; '' until one has been picked.
+   */
+  hatchling: string;
   /** Something worn on the back: a backpack, a cape. */
   back: string;
   /** What the character stands in; nothing won means the sneakers everyone has. */
@@ -208,10 +213,29 @@ export function defaultAvatar(): Avatar {
     glasses: NO_ITEM,
     top: NO_ITEM,
     pet: NO_ITEM,
+    hatchling: '',
     back: NO_ITEM,
     shoes: NO_ITEM,
     topColour: ''
   };
+}
+
+/**
+ * What a kid hero's egg can hatch into (Yobyn, 2026-10-05: "closed eggs that
+ * hatch into a random pet and grows up"): the pets there are.
+ */
+export const HATCHLINGS = ['kitten', 'puppy', 'dragon'];
+
+/**
+ * A pet for the egg, picked at random for a child but always the same for
+ * the same child: the same name, the same pet, whatever device they are on.
+ */
+export function hatchlingFor(seed: string): string {
+  let hash = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    hash = Math.imul(hash ^ seed.charCodeAt(i), 16777619) >>> 0;
+  }
+  return HATCHLINGS[hash % HATCHLINGS.length];
 }
 
 /**
@@ -255,6 +279,8 @@ export function normaliseAvatar(raw: any, level = 1, earnedEvents: string[] = []
     eyeColour: pick(EYE_COLOURS, raw.eyeColour, fallback.eyeColour),
     mouthShape: pick(MOUTH_SHAPES, raw.mouthShape, fallback.mouthShape) as MouthShape,
     topColour: typeof raw.topColour === 'string' ? raw.topColour : '',
+    // Picked once and kept, so the egg always hatches into the same pet
+    hatchling: pick(HATCHLINGS, raw.hatchling, ''),
     // Every slot the same way: the item if it has been earned, otherwise
     // nothing. A slot absent on a character saved before it existed (pets,
     // the back, shoes) reads as nothing there, which is what it had

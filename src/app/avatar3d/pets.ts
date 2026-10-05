@@ -16,6 +16,8 @@ import { part, toon } from './toon';
  */
 
 export const PET_TAIL = 'pet-tail';
+/** The kid hero's egg, which rocks now and then: something inside is moving. */
+export const PET_EGG = 'pet-egg';
 export const PET_WING = 'pet-wing';
 
 const EYE = '#1a1026';
@@ -160,6 +162,65 @@ export function buildPet(id: string, colour: string): THREE.Group | null {
   const pet = build(colour);
   pet.name = 'pet-' + id;
   return pet;
+}
+
+const SHELL = '#fff4dc';
+const NEST = '#b07a4f';
+
+/**
+ * A closed egg in a little nest, speckled in the colour of what is inside.
+ * The egg rocks about its foot (a `pet-egg` joint), the nest stays still.
+ */
+export function buildEgg(colour: string): THREE.Group {
+  const group = new THREE.Group();
+  group.name = 'pet-egg-in-nest';
+  const nest = part('pet-nest', new THREE.TorusGeometry(0.55, 0.16, 10, 28), toon(NEST), 0.015);
+  nest.rotation.x = Math.PI / 2;
+  nest.position.y = 0.14;
+  group.add(nest);
+  const egg = new THREE.Group();
+  egg.name = PET_EGG;
+  egg.position.y = 0.08;
+  const shell = blob('pet-egg-shell', [0.5, 0.68, 0.5], [0, 0.68, 0], toon(SHELL), 0.02);
+  // A little more pointed at the top, as an egg is
+  egg.add(shell);
+  [[0.22, 1.0, 0.38], [-0.3, 0.75, 0.37], [0.05, 0.45, 0.48], [0.36, 0.5, 0.3], [-0.12, 1.15, 0.3]].forEach(([x, y, z]) => {
+    const spot = blob('pet-egg-spot', [0.1, 0.12, 0.03], [x, y, z], toon(colour), 0);
+    spot.lookAt(new THREE.Vector3(x * 3, 0.68 + (y - 0.68) * 3, z * 3));
+    egg.add(spot);
+  });
+  group.add(egg);
+  return group;
+}
+
+/** Half an eggshell, open side up: a cup `radius` wide. */
+function halfShell(name: string, radius: number): THREE.Mesh {
+  const cup = part(name, new THREE.SphereGeometry(radius, 20, 10, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2), toon(SHELL, { side: THREE.DoubleSide }), 0.015);
+  cup.scale.y = 0.8;
+  return cup;
+}
+
+/**
+ * Just hatched: the pet, small, sitting in the bottom half of its shell, the
+ * top half tipped over beside it.
+ */
+export function buildHatched(id: string, colour: string): THREE.Group | null {
+  const pet = buildPet(id, colour);
+  if (!pet) {
+    return null;
+  }
+  const group = new THREE.Group();
+  group.name = 'pet-hatched';
+  const bottom = halfShell('pet-shell', 0.62);
+  bottom.position.y = 0.42;
+  group.add(bottom);
+  pet.position.y = 0.12;
+  group.add(pet);
+  const top = halfShell('pet-shell-top', 0.3);
+  top.rotation.set(Math.PI * 0.6, 0, 0.4);
+  top.position.set(0.98, 0.22, -0.3);
+  group.add(top);
+  return group;
 }
 
 /** The ids with a 3D pet, for tests to hold the wardrobe to. */

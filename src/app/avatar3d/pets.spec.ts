@@ -34,8 +34,12 @@ describe('pets', () => {
   it('builds no pet for no pet, or for one that does not exist', () => {
     expect(buildPet(NO_ITEM, '#ffffff')).toBeNull();
     expect(buildPet('unicorn', '#ffffff')).toBeNull();
-    expect(keep(buildAvatar(avatar())).getObjectByName('pet')).toBeUndefined();
-    expect(keep(buildAvatar(avatar({ pet: 'unicorn' }))).getObjectByName('pet')).toBeUndefined();
+    // Without a pet won, a kid hero has the egg (companion.spec.ts), and no pet from the wardrobe
+    [avatar(), avatar({ pet: 'unicorn' })].forEach(look => {
+      const stand = keep(buildAvatar(look)).getObjectByName('pet')!;
+      expect(stand.getObjectByName('pet-egg-shell')).toBeTruthy();
+      PET_IDS.forEach(id => expect(stand.getObjectByName('pet-' + id)).toBeUndefined());
+    });
   });
 
   it('builds each pet its own way, in its own colour', () => {
@@ -143,7 +147,8 @@ describe('pets', () => {
       [0, 1, 2, 3, 4, 5, 6, 7].forEach(i => corners.push(new THREE.Vector3(
         i & 1 ? animal.max.x : animal.min.x, i & 2 ? animal.max.y : animal.min.y, i & 4 ? animal.max.z : animal.min.z)));
       // As the stage frames the body: its own framing, from its own starting height
-      [0.8, 1, 1.5].forEach(aspect => {
+      // A 390 and a 360 wide phone's stage, narrower, square, and on its side
+      [340 / 360, 310 / 360, 0.8, 0.7, 1, 1.5].forEach(aspect => {
         const { distance, centre } = bodyFraming(whole, 30, aspect, boxOf(root.getObjectByName('pet')!));
         const camera = new THREE.PerspectiveCamera(30, aspect, 0.1, 200);
         const up = new THREE.Vector3(0, 3, BASE_DISTANCE).normalize();
