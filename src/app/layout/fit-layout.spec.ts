@@ -146,6 +146,31 @@ describe('the layout on a screen that is not a phone held upright', () => {
     });
   });
 
+  describe('a small phone held upright', () => {
+    // A media query, so this checks whichever side of it the runner's window
+    // falls on: the rule is loaded and keyed on height, not that it fires.
+    const small = () => window.matchMedia('(max-height: 700px)').matches;
+
+    it('takes a little off each key when the screen is short, never below 48px', () => {
+      fit('stack');
+      const height = parseFloat(getComputedStyle(keys()[0]).minHeight);
+
+      if (small()) {
+        expect(height).toBe(52);
+      } else {
+        expect(height).toBeGreaterThanOrEqual(56);
+      }
+      expect(height).toBeGreaterThanOrEqual(48);
+    });
+
+    it('still holds the feedback space open, so the card does not jump', () => {
+      fit('stack');
+      const feedback = fixture.nativeElement.querySelector('.feedback-container');
+
+      expect(getComputedStyle(feedback).minHeight).toBe('60px');
+    });
+  });
+
   it('leaves no layout without a stylesheet answer', () => {
     ['stack', 'short', 'wide'].forEach(shape => {
       fit(shape);
