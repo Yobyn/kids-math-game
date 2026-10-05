@@ -831,9 +831,8 @@ hand, a light at its tip; stage 3 is the captain, in a captain's cap with a
 gold star (its antennae poke out of the top), gold on its shoulders, and its
 flying saucer hovering over its shoulder behind it. The glass has no ink line
 (one would fill it in). "Be a: Alien" (👽), Pod / Space ranger / Captain,
-"Your alien levelled up!" (NL/ES). The first runs every 2 hours (Yobyn,
-2026-10-05). First load 459.07 kB. 1,767 unit tests. The mutation sweep:
-running.
+"Your alien levelled up!" (NL/ES). Built in the first of the runs that now fire every 2 hours (Yobyn,
+2026-10-05). First load 459.07 kB. 1,767 unit tests. The mutation sweep caught 37 of 39; the two that lived (the smile pushed inside the head; the sleeves left hanging straight down while the hand holds the ray gun up) got tests: the smile sits on the front of the face, and each sleeve runs along its arm to its own hand.
 
 WHAT IS NEXT, in the order the runs should take them:
 

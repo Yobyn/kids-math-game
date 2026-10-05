@@ -139,9 +139,16 @@ describe('the Space family: an alien who grows from a pod to a captain (Yobyn, 2
     expect(boxOf(gun).min.x).toBeGreaterThan(0);
   });
 
-  it('keeps each hand on the end of its own sleeve', () => {
+  it('keeps each hand on the end of its own sleeve, the sleeve running along the arm to it', () => {
     [2, 3].forEach(stage => {
       const root = build(alien(stage));
+      // Each sleeve points the way its arm goes: from the shoulder straight to its hand, raised or hanging
+      named(root, 'space-sleeve').forEach(sleeve => {
+        const middle = centreOf(sleeve);
+        const hand = named(root, 'space-hand').map(centreOf).find(h => Math.sign(h.x) === Math.sign(middle.x))!;
+        const along = new THREE.Vector3(0, 1, 0).applyQuaternion(sleeve.getWorldQuaternion(new THREE.Quaternion()));
+        expect(Math.abs(along.dot(hand.clone().sub(middle).normalize()))).withContext(`stage ${stage}`).toBeGreaterThan(0.95);
+      });
       const sleeves = named(root, 'space-sleeve').map(boxOf);
       const hands = named(root, 'space-hand').map(boxOf);
       expect(sleeves.length).withContext(`stage ${stage}`).toBe(2);
