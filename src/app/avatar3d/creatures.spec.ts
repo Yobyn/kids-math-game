@@ -7,6 +7,7 @@ import { BREATH_RISE, BREATH_SECONDS, GLOW_LOW, GLOW_SECONDS, eyesOpen } from '.
 import { PET_TAIL, PET_WING } from './pets';
 import { Rig } from './rig';
 import { framedBox } from './still-renderer';
+import { STILL_VERSION } from '../avatar/avatar-still.service';
 
 function dragon(stage: number, extra: Partial<Avatar> = {}): Avatar {
   return { ...defaultAvatar(), family: 'creature', stage, ...extra };
@@ -41,6 +42,43 @@ describe('the Creatures family: a dragon that grows', () => {
     expect(heights[0]).toBeLessThan(heights[1]);
     expect(heights[1]).toBeLessThan(heights[2]);
     expect(Math.abs(heights[2] - figureFor('boy').headY - figureFor('boy').headScale[1])).toBeLessThan(1.5);
+  });
+
+  it('rings the full dragon with its glow: the bright ring just round its wingtips and from its feet to over its horns, clear in the middle', () => {
+    const root = build(dragon(3));
+    root.updateMatrixWorld(true);
+    const glow = root.getObjectByName(CREATURE_GLOW) as THREE.Sprite;
+    // How bright the glow is out from its middle, read off the picture it is drawn with
+    const picture = glow.material.map!.image as HTMLCanvasElement;
+    const row = picture.getContext('2d')!.getImageData(0, Math.floor(picture.height / 2), picture.width, 1).data;
+    const half = picture.width / 2;
+    const out: number[] = [];
+    for (let x = Math.floor(half); x < picture.width; x++) {
+      out.push(row[x * 4 + 3]);
+    }
+    const brightest = out.indexOf(Math.max(...out)) / (out.length - 1);
+    // Clear in the middle, so the dragon is not washed over
+    out.slice(0, Math.floor(out.length / 2)).forEach(alpha => expect(alpha).toBe(0));
+    const at = glow.getWorldPosition(new THREE.Vector3());
+    const size = glow.getWorldScale(new THREE.Vector3());
+    const body = solidBox(root.getObjectByName(CREATURE)!);
+    // Across: just round the tips of its wings
+    const across = Math.max(-body.min.x, body.max.x);
+    const ringAcross = (brightest * size.x) / 2;
+    expect(ringAcross).toBeGreaterThanOrEqual(across);
+    expect(ringAcross).toBeLessThan(across * 1.15);
+    // Up and down: over its horns, and down to its feet
+    const ringUp = (brightest * size.y) / 2;
+    const tall = body.max.y - body.min.y;
+    expect(at.y + ringUp).toBeGreaterThanOrEqual(body.max.y);
+    expect(at.y + ringUp).toBeLessThan(body.max.y + tall * 0.1);
+    expect(at.y - ringUp).toBeLessThan(body.min.y + tall * 0.1);
+  });
+
+  it('re-draws the pictures on other screens when the glow changes: STILL_VERSION goes up with its size', () => {
+    // Saved pictures are kept by version; a new glow with the old version would leave them showing the old one
+    const glow = build(dragon(3)).getObjectByName(CREATURE_GLOW)!;
+    expect({ version: STILL_VERSION, glow: [glow.scale.x, glow.scale.y] }).toEqual({ version: 7, glow: [7.4, 8.6] });
   });
 
   it('hatches at stage 1, grows small wings at 2, and spreads big ones with a glow at 3', () => {
