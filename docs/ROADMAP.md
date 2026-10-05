@@ -834,11 +834,25 @@ flying saucer hovering over its shoulder behind it. The glass has no ink line
 "Your alien levelled up!" (NL/ES). Built in the first of the runs that now fire every 2 hours (Yobyn,
 2026-10-05). First load 459.07 kB. 1,767 unit tests. The mutation sweep caught 37 of 39; the two that lived (the smile pushed inside the head; the sleeves left hanging straight down while the hand holds the ray gun up) got tests: the smile sits on the front of the face, and each sleeve runs along its arm to its own hand.
 
+**SILLY OBJECTS — DONE (Yobyn, 2026-09-27: "plain pizza slice / pizza with a
+cape / super pizza with extra toppings").** A slice of pizza (`avatar3d/pizza.ts`)
+standing on little legs in blue sneakers, point down and crust on top, with
+the dragon's face in the cheese, cheese dripping over its edges, arms out of
+its sides and white gloves: stage 1 plain cheese; stage 2 pepperoni and a red
+cape with gold clasps; stage 3 the super pizza, with extra toppings (olives,
+mushrooms, basil), a gold trim round the cape's edge and two sparkles above
+its crust. The toppings sit flat on the cheese, on the slice and off its
+face. Its face and crust are a `creature-face`, which a portrait frames in
+place of the head when a family has one (the pizza's head is the whole
+slice). "Be a: Pizza" (🍕), Slice / Caped pizza / Super pizza, "Your pizza
+levelled up!" (NL/ES). Every family Yobyn asked for is built. First load
+459.08 kB. 1,781 unit tests. The mutation sweep caught 38 of 41; the three that lived (a mushroom moved onto its face, between the smile and a cheek; its arms floated off its sides; the cheese drips and arms pushed out into the air) got tests: toppings stay off the whole face, each arm starts on the slice, and each drip sits on the slice's edge.
+
 WHAT IS NEXT, in the order the runs should take them:
 
 1. **Yobyn's answers** (the round kid hero; the robots; the bear; the
-   alien) before anything else.
-2. **The last family**: Silly objects (the pizza). Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
+   alien; the pizza) before anything else.
+2. **Every family is built.** Go on below. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
    the celebration too.
 3. **The full dragon's halo is cut off** at the sides of the stage's
    canvas: make it fit (or the canvas wider) and bump `STILL_VERSION`.
