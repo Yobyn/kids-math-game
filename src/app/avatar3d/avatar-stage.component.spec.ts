@@ -4,7 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BODY_TYPES, NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
-import { CREATURE, CREATURE_HEAD } from './creatures';
+import { CREATURE, CREATURE_GLOW, CREATURE_HEAD } from './creatures';
 import { EVOLVE_SECONDS, EVOLVE_SWAP, evolution } from './motion';
 import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming } from './avatar-stage.component';
 
@@ -283,6 +283,30 @@ describe('AvatarStageComponent', () => {
       component.model!.updateMatrixWorld(true);
       const head = new THREE.Box3().setFromObject(component.model!.getObjectByName(CREATURE_HEAD)!);
       expect(target.y).toBeCloseTo((head.min.y + head.max.y) / 2, 6);
+    });
+
+    it('fits all of the full dragon\u2019s glow on the stage, and keeps it full size on a phone', () => {
+      component.avatar = { ...component.avatar, family: 'creature', stage: 3, stagePinned: true };
+      component.ngOnChanges({ avatar: new SimpleChange(null, component.avatar, false) });
+      component.focus = 'body';
+      const camera = (component as any).camera as THREE.PerspectiveCamera;
+      const tan = Math.tan((camera.fov * Math.PI) / 360);
+      component.model!.updateMatrixWorld(true);
+      const glow = component.model!.getObjectByName(CREATURE_GLOW)!;
+      const at = glow.getWorldPosition(new THREE.Vector3());
+      const size = glow.getWorldScale(new THREE.Vector3());
+      // A phone's stage (a 390 or a 360 wide screen), narrower ones, and a tablet's
+      [340 / 360, 310 / 360, 270 / 360, 180 / 360, 600 / 360].forEach(aspect => {
+        camera.aspect = aspect;
+        const { target, distance } = component.view();
+        expect(distance * tan * aspect).withContext(`aspect ${aspect}`).toBeGreaterThanOrEqual(Math.hypot(at.x, at.z) + size.x / 2 - 1e-9);
+        expect(target.y + distance * tan).withContext(`aspect ${aspect}`).toBeGreaterThanOrEqual(at.y + size.y / 2 - 1e-9);
+        expect(target.y - distance * tan).withContext(`aspect ${aspect}`).toBeLessThanOrEqual(at.y - size.y / 2 + 1e-9);
+        // On a phone the dragon is as big as any character: the glow fits without stepping back
+        if (aspect > 300 / 360) {
+          expect(distance).withContext(`aspect ${aspect}`).toBe(BASE_DISTANCE);
+        }
+      });
     });
 
     it('rebuilds the character when the character changes', () => {
