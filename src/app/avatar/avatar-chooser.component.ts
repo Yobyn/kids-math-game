@@ -5,7 +5,7 @@ import { LanguageService, TranslationKeys } from '../services/language.service';
 import { TOP_COLOURS, ownTopColour } from './top-colours';
 
 /** What each family looks like on its swatch. */
-const FAMILY_ICONS: { [family in Family]: string } = { kid: '🧒', creature: '🐲' };
+const FAMILY_ICONS: { [family in Family]: string } = { kid: '🧒', creature: '🐲', robot: '🤖', animal: '🐻', space: '👽' };
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { CELEBRATION_MS, evolvedFrom } from './evolution';

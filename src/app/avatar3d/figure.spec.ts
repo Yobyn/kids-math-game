@@ -1,4 +1,4 @@
-import { ARM_CLEARANCE, ARM_TOUCH, Figure, FIGURES, HH, MEASURED, STYLE, clearOfChest, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist } from './figure';
+import { ARM_CLEARANCE, ARM_TOUCH, Figure, FIGURES, HH, MEASURED, STYLE, clearOfChest, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist, PROFILE_SAMPLES, TUMMY_AT, FULL_ABOVE, FULL_BELOW } from './figure';
 import { STILL_VERSION } from '../avatar/avatar-still.service';
 
 const BODY_TYPES_HERE = ['boy', 'girl'] as const;
@@ -130,14 +130,78 @@ describe('figure', () => {
     });
   });
 
-  describe('stylised: in between the chibi character and the reference (Yobyn, 2026-09-26)', () => {
-    it('stands about three and a third heads tall: nearer the chibi two and a half than the measured seven', () => {
+  describe('stylised: round like the dragon (Yobyn, 2026-09-28: "the dragon graphics look good and rounded")', () => {
+    it('stands about two and a half heads tall, as the dragon does: all head and heart', () => {
       BODY_TYPES_HERE.forEach(type => {
-        expect(headsTall(FIGURES[type])).toBeGreaterThan(3);
-        expect(headsTall(FIGURES[type])).toBeLessThan(3.7);
-        expect(headsTall(FIGURES[type])).toBeLessThan(headsTall(MEASURED[type]) - 2);
+        expect(headsTall(FIGURES[type])).withContext(type).toBeGreaterThan(2.2);
+        expect(headsTall(FIGURES[type])).withContext(type).toBeLessThan(2.6);
       });
     });
+
+    it('makes the torso one round egg: widest at the tummy, rounding over the shoulders into the neck', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        const [s, m] = [FIGURES[type], MEASURED[type]];
+        const radii = s.torso.map(([r]) => r);
+        const widest = radii.indexOf(Math.max(...radii));
+        // As wide as the measured figure at its widest, made sturdier
+        expect(radii[widest]).withContext(type).toBeCloseTo(Math.max(...m.torso.map(([r]) => r)) * STYLE.build, 6);
+        // Widest at the tummy, and narrowing smoothly both ways from it: no ledge
+        const [bottom, top] = [s.torso[0][1], s.torso[s.torso.length - 1][1]];
+        expect((s.torso[widest][1] - bottom) / (top - bottom)).withContext(type).toBeCloseTo(TUMMY_AT, 1);
+        radii.forEach((r, i) => {
+          if (i > 0) {
+            expect(i <= widest ? r >= radii[i - 1] : r <= radii[i - 1]).withContext(`${type} ${i}`).toBeTrue();
+          }
+        });
+        // No step bigger than a smooth curve takes
+        const steps = radii.slice(1).map((r, i) => Math.abs(r - radii[i]));
+        expect(Math.max(...steps)).withContext(type).toBeLessThan(radii[widest] * 0.2);
+        // The ends where the measured ones are
+        expect(s.torso[0][0]).toBeCloseTo(m.torso[0][0] * STYLE.build, 9);
+        expect(s.torso[0][1]).toBeCloseTo(m.torso[0][1] * STYLE.body, 9);
+        const [mr, my] = m.torso[m.torso.length - 1];
+        expect(s.torso[s.torso.length - 1][0]).toBeCloseTo(mr * STYLE.build, 9);
+        expect(s.torso[s.torso.length - 1][1]).toBeCloseTo(my * STYLE.body, 9);
+        expect(s.torso.length).toBe(PROFILE_SAMPLES + 1);
+      });
+    });
+
+    it('has a round tummy a little below the middle, and a full round bottom, not a cone', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        const s = FIGURES[type];
+        const radii = s.torso.map(([r]) => r);
+        const widest = Math.max(...radii);
+        const at = s.torso[radii.indexOf(widest)][1];
+        const [bottom, top] = [s.torso[0][1], s.torso[s.torso.length - 1][1]];
+        expect((at - bottom) / (top - bottom)).withContext(type).toBeGreaterThan(0.4);
+        expect((at - bottom) / (top - bottom)).withContext(type).toBeLessThan(0.5);
+        // Still nearly as wide at the belt
+        expect(torsoRadius(s, s.belt)).withContext(type).toBeGreaterThan(widest * 0.9);
+      });
+    });
+
+    it('lays every point of the egg on its curve, closer together where it turns', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        const s = FIGURES[type];
+        const radii = s.torso.map(([r]) => r);
+        const widest = Math.max(...radii);
+        const [bottomR, bottom] = s.torso[0];
+        const [topR, top] = s.torso[s.torso.length - 1];
+        const middle = bottom + (top - bottom) * TUMMY_AT;
+        s.torso.forEach(([r, y], i) => {
+          const [end, full, t] = y < middle
+            ? [bottomR, FULL_BELOW, (middle - y) / (middle - bottom)]
+            : [topR, FULL_ABOVE, (y - middle) / (top - middle)];
+          const across = (r - end) / (widest - end);
+          expect(Math.pow(across, full) + Math.pow(t, full)).withContext(`${type} ${i}`).toBeCloseTo(1, 6);
+        });
+        // Rounding in to the neck, the points come closer together up the body than round the tummy
+        const rise = (i: number) => s.torso[i + 1][1] - s.torso[i][1];
+        expect(rise(s.torso.length - 2)).withContext(type).toBeLessThan(rise(PROFILE_SAMPLES / 2) * 0.5);
+      });
+    });
+
+
 
     it('has a bigger head and a shorter, sturdier body than measured', () => {
       BODY_TYPES_HERE.forEach(type => {
@@ -146,7 +210,6 @@ describe('figure', () => {
         expect(s.crotch).toBeCloseTo(m.crotch * STYLE.body, 9);
         expect(s.knee[1]).toBeCloseTo(m.knee[1] * STYLE.body, 9);
         expect(s.legRadii[0]).toBeCloseTo(m.legRadii[0] * STYLE.build, 9);
-        expect(torsoRadius(s, s.hem)).toBeCloseTo(torsoRadius(m, m.hem) * STYLE.build, 6);
         expect(s.upperArm).toBeCloseTo(m.upperArm * STYLE.body, 9);
         // A neck fit for a bigger head, hands and feet in proportion
         expect(s.neckRadius).toBeCloseTo(m.neckRadius * STYLE.build * Math.sqrt(STYLE.head), 9);
@@ -164,13 +227,16 @@ describe('figure', () => {
       });
     });
 
-    it('moves the shoulder out by as much as the arm thickened, so a thicker arm is not in the chest', () => {
-      const m = MEASURED.boy;
-      const s = FIGURES.boy;
-      // At least as far out as the arm grew; further if the chest would otherwise meet the arm
-      expect(s.shoulder[0] - (s.armRadii[0] - m.armRadii[0])).toBeGreaterThanOrEqual(m.shoulder[0] * STYLE.build - 1e-9);
-      // And the measured figures needed no moving at all
-      BODY_TYPES_HERE.forEach(type => expect(clearOfChest(MEASURED[type])).toBe(MEASURED[type]));
+    it('starts the arms at the egg\u2019s side, and moves them out only as far as the tummy needs', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        const s = FIGURES[type];
+        const onSide = torsoRadius(s, s.shoulder[1]);
+        // At the side of the body, never floating out from it; further only to hang clear of the tummy
+        expect(s.shoulder[0]).withContext(type).toBeGreaterThanOrEqual(onSide - 1e-9);
+        expect(clearOfChest({ ...s, shoulder: [onSide, s.shoulder[1]] }).shoulder[0]).withContext(type).toBeCloseTo(s.shoulder[0], 9);
+        // And the measured figures needed no moving at all
+        expect(clearOfChest(MEASURED[type])).toBe(MEASURED[type]);
+      });
     });
 
     it('stands relaxed, not in the reference\u2019s A-pose: arms nearer the body, elbows soft', () => {
@@ -186,7 +252,7 @@ describe('figure', () => {
       // Saved pictures are kept by version; a new STYLE with the old version
       // would leave every screen showing the old character
       expect({ version: STILL_VERSION, style: STYLE }).toEqual({
-        version: 5, style: { head: 1.8, body: 0.66, build: 1.15, armSwing: 0.24, elbowBend: 0.35 }
+        version: 6, style: { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.35, round: true }
       });
     });
 

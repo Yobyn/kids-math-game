@@ -11,7 +11,7 @@ describe('evolvedFrom: what the character grew from since the child last looked'
 
   it('lasts as long as the stage plays it', () => {
     expect(CELEBRATION_MS).toBe(3000);
-    expect(FAMILIES_THAT_GROW).toEqual(['kid', 'creature']);
+    expect(FAMILIES_THAT_GROW).toEqual(['kid', 'creature', 'robot', 'animal', 'space']);
   });
 
   it('has nothing to celebrate on the first look, and remembers it', () => {
@@ -47,8 +47,8 @@ describe('evolvedFrom: what the character grew from since the child last looked'
   });
 
   it('leaves alone a family that looks the same at every stage', () => {
-    expect(evolvedFrom({ ...defaultAvatar(), family: 'robot' as any, stage: 1 }, 1)).toBeNull();
-    expect(evolvedFrom({ ...defaultAvatar(), family: 'robot' as any, stage: 2 }, 2)).toBeNull();
+    expect(evolvedFrom({ ...defaultAvatar(), family: 'alien' as any, stage: 1 }, 1)).toBeNull();
+    expect(evolvedFrom({ ...defaultAvatar(), family: 'alien' as any, stage: 2 }, 2)).toBeNull();
     expect(localStorage.getItem('evolution-seen:guest')).toBeNull();
   });
 
