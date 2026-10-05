@@ -1147,6 +1147,20 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**ONE ROW OF HEADER DURING A ROUND, ON A PHONE — DONE (2026-10-05).** On a
+phone held upright the app header wrapped to two rows: the character, the
+greeting and the sound button, then the language and sign-in buttons. That
+took 153px (205px at 320 wide), and measured at 360x740, Check Answer was
+below the fold on every question. While a question is on screen
+(`AppComponent.inRound`), a phone now gets one row with just the character
+and the sound button, 76px high. The language and sign-in buttons come back
+between rounds. Neither is something a child needs halfway through a sum.
+
+Measured after: Check Answer sits at 666px of 740 and 681px of 844. At
+320x568 the whole keypad, 0 included, is now on screen, but Check Answer
+still is not (681px of 568). The card's own padding and the round track are
+the next places to find height for that size.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
