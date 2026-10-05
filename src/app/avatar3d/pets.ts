@@ -138,15 +138,16 @@ function dragon(colour: string): THREE.Group {
     shape.quadraticCurveTo(0.3, -0.1, 0, 0);
     const membrane = part('pet-wing-shape', new THREE.ShapeGeometry(shape, 12), toon(shade(colour, 0.15), { side: THREE.DoubleSide }), 0);
     membrane.scale.x = side;
-    membrane.rotation.y = side * -0.6;
+    membrane.rotation.y = side * -0.85;
     wing.add(membrane);
     pet.add(wing);
   });
   pet.add(eyes(head, 0.19, 0.36, 0.07));
-  pet.add(tail([0, 0.3, -0.55], [[0, 0, 0], [0.3, -0.1, -0.4], [0.7, 0, -0.5], [0.95, 0.2, -0.35]], 0.11, scales));
+  // Curling up behind it, not out to the side, so it stays on a phone's stage beside the kid
+  pet.add(tail([0, 0.3, -0.55], [[0, 0, 0], [0.1, -0.08, -0.42], [0.22, 0.12, -0.68], [0.28, 0.45, -0.74]], 0.11, scales));
   // A spade on the tail's tip
   const spade = part('pet-tail-spike', new THREE.ConeGeometry(0.13, 0.28, 4), horn, 0.012);
-  spade.position.set(0.95, 0.4, -0.35);
+  spade.position.set(0.28, 0.65, -0.74);
   pet.getObjectByName(PET_TAIL)!.add(spade);
   return pet;
 }

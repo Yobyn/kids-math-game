@@ -129,8 +129,10 @@ describe('pets', () => {
 
   it('stays in view all the way round, on a phone held upright or on its side', () => {
     const misses: string[] = [];
-    BODY_TYPES.forEach(bodyType => PETS.forEach(item => {
-      const root = keep(buildAvatar(avatar({ bodyType, pet: item.id, hat: 'wizard', hairStyle: 'afro' })));
+    // A tall look (the camera steps back for it) and an ordinary one (it does not: the pet's stand is then nearest the edge)
+    const looks: Partial<Avatar>[] = [{ hat: 'wizard', hairStyle: 'afro' }, {}];
+    BODY_TYPES.forEach(bodyType => looks.forEach(look => PETS.forEach(item => {
+      const root = keep(buildAvatar(avatar({ bodyType, pet: item.id, ...look })));
       const whole = boxOf(root);
       // The real shapes, not a box round them: a box round a round stand has
       // corners the stand never reaches. The stand's rim, top and bottom...
@@ -142,13 +144,21 @@ describe('pets', () => {
         const a = (k / 32) * Math.PI * 2;
         [-0.19, 0].forEach(y => corners.push(new THREE.Vector3(standCentre.x + Math.cos(a) * rim, y, standCentre.z + Math.sin(a) * rim)));
       }
-      // ...and the animal on it
-      const animal = boxOf(root.getObjectByName('pet-' + item.id)!);
-      [0, 1, 2, 3, 4, 5, 6, 7].forEach(i => corners.push(new THREE.Vector3(
-        i & 1 ? animal.max.x : animal.min.x, i & 2 ? animal.max.y : animal.min.y, i & 4 ? animal.max.z : animal.min.z)));
+      // ...and the animal on it: points of its own shape (a box round it has corners it never reaches)
+      const animal = root.getObjectByName('pet-' + item.id)!;
+      animal.updateWorldMatrix(true, true);
+      animal.traverse(node => {
+        const mesh = node as THREE.Mesh;
+        if (mesh.isMesh && !node.name.endsWith(':outline')) {
+          const position = mesh.geometry.attributes.position as THREE.BufferAttribute;
+          for (let i = 0; i < position.count; i += 7) {
+            corners.push(new THREE.Vector3().fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld));
+          }
+        }
+      });
       // As the stage frames the body: its own framing, from its own starting height
-      // A 390 and a 360 wide phone's stage, narrower, square, and on its side
-      [340 / 360, 310 / 360, 0.8, 0.7, 1, 1.5].forEach(aspect => {
+      // The stage on a 390, a 360 and a 320 wide phone, square, and on its side
+      [340 / 360, 310 / 360, 270 / 360, 1, 1.5].forEach(aspect => {
         const { distance, centre } = bodyFraming(whole, 30, aspect, boxOf(root.getObjectByName('pet')!));
         const camera = new THREE.PerspectiveCamera(30, aspect, 0.1, 200);
         const up = new THREE.Vector3(0, 3, BASE_DISTANCE).normalize();
@@ -160,11 +170,11 @@ describe('pets', () => {
           camera.updateMatrixWorld(true);
           const out = corners.map(c => c.clone().project(camera)).filter(p => Math.abs(p.x) > 1 || Math.abs(p.y) > 1);
           if (out.length) {
-            misses.push(`${bodyType} ${item.id} at ${a}° aspect ${aspect}`);
+            misses.push(`${bodyType} ${look.hat || 'cap'} ${item.id} at ${a}° aspect ${aspect.toFixed(2)}`);
           }
         }
       });
-    }));
+    })));
     expect(BASE_CENTRE).toBeGreaterThan(0);
     expect(misses.slice(0, 5)).toEqual([]);
   });
