@@ -765,17 +765,92 @@ outfit / trained outfit / legend outfit with cape."
 - Asked of Yobyn: whether the beginner stage should have a visible item of
   its own (it is the child's own clothes now).
 
+**THE KID HERO, ROUND LIKE THE DRAGON — DONE (Yobyn, 2026-09-28).** "The
+dragon graphics look good and rounded but not happy with the Kid Hero
+graphics." Side by side, the dragon is a big round head on one round body
+with stubby limbs and a friendly face; the kid was tall, boxy (straight
+bands, a shoulder ledge, box pockets) with a realistic face. Now:
+- Chibi proportions, about 2.4 heads tall (`STYLE` head 2.4, body 0.52,
+  build 1.45, `round: true`).
+- The torso is one egg (`eggProfile`): widest at the tummy (`TUMMY_AT`),
+  rounding over the shoulders into the neck, sampled round the curve so
+  neither end is a shelf; the arms join it at its side (`SHOULDER_SET`).
+- The head sits on the body with no neck showing: `seatedFigure(avatar)`
+  seats each face shape by its own chin on the collar; hair, hats, glasses
+  and the stills use it.
+- The dragon's face: taller eyes, bigger irises, two shines, a button nose,
+  rosy cheeks, softer brows.
+- Round elbows and knees, mitten hands, no box pockets on the legs; a
+  snug hood roll, strings hanging straight clear of the round chest, the
+  pouch pocket curved round the tummy.
+- Kept fitting: the stand reaches past the hands, a pet stands further
+  out, a cape starts on the shoulders and its clasps sit behind long hair,
+  a boot's shaft starts clear of the sole on a slanted leg, the camera is
+  retuned. `STILL_VERSION` 6. First load unchanged at 459.04 kB.
+- Found on the way: a hoodie string between two points on a round chest
+  cut into it in the middle; it now hangs straight, clear of the fullest
+  point. 1,730 unit tests. The mutation sweep caught 27 of 37 at first:
+  the tests that lived compared values with the constants that made them;
+  they now hold the design (tummy height and fullness, every point on the
+  egg's curve, tall eyes mostly iris, a button nose, elbows as wide as the
+  arm, a snug hood, a cape that starts on the shoulders), and all nine are
+  caught. The shoulder's first place never mattered and went. Found with
+  them: on a tummy wider than the shoulders, an arm must hang out beside it;
+  the puffy shoulder ball bridges the gap.
+
+**ROBOTS — DONE (Yobyn, 2026-09-27: "round bot / adds arms and antenna /
+mech with jetpack").** `avatar3d/robots.ts`, in the dragon's soft round
+shapes: stage 1 a round bot (one ball that is all head, on two little
+feet); stage 2 a robot (a round body, arms with claw hands, legs, an
+antenna with a light); stage 3 a mech (chunkier, shoulder pads, fists, a
+glowing chest core, a jetpack with flames). A screen face on every stage:
+glowing eyes with a shine, a smile, pink cheeks. Named the way the dragon
+is (`creature`, `creature-head`, `eye`, `creature-glow`), so the stand,
+the rig (blink, breath, the lights pulse), the stills and the celebration
+all work unchanged; `buildAvatar` builds every non-kid family on the
+creature stand. Words: Robot, "Your robot grows", Round bot / Robot /
+Mech, "Your robot powered up!" (NL/ES too). Light has no ink line round
+it. First load 459.05 kB. 1,740 unit tests. The mutation sweep caught 29
+of 30; the one that lived (a flame pointing up) got a test that each flame
+points down, away from its nozzle.
+
+**ANIMALS — DONE (Yobyn, 2026-09-27: "plain animal in hoodie / adds gear
+for its hobby / pro version with trophy").** A bear cub whose hobby is
+football (`avatar3d/animals.ts`), in the dragon's round shapes: stage 1 a
+cub in a hoodie (hood behind its neck, strings, a pocket), round ears, a
+muzzle and button nose, rosy cheeks; stage 2 a footballer (a sweatband,
+football boots with a stripe, a ball at its feet on the stand); stage 3 a
+champion holding a gold trophy in both paws, a sparkle on it. Named as the
+dragon is, with its tail a `pet-tail` so it wags. "Be a: Bear" (🐻), Cub /
+Footballer / Champion, "Your bear levelled up!" (NL/ES). Yobyn was asked
+whether a bear playing football is right. First load 459.06 kB. 1,751 unit
+tests. The mutation sweep caught 28 of 29; the one that lived (the champion's sleeves left hanging at its sides while its paws hold the trophy) got a test that keeps each paw on the end of its own sleeve.
+
+**SPACE — DONE (Yobyn, 2026-09-27: "alien in pod / adds ray gun and boots /
+alien captain with ship behind").** A little green alien (`avatar3d/space.ts`)
+with the dragon's face (big eyes that blink, rosy cheeks, a smile) and two
+antennae whose tips glow: stage 1 sits in a round pod under a see-through
+glass dome, the pod's lights round its side; stage 2 has climbed out in a
+purple space suit with red space boots, holding a ray gun up in its right
+hand, a light at its tip; stage 3 is the captain, in a captain's cap with a
+gold star (its antennae poke out of the top), gold on its shoulders, and its
+flying saucer hovering over its shoulder behind it. The glass has no ink line
+(one would fill it in). "Be a: Alien" (👽), Pod / Space ranger / Captain,
+"Your alien levelled up!" (NL/ES). Built in the first of the runs that now fire every 2 hours (Yobyn,
+2026-10-05). First load 459.07 kB. 1,767 unit tests. The mutation sweep caught 37 of 39; the two that lived (the smile pushed inside the head; the sleeves left hanging straight down while the hand holds the ray gun up) got tests: the smile sits on the front of the face, and each sleeve runs along its arm to its own hand.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **The other families, one per run**: Robots, Animals, Space, Silly
-   objects. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
+1. **Yobyn's answers** (the round kid hero; the robots; the bear; the
+   alien) before anything else.
+2. **The last family**: Silly objects (the pizza). Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
    the celebration too.
-2. **The full dragon's halo is cut off** at the sides of the stage's
+3. **The full dragon's halo is cut off** at the sides of the stage's
    canvas: make it fit (or the canvas wider) and bump `STILL_VERSION`.
-3. **Better materials.** Hair strands or clumps rather than one smooth
+4. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
-4. **Offline.** The dressing-up chunk is only cached once it has been
+5. **Offline.** The dressing-up chunk is only cached once it has been
    opened. A child who installs and goes offline before opening it gets no
    dressing-up screen. Precache the lazy chunks in the service worker
    (the still renderer's chunks too, so the pictures work offline).

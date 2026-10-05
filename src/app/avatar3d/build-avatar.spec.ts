@@ -4,7 +4,7 @@ import {
   Avatar, FACE_SHAPES, HAIR_STYLES, HAIR_TEXTURES, NO_ITEM, WARDROBE, defaultAvatar, findItem
 } from '../avatar/avatar-model';
 import { HATS_OVER_HAIR } from '../avatar/avatar-parts';
-import { EYE_SCALE, EYE_SIZE, EYE_WHITE, IRIS, NOSE_SIZE, buildAvatar, disposeAvatar, topCut } from './build-avatar';
+import { EYE_SCALE, EYE_SIZE, EYE_WHITE, IRIS, NOSE_SIZE, POCKET_ARC, POCKET_AT, POCKET_HEIGHT, STRING_GAP, buildAvatar, disposeAvatar, topCut } from './build-avatar';
 import { FIGURES, Figure, chinY, figureFor, torsoRadius } from './figure';
 import {
   EYE_DIRS, HAT_CAP, HAT_LIFT, Vec3, hairPoint, hatBrim, headPoint, normalise, radiusAlong
@@ -246,6 +246,74 @@ describe('buildAvatar', () => {
       });
     });
 
+    it('opens the eyes tall and fills them with iris, as the dragon\u2019s are, and keeps the nose a small button', () => {
+      // How tall each eye is for its width: every shape taller than it was
+      const tallness: { [shape: string]: number } = { round: 0.6, almond: 0.45, wide: 0.5, narrow: 0.33 };
+      Object.keys(tallness).forEach(shape => {
+        const [sx, sy] = EYE_SCALE[shape];
+        expect(sy / sx).withContext(shape).toBeGreaterThan(tallness[shape]);
+      });
+      // Most of a round eye is iris
+      expect(IRIS / (EYE_WHITE * EYE_SCALE.round[0])).toBeGreaterThan(0.6);
+      // The nose narrower than three quarters of an iris
+      const root = buildAvatar(avatar());
+      const [tip] = find(root, 'nose-tip') as THREE.Mesh[];
+      expect((tip.geometry as THREE.SphereGeometry).parameters.radius * tip.scale.x).toBeLessThan(IRIS * 0.75);
+      disposeAvatar(root);
+    });
+
+    it('has the dragon\u2019s friendly face: two shines in each eye, a button nose, rosy cheeks (Yobyn, 2026-09-28)', () => {
+      const root = buildAvatar(avatar());
+      find(root, 'eye').forEach(eye => {
+        const shines = eye.children.filter(child => child.name === 'glint') as THREE.Mesh[];
+        expect(shines.length).toBe(2);
+        // A big one high on one side, a little one low on the other
+        const [big, small] = shines.sort((a, b) =>
+          (b.geometry as THREE.SphereGeometry).parameters.radius - (a.geometry as THREE.SphereGeometry).parameters.radius);
+        expect((big.geometry as THREE.SphereGeometry).parameters.radius).toBeGreaterThan((small.geometry as THREE.SphereGeometry).parameters.radius * 2);
+        expect(big.position.y).toBeGreaterThan(0);
+        expect(small.position.y).toBeLessThan(0);
+        expect(Math.sign(big.position.x)).toBe(-Math.sign(small.position.x));
+      });
+      // Just a round button: no bridge down the face, no nostrils
+      expect(find(root, 'nose-tip').length).toBe(1);
+      expect(find(root, 'nose').length + find(root, 'nostril').length).toBe(0);
+      const cheeks = find(root, 'cheek') as THREE.Mesh[];
+      expect(cheeks.length).toBe(2);
+      cheeks.forEach(cheek => expect((cheek.material as THREE.MeshBasicMaterial).opacity).toBeGreaterThan(0.3));
+      disposeAvatar(root);
+    });
+
+    it('bends softly: a round elbow on each arm and a round knee on each leg, at the joint itself', () => {
+      BODY_TYPES.forEach(bodyType => ['hoodie', 'star-tee'].forEach(top => {
+        const figure = figureFor(bodyType);
+        const root = buildAvatar(avatar({ bodyType, top }));
+        root.updateMatrixWorld(true);
+        const elbows = find(root, 'elbow');
+        expect(elbows.length).toBe(2);
+        elbows.forEach(elbow => {
+          // On the upper arm, where the forearm turns
+          const forearm = elbow.parent!.children.find(child => child.name === 'forearm-rig')!;
+          expect(elbow.position.distanceTo(forearm.position)).withContext(`${bodyType} ${top}`).toBeLessThan(1e-9);
+          // As wide as the arm meeting it there, sleeve or skin, so there is no step at the joint
+          const [, rElbow] = figure.armRadii;
+          const arm = top === 'star-tee' ? rElbow * 0.78 : rElbow;
+          const radius = ((elbow as THREE.Mesh).geometry as THREE.SphereGeometry).parameters.radius;
+          expect(radius).withContext(`${bodyType} ${top}`).toBeGreaterThan(arm * 0.98);
+          expect(radius).withContext(`${bodyType} ${top}`).toBeLessThan(arm * 1.1);
+        });
+        const knees = find(root, 'knee');
+        expect(knees.length).toBe(2);
+        knees.forEach(knee => {
+          expect(Math.abs(knee.position.x)).toBeCloseTo(figure.knee[0], 9);
+          expect(knee.position.y).toBeCloseTo(figure.knee[1], 9);
+          // As wide as the leg there, so there is no step at the joint
+          expect((( knee as THREE.Mesh).geometry as THREE.SphereGeometry).parameters.radius).toBeCloseTo(figure.legRadii[0] * 0.93, 9);
+        });
+        disposeAvatar(root);
+      }));
+    });
+
     it('gives a smaller nose than measured', () => {
       expect(NOSE_SIZE).toBeLessThan(0.85);
       const [tip] = find(buildAvatar(avatar()), 'nose-tip') as THREE.Mesh[];
@@ -295,13 +363,14 @@ describe('buildAvatar', () => {
       root.updateMatrixWorld(true);
       const head = new THREE.Box3().setFromObject(find(root, 'head')[0]);
       const headHeight = head.max.y - head.min.y;
-      // About three and a third heads tall, stylised (figure.ts, STYLE); an oval face is itself a longer head
-      expect(head.max.y / headHeight).toBeGreaterThan(faceShape === 'oval' ? 2.9 : 3.1, `${bodyType}/${faceShape}`);
-      expect(head.max.y / headHeight).toBeLessThan(3.8, `${bodyType}/${faceShape}`);
-      // The chin rests just above the collar: no gap under it, not sunk into the body
+      // About two and a half heads tall, round like the dragon (figure.ts, STYLE); an oval face is itself a longer head
+      expect(head.max.y / headHeight).toBeGreaterThan(faceShape === 'oval' ? 2 : 2.2, `${bodyType}/${faceShape}`);
+      expect(head.max.y / headHeight).toBeLessThan(2.8, `${bodyType}/${faceShape}`);
+      // The head sits on the body, as the dragon's does: no neck showing under
+      // the chin, which may rest a little into the collar but never sinks in
       const collar = figure.torso[figure.torso.length - 1][1];
-      expect(head.min.y - collar).toBeGreaterThan(0, `${bodyType}/${faceShape}`);
-      expect(head.min.y - collar).toBeLessThan(0.8, `${bodyType}/${faceShape}`);
+      expect(head.min.y - collar).toBeGreaterThan(-0.15, `${bodyType}/${faceShape}`);
+      expect(head.min.y - collar).toBeLessThan(0.25, `${bodyType}/${faceShape}`);
       // Shoulders wider than the head, big as a stylised head is
       const body = new THREE.Box3().setFromObject(find(root, 'body')[0]);
       expect(body.max.x - body.min.x).toBeGreaterThan((head.max.x - head.min.x) * 1.5);
@@ -433,11 +502,54 @@ describe('buildAvatar', () => {
     expect(find(root, 'neckline').length).toBe(0);
   });
 
-  it('dresses every figure in cargo trousers with pockets, a belt and sneakers', () => {
+  it('keeps the hood\u2019s roll snug round the neck, not a bar out to the shoulders', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const figure = figureFor(bodyType);
+      const root = buildAvatar(avatar({ bodyType, top: 'hoodie' }));
+      root.updateMatrixWorld(true);
+      const roll = new THREE.Box3().setFromObject(find(root, 'hood')[0]);
+      expect(Math.max(roll.max.x, -roll.min.x)).withContext(bodyType).toBeLessThan(figure.shoulder[0] * 0.8);
+      disposeAvatar(root);
+    });
+  });
+
+  it('lays the hoodie\u2019s strings just in front of the chest, and curves its pocket round the tummy, on both figures', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const figure = figureFor(bodyType);
+      const root = buildAvatar(avatar({ bodyType, top: 'hoodie' }));
+      root.updateMatrixWorld(true);
+      const depth = figure.torsoDepth;
+      // How far in front of the torso's surface a point is
+      const before = (p: THREE.Vector3) => p.z - Math.sqrt(Math.max(torsoRadius(figure, p.y) ** 2 - p.x ** 2, 0)) * depth;
+      (find(root, 'hoodie-string') as THREE.Mesh[]).forEach(string => {
+        const half = (string.geometry as THREE.CylinderGeometry).parameters.height / 2;
+        // Hanging straight down, its own radius and outline clear of the chest all the way, and close to it where it is fullest
+        // (down to the end of its metal tip, which hangs below it)
+        const reach = 2 * half + 0.16;
+        const gaps = Array.from({ length: 25 }, (_, i) => before(string.position.clone().add(new THREE.Vector3(0, half - (reach * i) / 24, 0))));
+        expect(string.quaternion.equals(new THREE.Quaternion())).toBeTrue();
+        expect(Math.min(...gaps)).withContext(bodyType).toBeGreaterThan(0.035 + 0.012);
+        expect(Math.min(...gaps)).withContext(bodyType).toBeCloseTo(STRING_GAP, 2);
+      });
+      const pocket = find(root, 'hoodie-pocket')[0] as THREE.Mesh;
+      const collar = figure.torso[figure.torso.length - 1][1] - 0.12;
+      expect(pocket.position.y).toBeCloseTo(figure.hem + (collar - figure.hem) * POCKET_AT, 9);
+      const { radiusTop, height, thetaLength, openEnded } = (pocket.geometry as THREE.CylinderGeometry).parameters;
+      expect(openEnded).toBeTrue();
+      expect(thetaLength).toBe(POCKET_ARC);
+      expect(height).toBe(POCKET_HEIGHT);
+      // Just outside the tummy it lies on, the same shape round
+      expect(radiusTop).toBeCloseTo(torsoRadius(figure, pocket.position.y) * 1.02, 9);
+      expect(pocket.scale.z).toBe(depth);
+      disposeAvatar(root);
+    });
+  });
+
+  it('dresses every figure in soft round trousers, a belt and sneakers: no boxy pockets on the legs', () => {
     BODY_TYPES.forEach(bodyType => {
       const root = buildAvatar(avatar({ bodyType }));
       expect(find(root, 'leg').length).toBe(4);
-      expect(find(root, 'cargo-pocket').length).toBe(2);
+      expect(find(root, 'cargo-pocket').length + find(root, 'cargo-flap').length).toBe(0);
       expect(find(root, 'belt').length).toBe(1);
       expect(find(root, 'shoe').length).toBe(2);
       find(root, 'shoe').forEach(shoe => expect(shoe.position.y).toBe(0));

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { lighten } from '../avatar/avatar-model';
 import { shade } from '../avatar/avatar-parts';
-import { Figure, chinY } from './figure';
+import { Figure, chinY, torsoRadius } from './figure';
 import { part, toon, weldNormals } from './toon';
 
 /**
@@ -308,7 +308,8 @@ function cape(colour: string, figure: Figure, around: Around): THREE.Group {
   const group = new THREE.Group();
   const top = figure.torso[figure.torso.length - 1][1] - 0.1;
   const bottom = figure.knee[1] - (figure.knee[1] - figure.ankle[1]) * 0.35;
-  const narrow = figure.torso[figure.torso.length - 1][0] * 1.1;
+  // As wide at the top as the body is there: on a round body that is out on the shoulders, clear of the neck and hair
+  const narrow = Math.max(figure.torso[figure.torso.length - 1][0] * 1.1, torsoRadius(figure, top) * 1.05);
   const wide = figure.shoulder[0] + figure.armRadii[0] * 1.3;
   const [columns, rows] = [28, 26];
   const outer: number[] = [];
@@ -352,12 +353,18 @@ function cape(colour: string, figure: Figure, around: Around): THREE.Group {
     new THREE.Vector3(outer[c * 3], outer[c * 3 + 1], outer[c * 3 + 2] - 0.03)));
   group.add(part('cape-collar', new THREE.TubeGeometry(edge, 40, 0.07, 8, false), toon(shade(colour, 0.12)), 0.02));
   [0, columns].forEach(c => {
-    const clasp = part('cape-clasp', new THREE.SphereGeometry(0.12, 14, 10), toon('#e3b53c'), 0.015);
-    clasp.position.set(outer[c * 3], outer[c * 3 + 1], outer[c * 3 + 2] - 0.08);
+    const clasp = part('cape-clasp', new THREE.SphereGeometry(CLASP, 14, 10), toon('#e3b53c'), 0.015);
+    const [x, y] = [outer[c * 3], outer[c * 3 + 1]];
+    // Behind the cape's edge, and behind whatever is there at its own height: long hair can hang right to the shoulder
+    const clear = -(around.map.furthest(x, CLASP, y - CLASP, y + CLASP) + BACK_GAP + CLASP);
+    clasp.position.set(x, y, Math.min(outer[c * 3 + 2] - 0.08, clear));
     group.add(clasp);
   });
   return group;
 }
+
+/** The radius of a cape's clasp. */
+export const CLASP = 0.12;
 
 const BUILDERS: { [id: string]: (colour: string, figure: Figure, around: Around) => THREE.Group } = { backpack, cape };
 
