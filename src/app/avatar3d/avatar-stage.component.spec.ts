@@ -6,7 +6,7 @@ import { BODY_TYPES, NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
 import { CREATURE, CREATURE_GLOW, CREATURE_HEAD } from './creatures';
 import { EVOLVE_SECONDS, EVOLVE_SWAP, evolution } from './motion';
-import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming, lightDistance } from './avatar-stage.component';
+import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming } from './avatar-stage.component';
 
 describe('framing', () => {
   it('keeps the usual distance for a character of ordinary height', () => {
@@ -50,31 +50,6 @@ describe('framing', () => {
     for (let top = 0; top < 20; top += 0.5) {
       expect(framing(-0.2, top, 30, 1).distance).toBeGreaterThanOrEqual(BASE_DISTANCE);
     }
-  });
-});
-
-describe('lightDistance', () => {
-  const across = (distance: number, aspect: number) => distance * Math.tan((30 * Math.PI) / 360) * aspect;
-  const upDown = (distance: number) => distance * Math.tan((30 * Math.PI) / 360);
-
-  it('steps back far enough for all of a glow to be on the screen, across and up and down', () => {
-    // Reaching further up than down, and further down than up
-    [{ reach: 8, top: 18, bottom: -3 }, { reach: 8, top: 14, bottom: -7 }].forEach(light => {
-      [0.6, 0.86, 1, 1.7].forEach(aspect => {
-        const distance = lightDistance(light, 6, 30, aspect);
-        expect(across(distance, aspect)).toBeGreaterThanOrEqual(light.reach - 1e-9);
-        expect(6 + upDown(distance)).withContext(`aspect ${aspect}`).toBeGreaterThanOrEqual(light.top - 1e-9);
-        expect(6 - upDown(distance)).withContext(`aspect ${aspect}`).toBeLessThanOrEqual(light.bottom + 1e-9);
-      });
-      // The narrower the screen, the further back
-      expect(lightDistance(light, 6, 30, 0.3)).toBeGreaterThan(lightDistance(light, 6, 30, 1));
-    });
-  });
-
-  it('asks for no more room than the glow needs: one of its edges is right at the edge of the screen', () => {
-    const light = { reach: 8, top: 9, bottom: 3 };
-    const distance = lightDistance(light, 6, 30, 0.86);
-    expect(across(distance, 0.86)).toBeCloseTo(light.reach, 9);
   });
 });
 
@@ -320,8 +295,8 @@ describe('AvatarStageComponent', () => {
       const glow = component.model!.getObjectByName(CREATURE_GLOW)!;
       const at = glow.getWorldPosition(new THREE.Vector3());
       const size = glow.getWorldScale(new THREE.Vector3());
-      // A phone's stage (a 390 or a 360 wide screen), and a very narrow one
-      [340 / 360, 310 / 360, 270 / 360].forEach(aspect => {
+      // A phone's stage (a 390 or a 360 wide screen), narrower ones, and a tablet's
+      [340 / 360, 310 / 360, 270 / 360, 180 / 360, 600 / 360].forEach(aspect => {
         camera.aspect = aspect;
         const { target, distance } = component.view();
         expect(distance * tan * aspect).withContext(`aspect ${aspect}`).toBeGreaterThanOrEqual(Math.hypot(at.x, at.z) + size.x / 2 - 1e-9);

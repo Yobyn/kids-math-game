@@ -7,7 +7,7 @@ import { Avatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
 import { EVOLVE_SECONDS, EVOLVE_SWAP, WAVE_SECONDS, evolution, putOnSomethingNew } from './motion';
 import { Rig } from './rig';
-import { CREATURE_GLOW, CREATURE_HEAD, burstTexture } from './creatures';
+import { CREATURE_HEAD, burstTexture } from './creatures';
 
 /** The usual camera distance, for a character of ordinary height. */
 export const BASE_DISTANCE = 30;
@@ -75,24 +75,6 @@ export function bodyFraming(
   const distance = Math.max(tall.distance, deep);
   const centre = Math.min(tall.centre, box.max.y - (distance * fit) / 1.12);
   return { distance, centre };
-}
-
-/** How far a glow round a character reaches: out from the middle it turns round, and up and down. */
-export interface LightReach {
-  reach: number;
-  top: number;
-  bottom: number;
-}
-
-/**
- * How far back to stand, looking at `centre`, for all of a glow round a
- * character to be on the screen, across and up and down. A glow is light,
- * not something to frame the character by, but it should not be cut off at
- * the edge of a narrow phone either.
- */
-export function lightDistance(light: LightReach, centre: number, fov: number, aspect: number): number {
-  const tan = Math.tan((fov * Math.PI) / 360);
-  return Math.max(light.reach / (tan * (aspect || 1)), (light.top - centre) / tan, (centre - light.bottom) / tan);
 }
 
 function reducedMotion(): boolean {
@@ -402,17 +384,7 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
     const pet = this.model!.getObjectByName('pet');
     const beside = pet ? new THREE.Box3().setFromObject(pet) : undefined;
     const { distance, centre } = bodyFraming(box, this.camera.fov, this.camera.aspect, beside);
-    // Far enough back for a glow round it (it always faces the camera) to fit too
-    let room = distance;
-    this.model!.traverse(node => {
-      if ((node as THREE.Sprite).isSprite && node.name === CREATURE_GLOW) {
-        const at = node.getWorldPosition(new THREE.Vector3());
-        const size = node.getWorldScale(new THREE.Vector3());
-        const light = { reach: Math.hypot(at.x, at.z) + size.x / 2, top: at.y + size.y / 2, bottom: at.y - size.y / 2 };
-        room = Math.max(room, lightDistance(light, centre, this.camera.fov, this.camera.aspect));
-      }
-    });
-    return { target: new THREE.Vector3(0, centre, 0), distance: room };
+    return { target: new THREE.Vector3(0, centre, 0), distance };
   }
 
   /** Puts the camera `distance` from `target`, keeping the angle it is looking from. */

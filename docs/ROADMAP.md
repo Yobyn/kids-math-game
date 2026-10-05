@@ -852,12 +852,15 @@ levelled up!" (NL/ES). Every family Yobyn asked for is built. First load
 8.3 units either side of the middle against 6.9 the stage shows, so its
 light was cut off at both sides. The halo is smaller now, its bright ring
 moved out towards its edge, so the ring still runs just round the wingtips
-and from the feet to over the horns while all of it is on the stage of a 390
-or 360 wide phone, the dragon as big as ever. On a narrower screen the stage
-steps back just far enough for the whole glow (`lightDistance`: across, and
-up and down), rather than cutting it off. `STILL_VERSION` 7, so saved
-pictures of the dragon are drawn again. 1,786 unit tests. The mutation
-sweep: running.
+and from the feet to over the horns while all of it is on the stage, the
+dragon as big as ever. On a narrower screen the stage already steps back
+for the dragon's height far enough for all of the glow too (tested from a
+tablet down to a 180-wide stage); a step back for the glow itself was tried
+and taken out again, as the mutation sweep showed it never changed
+anything. `STILL_VERSION` 7, so saved pictures of the dragon are drawn
+again. 1,781 unit tests. The mutation sweep caught 9 of 15: two lived on a
+test glow reaching as far up as down (now one reaches further each way),
+and four lived in the glow step-back, which was taken out.
 
 WHAT IS NEXT, in the order the runs should take them:
 
@@ -867,7 +870,8 @@ WHAT IS NEXT, in the order the runs should take them:
 3. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
-4. **Offline.** The dressing-up chunk is only cached once it has been
+4. **Offline.** (Draft #78 from the other Routine does this: Yobyn's to
+   review, not to redo.) The dressing-up chunk is only cached once it has been
    opened. A child who installs and goes offline before opening it gets no
    dressing-up screen. Precache the lazy chunks in the service worker
    (the still renderer's chunks too, so the pictures work offline).
