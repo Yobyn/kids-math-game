@@ -848,18 +848,26 @@ slice). "Be a: Pizza" (🍕), Slice / Caped pizza / Super pizza, "Your pizza
 levelled up!" (NL/ES). Every family Yobyn asked for is built. First load
 459.08 kB. 1,781 unit tests. The mutation sweep caught 38 of 41; the three that lived (a mushroom moved onto its face, between the smile and a cheek; its arms floated off its sides; the cheese drips and arms pushed out into the air) got tests: toppings stay off the whole face, each arm starts on the slice, and each drip sits on the slice's edge.
 
+**THE FULL DRAGON'S HALO FITS — DONE.** On a 360-wide phone the halo was
+8.3 units either side of the middle against 6.9 the stage shows, so its
+light was cut off at both sides. The halo is smaller now, its bright ring
+moved out towards its edge, so the ring still runs just round the wingtips
+and from the feet to over the horns while all of it is on the stage of a 390
+or 360 wide phone, the dragon as big as ever. On a narrower screen the stage
+steps back just far enough for the whole glow (`lightDistance`: across, and
+up and down), rather than cutting it off. `STILL_VERSION` 7, so saved
+pictures of the dragon are drawn again. 1,786 unit tests. The mutation
+sweep: running.
+
 WHAT IS NEXT, in the order the runs should take them:
 
 1. **Yobyn's answers** (the round kid hero; the robots; the bear; the
    alien; the pizza) before anything else.
-2. **Every family is built.** Go on below. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
-   the celebration too.
-3. **The full dragon's halo is cut off** at the sides of the stage's
-   canvas: make it fit (or the canvas wider) and bump `STILL_VERSION`.
-4. **Better materials.** Hair strands or clumps rather than one smooth
+2. **Every family is built.** Go on below.
+3. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
-5. **Offline.** The dressing-up chunk is only cached once it has been
+4. **Offline.** The dressing-up chunk is only cached once it has been
    opened. A child who installs and goes offline before opening it gets no
    dressing-up screen. Precache the lazy chunks in the service worker
    (the still renderer's chunks too, so the pictures work offline).

@@ -4,9 +4,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { BODY_TYPES, NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
-import { CREATURE, CREATURE_HEAD } from './creatures';
+import { CREATURE, CREATURE_GLOW, CREATURE_HEAD } from './creatures';
 import { EVOLVE_SECONDS, EVOLVE_SWAP, evolution } from './motion';
-import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming } from './avatar-stage.component';
+import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming, lightDistance } from './avatar-stage.component';
 
 describe('framing', () => {
   it('keeps the usual distance for a character of ordinary height', () => {
@@ -50,6 +50,29 @@ describe('framing', () => {
     for (let top = 0; top < 20; top += 0.5) {
       expect(framing(-0.2, top, 30, 1).distance).toBeGreaterThanOrEqual(BASE_DISTANCE);
     }
+  });
+});
+
+describe('lightDistance', () => {
+  const across = (distance: number, aspect: number) => distance * Math.tan((30 * Math.PI) / 360) * aspect;
+  const upDown = (distance: number) => distance * Math.tan((30 * Math.PI) / 360);
+
+  it('steps back far enough for all of a glow to be on the screen, across and up and down', () => {
+    const light = { reach: 8, top: 15, bottom: -3 };
+    [0.6, 0.86, 1, 1.7].forEach(aspect => {
+      const distance = lightDistance(light, 6, 30, aspect);
+      expect(across(distance, aspect)).toBeGreaterThanOrEqual(light.reach - 1e-9);
+      expect(6 + upDown(distance)).toBeGreaterThanOrEqual(light.top - 1e-9);
+      expect(6 - upDown(distance)).toBeLessThanOrEqual(light.bottom + 1e-9);
+    });
+    // The narrower the screen, the further back
+    expect(lightDistance(light, 6, 30, 0.6)).toBeGreaterThan(lightDistance(light, 6, 30, 1));
+  });
+
+  it('asks for no more room than the glow needs: one of its edges is right at the edge of the screen', () => {
+    const light = { reach: 8, top: 9, bottom: 3 };
+    const distance = lightDistance(light, 6, 30, 0.86);
+    expect(across(distance, 0.86)).toBeCloseTo(light.reach, 9);
   });
 });
 
@@ -283,6 +306,30 @@ describe('AvatarStageComponent', () => {
       component.model!.updateMatrixWorld(true);
       const head = new THREE.Box3().setFromObject(component.model!.getObjectByName(CREATURE_HEAD)!);
       expect(target.y).toBeCloseTo((head.min.y + head.max.y) / 2, 6);
+    });
+
+    it('fits all of the full dragon\u2019s glow on the stage, and keeps it full size on a phone', () => {
+      component.avatar = { ...component.avatar, family: 'creature', stage: 3, stagePinned: true };
+      component.ngOnChanges({ avatar: new SimpleChange(null, component.avatar, false) });
+      component.focus = 'body';
+      const camera = (component as any).camera as THREE.PerspectiveCamera;
+      const tan = Math.tan((camera.fov * Math.PI) / 360);
+      component.model!.updateMatrixWorld(true);
+      const glow = component.model!.getObjectByName(CREATURE_GLOW)!;
+      const at = glow.getWorldPosition(new THREE.Vector3());
+      const size = glow.getWorldScale(new THREE.Vector3());
+      // A phone's stage (a 390 or a 360 wide screen), and a very narrow one
+      [340 / 360, 310 / 360, 270 / 360].forEach(aspect => {
+        camera.aspect = aspect;
+        const { target, distance } = component.view();
+        expect(distance * tan * aspect).withContext(`aspect ${aspect}`).toBeGreaterThanOrEqual(Math.hypot(at.x, at.z) + size.x / 2 - 1e-9);
+        expect(target.y + distance * tan).withContext(`aspect ${aspect}`).toBeGreaterThanOrEqual(at.y + size.y / 2 - 1e-9);
+        expect(target.y - distance * tan).withContext(`aspect ${aspect}`).toBeLessThanOrEqual(at.y - size.y / 2 + 1e-9);
+        // On a phone the dragon is as big as any character: the glow fits without stepping back
+        if (aspect > 300 / 360) {
+          expect(distance).withContext(`aspect ${aspect}`).toBe(BASE_DISTANCE);
+        }
+      });
     });
 
     it('rebuilds the character when the character changes', () => {
