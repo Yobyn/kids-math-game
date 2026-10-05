@@ -51,6 +51,12 @@ export type ChooserKey =
   | 'space-stage-1'
   | 'space-stage-2'
   | 'space-stage-3'
+  | 'family-pizza'
+  | 'pizza-grows'
+  | 'pizza-grew'
+  | 'pizza-stage-1'
+  | 'pizza-stage-2'
+  | 'pizza-stage-3'
   | 'robot-grows'
   | 'robot-grew'
   | 'robot-stage-1'
@@ -113,6 +119,12 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'space-stage-1': 'Pod',
     'space-stage-2': 'Space ranger',
     'space-stage-3': 'Captain',
+    'family-pizza': 'Pizza',
+    'pizza-grows': 'Your pizza grows',
+    'pizza-grew': 'Your pizza levelled up!',
+    'pizza-stage-1': 'Slice',
+    'pizza-stage-2': 'Caped pizza',
+    'pizza-stage-3': 'Super pizza',
     'robot-grows': 'Your robot grows',
     'robot-grew': 'Your robot powered up!',
     'robot-stage-1': 'Round bot',
@@ -174,6 +186,12 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'space-stage-1': 'Capsule',
     'space-stage-2': 'Ruimteranger',
     'space-stage-3': 'Kapitein',
+    'family-pizza': 'Pizza',
+    'pizza-grows': 'Je pizza groeit',
+    'pizza-grew': 'Je pizza is een level hoger!',
+    'pizza-stage-1': 'Punt',
+    'pizza-stage-2': 'Met cape',
+    'pizza-stage-3': 'Superpizza',
     'robot-grows': 'Je robot groeit',
     'robot-grew': 'Je robot is opgewaardeerd!',
     'robot-stage-1': 'Rondbot',
@@ -235,6 +253,12 @@ export const CHOOSER_WORDS: Words<ChooserKey> = {
     'space-stage-1': 'Cápsula',
     'space-stage-2': 'Guardián espacial',
     'space-stage-3': 'Capitán',
+    'family-pizza': 'Pizza',
+    'pizza-grows': 'Tu pizza crece',
+    'pizza-grew': '¡Tu pizza subió de nivel!',
+    'pizza-stage-1': 'Porción',
+    'pizza-stage-2': 'Con capa',
+    'pizza-stage-3': 'Superpizza',
     'robot-grows': 'Tu robot crece',
     'robot-grew': '¡Tu robot se mejoró!',
     'robot-stage-1': 'Bot redondo',

@@ -42,7 +42,7 @@ function glass(): THREE.MeshToonMaterial {
 }
 
 /** A round limb from one point to another, as thick as `radius`. */
-function limb(name: string, from: THREE.Vector3, to: THREE.Vector3, radius: number, material: THREE.Material): THREE.Mesh {
+export function limb(name: string, from: THREE.Vector3, to: THREE.Vector3, radius: number, material: THREE.Material): THREE.Mesh {
   const along = to.clone().sub(from);
   const mesh = blob(name, [radius, along.length() / 2, radius], [0, 0, 0], material, 0.025);
   mesh.position.copy(from).add(to).multiplyScalar(0.5);
