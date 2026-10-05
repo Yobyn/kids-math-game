@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { CREATURE, CREATURE_GLOW, CREATURE_HEAD } from './creatures';
+import { CREATURE, CREATURE_FACE, CREATURE_GLOW, CREATURE_HEAD } from './creatures';
 import { Avatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar, seatedFigure } from './build-avatar';
 import { Figure } from './figure';
@@ -76,12 +76,13 @@ export function framedBox(model: THREE.Object3D, framing: StillFraming, figure: 
 }
 
 /**
- * A creature's picture: its head, a little beyond, for a portrait; all of it
+ * A creature's picture: its face (or, if it has none, its head), a little
+ * beyond, for a portrait; all of it
  * but its glow for the fuller framing. It has no figure to measure by.
  */
 function creatureBox(creature: THREE.Object3D, framing: StillFraming): THREE.Box3 {
   const box = new THREE.Box3();
-  const whole = framing === 'full' ? creature : creature.getObjectByName(CREATURE_HEAD) || creature;
+  const whole = framing === 'full' ? creature : creature.getObjectByName(CREATURE_FACE) || creature.getObjectByName(CREATURE_HEAD) || creature;
   whole.traverse(node => {
     if ((node as THREE.Mesh).isMesh && node.name !== CREATURE_GLOW) {
       box.expandByObject(node);
