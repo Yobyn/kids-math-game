@@ -858,7 +858,7 @@ for the dragon's height far enough for all of the glow too (tested from a
 tablet down to a 180-wide stage); a step back for the glow itself was tried
 and taken out again, as the mutation sweep showed it never changed
 anything. `STILL_VERSION` 7, so saved pictures of the dragon are drawn
-again. 1,781 unit tests. The mutation sweep caught 9 of 15: two lived on a
+again. 1,784 unit tests. The mutation sweep caught 9 of 15: two lived on a
 test glow reaching as far up as down (now one reaches further each way),
 and four lived in the glow step-back, which was taken out.
 
