@@ -821,11 +821,24 @@ Footballer / Champion, "Your bear levelled up!" (NL/ES). Yobyn was asked
 whether a bear playing football is right. First load 459.06 kB. 1,751 unit
 tests. The mutation sweep caught 28 of 29; the one that lived (the champion's sleeves left hanging at its sides while its paws hold the trophy) got a test that keeps each paw on the end of its own sleeve.
 
+**SPACE — DONE (Yobyn, 2026-09-27: "alien in pod / adds ray gun and boots /
+alien captain with ship behind").** A little green alien (`avatar3d/space.ts`)
+with the dragon's face (big eyes that blink, rosy cheeks, a smile) and two
+antennae whose tips glow: stage 1 sits in a round pod under a see-through
+glass dome, the pod's lights round its side; stage 2 has climbed out in a
+purple space suit with red space boots, holding a ray gun up in its right
+hand, a light at its tip; stage 3 is the captain, in a captain's cap with a
+gold star (its antennae poke out of the top), gold on its shoulders, and its
+flying saucer hovering over its shoulder behind it. The glass has no ink line
+(one would fill it in). "Be a: Alien" (👽), Pod / Space ranger / Captain,
+"Your alien levelled up!" (NL/ES). Built in the first of the runs that now fire every 2 hours (Yobyn,
+2026-10-05). First load 459.07 kB. 1,767 unit tests. The mutation sweep caught 37 of 39; the two that lived (the smile pushed inside the head; the sleeves left hanging straight down while the hand holds the ray gun up) got tests: the smile sits on the front of the face, and each sleeve runs along its arm to its own hand.
+
 WHAT IS NEXT, in the order the runs should take them:
 
-1. **Yobyn's answers** (the round kid hero; the robots; the bear) before
-   anything else.
-2. **The other families, one per run**: Space, Silly objects. Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
+1. **Yobyn's answers** (the round kid hero; the robots; the bear; the
+   alien) before anything else.
+2. **The last family**: Silly objects (the pizza). Each one joins `FAMILIES` and `FAMILIES_THAT_GROW` so it gets
    the celebration too.
 3. **The full dragon's halo is cut off** at the sides of the stage's
    canvas: make it fit (or the canvas wider) and bump `STILL_VERSION`.
