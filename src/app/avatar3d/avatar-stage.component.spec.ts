@@ -58,15 +58,17 @@ describe('lightDistance', () => {
   const upDown = (distance: number) => distance * Math.tan((30 * Math.PI) / 360);
 
   it('steps back far enough for all of a glow to be on the screen, across and up and down', () => {
-    const light = { reach: 8, top: 15, bottom: -3 };
-    [0.6, 0.86, 1, 1.7].forEach(aspect => {
-      const distance = lightDistance(light, 6, 30, aspect);
-      expect(across(distance, aspect)).toBeGreaterThanOrEqual(light.reach - 1e-9);
-      expect(6 + upDown(distance)).toBeGreaterThanOrEqual(light.top - 1e-9);
-      expect(6 - upDown(distance)).toBeLessThanOrEqual(light.bottom + 1e-9);
+    // Reaching further up than down, and further down than up
+    [{ reach: 8, top: 18, bottom: -3 }, { reach: 8, top: 14, bottom: -7 }].forEach(light => {
+      [0.6, 0.86, 1, 1.7].forEach(aspect => {
+        const distance = lightDistance(light, 6, 30, aspect);
+        expect(across(distance, aspect)).toBeGreaterThanOrEqual(light.reach - 1e-9);
+        expect(6 + upDown(distance)).withContext(`aspect ${aspect}`).toBeGreaterThanOrEqual(light.top - 1e-9);
+        expect(6 - upDown(distance)).withContext(`aspect ${aspect}`).toBeLessThanOrEqual(light.bottom + 1e-9);
+      });
+      // The narrower the screen, the further back
+      expect(lightDistance(light, 6, 30, 0.3)).toBeGreaterThan(lightDistance(light, 6, 30, 1));
     });
-    // The narrower the screen, the further back
-    expect(lightDistance(light, 6, 30, 0.6)).toBeGreaterThan(lightDistance(light, 6, 30, 1));
   });
 
   it('asks for no more room than the glow needs: one of its edges is right at the edge of the screen', () => {
