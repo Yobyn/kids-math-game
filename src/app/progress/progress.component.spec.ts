@@ -39,6 +39,21 @@ describe('ProgressComponent', () => {
 
   afterEach(() => localStorage.clear());
 
+  it('keeps a gutter either side of the card on a phone', () => {
+    // A media query on the window, and karma cannot resize its window: this
+    // only runs where the runner's window is phone-sized
+    if (!window.matchMedia('(max-width: 632px)').matches) {
+      pending('the window is wider than a phone');
+      return;
+    }
+    open();
+    const card: HTMLElement = fixture.nativeElement.querySelector('.progress-page');
+    const style = getComputedStyle(card);
+
+    expect(parseFloat(style.marginLeft)).toBeGreaterThanOrEqual(16);
+    expect(parseFloat(style.marginRight)).toBeGreaterThanOrEqual(16);
+  });
+
   it('adds its own words to the language service when it opens: they are not in the first load', () => {
     const service = TestBed.inject(LanguageService);
     expect(service.translate('your-best')).toBe('your-best');

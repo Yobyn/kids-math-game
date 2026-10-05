@@ -307,3 +307,12 @@
   font-weight: 600;
   color: var(--good-on-dark);
 }
+
+/* On a phone the card ran edge to edge: its rounded corners and border went
+   off the sides of the screen, where every other screen keeps a gutter. */
+@media (max-width: 632px) {
+  .adults-page {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+}
