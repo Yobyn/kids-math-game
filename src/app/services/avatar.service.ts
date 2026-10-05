@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Avatar, defaultAvatar, normaliseAvatar } from '../avatar/avatar-model';
+import { Avatar, defaultAvatar, hatchlingFor, normaliseAvatar } from '../avatar/avatar-model';
 import { GUEST_OWNER, ProgressService, accountOwner } from './progress.service';
 import { levelForXp } from '../levels/level-curve';
 
@@ -114,7 +114,9 @@ export class AvatarService {
   private read(owner: string): Avatar {
     const stored = this.stored(owner);
     // Never chosen is the default character, at the stage this level has earned
-    return normaliseAvatar(stored === null ? defaultAvatar() : stored, this.level(), this.earned());
+    const avatar = normaliseAvatar(stored === null ? defaultAvatar() : stored, this.level(), this.earned());
+    // The pet their egg hatches into: picked for this child, and kept from the first save
+    return avatar.hatchling ? avatar : { ...avatar, hatchling: hatchlingFor(owner) };
   }
 
   /** The raw stored object, or null when this player has never chosen. */

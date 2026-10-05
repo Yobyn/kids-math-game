@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { AvatarService } from './avatar.service';
-import { EYE_COLOURS, HAIR_COLOURS, NO_ITEM, SKIN_TONES, defaultAvatar } from '../avatar/avatar-model';
-import { ProgressService } from './progress.service';
+import { EYE_COLOURS, HAIR_COLOURS, HATCHLINGS, NO_ITEM, SKIN_TONES, defaultAvatar, hatchlingFor } from '../avatar/avatar-model';
+import { GUEST_OWNER, ProgressService } from './progress.service';
 import { xpToReach } from '../levels/level-curve';
 
 describe('AvatarService', () => {
@@ -21,8 +21,36 @@ describe('AvatarService', () => {
   afterEach(() => localStorage.clear());
 
   it('gives a child a character before they have chosen anything', () => {
-    expect(service.get()).toEqual(defaultAvatar());
+    expect(service.get()).toEqual({ ...defaultAvatar(), hatchling: service.get().hatchling });
     expect(service.hasChosen()).toBe(false);
+  });
+
+  describe('the pet the kid hero\u2019s egg hatches into', () => {
+    it('is picked for every child, before they have chosen anything', () => {
+      expect(HATCHLINGS).toContain(service.get().hatchling);
+    });
+
+    it('is the same pet every time the child comes back, and kept once saved', () => {
+      const first = service.get().hatchling;
+      expect(fresh().get().hatchling).toBe(first);
+      service.save({ ...service.get(), hairStyle: 'curly' });
+      expect(JSON.parse(localStorage.getItem('avatar:guest')!).hatchling).toBe(first);
+      expect(fresh().get().hatchling).toBe(first);
+    });
+
+    it('keeps a pet already picked, whoever is playing', () => {
+      const other = HATCHLINGS.find(id => id !== service.get().hatchling)!;
+      localStorage.setItem('avatar:guest', JSON.stringify({ ...defaultAvatar(), hatchling: other }));
+      expect(fresh().get().hatchling).toBe(other);
+    });
+
+    it('is random from child to child: every pet comes out of somebody\u2019s egg', () => {
+      const picked = new Set<string>();
+      for (let i = 0; i < 60; i++) {
+        picked.add(hatchlingFor('account:player' + i));
+      }
+      expect(Array.from(picked).sort()).toEqual(HATCHLINGS.slice().sort());
+    });
   });
 
   it('grows a character with the child, one never chosen too', () => {
@@ -71,7 +99,7 @@ describe('AvatarService', () => {
   it('reads a corrupt store as a character never chosen', () => {
     localStorage.setItem('avatar:guest', 'not json');
 
-    expect(fresh().get()).toEqual(defaultAvatar());
+    expect(fresh().get()).toEqual({ ...defaultAvatar(), hatchling: hatchlingFor(GUEST_OWNER) });
     expect(fresh().hasChosen()).toBe(false);
   });
 
@@ -100,7 +128,7 @@ describe('AvatarService', () => {
       service.adoptGuestAvatar('ada');
 
       expect(localStorage.getItem('avatar:guest')).toBeNull();
-      expect(fresh().get()).toEqual(defaultAvatar());
+      expect(fresh().get()).toEqual({ ...defaultAvatar(), hatchling: hatchlingFor(GUEST_OWNER) });
     });
 
     it('does not overwrite a character the account already had', () => {
