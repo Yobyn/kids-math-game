@@ -16,6 +16,7 @@ import {
 import { SavedResult, isUnseen } from '../result/result-state';
 import { stepColour } from '../theme/palette';
 import { dutchYear } from '../levels/school-year';
+import { SELECT_WORDS } from './select-words';
 
 /** Ten year groups, the ring walked from one end to the other. */
 const GRADE_COUNT = 10;
@@ -34,11 +35,7 @@ export class GradeSelectComponent implements OnInit {
    * "students", which rendered "Maths for 1 students" — counting children
    * instead of naming a year group, and wrong in all three languages.
    */
-  grades = Array.from({ length: GRADE_COUNT }, (_, i) => ({
-    level: i + 1,
-    ...this.yearOf(i + 1),
-    colour: stepColour(i + 1, GRADE_COUNT)
-  }));
+  readonly grades: { level: number; badge: number; name: string; description: string; colour: string }[];
 
   /** What a grade is called where the child is at school: in Dutch, grade 1 is groep 3 (school-year.ts). */
   private yearOf(grade: number): { badge: number; name: string; description: string } {
@@ -101,7 +98,15 @@ export class GradeSelectComponent implements OnInit {
     private progressService: ProgressService,
     private avatarService: AvatarService,
     public languageService: LanguageService
-  ) {}
+  ) {
+    languageService.extend(SELECT_WORDS);
+    // Built here, not where it is declared: its names need the words just added
+    this.grades = Array.from({ length: GRADE_COUNT }, (_, i) => ({
+      level: i + 1,
+      ...this.yearOf(i + 1),
+      colour: stepColour(i + 1, GRADE_COUNT)
+    }));
+  }
 
   ngOnInit() {
     this.avatar = this.avatarService.get();

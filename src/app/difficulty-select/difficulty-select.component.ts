@@ -3,7 +3,8 @@ import { Router } from '@angular/router';
 import { LanguageService, TranslationKeys } from '../services/language.service';
 import { ProgressService } from '../services/progress.service';
 import { Difficulty, lastPlayed, suggestDifficulty, suggestionDirection } from '../levels/difficulty-tuner';
-import { climbs } from './climb';
+import { Climb, climbs } from './climb';
+import { SELECT_WORDS } from '../grade-select/select-words';
 
 @Component({
   selector: 'app-difficulty-select',
@@ -12,11 +13,7 @@ import { climbs } from './climb';
 })
 export class DifficultySelectComponent implements OnInit {
   /** Three climbs, easiest first: see climb.ts for why they are drawn. */
-  difficulties = climbs().map(climb => ({
-    ...climb,
-    name: this.languageService.translate(`climb-${climb.level}` as TranslationKeys),
-    description: this.languageService.translate(`${climb.level}-desc` as TranslationKeys)
-  }));
+  readonly difficulties: (Climb & { name: string; description: string })[];
 
   /** What recent rounds suggest, if they suggest anything at all. */
   suggested?: Difficulty;
@@ -26,7 +23,15 @@ export class DifficultySelectComponent implements OnInit {
     private router: Router,
     private progressService: ProgressService,
     public languageService: LanguageService
-  ) {}
+  ) {
+    languageService.extend(SELECT_WORDS);
+    // Built here, not where it is declared: its names need the words just added
+    this.difficulties = climbs().map(climb => ({
+      ...climb,
+      name: languageService.translate(`climb-${climb.level}` as TranslationKeys),
+      description: languageService.translate(`${climb.level}-desc` as TranslationKeys)
+    }));
+  }
 
   ngOnInit() {
     // Redirect to grade selection if no grade is selected
