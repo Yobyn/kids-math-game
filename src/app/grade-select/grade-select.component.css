@@ -223,9 +223,15 @@ p {
    screenfuls of scrolling before the page ended. Two columns of compact
    cards puts the whole choice within about a screen. */
 @media (max-width: 560px) {
+  /* The space above the title went first: it cost 53px at the top of a
+     screen a child has to scroll anyway. */
   .grade-container {
-    margin: 1rem auto;
-    padding: 1rem 0.75rem;
+    margin: 0 auto 1rem;
+    padding: 0.75rem 0.75rem 1rem;
+  }
+
+  .grade-container h1 {
+    margin: 0 0 1rem;
   }
 
   .grade-cards {
@@ -239,6 +245,9 @@ p {
     flex-direction: column;
     justify-content: center;
     padding: 0.85rem 0.5rem;
+    /* The 96px minimum is the whole card a finger lands on. Measured from
+       the content box it was 125px, padding and all, on every card. */
+    box-sizing: border-box;
   }
 
   .grade-badge {
