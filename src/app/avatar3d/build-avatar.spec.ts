@@ -304,6 +304,8 @@ describe('buildAvatar', () => {
       const figure = figureFor(bodyType);
       const neckline = find(buildAvatar(avatar({ bodyType, top: 'striped' })), 'neckline')[0] as THREE.Mesh;
       const { radius, tube } = (neckline.geometry as THREE.TorusGeometry).parameters;
+      // Round the join: the band's middle within its own thickness of the top of the body
+      expect(Math.abs(worldOf(neckline).y - collar(figure))).withContext(bodyType).toBeLessThan(tube);
       // Twice the body's ink line at least, or it reads as a wire round the neck
       expect(tube).withContext(bodyType).toBeGreaterThan(0.1);
       // Its inside edge closer to the neck than the band is thick
