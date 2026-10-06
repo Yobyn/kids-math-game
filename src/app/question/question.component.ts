@@ -503,7 +503,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
       this.layoutKey = key;
       this.layoutCache = sumLayout({ num1: q.num1, num2: q.num2, sign: this.sign, form: q.form }, {
         double: this.languageService.translate('sum-double'),
-        half: this.languageService.translate('sum-half')
+        half: this.languageService.translate('sum-half'),
+        of: this.languageService.translate('sum-part-of')
       });
     }
     return this.layoutCache!;

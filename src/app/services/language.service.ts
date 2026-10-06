@@ -24,6 +24,7 @@ export type TranslationKeys =
   | 'total'
   | 'sum-double'
   | 'sum-half'
+  | 'sum-part-of'
   | 'play-again'
   | 'logout'
   | 'need-account'
