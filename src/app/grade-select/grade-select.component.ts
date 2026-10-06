@@ -15,6 +15,7 @@ import {
 } from '../question/round-state';
 import { SavedResult, isUnseen } from '../result/result-state';
 import { stepColour } from '../theme/palette';
+import { dutchYear } from '../levels/school-year';
 
 /** Ten year groups, the ring walked from one end to the other. */
 const GRADE_COUNT = 10;
@@ -35,10 +36,26 @@ export class GradeSelectComponent implements OnInit {
    */
   grades = Array.from({ length: GRADE_COUNT }, (_, i) => ({
     level: i + 1,
-    name: `${this.languageService.translate('grade')} ${i + 1}`,
-    description: `${this.languageService.translate('maths-for-grade')} ${i + 1}`,
+    ...this.yearOf(i + 1),
     colour: stepColour(i + 1, GRADE_COUNT)
   }));
+
+  /** What a grade is called where the child is at school: in Dutch, grade 1 is groep 3 (school-year.ts). */
+  private yearOf(grade: number): { badge: number; name: string; description: string } {
+    if (this.languageService.getLanguage() === 'nl') {
+      const year = dutchYear(grade);
+      return {
+        badge: year.number,
+        name: `${year.word} ${year.number}`,
+        description: `${year.subject} in ${year.word.toLowerCase()} ${year.number}`
+      };
+    }
+    return {
+      badge: grade,
+      name: `${this.languageService.translate('grade')} ${grade}`,
+      description: `${this.languageService.translate('maths-for-grade')} ${grade}`
+    };
+  }
 
   /**
    * The grade the child last played, offered back to them. Ten cards is a
@@ -150,7 +167,7 @@ export class GradeSelectComponent implements OnInit {
 
   get carryOnLabel(): string {
     return this.languageService.translate('carry-on')
-      .replace('{grade}', `${this.languageService.translate('grade')} ${this.carryOnGrade}`);
+      .replace('{grade}', this.yearOf(this.carryOnGrade!).name);
   }
 
   openCharacter() {

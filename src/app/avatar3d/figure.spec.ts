@@ -278,7 +278,7 @@ describe('figure', () => {
       // Saved pictures are kept by version; a new STYLE with the old version
       // would leave every screen showing the old character
       expect({ version: STILL_VERSION, style: STYLE, tuck: SHOULDER_TUCK }).toEqual({
-        version: 11, style: { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.55, round: true, stance: 0.4 }, tuck: 0.3
+        version: 12, style: { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.55, round: true, stance: 0.4 }, tuck: 0.3
       });
     });
 
