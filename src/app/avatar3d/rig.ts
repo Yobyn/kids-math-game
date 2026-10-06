@@ -3,13 +3,15 @@ import { ARM_RIG, FOREARM_RIG } from './build-avatar';
 import { BREATH_ARMS, BREATH_RISE, WAVE_LIFT, WAVING_SIDE, breath, eyesOpen, glow, tailWag, wave, wingFlap } from './motion';
 import { SHOE_GLOW } from './shoes';
 import { CREATURE_GLOW, CREATURE_HEAD } from './creatures';
-import { PET_TAIL, PET_WING } from './pets';
+import { PET_EGG, PET_TAIL, PET_WING } from './pets';
 
 /** The parts that share the head's transform, and so rise with it on a breath. */
 const HEAD_PARTS = ['head-group', 'hair', 'hat', 'glasses', CREATURE_HEAD];
 export { WAVING_SIDE };
 /** A shut eye is not squashed to nothing: the lid line stays. */
 const SHUT = 0.08;
+/** How far an egg rocks, as a share of a tail's wag. */
+export const EGG_ROCK = 0.4;
 
 interface Joint {
   node: THREE.Object3D;
@@ -28,6 +30,7 @@ export class Rig {
   private arms: Joint[] = [];
   private forearms: (Joint & { bend: number })[] = [];
   private tails: THREE.Object3D[] = [];
+  private eggs: THREE.Object3D[] = [];
   private wings: { node: THREE.Object3D; side: number; z: number }[] = [];
   private glows: { colour: THREE.Color; built: THREE.Color }[] = [];
 
@@ -47,6 +50,8 @@ export class Rig {
         this.forearms.push({ node, side: node.parent!.userData.side, bend: node.rotation.x });
       } else if (node.name === PET_TAIL) {
         this.tails.push(node);
+      } else if (node.name === PET_EGG) {
+        this.eggs.push(node);
       } else if (node.name === PET_WING) {
         this.wings.push({ node, side: node.userData.side, z: node.rotation.z });
       } else if (node.name === SHOE_GLOW || node.name === CREATURE_GLOW) {
@@ -79,6 +84,8 @@ export class Rig {
     });
     // The pet's tail wags side to side, about its root
     this.tails.forEach(node => (node.rotation.y = tailWag(seconds)));
+    // An egg rocks on its foot, in the same little bursts: something inside is moving
+    this.eggs.forEach(node => (node.rotation.z = tailWag(seconds) * EGG_ROCK));
     this.wings.forEach(({ node, side, z }) => (node.rotation.z = z + side * wingFlap(seconds)));
     // Light-up soles glow up and down
     const bright = glow(seconds);
@@ -95,6 +102,7 @@ export class Rig {
       node.rotation.x = bend;
     });
     this.tails.forEach(node => (node.rotation.y = 0));
+    this.eggs.forEach(node => (node.rotation.z = 0));
     this.wings.forEach(({ node, z }) => (node.rotation.z = z));
     this.glows.forEach(({ colour, built }) => colour.copy(built));
   }
