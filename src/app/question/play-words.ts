@@ -52,6 +52,8 @@ export type PlayKey =
   | 'sum-remainder'
   | 'unit-hours'
   | 'unit-minutes'
+  | 'round-tens'
+  | 'round-hundreds'
   | 'play-again';
 
 export const PLAY_WORDS: Words<PlayKey> = {
@@ -102,7 +104,9 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-part-of': 'of',
     'sum-remainder': 'r',
     'unit-hours': 'hours',
-    'unit-minutes': 'minutes'
+    'unit-minutes': 'minutes',
+    'round-tens': 'to tens',
+    'round-hundreds': 'to hundreds'
   },
   nl: {
     'praise-3': 'Knap gewerkt!',
@@ -151,7 +155,9 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-part-of': 'van',
     'sum-remainder': 'rest',
     'unit-hours': 'uur',
-    'unit-minutes': 'minuten'
+    'unit-minutes': 'minuten',
+    'round-tens': 'op tientallen',
+    'round-hundreds': 'op honderdtallen'
   },
   es: {
     'praise-3': '¡Un trabajo brillante!',
@@ -200,6 +206,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-part-of': 'de',
     'sum-remainder': 'resto',
     'unit-hours': 'horas',
-    'unit-minutes': 'minutos'
+    'unit-minutes': 'minutos',
+    'round-tens': 'a decenas',
+    'round-hundreds': 'a centenas'
   }
 };

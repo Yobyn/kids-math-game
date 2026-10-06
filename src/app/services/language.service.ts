@@ -28,6 +28,8 @@ export type TranslationKeys =
   | 'sum-remainder'
   | 'unit-hours'
   | 'unit-minutes'
+  | 'round-tens'
+  | 'round-hundreds'
   | 'play-again'
   | 'logout'
   | 'need-account'

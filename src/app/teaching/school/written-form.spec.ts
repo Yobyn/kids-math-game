@@ -2,7 +2,8 @@ import { SUM_FORMS, SumForm, readForm } from '../../question/sum-form';
 import { CURRICULUM, Moment, Random, SchoolSum, TOPICS, schoolSum } from './groep';
 import { FormWords, SumLayout, formWorkedStep, sumLayout } from './written-form';
 
-const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van', remainder: 'rest', hours: 'uur', minutes: 'minuten' };
+const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van', remainder: 'rest', hours: 'uur', minutes: 'minuten',
+  toTens: 'op tientallen', toHundreds: 'op honderdtallen' };
 
 function seeded(seed: number): Random {
   return () => {
@@ -20,6 +21,11 @@ function answer(sum: { num1: number; num2: number; operation: string }): number 
     case '-': return sum.num1 - sum.num2;
     case '*': return sum.num1 * sum.num2;
     case '%': return sum.num1 % sum.num2;
+    // the multiple of num2 nearest by distance, halfway going up
+    case '≈': {
+      const down = sum.num1 - sum.num1 % sum.num2;
+      return sum.num1 - down < down + sum.num2 - sum.num1 ? down : down + sum.num2;
+    }
     default: return sum.num1 / sum.num2;
   }
 }
@@ -52,6 +58,13 @@ function holds(written: string, filled: number): boolean {
   if (measure) {
     const per: { [unit: string]: number } = { 'm cm': 100, 'km m': 1000, 'kg g': 1000, 'uur minuten': 60, 'h min': 60 };
     return per[`${measure[2]} ${measure[4]}`] * +measure[1] === +measure[3];
+  }
+  // 347 ≈ 350 op tientallen: a ten, and no ten nearer; halfway (345) goes up
+  const rounded = text.match(/^(\d+) ≈ (\d+) op (tientallen|honderdtallen)$/);
+  if (rounded) {
+    const [n, to] = [+rounded[1], rounded[3] === 'tientallen' ? 10 : 100];
+    const distance = Math.abs(n - +rounded[2]);
+    return +rounded[2] % to === 0 && (distance < to / 2 || (distance === to / 2 && +rounded[2] > n));
   }
   const part = text.match(/^(½|⅓|¼|⅕) van (\d+) = (\d+)$/);
   if (part) {
@@ -101,6 +114,8 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('rest', 23, 4, '%')).toBe('23 : 4 = 5 rest ?');
     expect(shown('m-cm', 3, 100, '*')).toBe('3 m = ? cm');
     expect(shown('uur-min', 2, 60, '*')).toBe('2 uur = ? minuten');
+    expect(shown('afronden', 347, 10, '≈')).toBe('347 ≈ ? op tientallen');
+    expect(shown('afronden', 2468, 100, '≈')).toBe('2468 ≈ ? op honderdtallen');
     // and a plain sum is still a plain sum, the box at the end
     expect(read(sumLayout({ num1: 7, num2: 5, sign: '+' }, WORDS))).toBe('7 + 5 = ?');
   });
@@ -130,6 +145,9 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2)!;
+      if (sum.form === 'afronden') {
+        return;  // read as rounding below
+      }
       // Every step is true, and the answer is in it (last for most; a half is worked as 8 + 8 = 16)
       const steps = line.split(' → ');
       const trueSteps = steps.every(step => {
@@ -140,6 +158,25 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
         misses.push(`${topic}: ${line}`);
       }
     }));
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('rounds by the figure after the place it rounds to, a 5 or more going up: 347 → 350, 341 → 340, 2468 → 2500', () => {
+    expect(formWorkedStep('afronden', 347, 10)).toBe('347: 7 ≥ 5 → 350');
+    expect(formWorkedStep('afronden', 341, 10)).toBe('341: 1 < 5 → 340');
+    expect(formWorkedStep('afronden', 345, 10)).toBe('345: 5 ≥ 5 → 350');
+    expect(formWorkedStep('afronden', 2468, 100)).toBe('2468: 6 ≥ 5 → 2500');
+    expect(formWorkedStep('afronden', 2438, 100)).toBe('2438: 3 < 5 → 2400');
+    const misses: string[] = [];
+    made('afronden').forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2)!;
+      const step = line.match(/^(\d+): (\d) (≥|<) 5 → (\d+)$/);
+      // the figure looked at is the one just right of the tens (or the hundreds)
+      const figure = +String(sum.num1).slice(sum.num2 === 10 ? -1 : -2)[0];
+      if (!step || +step[1] !== sum.num1 || +step[2] !== figure || (step[3] === '≥') !== (figure >= 5) || +step[4] !== answer(sum)) {
+        misses.push(line);
+      }
+    });
     expect(misses.slice(0, 5)).toEqual([]);
   });
 
@@ -187,7 +224,7 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       // The biggest number in the sum as written: 14 in dubbel 7 = 14, 16 in de helft van 16
       const size = (sum: SchoolSum) => Math.max(sum.num1, answer(sum));
       const firstSeen = (form: SumForm, within: '20' | '100') => {
-        for (const groep of [3, 4, 5]) {
+        for (const groep of [3, 4, 5, 6]) {
           for (const moment of ['B', 'M', 'E'] as Moment[]) {
             const random = seeded(groep * 7 + moment.charCodeAt(0));
             for (let i = 0; i < 400; i++) {
@@ -209,6 +246,7 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       expect(firstSeen('deel', '100')).toBe('5M');
       expect(firstSeen('rest', '100')).toBe('5E');
       expect(firstSeen('m-cm', '100')).toBe('5E');
+      expect(firstSeen('afronden', '100')).toBe('6E');
     });
 
     it('asks the start of groep 3 only plain sums: the forms come once the sums under them are known', () => {

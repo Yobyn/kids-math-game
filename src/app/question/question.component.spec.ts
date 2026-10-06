@@ -826,9 +826,26 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     asked.forEach(sum => expect(Math.max(sum.num1, sum.num2)).toBeLessThanOrEqual(100));
   });
 
-  it('keeps the old questions for a groep not built yet: grade 4 (groep 6) is still asked as before', () => {
+  it('asks grade 4 (groep 6) in the middle of the year to 10 000 in columns, and × and : past the tables', () => {
     build('4', 'medium');
-    sums(50).forEach(({ operation }) => expect(['+', '-']).toContain(operation));
+    const asked = sums(300);
+    // the old questions never shared out at grade 4, nor went past a few hundred
+    expect(asked.some(sum => sum.operation === '/' && sum.num1 / sum.num2 > 10)).toBeTrue();
+    expect(asked.some(sum => sum.operation === '+' && sum.num1 >= 1000 && sum.num2 >= 1000)).toBeTrue();
+    expect(asked.some(sum => sum.operation === '*' && sum.num1 > 10)).toBeTrue();
+  });
+
+  it('asks grade 4 (groep 6) at the end of the year to round: 347 ≈ ? op tientallen', () => {
+    build('4', 'hard');
+    expect(sums(300).some(sum => sum.operation === '≈' && sum.form === 'afronden')).toBeTrue();
+  });
+
+  it('keeps the old questions for a groep not built yet: grade 5 (groep 7) is still asked as before', () => {
+    build('5', 'medium');
+    sums(80).forEach(({ operation, form }) => {
+      expect(['+', '-', '*']).toContain(operation);
+      expect(form).toBeUndefined();
+    });
   });
 
   it('writes the sign as it is written in class: \u00d7 and : in Dutch, \u00f7 in English, a real minus', () => {
@@ -1700,6 +1717,10 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()).toEqual(['3', 'm', '=', '[ ]', 'cm']);
     ask({ num1: 2, num2: 60, operation: '*', form: 'uur-min' });
     expect(card()).toEqual(['2', 'uur', '=', '[ ]', 'minuten']);
+    ask({ num1: 347, num2: 10, operation: '≈', form: 'afronden' });
+    expect(card()).toEqual(['347', '≈', '[ ]', 'op tientallen']);
+    ask({ num1: 2468, num2: 100, operation: '≈', form: 'afronden' });
+    expect(card()).toEqual(['2468', '≈', '[ ]', 'op honderdtallen']);
     // A plain sum keeps the box at the end
     ask({ num1: 7, num2: 5, operation: '+' });
     expect(card()).toEqual(['7', '+', '5', '=', '[ ]']);
@@ -1723,6 +1744,13 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()).toEqual(['2', 'hours', '=', '[ ]', 'minutes']);
     ask({ num1: 23, num2: 4, operation: '%', form: 'rest' });
     expect(card()).toEqual(['23', '÷', '4', '=', '5', 'r', '[ ]']);
+    ask({ num1: 347, num2: 10, operation: '≈', form: 'afronden' });
+    expect(card()).toEqual(['347', '≈', '[ ]', 'to tens']);
+    component.languageService.setLanguage('es');
+    fixture.detectChanges();
+    expect(card()).toEqual(['347', '≈', '[ ]', 'a decenas']);
+    ask({ num1: 2468, num2: 100, operation: '≈', form: 'afronden' });
+    expect(card()).toEqual(['2468', '≈', '[ ]', 'a centenas']);
   });
 
   it('marks the number that goes in the box: 3 for 7 + ? = 10', () => {
@@ -1745,6 +1773,25 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     component.userAnswer = '5';
     component.checkAnswer();
     expect(component.answerWasCorrect).toBe(false);
+  });
+
+  it('marks the nearest ten or hundred for a rounding, a 5 going up, and not the number itself or the other way', () => {
+    build('nl');
+    const marked = (num1: number, num2: number, typed: string) => {
+      ask({ num1, num2, operation: '≈', form: 'afronden' });
+      component.wrongAttempts = 0;
+      component.userAnswer = typed;
+      component.checkAnswer();
+      return component.answerWasCorrect;
+    };
+    expect(marked(347, 10, '350')).toBe(true);
+    expect(marked(347, 10, '340')).toBe(false);
+    expect(marked(347, 10, '347')).toBe(false);
+    expect(marked(345, 10, '350')).toBe(true);
+    expect(marked(341, 10, '340')).toBe(true);
+    expect(marked(2468, 100, '2500')).toBe(true);
+    expect(marked(2468, 100, '2470')).toBe(false);
+    expect(marked(2438, 100, '2400')).toBe(true);
   });
 
   it('marks 300 for 3 m = ? cm', () => {
