@@ -4,8 +4,8 @@ import {
   Avatar, FACE_SHAPES, HAIR_STYLES, HAIR_TEXTURES, NO_ITEM, WARDROBE, defaultAvatar, findItem
 } from '../avatar/avatar-model';
 import { HATS_OVER_HAIR } from '../avatar/avatar-parts';
-import { EYE_SCALE, EYE_SIZE, EYE_WHITE, IRIS, NOSE_SIZE, POCKET_ARC, POCKET_AT, POCKET_HEIGHT, STRING_GAP, buildAvatar, disposeAvatar, topCut } from './build-avatar';
-import { FIGURES, Figure, chinY, figureFor, torsoRadius } from './figure';
+import { ARM_RIG, EYE_SCALE, EYE_SIZE, EYE_WHITE, FOREARM_RIG, IRIS, NOSE_SIZE, POCKET_ARC, POCKET_AT, POCKET_HEIGHT, STRING_GAP, buildAvatar, disposeAvatar, topCut } from './build-avatar';
+import { FIGURES, Figure, KNEE_FORWARD, chinY, figureFor, torsoRadius } from './figure';
 import {
   EYE_DIRS, HAT_CAP, HAT_LIFT, Vec3, hairPoint, hatBrim, headPoint, normalise, radiusAlong
 } from './head-surface';
@@ -59,6 +59,36 @@ function insideTorso(figure: Figure, p: THREE.Vector3): boolean {
 /** The top of the torso, where the neck comes out. */
 function collar(figure: Figure): number {
   return figure.torso[figure.torso.length - 1][1];
+}
+
+/**
+ * How a limb's end at `to` is finished, going from `from`: how far the mesh
+ * comes round past the end point, along the limb, and how wide it is there.
+ * A rounded end comes past by about its own width; a flat one not at all.
+ */
+function endOf(mesh: THREE.Mesh, from: THREE.Vector3, to: THREE.Vector3): { beyond: number; radius: number } {
+  mesh.updateWorldMatrix(true, false);
+  const along = to.clone().sub(from);
+  const length = along.length();
+  along.normalize();
+  const position = mesh.geometry.attributes.position as THREE.BufferAttribute;
+  let beyond = -Infinity;
+  let radius = 0;
+  const p = new THREE.Vector3();
+  for (let i = 0; i < position.count; i++) {
+    p.fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld).sub(from);
+    const t = p.dot(along);
+    beyond = Math.max(beyond, t - length);
+    if (Math.abs(t - length) < 0.01) {
+      radius = Math.max(radius, p.clone().addScaledVector(along, -t).length());
+    }
+  }
+  return { beyond, radius };
+}
+
+function worldOf(node: THREE.Object3D): THREE.Vector3 {
+  node.updateWorldMatrix(true, false);
+  return node.getWorldPosition(new THREE.Vector3());
 }
 
 const BODY_TYPES: Array<'boy' | 'girl'> = ['boy', 'girl'];
@@ -303,31 +333,40 @@ describe('buildAvatar', () => {
       disposeAvatar(root);
     });
 
-    it('bends softly: a round elbow on each arm and a round knee on each leg, at the joint itself', () => {
+    it('bends softly: each arm rounded at the elbow and each leg at the knee, in one surface, never a ball fighting a tube', () => {
       BODY_TYPES.forEach(bodyType => ['hoodie', 'star-tee'].forEach(top => {
         const figure = figureFor(bodyType);
         const root = buildAvatar(avatar({ bodyType, top }));
         root.updateMatrixWorld(true);
-        const elbows = find(root, 'elbow');
-        expect(elbows.length).toBe(2);
-        elbows.forEach(elbow => {
-          // On the upper arm, where the forearm turns
-          const forearm = elbow.parent!.children.find(child => child.name === 'forearm-rig')!;
-          expect(elbow.position.distanceTo(forearm.position)).withContext(`${bodyType} ${top}`).toBeLessThan(1e-9);
-          // As wide as the arm meeting it there, sleeve or skin, so there is no step at the joint
-          const [, rElbow] = figure.armRadii;
-          const arm = top === 'star-tee' ? rElbow * 0.78 : rElbow;
-          const radius = ((elbow as THREE.Mesh).geometry as THREE.SphereGeometry).parameters.radius;
-          expect(radius).withContext(`${bodyType} ${top}`).toBeGreaterThan(arm * 0.98);
-          expect(radius).withContext(`${bodyType} ${top}`).toBeLessThan(arm * 1.1);
+        // No separate ball at a joint: one as wide as the tube it meets frays where their facets cross
+        ['shoulder', 'elbow', 'knee'].forEach(name => expect(find(root, name).length).withContext(`${bodyType} ${top} ${name}`).toBe(0));
+        find(root, ARM_RIG).forEach(rig => {
+          const elbowRig = rig.getObjectByName(FOREARM_RIG)!;
+          const [shoulder, elbow, wrist] = [worldOf(rig), worldOf(elbowRig), worldOf(elbowRig.getObjectByName('hand')!)];
+          // The upper arm (the sleeve, or the bare arm under a short one) comes round past the elbow...
+          const upper = rig.children.filter(child => child.name === (top === 'star-tee' ? 'bare-arm' : 'arm'))[0] as THREE.Mesh;
+          const upperEnd = endOf(upper, shoulder, elbow);
+          expect(upperEnd.beyond).withContext(`${bodyType} ${top} elbow`).toBeGreaterThan(upperEnd.radius * 0.95);
+          // ...and the forearm starts rounded inside it: clear of it, so the two never cross, but not so
+          // much slimmer that the bend shows a notch
+          const forearm = elbowRig.children.filter(child => child.name === 'forearm')[0] as THREE.Mesh;
+          const forearmStart = endOf(forearm, wrist, elbow);
+          expect(forearmStart.beyond).withContext(`${bodyType} ${top} forearm`).toBeGreaterThan(forearmStart.radius * 0.95);
+          expect(forearmStart.radius / upperEnd.radius).withContext(`${bodyType} ${top} forearm`).toBeLessThan(0.97);
+          expect(forearmStart.radius / upperEnd.radius).withContext(`${bodyType} ${top} forearm`).toBeGreaterThan(0.85);
         });
-        const knees = find(root, 'knee');
-        expect(knees.length).toBe(2);
-        knees.forEach(knee => {
-          expect(Math.abs(knee.position.x)).toBeCloseTo(figure.knee[0], 9);
-          expect(knee.position.y).toBeCloseTo(figure.knee[1], 9);
-          // As wide as the leg there, so there is no step at the joint
-          expect((( knee as THREE.Mesh).geometry as THREE.SphereGeometry).parameters.radius).toBeCloseTo(figure.legRadii[0] * 0.93, 9);
+        // Each thigh comes round past the knee
+        const thighs = (find(root, 'leg') as THREE.Mesh[]).filter(leg => {
+          const box = new THREE.Box3().setFromObject(leg);
+          return box.max.y > figure.hip[1];
+        });
+        expect(thighs.length).toBe(2);
+        thighs.forEach(thigh => {
+          const side = Math.sign(new THREE.Box3().setFromObject(thigh).getCenter(new THREE.Vector3()).x);
+          const hip = new THREE.Vector3(side * figure.hip[0], figure.hip[1], 0);
+          const knee = new THREE.Vector3(side * figure.knee[0], figure.knee[1], KNEE_FORWARD);
+          const end = endOf(thigh, hip, knee);
+          expect(end.beyond).withContext(`${bodyType} ${top} knee`).toBeGreaterThan(end.radius * 0.95);
         });
         disposeAvatar(root);
       }));
@@ -464,7 +503,6 @@ describe('buildAvatar', () => {
         expect(box.max.y).toBeLessThan(figure.belt);
         expect(box.min.y).toBeGreaterThan(figure.knee[1]);
       });
-      expect(find(root, 'shoulder').length).toBe(2);
     });
   });
 
@@ -575,25 +613,22 @@ describe('buildAvatar', () => {
     });
   });
 
-  it('rounds each shoulder no fuller than its sleeve, its top under the collar, in every top (Yobyn, 2026-10-05)', () => {
+  it('rounds each shoulder as the sleeve\u2019s own top, under the collar, in every top (Yobyn, 2026-10-05)', () => {
     const misses: string[] = [];
     BODY_TYPES.forEach(bodyType => WARDROBE.filter(item => item.slot === 'top').forEach(top => {
       const figure = figureFor(bodyType);
       const root = buildAvatar(avatar({ bodyType, top: top.id }));
       root.updateMatrixWorld(true);
-      const caps = find(root, 'shoulder') as THREE.Mesh[];
-      const sleeves = find(root, 'arm') as THREE.Mesh[];
-      expect(caps.length).toBe(2);
-      caps.forEach((cap, i) => {
-        const radius = (cap.geometry as THREE.SphereGeometry).parameters.radius;
-        // The sleeve's own width where it meets the shoulder: its widest point in the top half of it
-        const points = (sleeves[i].geometry as THREE.LatheGeometry).parameters.points;
-        const length = Math.max(...points.map(p => p.y));
-        const sleeve = Math.max(...points.filter(p => p.y > length / 2).map(p => p.x));
-        if (radius > sleeve + 1e-9) {
-          misses.push(`${bodyType} ${top.id}: shoulder ${radius.toFixed(3)} fuller than its sleeve ${sleeve.toFixed(3)}`);
+      find(root, ARM_RIG).forEach(rig => {
+        const shoulder = worldOf(rig);
+        const elbow = worldOf(rig.getObjectByName(FOREARM_RIG)!);
+        const sleeve = rig.children.filter(child => child.name === 'arm')[0] as THREE.Mesh;
+        // Round over the top, as far as the sleeve is wide: not a flat end, not a ball on it
+        const dome = endOf(sleeve, elbow, shoulder);
+        if (dome.beyond < dome.radius * 0.95) {
+          misses.push(`${bodyType} ${top.id}: sleeve comes ${dome.beyond.toFixed(2)} over the shoulder, ${dome.radius.toFixed(2)} wide`);
         }
-        const box = new THREE.Box3().setFromObject(cap);
+        const box = new THREE.Box3().setFromObject(sleeve);
         if (box.max.y >= collar(figure)) {
           misses.push(`${bodyType} ${top.id}: shoulder up to ${box.max.y.toFixed(2)}, the collar at ${collar(figure).toFixed(2)}`);
         }
