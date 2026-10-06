@@ -49,6 +49,9 @@ export type PlayKey =
   | 'sum-double'
   | 'sum-half'
   | 'sum-part-of'
+  | 'sum-remainder'
+  | 'unit-hours'
+  | 'unit-minutes'
   | 'play-again';
 
 export const PLAY_WORDS: Words<PlayKey> = {
@@ -96,7 +99,10 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'play-again': 'Play Again',
     'sum-double': 'double',
     'sum-half': 'half of',
-    'sum-part-of': 'of'
+    'sum-part-of': 'of',
+    'sum-remainder': 'r',
+    'unit-hours': 'hours',
+    'unit-minutes': 'minutes'
   },
   nl: {
     'praise-3': 'Knap gewerkt!',
@@ -142,7 +148,10 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'play-again': 'Opnieuw Spelen',
     'sum-double': 'dubbel',
     'sum-half': 'de helft van',
-    'sum-part-of': 'van'
+    'sum-part-of': 'van',
+    'sum-remainder': 'rest',
+    'unit-hours': 'uur',
+    'unit-minutes': 'minuten'
   },
   es: {
     'praise-3': '¡Un trabajo brillante!',
@@ -188,6 +197,9 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'play-again': 'Jugar de nuevo',
     'sum-double': 'el doble de',
     'sum-half': 'la mitad de',
-    'sum-part-of': 'de'
+    'sum-part-of': 'de',
+    'sum-remainder': 'resto',
+    'unit-hours': 'horas',
+    'unit-minutes': 'minutos'
   }
 };

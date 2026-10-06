@@ -6,15 +6,17 @@
  *
  * So far groep 3 and 4: the plain sums (a number, a sign, a number) and the
  * written forms of the workbook (7 + ? = 10, 8 = 5 + ?, dubbel 7, de helft
- * van 16); and groep 5 without its remainders and measures (all the tables,
- * to 1000, 4 × 30, 4 × 23, ¼ van 20). The rest follows the build order in
+ * van 16); and groep 5 (all the tables, to 1000, 4 × 30, 4 × 23, ¼ van
+ * 20, 23 : 4 = 5 rest ?, 3 m = ? cm). The rest follows the build order in
  * the doc.
  */
 
-import { SumForm } from '../../question/sum-form';
+import { MEASURE_FORMS, SumForm } from '../../question/sum-form';
+import { MEASURES } from './written-form';
 
 export type Moment = 'B' | 'M' | 'E';
-export type Operation = '+' | '-' | '*' | '/';
+/** % is what is left over: 23 % 4 is the 3 in 23 : 4 = 5 rest 3 */
+export type Operation = '+' | '-' | '*' | '/' | '%';
 
 /** A sum as the screen shows it: num1, the sign, num2, and the answer box. */
 export interface SchoolSum {
@@ -246,6 +248,17 @@ Object.assign(TOPICS, {
   },
   // Groep 5, the end: within 1000 through a ten or a hundred (kolomsgewijs); TE × E
   'tot-1000-over': within1000(true),
+  // Groep 5, the end: sharing out with something left over. 23 : 4 = 5 rest ?
+  'delen-met-rest': random => {
+    const parts = between(random, 2, 9);
+    const left = between(random, 1, parts - 1);
+    return { num1: parts * between(random, 2, 9) + left, num2: parts, operation: '%', form: 'rest' };
+  },
+  // a measure in a smaller unit: 3 m = ? cm, 2 uur = ? minuten, kept as 3 × 100
+  'maten': random => {
+    const form = pick(random, MEASURE_FORMS);
+    return { num1: between(random, 2, 9), num2: MEASURES[form].factor, operation: '*', form };
+  },
   'te-keer-e': random => {
     const num1 = between(random, 2, 9);
     let num2 = between(random, 11, Math.max(11, Math.floor(200 / num1)));
@@ -303,7 +316,7 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
       'deel-van': NEW, 'tafels-1-5-10': REVIEW, 'helft-van-tot-100': REVIEW
     },
     E: {
-      'tot-1000-over': NEW, 'te-keer-e': NEW,
+      'tot-1000-over': NEW, 'te-keer-e': NEW, 'delen-met-rest': NEW, 'maten': NEW,
       'tafels-6-7-8-9': REVIEW, 'deeltafels-6-7-8-9': REVIEW, 'tot-1000-zonder': REVIEW, 'deel-van': REVIEW
     }
   }
