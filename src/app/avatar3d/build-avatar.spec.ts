@@ -321,12 +321,10 @@ describe('buildAvatar', () => {
         const widest = (mesh: THREE.Mesh) => Math.max(...(mesh.geometry as THREE.LatheGeometry).parameters.points.map(p => p.x));
         // Wider than the sleeve anywhere, by more than either surface's facets stray, so the two never cross
         expect(widest(hem) / widest(sleeve)).withContext(`${bodyType} ${top}`).toBeGreaterThan(1.02);
-        // At the sleeve's end, where the bare arm comes out
-        const bare = rig.children.find(child => child.name === 'bare-arm') as THREE.Mesh;
-        const hemBox = new THREE.Box3().setFromObject(hem);
-        const bareTop = new THREE.Box3().setFromObject(bare).max.y;
-        expect(hemBox.min.y).withContext(`${bodyType} ${top}`).toBeLessThan(bareTop);
-        expect(hemBox.max.y).withContext(`${bodyType} ${top}`).toBeGreaterThan(bareTop - 0.05);
+        // At the sleeve's end, where the bare arm comes out: as far down the arm as the sleeve goes
+        const shoulder = worldOf(rig);
+        const elbow = worldOf(rig.getObjectByName(FOREARM_RIG)!);
+        expect(endOf(hem, shoulder, elbow).beyond).withContext(`${bodyType} ${top}`).toBeCloseTo(endOf(sleeve, shoulder, elbow).beyond, 2);
       });
       disposeAvatar(root);
     }));
