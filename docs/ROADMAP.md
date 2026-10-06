@@ -910,13 +910,16 @@ joint comes down until the top of the arm sits under the collar
 the neck; the upper arm and forearm shorten alike, so the hands still hang
 at the hips; and the shoulder's round top is no fuller than the sleeve.
 What was placed by the shoulder joint and belongs to the chest is now
-placed by the collar: the stripes, the tee's star or flower, and the point
-the backpack straps go round. The straps lie nearer the neck than the arm
-(which hangs a little further out, past the tummy) and come down the front
+placed by the collar: the stripes, and the tee's star or flower. The
+straps lie nearer the neck than the arm (which hangs a little further out, past the tummy) and come down the front
 to the armpit. The kid's stand follows the hands, which moved out 0.05, so
 the pet's stand comes 0.05 nearer (`PET_STAND_GAP` 0.45) and the pet stays
 in view on a 320-wide phone. `STILL_VERSION` 9, pinned with SHOULDER_TUCK.
-1,801 unit tests.
+1,802 unit tests. The mutation sweep caught 13 of 16. Of the three that
+lived, a guard that never ran was taken out, the strap's centre went back
+to how it was (not needed once the strap lies nearer the neck), and the
+tee's print got a test of its own (up on the chest, clear of the
+neckline).
 
 WHAT IS NEXT, in the order the runs should take them:
 
