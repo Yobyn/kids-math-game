@@ -529,15 +529,17 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     // Each part of the arm rounded where it turns: the sleeve's top at the
     // shoulder, the upper arm at the elbow, and the forearm starting a little
     // slimmer inside it, so the bend stays covered and the two never fight
+    // The forearm's radius where it starts at the elbow and where it ends at the wrist
+    const forearmRadii = cut === 'short' ? [rElbow * 0.78 * ELBOW_INSIDE, rWrist * 0.75] : [rElbow * 1.05 * ELBOW_INSIDE, rWrist * 1.02];
     if (cut === 'short') {
       // A short sleeve ends above the elbow; below it is a bare arm
       const sleeveEnd = shoulder.clone().lerp(elbow, 0.55);
       onUpper(part('arm', limb([rShoulder * 1.05, rShoulder], shoulder, sleeveEnd, 20, { from: true }), cloth, 0.04));
       onUpper(part('bare-arm', limb([rElbow * 0.8, rElbow * 0.78], sleeveEnd, elbow, 20, { to: true }), skin, 0.035));
-      onLower(part('forearm', limb([rElbow * 0.78 * ELBOW_INSIDE, rWrist * 0.75], elbow, wristV, 20, { from: true }), skin, 0.035));
+      onLower(part('forearm', limb(forearmRadii, elbow, wristV, 20, { from: true }), skin, 0.035));
     } else {
       onUpper(part('arm', limb([rShoulder, rElbow * 1.05], shoulder, elbow, 20, { from: true, to: true }), cloth, 0.04));
-      onLower(part('forearm', limb([rElbow * 1.05 * ELBOW_INSIDE, rWrist * 1.02], elbow, wristV, 20, { from: true }), cloth, 0.04));
+      onLower(part('forearm', limb(forearmRadii, elbow, wristV, 20, { from: true }), cloth, 0.04));
       // A ribbed cuff at the wrist
       onLower(part('cuff', limb([rWrist * 1.12, rWrist * 1.12], wristV.clone().lerp(elbow, 0.12), wristV), toon(shade(topColour, 0.12)), 0.02));
       if (cut === 'hoodie') {
@@ -547,7 +549,8 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     }
     if (wearsGear(avatar.stage)) {
       // A wristband over the sleeve, or the bare arm, just above the hand
-      const [atWrist, atElbow] = cut === 'short' ? [rWrist * 0.75, rElbow * 0.78 * ELBOW_INSIDE] : [rWrist * 1.12, rElbow * 1.05 * ELBOW_INSIDE];
+      // (over the cuff on a long sleeve)
+      const [atWrist, atElbow] = [cut === 'short' ? forearmRadii[1] : rWrist * 1.12, forearmRadii[0]];
       const under = Math.max(atWrist, atWrist + (atElbow - atWrist) * BAND_TO);
       onLower(wristband(avatar.stage, topColour, wristV, elbow, under + 0.05));
     }

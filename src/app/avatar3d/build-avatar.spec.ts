@@ -86,6 +86,23 @@ function endOf(mesh: THREE.Mesh, from: THREE.Vector3, to: THREE.Vector3): { beyo
   return { beyond, radius };
 }
 
+function verticesOf(mesh: THREE.Mesh): THREE.Vector3[] {
+  mesh.updateWorldMatrix(true, false);
+  const position = mesh.geometry.attributes.position as THREE.BufferAttribute;
+  return Array.from({ length: position.count }, (_, i) => new THREE.Vector3().fromBufferAttribute(position, i).applyMatrix4(mesh.matrixWorld));
+}
+
+/** The middle of each of a mesh's triangles, in the world: where a facet lies furthest inside the curve it stands for. */
+function facetCentres(mesh: THREE.Mesh): THREE.Vector3[] {
+  const vertices = verticesOf(mesh);
+  const index = mesh.geometry.index!;
+  const centres: THREE.Vector3[] = [];
+  for (let i = 0; i < index.count; i += 3) {
+    centres.push(vertices[index.getX(i)].clone().add(vertices[index.getX(i + 1)]).add(vertices[index.getX(i + 2)]).divideScalar(3));
+  }
+  return centres;
+}
+
 function worldOf(node: THREE.Object3D): THREE.Vector3 {
   node.updateWorldMatrix(true, false);
   return node.getWorldPosition(new THREE.Vector3());
@@ -354,6 +371,13 @@ describe('buildAvatar', () => {
           expect(forearmStart.beyond).withContext(`${bodyType} ${top} forearm`).toBeGreaterThan(forearmStart.radius * 0.95);
           expect(forearmStart.radius / upperEnd.radius).withContext(`${bodyType} ${top} forearm`).toBeLessThan(0.97);
           expect(forearmStart.radius / upperEnd.radius).withContext(`${bodyType} ${top} forearm`).toBeGreaterThan(0.85);
+          // And the two never cross: every facet of the upper arm's round end (where it sags furthest in,
+          // at its middle) stays further from the elbow than any point of the forearm's round start
+          const upperFacets = facetCentres(upper).filter(c => c.clone().sub(shoulder).dot(elbow.clone().sub(shoulder).normalize()) > shoulder.distanceTo(elbow) + 0.02);
+          const forearmDome = verticesOf(forearm).filter(v => v.clone().sub(elbow).dot(wrist.clone().sub(elbow)) < -0.02);
+          const nearest = Math.min(...upperFacets.map(c => c.distanceTo(elbow)));
+          const furthest = Math.max(...forearmDome.map(v => v.distanceTo(elbow)));
+          expect(furthest).withContext(`${bodyType} ${top} elbow facets`).toBeLessThan(nearest);
         });
         // Each thigh comes round past the knee
         const thighs = (find(root, 'leg') as THREE.Mesh[]).filter(leg => {
