@@ -54,15 +54,25 @@ describe('QuestionComponent', () => {
     expect(box.value).toBe('');
   });
 
-  it('only asks a grade 3 child to add and subtract', () => {
-    for (let i = 0; i < 25; i++) {
+  it('asks a grade 3 child what groep 5 is taught in the middle of the year: to 1000, the tables to 10 and sharing out inside them', () => {
+    for (let i = 0; i < 40; i++) {
       component.generateQuestion();
-      // Money is its own strand now and is allowed at every grade; the
-      // point here is that a grade 3 child never meets × or ÷
+      // Money is its own strand, at every grade
       if (component.currentQuestion.money) {
         continue;
       }
-      expect(['+', '-']).toContain(component.currentQuestion.operation);
+      const { num1, num2, operation } = component.currentQuestion;
+      const at = `${num1} ${operation} ${num2}`;
+      if (operation === '*') {
+        // a table to 10, or a ten times a digit (4 × 30)
+        expect(num1 <= 10 && (num2 <= 10 || num2 % 10 === 0)).withContext(at).toBeTrue();
+      } else if (operation === '/') {
+        expect(num1 % num2).withContext(at).toBe(0);
+        // inside a table, unless it is a half of an amount to 100 (de helft van 86)
+        expect(num1 / num2).withContext(at).toBeLessThanOrEqual(component.currentQuestion.form === 'helft' ? 50 : 10);
+      } else {
+        expect(Math.max(num1, num2)).withContext(at).toBeLessThan(1000);
+      }
     }
   });
 
@@ -816,8 +826,8 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     asked.forEach(sum => expect(Math.max(sum.num1, sum.num2)).toBeLessThanOrEqual(100));
   });
 
-  it('keeps the old questions for a groep not built yet: grade 3 (groep 5) is still asked as before', () => {
-    build('3', 'medium');
+  it('keeps the old questions for a groep not built yet: grade 4 (groep 6) is still asked as before', () => {
+    build('4', 'medium');
     sums(50).forEach(({ operation }) => expect(['+', '-']).toContain(operation));
   });
 
@@ -1682,6 +1692,8 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()).toEqual(['dubbel', '7', '=', '[ ]']);
     ask({ num1: 16, num2: 2, operation: '/', form: 'helft' });
     expect(card()).toEqual(['de helft van', '16', '=', '[ ]']);
+    ask({ num1: 20, num2: 4, operation: '/', form: 'deel' });
+    expect(card()).toEqual(['¼ van', '20', '=', '[ ]']);
     // A plain sum keeps the box at the end
     ask({ num1: 7, num2: 5, operation: '+' });
     expect(card()).toEqual(['7', '+', '5', '=', '[ ]']);
@@ -1696,6 +1708,8 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()[0]).toBe('el doble de');
     ask({ num1: 16, num2: 2, operation: '/', form: 'helft' });
     expect(card()[0]).toBe('la mitad de');
+    ask({ num1: 15, num2: 3, operation: '/', form: 'deel' });
+    expect(card()[0]).toBe('⅓ de');
   });
 
   it('marks the number that goes in the box: 3 for 7 + ? = 10', () => {

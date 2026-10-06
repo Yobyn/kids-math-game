@@ -2,7 +2,7 @@ import { SUM_FORMS, SumForm } from '../../question/sum-form';
 import { CURRICULUM, Moment, Random, SchoolSum, TOPICS, schoolSum } from './groep';
 import { FormWords, SumLayout, formWorkedStep, sumLayout } from './written-form';
 
-const WORDS: FormWords = { double: 'dubbel', half: 'de helft van' };
+const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van' };
 
 function seeded(seed: number): Random {
   return () => {
@@ -42,6 +42,10 @@ function holds(written: string, filled: number): boolean {
   if (half) {
     return +half[1] === 2 * +half[2];
   }
+  const part = text.match(/^(½|⅓|¼|⅕) van (\d+) = (\d+)$/);
+  if (part) {
+    return +part[2] === ({ '½': 2, '⅓': 3, '¼': 4, '⅕': 5 } as { [glyph: string]: number })[part[1]] * +part[3];
+  }
   const sides = text.split(' = ');
   if (sides.length !== 2) {
     return false;
@@ -51,7 +55,7 @@ function holds(written: string, filled: number): boolean {
     if (sign === undefined) {
       return +a;
     }
-    return sign === '+' ? +a + +b : sign === '−' ? +a - +b : sign === '×' ? +a * +b : +a / +b;
+    return sign === '+' ? +a + +b : sign === '−' ? +a - +b : sign === '×' ? +a * +b : +a / +b;  // : is sharing out
   };
   return value(sides[0]) === value(sides[1]);
 }
@@ -64,7 +68,7 @@ function made(topic: string, count = 300): SchoolSum[] {
 
 const FORM_TOPICS = Object.keys(TOPICS).filter(topic => made(topic, 1)[0].form);
 
-describe('the written forms of groep 3 and 4 (question/sum-form.ts)', () => {
+describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
   it('has a topic for every form', () => {
     SUM_FORMS.forEach(form => expect(FORM_TOPICS.some(topic => made(topic, 1)[0].form === form)).withContext(form).toBeTrue());
   });
@@ -76,6 +80,7 @@ describe('the written forms of groep 3 and 4 (question/sum-form.ts)', () => {
     expect(shown('splitsen', 8, 5, '-')).toBe('8 = 5 + ?');
     expect(shown('dubbel', 7, 7, '+')).toBe('dubbel 7 = ?');
     expect(shown('helft', 16, 2, '/')).toBe('de helft van 16 = ?');
+    expect(shown('deel', 20, 4, '/')).toBe('¼ van 20 = ?');
     // and a plain sum is still a plain sum, the box at the end
     expect(read(sumLayout({ num1: 7, num2: 5, sign: '+' }, WORDS))).toBe('7 + 5 = ?');
   });
@@ -97,6 +102,7 @@ describe('the written forms of groep 3 and 4 (question/sum-form.ts)', () => {
     expect(formWorkedStep('splitsen', 8, 5)).toBe('8 − 5 = 3');
     expect(formWorkedStep('dubbel', 7, 7)).toBe('7 + 7 = 14');
     expect(formWorkedStep('helft', 16, 2)).toBe('8 + 8 = 16');
+    expect(formWorkedStep('deel', 20, 4)).toBe('20 : 4 = 5');
     expect(formWorkedStep(undefined, 7, 5)).toBeUndefined();
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
@@ -140,11 +146,20 @@ describe('the written forms of groep 3 and 4 (question/sum-form.ts)', () => {
         made(topic).forEach(sum => expect(sum.num1 % 2).withContext(`${topic} ${sum.num1}`).toBe(0)));
     });
 
+    it('takes a third, a quarter or a fifth of an amount that shares out whole, in groep 5', () => {
+      made('deel-van').forEach(sum => {
+        expect([3, 4, 5]).toContain(sum.num2);
+        expect(sum.num1 % sum.num2).withContext(`${sum.num1} : ${sum.num2}`).toBe(0);
+        expect(answer(sum)).toBeGreaterThanOrEqual(2);
+        expect(answer(sum)).toBeLessThanOrEqual(10);
+      });
+    });
+
     it('brings each form in at its moment: aanvullen in the middle of groep 3, the rest at its end, to 100 at the end of groep 4', () => {
       // The biggest number in the sum as written: 14 in dubbel 7 = 14, 16 in de helft van 16
       const size = (sum: SchoolSum) => Math.max(sum.num1, answer(sum));
       const firstSeen = (form: SumForm, within: '20' | '100') => {
-        for (const groep of [3, 4]) {
+        for (const groep of [3, 4, 5]) {
           for (const moment of ['B', 'M', 'E'] as Moment[]) {
             const random = seeded(groep * 7 + moment.charCodeAt(0));
             for (let i = 0; i < 400; i++) {
@@ -163,6 +178,7 @@ describe('the written forms of groep 3 and 4 (question/sum-form.ts)', () => {
       expect(firstSeen('helft', '20')).toBe('3E');
       expect(firstSeen('dubbel', '100')).toBe('4E');
       expect(firstSeen('helft', '100')).toBe('4E');
+      expect(firstSeen('deel', '100')).toBe('5M');
     });
 
     it('asks the start of groep 3 only plain sums: the forms come once the sums under them are known', () => {
