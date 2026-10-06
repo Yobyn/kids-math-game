@@ -189,7 +189,7 @@ function backpack(colour: string, figure: Figure, around: Around): THREE.Group {
   const strapX = figure.neckRadius * 1.15 + (inside - figure.neckRadius * 1.15) * 0.4;
   const strapHalf = Math.min(0.16, (inside - strapX) * 0.6);
   // Down the front as far as the armpit, under the round top of the arm
-  const armpit = Math.min(centreY - half[1] * 0.1, figure.shoulder[1] - figure.armRadii[0]);
+  const armpit = figure.shoulder[1] - figure.armRadii[0];
   [-1, 1].forEach(side => {
     const path = strapPath(around.meshes, side * strapX, strapHalf, figure, centreY + half[1] * 0.7, centreZ + half[2] * 0.6, armpit);
     const strap = part('backpack-strap', band(path, side * strapX, strapHalf, 0.07), dark, 0.02);
@@ -210,9 +210,7 @@ function backpack(colour: string, figure: Figure, around: Around): THREE.Group {
  * long hair does, and the bag sits on it.
  */
 export function strapPath(meshes: THREE.Mesh[], x: number, halfWidth: number, figure: Figure, startY: number, startZ: number, endY: number): THREE.Vector2[] {
-  // Round a point in the chest, below the collar: where the body is that the strap goes over
-  const collar = figure.torso[figure.torso.length - 1][1];
-  const centre = new THREE.Vector2(collar - (collar - figure.belt) * 0.55, 0);
+  const centre = new THREE.Vector2(figure.shoulder[1] - (figure.shoulder[1] - figure.belt) * 0.45, 0);
   const bins = 60;
   const reach = new Array(bins).fill(0);
   const top = chinY(figure);
