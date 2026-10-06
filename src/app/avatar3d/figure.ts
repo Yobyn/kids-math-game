@@ -240,11 +240,36 @@ export function stylise(measured: Figure, style: Style): Figure {
     stylised.ankle = [stylised.ankle[0] + spread, stylised.ankle[1]];
   }
   if (style.round) {
+    tuckShoulders(stylised);
     // The arms start at the body's side, where the egg is at shoulder
     // height, and move out from there only as far as the tummy needs
     stylised.shoulder = [torsoRadius(stylised, stylised.shoulder[1]), stylised.shoulder[1]];
   }
   return clearOfChest(stylised);
+}
+
+/**
+ * How far below the collar the round top of each arm sits, in arm radii.
+ * A chibi body's thick arms, hung from the measured shoulder height, stand
+ * up beside the neck like balloons (Yobyn, 2026-10-05: "the posture is not
+ * perfect"); a child's shoulders slope down from the neck.
+ */
+export const SHOULDER_TUCK = 0.3;
+
+/**
+ * The shoulders set under the collar (SHOULDER_TUCK), the arm's length
+ * changed to match so the hands hang where they did, at the hips: upper
+ * arm and forearm alike, so the elbow stays halfway.
+ */
+function tuckShoulders(figure: Figure): void {
+  const [rShoulder] = figure.armRadii;
+  const collar = figure.torso[figure.torso.length - 1][1];
+  const drop = figure.shoulder[1] - (collar - (1 + SHOULDER_TUCK) * rShoulder);
+  const hangs = figure.upperArm * Math.cos(figure.armSwing) + figure.forearm * Math.cos(figure.armSwing * 0.8);
+  const k = 1 - drop / hangs;
+  figure.shoulder = [figure.shoulder[0], figure.shoulder[1] - drop];
+  figure.upperArm *= k;
+  figure.forearm *= k;
 }
 
 
