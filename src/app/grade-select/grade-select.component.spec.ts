@@ -59,6 +59,57 @@ describe('GradeSelectComponent', () => {
   });
 });
 
+describe('GradeSelectComponent naming the year as the school does', () => {
+  function build(language: string) {
+    localStorage.clear();
+    localStorage.setItem('language', language);
+    const fixture = TestBed.createComponent(GradeSelectComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [GradeSelectComponent, AvatarComponent]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('calls the cards groep 3 to 8 and klas 1 to 4 in Dutch, so a child finds their own class', () => {
+    const fixture = build('nl');
+    const names = fixture.componentInstance.grades.map(grade => grade.name);
+    expect(names).toEqual(['Groep 3', 'Groep 4', 'Groep 5', 'Groep 6', 'Groep 7', 'Groep 8', 'Klas 1', 'Klas 2', 'Klas 3', 'Klas 4']);
+    expect(fixture.componentInstance.grades[0].description).toBe('Rekenen in groep 3');
+    expect(fixture.componentInstance.grades[6].description).toBe('Wiskunde in klas 1');
+    const badges = Array.from(fixture.nativeElement.querySelectorAll('.grade-card .grade-badge') as NodeListOf<HTMLElement>)
+      .map(badge => badge.textContent!.trim());
+    expect(badges).toEqual(['3', '4', '5', '6', '7', '8', '1', '2', '3', '4']);
+    expect(fixture.nativeElement.querySelector('.grade-card').textContent).toContain('Groep 3');
+    expect(fixture.componentInstance.grades.map(grade => grade.badge)).toEqual([3, 4, 5, 6, 7, 8, 1, 2, 3, 4]);
+  });
+
+  it('still stores the game\'s own grade: groep 3 is grade 1', () => {
+    const fixture = build('nl');
+    spyOn(TestBed.inject(Router), 'navigate');
+    fixture.nativeElement.querySelector('.grade-card').click();
+    expect(localStorage.getItem('grade')).toBe('1');
+  });
+
+  it('keeps grade 1 to 10 in English', () => {
+    const fixture = build('en');
+    expect(fixture.componentInstance.grades[0].name).toBe('Grade 1');
+    expect(fixture.componentInstance.grades.map(grade => grade.badge)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  });
+
+  it('offers to carry on in the groep the child last played', () => {
+    const fixture = build('nl');
+    fixture.componentInstance.carryOnGrade = 2;
+    expect(fixture.componentInstance.carryOnLabel).toContain('Groep 4');
+  });
+});
+
 describe('GradeSelectComponent offering the grade last played', () => {
   let fixture: ComponentFixture<GradeSelectComponent>;
   let component: GradeSelectComponent;
