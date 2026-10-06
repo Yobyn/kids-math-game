@@ -557,7 +557,7 @@ export const SHOE_ITEMS: WardrobeItem[] = [
     id: 'boots',
     slot: 'shoes',
     unlockLevel: 16,
-    colour: '#8a5a33',
+    colour: '#5c3a21',
   },
   {
     id: 'light-up',
