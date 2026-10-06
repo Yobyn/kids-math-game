@@ -646,7 +646,8 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     const mesh = new THREE.Mesh(new THREE.ShapeGeometry(decal, 12),
       new THREE.MeshBasicMaterial({ color: top.id === 'star-tee' ? '#ffd166' : '#ff8fb8' }));
     mesh.name = 'decal';
-    const y = figure.hem + (collarY - figure.hem) * 0.54;
+    // A chest print: up on the chest, clear of the neckline
+    const y = figure.hem + (collarY - figure.hem) * 0.58;
     mesh.position.set(0, y, girth(figure, y)[0] * depth + 0.03);
     body.add(mesh);
   }

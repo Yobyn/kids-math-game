@@ -219,6 +219,20 @@ describe('buildAvatar', () => {
     expect(find(buildAvatar(avatar({ top: 'hoodie' })), 'hood').length).toBe(1);
   });
 
+  it('prints a tee\u2019s star or flower on the chest: in its upper half, all of it under the neckline', () => {
+    BODY_TYPES.forEach(bodyType => ['star-tee', 'flower-tee'].forEach(top => {
+      const figure = figureFor(bodyType);
+      const root = buildAvatar(avatar({ bodyType, top }));
+      root.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(find(root, 'decal')[0]);
+      const middle = (box.min.y + box.max.y) / 2;
+      // Up on the chest, not down on the tummy...
+      expect(middle).withContext(`${bodyType} ${top}`).toBeGreaterThan((figure.hem + collar(figure)) / 2);
+      // ...and clear of the neckline
+      expect(box.max.y).withContext(`${bodyType} ${top}`).toBeLessThan(collar(figure) - 0.2);
+    }));
+  });
+
   it('colours the face from the choices', () => {
     const root = buildAvatar(avatar({ skin: '#8d5524', eyeColour: '#3f8f5a', hairColour: '#e0b35a' }));
     const colour = (name: string) => ((find(root, name)[0] as THREE.Mesh).material as THREE.MeshToonMaterial).color.getHexString();
