@@ -16,6 +16,7 @@ import {
 import { MAX_PICKED, addPiece, pickMatches, removeAt } from '../teaching/coin-pick';
 import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
+import { momentFor, schoolSum } from '../teaching/school/groep';
 import {
   QUESTIONS_IN_ROUND,
   RESUME_CHOICE_KEY,
@@ -484,6 +485,18 @@ export class QuestionComponent implements OnInit, OnDestroy {
     return this.currentQuestion.money ? unitSuffix(this.currentQuestion.money.unit) : '';
   }
 
+  /** The sign as it is written in class: × for keer, : for delen (÷ in English). */
+  get sign(): string {
+    const operation = this.currentQuestion.operation;
+    if (operation === '*') {
+      return '×';
+    }
+    if (operation === '/') {
+      return this.languageService.getLanguage() === 'en' ? '÷' : ':';
+    }
+    return operation === '-' ? '−' : operation;
+  }
+
   /** True where the band writes €3.40, which needs a point on the keypad. */
   get needsDecimalKey(): boolean {
     return this.currentQuestion.money ? this.currentQuestion.money.unit === 'decimal' : false;
@@ -514,6 +527,20 @@ export class QuestionComponent implements OnInit, OnDestroy {
     }
 
     if (this.shouldAskAboutMoney() && this.generateMoneyQuestion()) {
+      this.userAnswer = '';
+      this.picked = [];
+      this.feedback = '';
+      this.workedLine = '';
+      this.inputPlaceholder = '?';
+      this.showOkButton = false;
+      return;
+    }
+
+    // What a Dutch school sets this groep at this moment of its year (teaching/school/groep.ts);
+    // the old generic sums only for a groep not built yet
+    const school = schoolSum(this.grade + 2, momentFor(this.difficulty));
+    if (school) {
+      this.currentQuestion = { num1: school.num1, num2: school.num2, operation: school.operation };
       this.userAnswer = '';
       this.picked = [];
       this.feedback = '';
