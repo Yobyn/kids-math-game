@@ -156,6 +156,14 @@ describe('the facts an adult is asked to practise', () => {
     expect(plan.facts[0].worked).toBe('4 × 5 = 20 → 23 − 20 = 3');
   });
 
+  it('gives the grown-ups the answer to a rounding as the nearest ten or hundred', () => {
+    const plan = practicePlan([], [{ ...fact(347, 10, '≈'), form: 'afronden' }, { ...fact(2438, 100, '≈'), form: 'afronden' }]);
+
+    expect(plan.facts.map(item => item.question)).toEqual(['347 ≈ ? (10)', '2438 ≈ ? (100)']);
+    expect(plan.facts.map(item => item.answer)).toEqual(['350', '2400']);
+    expect(plan.facts[0].worked).toBe('347: 7 ≥ 5 → 350');
+  });
+
   it('leaves the line off a fact that has no method worth showing', () => {
     const plan = practicePlan([], [fact(2, 3, '+')]);
 
