@@ -1,4 +1,4 @@
-import { UNIT_FRACTIONS, formWorkedStep } from '../teaching/school/written-form';
+import { MEASURES, UNIT_FRACTIONS, formWorkedStep } from '../teaching/school/written-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
 import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
@@ -101,6 +101,15 @@ export function factText(fact: MissedFact): string {
       return `${fact.num2} + ? = ${fact.num1}`;
     case 'splitsen':
       return `${fact.num1} = ${fact.num2} + ?`;
+    case 'rest':
+      return `${fact.num1} : ${fact.num2} = ${Math.floor(fact.num1 / fact.num2)} r ?`;
+    case 'm-cm':
+    case 'km-m':
+    case 'kg-g':
+    case 'uur-min': {
+      const measure = MEASURES[fact.form];
+      return `${fact.num1} ${measure.from} = ? ${measure.to}`;
+    }
     // ¼ van 20, written so it reads in any language
     case 'deel':
       return `${UNIT_FRACTIONS[fact.num2] || `1/${fact.num2}`} × ${fact.num1}`;
@@ -115,6 +124,7 @@ export function factAnswer(fact: MissedFact): number {
     case '-': return fact.num1 - fact.num2;
     case '*': return fact.num1 * fact.num2;
     case '/': return fact.num2 === 0 ? 0 : fact.num1 / fact.num2;
+    case '%': return fact.num2 === 0 ? 0 : fact.num1 % fact.num2;
     default: return 0;
   }
 }
