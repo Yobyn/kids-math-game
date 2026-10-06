@@ -5,6 +5,8 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of } from 'rxjs';
 import { AppRoutingModule, PreloadGameScreens, routes } from './app-routing.module';
+import { LOGIN_WORDS } from './login/login-words';
+import { SELECT_WORDS } from './grade-select/select-words';
 
 @Component({ template: '<router-outlet></router-outlet>' })
 class HostComponent {}
@@ -18,10 +20,12 @@ class HostComponent {}
  * navigated to. These navigate for real.
  */
 describe('the routes, and which of them the first load carries', () => {
-  /** The way into a round: there immediately. */
-  const EAGER = ['login', 'grade', 'difficulty'];
-  /** The round and its result: fetched on their own, but as soon as the app opens. */
-  const PRELOADED = ['questions', 'result'];
+  /**
+   * The way to play (title, grade, difficulty, the round, its result):
+   * each fetched on its own, the one being opened first and the rest as soon
+   * as it is up, so a child never waits for the next one.
+   */
+  const PRELOADED = ['login', 'grade', 'difficulty', 'questions', 'result'];
   /** A screen a child opens BETWEEN rounds: fetched when they open it. */
   const LAZY = ['register', 'avatar', 'progress', 'scrapbook', 'grown-ups'];
 
@@ -39,19 +43,20 @@ describe('the routes, and which of them the first load carries', () => {
   afterEach(() => localStorage.clear());
 
   it('still has every screen it had before', () => {
-    EAGER.concat(PRELOADED, LAZY).forEach(path => expect(find(path)).toBeTruthy());
+    PRELOADED.concat(LAZY).forEach(path => expect(find(path)).toBeTruthy());
     expect(find('')).toBeTruthy();
     expect(routes[routes.length - 1].path).toBe('**');
   });
 
-  it('carries the way into a round in the first load', () => {
-    EAGER.forEach(path => {
-      expect(find(path)!.component).toBeTruthy();
-      expect(find(path)!.loadChildren).toBeUndefined();
+  it('keeps every screen out of the first load: each is fetched on its own', () => {
+    // The first load is the frame round the screens, so it does not grow as they do
+    routes.filter(route => route.path && route.path !== '**').forEach(route => {
+      expect(route.loadChildren).withContext(route.path!).toBeTruthy();
+      expect(route.component).withContext(route.path!).toBeUndefined();
     });
   });
 
-  it('fetches the round and its result as soon as the app opens, and only those, so a child never waits for them', () => {
+  it('fetches the way to play as soon as the app opens, and only that, so a child never waits for it', () => {
     const strategy = new PreloadGameScreens();
     const preloaded = (path: string) => {
       let loaded = false;
@@ -61,7 +66,7 @@ describe('the routes, and which of them the first load carries', () => {
       }).subscribe();
       return loaded;
     };
-    // The round, its result: fetched (and cached for offline) while the child is still choosing
+    // The title, grade and difficulty screens, the round, its result: fetched (and cached for offline) while the child is still choosing
     PRELOADED.forEach(path => {
       expect(find(path)!.loadChildren).withContext(path).toBeTruthy();
       expect(preloaded(path)).withContext(path).toBeTrue();
@@ -128,6 +133,31 @@ describe('the routes, and which of them the first load carries', () => {
       expect(arrived).toBe(true);
       expect(router.url).toBe('/questions');
       expect(fixture.nativeElement.querySelector('.question-box')).toBeTruthy();
+    });
+
+    // Each in its own words, which come with it rather than in the first load
+    const OPENING: Array<[string, string, string[]]> = [
+      ['login', '.login-container, form, button', [LOGIN_WORDS.en['play-as-guest']]],
+      ['grade', '.grade-card', [SELECT_WORDS.en['select-grade'], SELECT_WORDS.en['maths-for-grade']]],
+      ['difficulty', '.difficulty-card, [role=button]', [SELECT_WORDS.en['select-difficulty'], SELECT_WORDS.en['climb-easy']]]
+    ];
+    OPENING.forEach(([path, selector, words]) => {
+      it(`really loads /${path}, in its own words`, async () => {
+        localStorage.setItem('language', 'en');
+        if (path === 'login') {
+          localStorage.removeItem('guest');
+        }
+        if (path === 'difficulty') {
+          localStorage.setItem('grade', '3');
+        }
+        const { arrived, router, fixture } = await open(path);
+
+        expect(arrived).toBe(true);
+        expect(router.url).toBe('/' + path);
+        expect(fixture.nativeElement.querySelector(selector)).withContext(path).toBeTruthy();
+        const text = fixture.nativeElement.textContent;
+        words.forEach(word => expect(text).withContext(path).toContain(word));
+      });
     });
 
     it('really loads the result screen, which sends a child with no round behind it to the grades', async () => {
