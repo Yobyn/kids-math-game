@@ -901,16 +901,33 @@ by the body (swung out further, they read as the stiff A-pose again).
 (the softer elbow only by the STYLE/STILL_VERSION pin). Before/after
 shots sent to Yobyn, asking whether this is the direction.
 
+**THE KID HERO'S POSTURE, STEP 2: THE SHOULDERS — DONE.** The chibi kid's
+thick arms hung from the measured shoulder height, so the round top of each
+arm stood about 0.4 above the collar, beside the chin, and the shoulder ball
+was 8% fuller than its sleeve: the sleeve tops ballooned. Now the shoulder
+joint comes down until the top of the arm sits under the collar
+(`SHOULDER_TUCK` 0.3 of an arm's radius), so the shoulders slope down from
+the neck; the upper arm and forearm shorten alike, so the hands still hang
+at the hips; and the shoulder's round top is no fuller than the sleeve.
+What was placed by the shoulder joint and belongs to the chest is now
+placed by the collar: the stripes, the tee's star or flower, and the point
+the backpack straps go round. The straps lie nearer the neck than the arm
+(which hangs a little further out, past the tummy) and come down the front
+to the armpit. The kid's stand follows the hands, which moved out 0.05, so
+the pet's stand comes 0.05 nearer (`PET_STAND_GAP` 0.45) and the pet stays
+in view on a 320-wide phone. `STILL_VERSION` 9, pinned with SHOULDER_TUCK.
+1,801 unit tests. SWEEP_RESULT
+
 WHAT IS NEXT, in the order the runs should take them:
 
 1. **The kid hero: more graphics, and the rest of the posture** (Yobyn,
-   2026-10-05). Feet apart and soft elbows are done (step 1). Next: the
-   puffy shoulders (the sleeve tops balloon out), a little life in the
+   2026-10-05). Feet apart and soft elbows are done (step 1), and the
+   shoulders slope (step 2). Next: a little life in the
    stance (a slight head tilt; weight on one leg would break the mirror
    the fit tests rely on, so only if it can be done safely), and more
    finish to the dragon's and the robots' level (clothes with seams,
    folds, a collar; shoes with laces and soles; small details), with
-   before and after shots for Yobyn. His answer to step 1 comes first.
+   before and after shots for Yobyn. His answer to steps 1 and 2 comes first.
 2. **Every family is built.** Go on below.
 3. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
