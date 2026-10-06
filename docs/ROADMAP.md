@@ -958,7 +958,10 @@ the neck meets the body, in a trim that always shows (`ringerTrim`: white,
 or dark on a light top), the long sleeves' cuffs in it too; a hem band in
 the trim round each short sleeve's end, clear of the sleeve; a patch pocket
 lying on the plain top's chest; a yellow middle in the flower. The hoodie
-is as it was. `STILL_VERSION` 12. 1,810 unit tests.
+is as it was. `STILL_VERSION` 12. 1,810 unit tests. The mutation sweep
+caught 12 of 14: a hem moved up the sleeve and a collar lifted up the neck
+both passed, so the hem is now held at the sleeve's end along the arm and
+the collar round the join of neck and body.
 
 WHAT IS NEXT, in the order the runs should take them:
 
