@@ -916,7 +916,7 @@ the backpack straps go round. The straps lie nearer the neck than the arm
 to the armpit. The kid's stand follows the hands, which moved out 0.05, so
 the pet's stand comes 0.05 nearer (`PET_STAND_GAP` 0.45) and the pet stays
 in view on a 320-wide phone. `STILL_VERSION` 9, pinned with SHOULDER_TUCK.
-1,801 unit tests. SWEEP_RESULT
+1,801 unit tests.
 
 WHAT IS NEXT, in the order the runs should take them:
 
