@@ -4,7 +4,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SoundService } from '../services/sound.service';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { QuestionComponent } from './question.component';
+import { AskedQuestion, QuestionComponent } from './question.component';
+import { ProgressService } from '../services/progress.service';
 import { MAX_PICKED, fewestPieces } from '../teaching/coin-pick';
 import { KeypadComponent } from '../keypad/keypad.component';
 
@@ -795,7 +796,8 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     const through = asked.filter(({ num1, num2, operation }) =>
       operation === '+' ? num1 % 10 + num2 % 10 > 10 : num2 % 10 > num1 % 10);
     expect(through.length).toBeGreaterThan(asked.length / 4);
-    asked.forEach(({ operation }) => expect(['+', '-']).toContain(operation));
+    // A half is kept as a share by 2, but asked as "de helft van 16": no : sum in groep 3
+    asked.forEach(({ operation, form }) => expect(form === 'helft' ? '-' : operation).toMatch(/^[+-]$/));
   });
 
   it('asks grade 2 (groep 4) the tables of 1, 2, 5 and 10 in the middle of the year, and dividing within them', () => {
@@ -1628,5 +1630,110 @@ describe('QuestionComponent: a round that survives the real world', () => {
       expect(component.questionsAnswered).toBe(10);
       expect(localStorage.getItem(KEY)).toBeNull();
     });
+  });
+});
+
+describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  function build(language = 'nl') {
+    localStorage.clear();
+    localStorage.setItem('grade', '1');
+    localStorage.setItem('difficulty', 'hard');
+    localStorage.setItem('language', language);
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  /** The sum on the card, in order, with the answer box as "[ ]". */
+  function card(): string[] {
+    const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    return Array.from(problem.children)
+      .filter(child => !child.classList.contains('currency'))
+      .map(child => child.tagName === 'INPUT' ? '[ ]' : child.textContent!.trim());
+  }
+
+  function ask(question: AskedQuestion) {
+    component.currentQuestion = question;
+    component.userAnswer = '';
+    component.showOkButton = false;
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [QuestionComponent, KeypadComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('puts the box where the "?" is in the workbook', () => {
+    build('nl');
+    ask({ num1: 10, num2: 7, operation: '-', form: 'aanvullen' });
+    expect(card()).toEqual(['7', '+', '[ ]', '=', '10']);
+    ask({ num1: 8, num2: 5, operation: '-', form: 'splitsen' });
+    expect(card()).toEqual(['8', '=', '5', '+', '[ ]']);
+    ask({ num1: 7, num2: 7, operation: '+', form: 'dubbel' });
+    expect(card()).toEqual(['dubbel', '7', '=', '[ ]']);
+    ask({ num1: 16, num2: 2, operation: '/', form: 'helft' });
+    expect(card()).toEqual(['de helft van', '16', '=', '[ ]']);
+    // A plain sum keeps the box at the end
+    ask({ num1: 7, num2: 5, operation: '+' });
+    expect(card()).toEqual(['7', '+', '5', '=', '[ ]']);
+  });
+
+  it('says dubbel and de helft van in the child’s language', () => {
+    build('en');
+    ask({ num1: 7, num2: 7, operation: '+', form: 'dubbel' });
+    expect(card()[0]).toBe('double');
+    component.languageService.setLanguage('es');
+    fixture.detectChanges();
+    expect(card()[0]).toBe('el doble de');
+    ask({ num1: 16, num2: 2, operation: '/', form: 'helft' });
+    expect(card()[0]).toBe('la mitad de');
+  });
+
+  it('marks the number that goes in the box: 3 for 7 + ? = 10', () => {
+    build('nl');
+    ask({ num1: 10, num2: 7, operation: '-', form: 'aanvullen' });
+    component.userAnswer = '3';
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBe(true);
+  });
+
+  it('after two tries shows the answer with the fact the form is taught through, and keeps it for another day as it was asked', () => {
+    build('nl');
+    const progress = TestBed.inject(ProgressService);
+    spyOn(progress, 'recordMissed').and.callThrough();
+    ask({ num1: 10, num2: 7, operation: '-', form: 'aanvullen' });
+    component.userAnswer = '5';
+    component.checkAnswer();
+    component.userAnswer = '5';
+    component.checkAnswer();
+    expect(component.workedLine).toBe('10 − 7 = 3');
+    expect(progress.recordMissed).toHaveBeenCalledWith(jasmine.objectContaining({ form: 'aanvullen' }));
+  });
+
+  it('brings a fact missed on another day back in the form it was missed in', () => {
+    localStorage.clear();
+    localStorage.setItem('grade', '1');
+    localStorage.setItem('difficulty', 'hard');
+    const progress = TestBed.inject(ProgressService);
+    spyOn(progress, 'takeMissedFacts').and.returnValue([{ num1: 8, num2: 5, operation: '-', form: 'splitsen' }]);
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    // Never the very first question: it is due once one has been answered
+    expect(component.currentQuestion.form).toBeUndefined();
+    component.questionsAnswered = 1;
+    component.generateQuestion();
+    fixture.detectChanges();
+    expect(component.currentQuestion).toEqual(jasmine.objectContaining({ num1: 8, num2: 5, form: 'splitsen' }));
+    expect(card()).toEqual(['8', '=', '5', '+', '[ ]']);
   });
 });
