@@ -83,4 +83,31 @@ describe('a screen fetched on its own brings its own words', () => {
     expect(climbs.map(climb => climb.name)).toEqual([SELECT_WORDS.en['climb-easy'], SELECT_WORDS.en['climb-medium'], SELECT_WORDS.en['climb-hard']]);
     expect(climbs.map(climb => climb.description)).toEqual([SELECT_WORDS.en['easy-desc'], SELECT_WORDS.en['medium-desc'], SELECT_WORDS.en['hard-desc']]);
   });
+
+  it('renames the grade and difficulty cards when the child switches language on them', async () => {
+    localStorage.setItem('guest', 'true');
+    localStorage.setItem('grade', '3');
+    localStorage.setItem('language', 'nl');
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [GradeSelectComponent, DifficultySelectComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+    const service = TestBed.inject(LanguageService);
+    const grade = TestBed.createComponent(GradeSelectComponent);
+    grade.detectChanges();
+    const difficulty = TestBed.createComponent(DifficultySelectComponent).componentInstance;
+    expect(grade.componentInstance.grades[0].name).toBe('Groep 3');
+    expect(difficulty.difficulties[0].name).toBe(SELECT_WORDS.nl['climb-easy']);
+
+    service.setLanguage('en');
+    grade.detectChanges();
+
+    expect(grade.componentInstance.grades[0].name).toBe('Grade 1');
+    expect(grade.componentInstance.grades[0].badge).toBe(1);
+    expect(grade.nativeElement.querySelector('.grade-card').textContent).toContain('Grade 1');
+    expect(difficulty.difficulties[0].name).toBe(SELECT_WORDS.en['climb-easy']);
+    // The same cards on every look within a language, so the list is not redrawn for nothing
+    expect(grade.componentInstance.grades).toBe(grade.componentInstance.grades);
+  });
 });

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { LanguageService } from '../services/language.service';
+import { Language, LanguageService } from '../services/language.service';
 import { ProgressService } from '../services/progress.service';
 import { lastGrade } from '../levels/difficulty-tuner';
 import { suggestGrade } from '../levels/grade-tuner';
@@ -17,6 +17,14 @@ import { SavedResult, isUnseen } from '../result/result-state';
 import { stepColour } from '../theme/palette';
 import { dutchYear } from '../levels/school-year';
 import { SELECT_WORDS } from './select-words';
+
+interface GradeCard {
+  level: number;
+  badge: number;
+  name: string;
+  description: string;
+  colour: string;
+}
 
 /** Ten year groups, the ring walked from one end to the other. */
 const GRADE_COUNT = 10;
@@ -35,7 +43,17 @@ export class GradeSelectComponent implements OnInit {
    * "students", which rendered "Maths for 1 students" — counting children
    * instead of naming a year group, and wrong in all three languages.
    */
-  readonly grades: { level: number; badge: number; name: string; description: string; colour: string }[];
+  get grades(): GradeCard[] {
+    const language = this.languageService.getLanguage();
+    return this.cards[language] || (this.cards[language] = Array.from({ length: GRADE_COUNT }, (_, i) => ({
+      level: i + 1,
+      ...this.yearOf(i + 1),
+      colour: stepColour(i + 1, GRADE_COUNT)
+    })));
+  }
+
+  /** The cards in each language the child has had on screen: a switch renames them, from "Groep 3" to "Grade 1". */
+  private readonly cards: { [language in Language]?: GradeCard[] } = {};
 
   /** What a grade is called where the child is at school: in Dutch, grade 1 is groep 3 (school-year.ts). */
   private yearOf(grade: number): { badge: number; name: string; description: string } {
@@ -100,12 +118,6 @@ export class GradeSelectComponent implements OnInit {
     public languageService: LanguageService
   ) {
     languageService.extend(SELECT_WORDS);
-    // Built here, not where it is declared: its names need the words just added
-    this.grades = Array.from({ length: GRADE_COUNT }, (_, i) => ({
-      level: i + 1,
-      ...this.yearOf(i + 1),
-      colour: stepColour(i + 1, GRADE_COUNT)
-    }));
   }
 
   ngOnInit() {

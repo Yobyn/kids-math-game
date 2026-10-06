@@ -1,10 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { LanguageService, TranslationKeys } from '../services/language.service';
+import { Language, LanguageService, TranslationKeys } from '../services/language.service';
 import { ProgressService } from '../services/progress.service';
 import { Difficulty, lastPlayed, suggestDifficulty, suggestionDirection } from '../levels/difficulty-tuner';
 import { Climb, climbs } from './climb';
 import { SELECT_WORDS } from '../grade-select/select-words';
+
+type ClimbCard = Climb & { name: string; description: string };
 
 @Component({
   selector: 'app-difficulty-select',
@@ -13,7 +15,17 @@ import { SELECT_WORDS } from '../grade-select/select-words';
 })
 export class DifficultySelectComponent implements OnInit {
   /** Three climbs, easiest first: see climb.ts for why they are drawn. */
-  readonly difficulties: (Climb & { name: string; description: string })[];
+  get difficulties(): ClimbCard[] {
+    const language = this.languageService.getLanguage();
+    return this.cards[language] || (this.cards[language] = climbs().map(climb => ({
+      ...climb,
+      name: this.languageService.translate(`climb-${climb.level}` as TranslationKeys),
+      description: this.languageService.translate(`${climb.level}-desc` as TranslationKeys)
+    })));
+  }
+
+  /** The climbs in each language the child has had on screen, so a switch renames them. */
+  private readonly cards: { [language in Language]?: ClimbCard[] } = {};
 
   /** What recent rounds suggest, if they suggest anything at all. */
   suggested?: Difficulty;
@@ -25,12 +37,6 @@ export class DifficultySelectComponent implements OnInit {
     public languageService: LanguageService
   ) {
     languageService.extend(SELECT_WORDS);
-    // Built here, not where it is declared: its names need the words just added
-    this.difficulties = climbs().map(climb => ({
-      ...climb,
-      name: languageService.translate(`climb-${climb.level}` as TranslationKeys),
-      description: languageService.translate(`${climb.level}-desc` as TranslationKeys)
-    }));
   }
 
   ngOnInit() {
