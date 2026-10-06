@@ -104,6 +104,9 @@ describe('shoes', () => {
         const size = new THREE.Box3().setFromObject(meshes(shoe, id === 'light-up' ? SHOE_GLOW : 'shoe-sole')[0]).getSize(new THREE.Vector3());
         expect(size.x).withContext(`${bodyType} ${id} width`).toBeGreaterThan(footWidth * 1.1);
         expect(size.z).withContext(`${bodyType} ${id} length`).toBeGreaterThan(footLength * 1.1);
+        // On a thick sole: a third of the shoe's height, or more
+        const foot = new THREE.Box3().setFromObject(shoe.getObjectByName('shoe-foot')!);
+        expect(size.y / (foot.max.y - foot.min.y)).withContext(`${bodyType} ${id} sole`).toBeGreaterThan(1 / 3);
       });
     }));
   });
