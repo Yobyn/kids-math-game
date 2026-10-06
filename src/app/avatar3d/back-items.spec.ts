@@ -257,6 +257,17 @@ describe('back items', () => {
     expect(misses.slice(0, 5)).toEqual([]);
   }));
 
+  it('brings the straps down the front as far as the armpit, under the round top of each arm', () => {
+    BODY_TYPES.forEach(bodyType => ['striped', 'hoodie'].forEach(top => {
+      const figure = figureFor(bodyType);
+      const root = build(dress(bodyType, 'backpack', { top }));
+      const front = vertices(sort(root).item.filter(mesh => mesh.name === 'backpack-strap')).filter(p => p.z > 0);
+      const armpit = figure.shoulder[1] - figure.armRadii[0];
+      expect(Math.min(...front.map(p => p.y))).withContext(`${bodyType} ${top}`).toBeLessThan(armpit + 0.1);
+      disposeAvatar(built.pop()!);
+    }));
+  });
+
   it('lets hair fall over the straps: the straps go the same way whatever the hair', () => {
     BODY_TYPES.forEach(bodyType => {
       // From where they leave the bag, which sits on long hair: past the first two rings
