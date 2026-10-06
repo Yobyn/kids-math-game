@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Avatar, findItem, NO_ITEM } from '../avatar/avatar-model';
+import { Avatar, HATCHLINGS, findItem, NO_ITEM } from '../avatar/avatar-model';
 import { topColourOf } from '../avatar/top-colours';
 import { HATS_OVER_HAIR, shade } from '../avatar/avatar-parts';
 import {
@@ -7,7 +7,7 @@ import {
 } from './head-surface';
 import { at, crownGrid, part, scale, starShape, surfaceGeometry, toon } from './toon';
 import { buildGlasses, buildHat } from './wardrobe3d';
-import { buildPet } from './pets';
+import { buildEgg, buildHatched, buildPet } from './pets';
 import { buildShoe, collarShare, legRadius } from './shoes';
 import { buildCreature } from './creatures';
 import { buildRobot } from './robots';
@@ -695,9 +695,9 @@ function buildPedestal(radius: number, name = 'pedestal'): THREE.Group {
 }
 
 /** A pet's own stand. */
-export const PET_STAND_RADIUS = 1.7;
+export const PET_STAND_RADIUS = 1.35;
 /** The gap between the two stands' edges. */
-export const PET_STAND_GAP = 0.6;
+export const PET_STAND_GAP = 0.5;
 /**
  * Pets are drawn larger than life, up to the character's knee: at a pet's
  * true size beside a teenager, a phone shows a kitten as a few pixels.
@@ -712,19 +712,41 @@ export const PET_SCALE = 1.45;
  */
 function buildPetBeside(avatar: Avatar, standRadius: number): THREE.Group | null {
   const item = avatar.pet && avatar.pet !== NO_ITEM ? findItem('pet', avatar.pet) : undefined;
-  const pet = item ? buildPet(item.id, item.colour) : null;
+  const pet = item ? buildPet(item.id, item.colour) : companion(avatar);
   if (!pet) {
     return null;
   }
   const group = new THREE.Group();
   group.name = 'pet';
   group.add(buildPedestal(PET_STAND_RADIUS, 'pet-pedestal'));
-  pet.scale.setScalar(PET_SCALE);
+  pet.scale.setScalar(pet.userData.scale || PET_SCALE);
   group.add(pet);
   // Both stands flare out 8% at the foot
   group.position.set(-WAVING_SIDE * (standRadius * 1.08 + PET_STAND_GAP + PET_STAND_RADIUS * 1.08), 0, 0.3);
   group.rotation.y = WAVING_SIDE * 0.35;
   return group;
+}
+
+/** A just-hatched pet's size, against a grown one's PET_SCALE. */
+export const HATCHED_SCALE = 1.0;
+
+/**
+ * Without a pet of their own chosen, the kid hero's companion grows with them
+ * (Yobyn, 2026-10-05): a closed egg for a Beginner, hatched into their pet
+ * when they are Trained, the pet grown up for a Legend.
+ */
+function companion(avatar: Avatar): THREE.Group | null {
+  const id = HATCHLINGS.indexOf(avatar.hatchling) >= 0 ? avatar.hatchling : HATCHLINGS[0];
+  const colour = findItem('pet', id)!.colour;
+  if (avatar.stage <= 1) {
+    return buildEgg(colour);
+  }
+  if (avatar.stage === 2) {
+    const hatched = buildHatched(id, colour);
+    hatched!.userData.scale = HATCHED_SCALE;
+    return hatched;
+  }
+  return buildPet(id, colour);
 }
 
 /** How far above the collar the chin rests: the head sits on the body, with no neck showing, as the dragon's does. */
