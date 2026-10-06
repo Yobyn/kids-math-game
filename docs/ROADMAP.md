@@ -142,7 +142,27 @@ middle, hard the end), one groep per run.
   grown-ups' list losing a form's worked line) has its test now.
   Not yet: aanvullen tot 20 and to the next ten (34 + ? = 40), splitsen
   above 10.
-- **Next, in order:** groep 5, 6, 7, 8; then verhaaltjessommen.
+- **Groep 5, the first half: DONE (2026-10-06).** Grade 3 is groep 5 now.
+  The start of the year is groep 4's end; the middle brings the tables of
+  6, 7, 8 and 9 and sharing out within them (all ten known), + and - to
+  1000 without going through a ten or a hundred (340 + 250, 563 - 30),
+  times a ten (7 × 20) and a third, a quarter or a fifth of an amount (a
+  new written form, ⅓ van 27, kept as 27 : 3); the end brings + and - to
+  1000 through a ten or a hundred (458 + 189, 823 - 684) and a ten-and-ones
+  times a digit (4 × 21). The tests read every sum's columns to check it
+  does or does not go through a ten, and caught one slip on the way:
+  turning 4 × 50 into 4 × 51 went past the cap of 200. The fraction is set
+  as big as the numbers; at first it was part of the small word "¼ van",
+  so the one thing the sum is about read smallest on the card.
+  Mutation sweep: 25 mutants, 23 killed. Of the two that lived, one was a
+  real gap (a "¼ van" question in a round put down halfway would have come
+  back as a plain 20 : 4; every form the topics make is now read back in a
+  test) and one was a rule that changed nothing (no round hundreds in a sum
+  to 1000; 340 + 200 is a fine sum), so the rule went.
+  STILL TO DO for groep 5: dividing with a remainder (23 : 4 = 5 rest ?)
+  and measures (3 m = ? cm, 2 uur = ? minuten), each a form of its own.
+- **Next, in order:** groep 5's remainders and measures; groep 6, 7, 8;
+  then verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 
