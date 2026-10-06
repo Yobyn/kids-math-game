@@ -1728,12 +1728,14 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     fixture = TestBed.createComponent(QuestionComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    // Never the very first question: it is due once one has been answered
-    expect(component.currentQuestion.form).toBeUndefined();
+    // Never the very first question: it waits until one has been answered. (The first may well be a
+    // written form of its own: groep 3's end asks them, so look at the queue, not the screen)
+    expect((component as any).missed.length).toBe(1);
     component.questionsAnswered = 1;
     component.generateQuestion();
     fixture.detectChanges();
     expect(component.currentQuestion).toEqual(jasmine.objectContaining({ num1: 8, num2: 5, form: 'splitsen' }));
+    expect((component as any).missed.length).toBe(0);
     expect(card()).toEqual(['8', '=', '5', '+', '[ ]']);
   });
 });

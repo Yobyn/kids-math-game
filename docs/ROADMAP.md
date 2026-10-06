@@ -138,6 +138,8 @@ middle, hard the end), one groep per run.
   and check the sum is then true (and not with one more). On a 320px phone
   "de helft van" broke over three lines beside the sum; the words are one
   phrase now, a little quieter than the numbers.
+  Mutation sweep: 33 mutants, 32 killed first time; the one that lived (the
+  grown-ups' list losing a form's worked line) has its test now.
   Not yet: aanvullen tot 20 and to the next ten (34 + ? = 40), splitsen
   above 10.
 - **Next, in order:** groep 5, 6, 7, 8; then verhaaltjessommen.
