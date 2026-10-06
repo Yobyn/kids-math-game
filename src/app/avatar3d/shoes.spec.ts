@@ -4,7 +4,7 @@ import { buildAvatar, disposeAvatar } from './build-avatar';
 import { KNEE_FORWARD, figureFor, legLength, legRadiusAlong, lowerLegRadii } from './figure';
 import { GLOW_LOW, GLOW_SECONDS, glow } from './motion';
 import { Rig } from './rig';
-import { SHOE_GLOW, SHOE_IDS, TAPER, TUCKED, buildShoe, collarShare, legRadius } from './shoes';
+import { SHOE_GLOW, SHOE_IDS, SNEAKER, TAPER, TUCKED, buildShoe, collarShare, legRadius } from './shoes';
 import { framedBox } from './still-renderer';
 
 const ITEMS = SHOE_ITEMS.filter(item => item.id !== NO_ITEM);
@@ -65,7 +65,7 @@ describe('shoes', () => {
     expect(meshes(root).filter(mesh => mesh.name === 'shoe-sole').length).toBe(2);
   });
 
-  it('keeps the sneakers everyone starts with exactly as they were, and the trousers down to the hem', () => {
+  it('keeps the trousers down to the hem in the sneakers everyone starts with', () => {
     BODY_TYPES.forEach(bodyType => {
       const figure = figureFor(bodyType);
       const root = build(dress(bodyType, NO_ITEM));
@@ -93,6 +93,61 @@ describe('shoes', () => {
     WITH_COLLAR.forEach(id => expect(collarShare(id)).toBeGreaterThan(0));
     // Boots come further up the leg than high-tops
     expect(collarShare('boots')).toBeGreaterThan(collarShare('high-tops'));
+  });
+
+  it('makes every pair chunky, as the bear\u2019s boots and the robot\u2019s feet are: bigger round than the foot', () => {
+    BODY_TYPES.forEach(bodyType => [NO_ITEM, ...SHOE_IDS].forEach(id => {
+      const figure = figureFor(bodyType);
+      const [footLength, footWidth] = figure.foot;
+      const root = build(dress(bodyType, id));
+      root.getObjectByName('body')!.children.filter(c => c.name === 'shoe').forEach(shoe => {
+        const size = new THREE.Box3().setFromObject(meshes(shoe, id === 'light-up' ? SHOE_GLOW : 'shoe-sole')[0]).getSize(new THREE.Vector3());
+        expect(size.x).withContext(`${bodyType} ${id} width`).toBeGreaterThan(footWidth * 1.1);
+        expect(size.z).withContext(`${bodyType} ${id} length`).toBeGreaterThan(footLength * 1.1);
+        // On a thick sole: a third of the shoe's height, or more
+        const foot = new THREE.Box3().setFromObject(shoe.getObjectByName('shoe-foot')!);
+        expect(size.y / (foot.max.y - foot.min.y)).withContext(`${bodyType} ${id} sole`).toBeGreaterThan(1 / 3);
+      });
+    }));
+  });
+
+  it('starts everyone in bright sneakers, and every pair stands out from the trousers', () => {
+    // Bright, as the robot's feet and the bear's boots are: not the dark slate they were
+    const sneaker = new THREE.Color(SNEAKER).getHSL({ h: 0, s: 0, l: 0 });
+    expect(sneaker.l).toBeGreaterThan(0.5);
+    expect(sneaker.s).toBeGreaterThan(0.5);
+    BODY_TYPES.forEach(bodyType => [NO_ITEM, ...SHOE_IDS].forEach(id => {
+      const root = build(dress(bodyType, id));
+      const trousers = (meshes(root, 'leg')[0].material as THREE.MeshToonMaterial).color;
+      const upper = (meshes(root, 'shoe-upper')[0].material as THREE.MeshToonMaterial).color;
+      const apart = Math.hypot(upper.r - trousers.r, upper.g - trousers.g, upper.b - trousers.b);
+      expect(apart).withContext(`${bodyType} ${id}`).toBeGreaterThan(0.25);
+    }));
+  });
+
+  it('shows the laces: lying on the toe box, in front of the trouser hem', () => {
+    BODY_TYPES.forEach(bodyType => [NO_ITEM, 'high-tops'].forEach(id => {
+      const figure = figureFor(bodyType);
+      const root = build(dress(bodyType, id));
+      const hemFront = legRadiusAlong(figure, 0);
+      root.getObjectByName('body')!.children.filter(c => c.name === 'shoe').forEach(shoe => {
+        const upper = meshes(shoe, 'shoe-upper')[0];
+        const laces = meshes(shoe, 'shoe-lace').filter(lace => lace.parent!.name === 'shoe-foot');
+        expect(laces.length).withContext(`${bodyType} ${id}`).toBe(3);
+        laces.forEach(lace => {
+          const at = lace.getWorldPosition(new THREE.Vector3());
+          // In front of the trousers, where they are seen
+          expect(at.z).withContext(`${bodyType} ${id}`).toBeGreaterThan(hemFront + 0.05);
+          // On the toe box: the toe box right under it, not floating above it or sunk in it
+          const hit = new THREE.Raycaster(at.clone().setY(at.y + 2), new THREE.Vector3(0, -1, 0)).intersectObject(upper)[0];
+          expect(hit).withContext(`${bodyType} ${id}`).toBeDefined();
+          expect(Math.abs(at.y - hit.point.y)).withContext(`${bodyType} ${id}`).toBeLessThan(0.05);
+        });
+        // The toe cap reaching past the toe box, so the two never lie on each other
+        const toe = new THREE.Box3().setFromObject(meshes(shoe, 'shoe-toe')[0]);
+        expect(toe.max.z).withContext(`${bodyType} ${id}`).toBeGreaterThan(new THREE.Box3().setFromObject(upper).max.z + 0.05);
+      });
+    }));
   });
 
   it('stands every pair flat on the stand, on both figures', () => {
