@@ -4,6 +4,7 @@ import { SavedRound, parseRound, serialiseRound } from '../question/round-state'
 import { SavedResult, parseResult, serialiseResult } from '../result/result-state';
 import { LearnedFact, parseLearned, rememberLearned } from '../teaching/learned';
 import { MoneyQuestion } from '../teaching/money';
+import type { SumForm } from '../question/sum-form';
 import {
   SYNCED_VERSION,
   SyncedProgress,
@@ -56,6 +57,11 @@ export interface MissedFact {
    */
   money?: MoneyQuestion;
   /**
+   * How the sum was written when it was missed (7 + ? = 10 rather than
+   * 10 - 7), so it comes back the way it was hard. See question/sum-form.ts.
+   */
+  form?: SumForm;
+  /**
    * The day this fact is ready to be asked again (YYYY-MM-DD, local). Absent
    * on facts stored before the schedule existed, which reads as due now.
    */
@@ -101,7 +107,8 @@ export function factSignature(fact: MissedFact): string {
     return `money:${fact.money.shape}:${fact.money.answerCents}:${fact.money.pile.join('-')}`
       + `:${Object.keys(fact.money.values).map(name => fact.money!.values[name]).join('-')}`;
   }
-  return `${fact.num1}${fact.operation}${fact.num2}`;
+  // 7 + ? = 10 and 10 - 7 are the same sum but not the same thing to know
+  return `${fact.num1}${fact.operation}${fact.num2}` + (fact.form ? `:${fact.form}` : '');
 }
 
 /**
