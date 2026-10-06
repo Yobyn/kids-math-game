@@ -56,6 +56,11 @@ function insideTorso(figure: Figure, p: THREE.Vector3): boolean {
   return w > 0 && (p.x / w) ** 2 + (p.z / (w * figure.torsoDepth)) ** 2 < 1;
 }
 
+/** The top of the torso, where the neck comes out. */
+function collar(figure: Figure): number {
+  return figure.torso[figure.torso.length - 1][1];
+}
+
 const BODY_TYPES: Array<'boy' | 'girl'> = ['boy', 'girl'];
 
 /**
@@ -556,6 +561,33 @@ describe('buildAvatar', () => {
     });
   });
 
+  it('rounds each shoulder no fuller than its sleeve, its top under the collar, in every top (Yobyn, 2026-10-05)', () => {
+    const misses: string[] = [];
+    BODY_TYPES.forEach(bodyType => WARDROBE.filter(item => item.slot === 'top').forEach(top => {
+      const figure = figureFor(bodyType);
+      const root = buildAvatar(avatar({ bodyType, top: top.id }));
+      root.updateMatrixWorld(true);
+      const caps = find(root, 'shoulder') as THREE.Mesh[];
+      const sleeves = find(root, 'arm') as THREE.Mesh[];
+      expect(caps.length).toBe(2);
+      caps.forEach((cap, i) => {
+        const radius = (cap.geometry as THREE.SphereGeometry).parameters.radius;
+        // The sleeve's own width where it meets the shoulder: its widest point in the top half of it
+        const points = (sleeves[i].geometry as THREE.LatheGeometry).parameters.points;
+        const length = Math.max(...points.map(p => p.y));
+        const sleeve = Math.max(...points.filter(p => p.y > length / 2).map(p => p.x));
+        if (radius > sleeve + 1e-9) {
+          misses.push(`${bodyType} ${top.id}: shoulder ${radius.toFixed(3)} fuller than its sleeve ${sleeve.toFixed(3)}`);
+        }
+        const box = new THREE.Box3().setFromObject(cap);
+        if (box.max.y >= collar(figure)) {
+          misses.push(`${bodyType} ${top.id}: shoulder up to ${box.max.y.toFixed(2)}, the collar at ${collar(figure).toFixed(2)}`);
+        }
+      });
+    }));
+    expect(misses).toEqual([]);
+  });
+
   it('lays each stripe on the torso, at the torso\'s own width', () => {
     BODY_TYPES.forEach(bodyType => {
       const figure = figureFor(bodyType);
@@ -568,8 +600,13 @@ describe('buildAvatar', () => {
         expect(geometry.parameters.radiusTop).toBeCloseTo(torsoRadius(figure, y + 0.1) * 1.012, 9);
         expect(geometry.parameters.radiusBottom).toBeCloseTo(torsoRadius(figure, y - 0.1) * 1.012, 9);
         expect(y).toBeGreaterThan(figure.hem);
-        expect(y).toBeLessThan(figure.shoulder[1]);
+        expect(y).toBeLessThan(collar(figure));
       });
+      // Over the whole chest, hem to collar: no plain band left at the top
+      const span = collar(figure) - figure.hem;
+      const ys = stripes.map(stripe => stripe.position.y);
+      expect(Math.min(...ys) - figure.hem).withContext(bodyType).toBeLessThan(span / 4);
+      expect(collar(figure) - Math.max(...ys)).withContext(bodyType).toBeLessThan(span / 4);
     });
   });
 

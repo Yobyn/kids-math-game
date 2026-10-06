@@ -488,7 +488,8 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     const elbow = new THREE.Vector3(side * elbowXY[0], elbowXY[1], 0.08);
     const wristV = new THREE.Vector3(side * wristXY[0], wristXY[1], 0.18);
     const [rShoulder, rElbow, rWrist] = figure.armRadii;
-    const cap = part('shoulder', new THREE.SphereGeometry(rShoulder * 1.08, 20, 14), cloth, 0.04);
+    // The sleeve's round top, no fuller than the sleeve: a bigger ball balloons
+    const cap = part('shoulder', new THREE.SphereGeometry(rShoulder * (cut === 'short' ? 1.05 : 1), 20, 14), cloth, 0.04);
     cap.position.copy(shoulder);
     body.add(cap);
     // The arm turns at the shoulder and bends at the elbow (motion.ts, rig.ts):
@@ -628,10 +629,10 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
   }
 
   if (top && top.id === 'striped') {
-    // Spread over the torso between the hem and the shoulders, whatever its height
-    const span = figure.shoulder[1] - figure.hem;
+    // Spread over the chest between the hem and the collar, whatever its height
+    const span = collarY - figure.hem;
     for (let i = 0; i < 5; i++) {
-      const y = figure.hem + span * (0.15 + i * 0.175);
+      const y = figure.hem + span * (0.13 + i * 0.17);
       const band = new THREE.Mesh(new THREE.CylinderGeometry(torsoRadius(figure, y + 0.1) * 1.012, torsoRadius(figure, y - 0.1) * 1.012, 0.2, 40, 1, true),
         toon('#ffffff'));
       band.name = 'stripe';
@@ -645,7 +646,7 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     const mesh = new THREE.Mesh(new THREE.ShapeGeometry(decal, 12),
       new THREE.MeshBasicMaterial({ color: top.id === 'star-tee' ? '#ffd166' : '#ff8fb8' }));
     mesh.name = 'decal';
-    const y = figure.hem + (figure.shoulder[1] - figure.hem) * 0.62;
+    const y = figure.hem + (collarY - figure.hem) * 0.54;
     mesh.position.set(0, y, girth(figure, y)[0] * depth + 0.03);
     body.add(mesh);
   }
@@ -696,8 +697,8 @@ function buildPedestal(radius: number, name = 'pedestal'): THREE.Group {
 
 /** A pet's own stand. */
 export const PET_STAND_RADIUS = 1.35;
-/** The gap between the two stands' edges. */
-export const PET_STAND_GAP = 0.5;
+/** The gap between the two stands' edges: the pet as near the edge of a phone's stage as it can be and stay in view (pets.spec). */
+export const PET_STAND_GAP = 0.45;
 /**
  * Pets are drawn larger than life, up to the character's knee: at a pet's
  * true size beside a teenager, a phone shows a kitten as a few pixels.
