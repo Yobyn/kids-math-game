@@ -8,7 +8,7 @@ import { SumForm } from '../../question/sum-form';
 
 /** One piece of a sum on the screen. `kind` is its CSS class on the question card. */
 export interface SumPart {
-  kind: 'number' | 'operation' | 'equals' | 'word';
+  kind: 'number' | 'fraction' | 'operation' | 'equals' | 'word';
   text: string;
 }
 
@@ -59,7 +59,7 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     case 'deel':
       return {
         // The fraction is what the sum is about: it is as big as the numbers, only "van" is a word
-        before: [{ kind: 'number', text: UNIT_FRACTIONS[sum.num2] }, { kind: 'word', text: words.of }, number(sum.num1), equals],
+        before: [{ kind: 'fraction', text: UNIT_FRACTIONS[sum.num2] }, { kind: 'word', text: words.of }, number(sum.num1), equals],
         after: []
       };
     default:
