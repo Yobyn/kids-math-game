@@ -15,8 +15,11 @@ back. What that cost is recorded under "What the audit found", at the end.
 - Login and registration against a small Express backend, JWT in `localStorage`.
 - Grade (1-10) and difficulty (easy/medium/hard) selection, both reachable by
   keyboard and sized for small hands.
-- Ten-question rounds: `+ - × ÷`, scaled by grade and difficulty, with a bonus
-  for streaks and two attempts per question.
+- Ten-question rounds, with a bonus for streaks and two attempts per question.
+  Groep 3 and 4 (grades 1 and 2) are asked what a Dutch school sets them at
+  that moment of the school year (docs/CURRICULUM-NL.md); grades 3 and up
+  still get the old `+ - × ÷` scaled by grade and difficulty, until their
+  groep is built. Signs are written as in class: × and : (÷ in English).
 - Touch number pad on phones and tablets, so the OS keyboard never covers the
   question. Haptics on key press and on answers.
 - A wrong answer shows the correct one with effort-focused encouragement.
@@ -85,6 +88,44 @@ back. What that cost is recorded under "What the audit found", at the end.
   today's date down passes on the day it is written and fails weeks later on a
   branch nobody has touched — which is not hypothetical, see the audit.
 - 91.8% of statements covered (85.5% of branches).
+
+## What school asks (Yobyn, 2026-10-06)
+
+"The look and feel looks good, now we need to focus on the questions them
+self and the level of the questions, they need what is actually asked in
+school." He chose the Dutch basisschool, groep 3 to 8, all of it. The map and
+the build order are in **docs/CURRICULUM-NL.md**: grade N is groep N + 2, the
+difficulty is the moment in the school year (easy the start, medium the
+middle, hard the end), one groep per run.
+
+- **Groep 3 and 4, the plain sums: DONE (2026-10-06).**
+  `src/app/teaching/school/groep.ts` (lazy, in the round's chunk) makes each
+  topic the way it is taught: within 10 with small numbers, the teens without
+  and then through the ten, doubles, jumps of ten; T±T, TE±E, TE±T, TE±TE and
+  hundreds; the tables of 1, 2, 5 and 10 and then 3 and 4, and dividing that
+  comes out. A round mixes the topics of its moment, the new ones twice as
+  often as the ones they build on. Before this a grade-1 child was only ever
+  asked to add within 10 and met × in grade 5 and ÷ in grade 7, two and four
+  years after school teaches them. In Dutch the grade cards now say Groep 3
+  ... Groep 8, Klas 1 ... Klas 4; "Groep 1" had told a Dutch child the sums
+  were for four-year-olds. The sign on the question is × and : (÷ in
+  English) and a real minus, where the screen used to show `*` and `/`.
+  The tests hold the curriculum's facts, not the code's: "without crossing
+  the ten" keeps the ones under ten, "through the ten" goes past it, the
+  tables are only the set for that moment, every answer is whole and never
+  below nought. They found one slip on the way: TE − TE through the ten was
+  making "80 − 24", a round ten, not two two-digit numbers.
+  Mutation sweep: 55 mutants over the generators, the groep names and the
+  sign, 53 killed. The first pass left six alive and each became a test
+  (a sum that lands on the ten is not "without crossing", sharing out by 1,
+  new topics outweighing what they build on, the badge number). The other
+  two were bounds tighter than school's own (23 + 16, 52 − 47), so the code
+  took the mutant.
+- **Next, in order:** the written forms of groep 3–4 (aanvullen 7 + ? = 10,
+  splitsen 8 = 5 + ?, dubbel, helft), which need the answer box in the
+  middle of a sum; then groep 5, 6, 7, 8; then verhaaltjessommen.
+- Money is still its own strand and still comes up at every grade; in
+  groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 
 ## Product direction (Yobyn, 2026-09-21)
 
