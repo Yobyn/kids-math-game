@@ -5,22 +5,12 @@ import { HttpClientModule } from '@angular/common/http';
 import { AppRoutingModule } from './app-routing.module';
 import { SharedModule } from './shared/shared.module';
 import { AppComponent } from './app.component';
-import { LoginComponent } from './login/login.component';
-import { GradeSelectComponent } from './grade-select/grade-select.component';
-import { DifficultySelectComponent } from './difficulty-select/difficulty-select.component';
-import { LanguageSelectorComponent } from './language-selector/language-selector.component';
 import { ParticlesComponent } from './particles/particles.component';
-import { TitleHeroComponent } from './login/title-hero.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent,
-    GradeSelectComponent,
-    DifficultySelectComponent,
-    LanguageSelectorComponent,
-    ParticlesComponent,
-    TitleHeroComponent
+    ParticlesComponent
   ],
   imports: [
     BrowserModule,

@@ -2013,6 +2013,37 @@ device would stay asleep. It now keeps listening, and a test covers it.
   export.
 
 ### Platform
+- **Every screen is fetched as the child gets to it (2026-10-06).** Yobyn:
+  "There must be a smarter way to load in the content as the user
+  navigates, so we can reduce the initial content and make room for more
+  improvements." The first load is now only the frame round the screens:
+  header, language picker, the character and the starry field. Every
+  screen is its own chunk. The way to play (title, grade, difficulty, the
+  round, its result) is PRELOADED: the screen being opened is fetched
+  first, the rest in the background once it is up, so moving on is as quick
+  as before and works offline; the between-rounds screens (dressing up,
+  progress, scrapbook, grown-ups) wait until they are opened. Each screen
+  brings its own words (login-words, select-words, play-words, item-words),
+  handed to the language service first thing as it is built. First load
+  396.4 -> 352.3 kB; our own code in it about 101 -> 60 kB (measured from
+  the production source map, scratchpad smap.js). The words left in the
+  first load are 25, about 3 kB for all three languages: fetching only the
+  chosen language would save about 2 kB for an extra wait before the first
+  screen, so it does not. On the way it fixed switching language on the
+  grade and difficulty screens: the cards kept the language they were
+  built in ("Groep 3" under "Select Grade"); each language's cards are
+  built when first shown now.
+  NEXT, if more room is needed: the progress store (services/progress.service.ts
+  with round-state, result-state, learned and review-schedule, about 13 kB)
+  is still in the first load, because the sign-in, character and sync
+  services all write through it; splitting it is real work on saved
+  progress, not a quick move. Past that the floor is Angular 12 itself
+  (about 248 kB of the 308 kB main file): a framework upgrade is the next
+  big saving, and is its own piece of work.
+  Mutation sweep: 20 mutants, 20 killed: a preload mark taken off the
+  title, grade or difficulty route, the guard taken off, a preloader that
+  fetches everything, any one of the twelve screens not handing over its
+  words, and cards built once for every language.
 - **The header fits a phone now.** It used to be 598px across at 390px wide,
   so every screen scrolled sideways. On phones the language buttons show the
   flag alone with the name moved to the accessible label, the controls row
