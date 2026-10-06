@@ -257,17 +257,14 @@ export function stylise(measured: Figure, style: Style): Figure {
 export const SHOULDER_TUCK = 0.3;
 
 /**
- * The shoulders brought down under the collar (SHOULDER_TUCK), the arm
- * shortened to match so the hands hang where they did, at the hips: upper
+ * The shoulders set under the collar (SHOULDER_TUCK), the arm's length
+ * changed to match so the hands hang where they did, at the hips: upper
  * arm and forearm alike, so the elbow stays halfway.
  */
 function tuckShoulders(figure: Figure): void {
   const [rShoulder] = figure.armRadii;
   const collar = figure.torso[figure.torso.length - 1][1];
   const drop = figure.shoulder[1] - (collar - (1 + SHOULDER_TUCK) * rShoulder);
-  if (drop <= 0) {
-    return;
-  }
   const hangs = figure.upperArm * Math.cos(figure.armSwing) + figure.forearm * Math.cos(figure.armSwing * 0.8);
   const k = 1 - drop / hangs;
   figure.shoulder = [figure.shoulder[0], figure.shoulder[1] - drop];
