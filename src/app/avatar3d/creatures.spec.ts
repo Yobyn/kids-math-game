@@ -78,7 +78,7 @@ describe('the Creatures family: a dragon that grows', () => {
   it('re-draws the pictures on other screens when the glow changes: STILL_VERSION goes up with its size', () => {
     // Saved pictures are kept by version; a new glow with the old version would leave them showing the old one
     const glow = build(dragon(3)).getObjectByName(CREATURE_GLOW)!;
-    expect({ version: STILL_VERSION, glow: [glow.scale.x, glow.scale.y] }).toEqual({ version: 8, glow: [7.4, 8.6] });
+    expect({ version: STILL_VERSION, glow: [glow.scale.x, glow.scale.y] }).toEqual({ version: 9, glow: [7.4, 8.6] });
   });
 
   it('hatches at stage 1, grows small wings at 2, and spreads big ones with a glow at 3', () => {

@@ -183,12 +183,15 @@ function backpack(colour: string, figure: Figure, around: Around): THREE.Group {
   handle.position.set(0, centreY + half[1] * 0.92, centreZ);
   group.add(handle);
 
-  // The straps, over the top of each shoulder, inside where an arm turns
+  // The straps, over the top of each shoulder, inside where an arm turns:
+  // nearer the neck than the arm, which hangs out past the tummy
   const inside = figure.shoulder[0] - figure.armRadii[0] * 1.1;
-  const strapX = figure.neckRadius * 1.15 + (inside - figure.neckRadius * 1.15) * 0.5;
+  const strapX = figure.neckRadius * 1.15 + (inside - figure.neckRadius * 1.15) * 0.4;
   const strapHalf = Math.min(0.16, (inside - strapX) * 0.6);
+  // Down the front as far as the armpit, under the round top of the arm
+  const armpit = figure.shoulder[1] - figure.armRadii[0];
   [-1, 1].forEach(side => {
-    const path = strapPath(around.meshes, side * strapX, strapHalf, figure, centreY + half[1] * 0.7, centreZ + half[2] * 0.6, centreY - half[1] * 0.1);
+    const path = strapPath(around.meshes, side * strapX, strapHalf, figure, centreY + half[1] * 0.7, centreZ + half[2] * 0.6, armpit);
     const strap = part('backpack-strap', band(path, side * strapX, strapHalf, 0.07), dark, 0.02);
     group.add(strap);
     const end = path[path.length - 1];
