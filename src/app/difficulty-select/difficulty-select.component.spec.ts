@@ -68,6 +68,21 @@ describe('DifficultySelectComponent', () => {
 
     expect(localStorage.getItem('difficulty')).toBe(component.difficulties[0].level);
   });
+
+  it('counts the 96px minimum from the edge a finger lands on, on a phone', () => {
+    // Measured from the content box, the minimum came on top of the padding
+    // and border: every card was 125px, and the third climb ended 99px
+    // below a 360x640 screen
+    if (!window.matchMedia('(max-width: 560px)').matches) {
+      pending('the window is wider than a phone');
+      return;
+    }
+    const cards = Array.from(fixture.nativeElement.querySelectorAll('.difficulty-card')) as HTMLElement[];
+    cards.forEach(card => {
+      expect(getComputedStyle(card).boxSizing).toBe('border-box');
+      expect(card.getBoundingClientRect().height).toBeGreaterThanOrEqual(96);
+    });
+  });
 });
 
 describe('DifficultySelectComponent suggesting a setting', () => {
