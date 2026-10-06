@@ -15,6 +15,8 @@ import { Avatar } from '../avatar/avatar-model';
 import { EASED_KEY } from '../levels/in-round-tuner';
 import { RESULT_VERSION, SavedResult, isShowable } from './result-state';
 import { StarCount, Tile, praiseFor, revealTimeline, roundTiles, starsFor } from './round-card';
+import { ITEM_WORDS } from '../avatar/item-words';
+import { PLAY_WORDS } from '../question/play-words';
 
 /**
  * How many rounds a guest plays before the game mentions an account. Guidance
@@ -84,7 +86,10 @@ export class ResultComponent implements OnInit, OnDestroy {
     private avatarService: AvatarService,
     private progressSync: ProgressSyncService,
     private soundService: SoundService
-  ) {}
+  ) {
+    languageService.extend(ITEM_WORDS);
+    languageService.extend(PLAY_WORDS);
+  }
 
   ngOnInit() {
     const finalScore = this.scoreService.getFinalScore();
