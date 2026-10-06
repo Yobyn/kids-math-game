@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { LanguageService } from '../services/language.service';
+import { LOGIN_WORDS } from './login-words';
 
 @Component({
   selector: 'app-login',
@@ -28,7 +29,9 @@ export class LoginComponent implements OnInit {
     private router: Router,
     private route: ActivatedRoute,
     public languageService: LanguageService
-  ) {}
+  ) {
+    languageService.extend(LOGIN_WORDS);
+  }
 
   ngOnInit() {
     // The result screen's offer sends a guest here to sign up, not to sign in

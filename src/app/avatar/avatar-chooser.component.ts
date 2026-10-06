@@ -36,6 +36,7 @@ import { ICON_SLOTS, itemIcon } from './item-icons';
 import { CHOOSER_WORDS } from './chooser-words';
 import { findEvent, nextOpening } from '../events/next-opening';
 import { itemsForSlot, nextUnlock } from './wardrobe-lookups';
+import { ITEM_WORDS } from './item-words';
 
 const LABEL_ICONS: { [value: string]: string } = { boy: '👦', girl: '👧' };
 
@@ -88,6 +89,7 @@ export class AvatarChooserComponent implements OnInit, OnDestroy {
     public languageService: LanguageService,
     private soundService: SoundService
   ) {
+    languageService.extend(ITEM_WORDS);
     languageService.extend(CHOOSER_WORDS);
   }
 
