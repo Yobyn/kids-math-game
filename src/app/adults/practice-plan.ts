@@ -1,4 +1,4 @@
-import { formWorkedStep } from '../teaching/school/written-form';
+import { UNIT_FRACTIONS, formWorkedStep } from '../teaching/school/written-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
 import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
@@ -92,7 +92,8 @@ export function operationSymbol(operation: string): string {
 /**
  * A fact as it was asked: 7 + ? = 10 for one missed as aanvullen, not the
  * 10 - 7 it is kept as (question/sum-form.ts). Doubles and halves read
- * plainly enough to a grown-up as 7 + 7 and 16 : 2.
+ * plainly enough to a grown-up as 7 + 7 and 16 : 2; a part of an amount
+ * as ¼ × 20.
  */
 export function factText(fact: MissedFact): string {
   switch (fact.form) {
@@ -100,6 +101,9 @@ export function factText(fact: MissedFact): string {
       return `${fact.num2} + ? = ${fact.num1}`;
     case 'splitsen':
       return `${fact.num1} = ${fact.num2} + ?`;
+    // ¼ van 20, written so it reads in any language
+    case 'deel':
+      return `${UNIT_FRACTIONS[fact.num2] || `1/${fact.num2}`} × ${fact.num1}`;
     default:
       return `${fact.num1} ${operationSymbol(fact.operation)} ${fact.num2}`;
   }
