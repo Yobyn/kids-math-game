@@ -42,10 +42,11 @@
                      (putBack)="putBack($event)"></app-coin-picker>
 
     <div class="math-problem" *ngIf="!isPicking">
-      <span class="number" *ngIf="!currentQuestion.money">{{ currentQuestion.num1 }}</span>
-      <span class="operation" *ngIf="!currentQuestion.money">{{ sign }}</span>
-      <span class="number" *ngIf="!currentQuestion.money">{{ currentQuestion.num2 }}</span>
-      <span class="equals" *ngIf="!currentQuestion.money">=</span>
+      <!-- The box goes where the "?" is in the workbook: last for 7 + 5 = ?,
+           in the middle for 7 + ? = 10 (sum-form.ts) -->
+      <ng-container *ngIf="!currentQuestion.money">
+        <span *ngFor="let part of layout.before" [class]="part.kind">{{ part.text }}</span>
+      </ng-container>
       <!-- The unit sits on the box itself, so a child is never left guessing
            whether the answer wanted is 75 or 0.75. -->
       <span class="currency" *ngIf="answerPrefix">{{ answerPrefix }}</span>
@@ -62,6 +63,9 @@
              [readonly]="useKeypad"
              [disabled]="showOkButton">
       <span class="currency unit-after" *ngIf="answerSuffix">{{ answerSuffix }}</span>
+      <ng-container *ngIf="!currentQuestion.money">
+        <span *ngFor="let part of layout.after" [class]="part.kind">{{ part.text }}</span>
+      </ng-container>
     </div>
 
     <app-keypad *ngIf="useKeypad && !isPicking"

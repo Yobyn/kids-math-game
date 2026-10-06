@@ -4,10 +4,12 @@
  * asked in school". Only the question screen imports this, so it is fetched
  * with the round, not in the first load.
  *
- * So far groep 3 and 4, in the forms that are plain sums: a number, a sign,
- * a number. The written forms (7 + ? = 10, dubbel 7) and groep 5 to 8 follow
- * the build order in the doc.
+ * So far groep 3 and 4: the plain sums (a number, a sign, a number) and the
+ * written forms of the workbook (7 + ? = 10, 8 = 5 + ?, dubbel 7, de helft
+ * van 16). Groep 5 to 8 follow the build order in the doc.
  */
+
+import { SumForm } from '../../question/sum-form';
 
 export type Moment = 'B' | 'M' | 'E';
 export type Operation = '+' | '-' | '*' | '/';
@@ -17,6 +19,8 @@ export interface SchoolSum {
   num1: number;
   num2: number;
   operation: Operation;
+  /** How it is written, when not as num1 sign num2 = ? (question/sum-form.ts). */
+  form?: SumForm;
   /** Which topic of the curriculum it is (the ids in TOPICS). */
   topic: string;
 }
@@ -149,6 +153,29 @@ export const TOPICS: { [id: string]: Maker } = {
   }
 };
 
+// The written forms (question/sum-form.ts): each kept as the sum whose answer is asked
+Object.assign(TOPICS, {
+  // Groep 3, the middle: what goes with a number to make 10. 7 + ? = 10
+  'aanvullen-tot-10': random => ({ num1: 10, num2: between(random, 1, 9), operation: '-', form: 'aanvullen' }),
+  // Groep 3, the end: a number up to 10 split in two. 8 = 5 + ?
+  'splitsen-tot-10': random => {
+    const num1 = between(random, 3, 10);
+    return { num1, num2: between(random, 1, num1 - 1), operation: '-', form: 'splitsen' };
+  },
+  // Groep 3, the end: doubles and halves to 20. dubbel 7, de helft van 16
+  'dubbel-van-tot-20': random => {
+    const num1 = between(random, 2, 10);
+    return { num1, num2: num1, operation: '+', form: 'dubbel' };
+  },
+  'helft-van-tot-20': random => ({ num1: 2 * between(random, 2, 10), num2: 2, operation: '/', form: 'helft' }),
+  // Groep 4, the end: doubles and halves to 100. dubbel 35, de helft van 60
+  'dubbel-van-tot-100': random => {
+    const num1 = between(random, 11, 50);
+    return { num1, num2: num1, operation: '+', form: 'dubbel' };
+  },
+  'helft-van-tot-100': random => ({ num1: 2 * between(random, 11, 50), num2: 2, operation: '/', form: 'helft' })
+} as { [id: string]: Maker });
+
 /** The tables, as they are learnt: 1, 2, 5 and 10 first, then 3 and 4 (groep 4); 6 to 9 in groep 5. */
 export const TABLES_FIRST = [1, 2, 5, 10];
 export const TABLES_GROEP_4 = [1, 2, 3, 4, 5, 10];
@@ -184,16 +211,18 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     B: { 'plus-tot-10-klein': NEW, 'min-tot-10-klein': NEW },
     M: {
       'plus-tot-10': NEW, 'min-tot-10': NEW, 'plus-tot-20-zonder': NEW, 'min-tot-20-zonder': NEW,
-      'dubbel-tot-10': NEW
+      'dubbel-tot-10': NEW, 'aanvullen-tot-10': NEW
     },
     E: {
       'plus-tot-20-over': NEW, 'min-tot-20-over': NEW, 'dubbel-tot-20': NEW, 'sprong-van-10': NEW,
-      'plus-tot-20-zonder': REVIEW, 'min-tot-20-zonder': REVIEW
+      'splitsen-tot-10': NEW, 'dubbel-van-tot-20': NEW, 'helft-van-tot-20': NEW,
+      'plus-tot-20-zonder': REVIEW, 'min-tot-20-zonder': REVIEW, 'aanvullen-tot-10': REVIEW
     }
   },
   4: {
     B: {
-      'plus-tot-20-over': NEW, 'min-tot-20-over': NEW, 'sprong-van-10': REVIEW, 'dubbel-tot-20': REVIEW
+      'plus-tot-20-over': NEW, 'min-tot-20-over': NEW, 'sprong-van-10': REVIEW, 'dubbel-tot-20': REVIEW,
+      'helft-van-tot-20': REVIEW, 'splitsen-tot-10': REVIEW
     },
     M: {
       'tientallen': NEW, 'te-e-zonder': NEW, 'te-e-over': NEW, 'te-t': NEW,
@@ -201,7 +230,8 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     },
     E: {
       'te-te-zonder': NEW, 'te-te-over': NEW, 'tafels-1-5-10': NEW, 'deeltafels-1-5-10': NEW,
-      'honderdtallen': NEW, 'te-e-over': REVIEW, 'te-t': REVIEW
+      'honderdtallen': NEW, 'dubbel-van-tot-100': NEW, 'helft-van-tot-100': NEW,
+      'te-e-over': REVIEW, 'te-t': REVIEW
     }
   }
 };
