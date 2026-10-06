@@ -252,7 +252,21 @@ describe('figure', () => {
       // Saved pictures are kept by version; a new STYLE with the old version
       // would leave every screen showing the old character
       expect({ version: STILL_VERSION, style: STYLE }).toEqual({
-        version: 7, style: { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.35, round: true }
+        version: 8, style: { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.55, round: true, stance: 0.4 }
+      });
+    });
+
+    it('stands with its feet a little apart, not pressed together like a doll (Yobyn, 2026-10-05: "the posture is not perfect")', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        const figure = FIGURES[type];
+        // The feet wider apart than the hips, as a child stands; not as wide as the shoulders, not a sprawl
+        expect(figure.ankle[0]).withContext(type).toBeGreaterThan(figure.hip[0] * 1.2);
+        expect(figure.ankle[0] + figure.foot[1] / 2).withContext(type).toBeLessThan(figure.shoulder[0] + figure.armRadii[0]);
+        // Each leg leans out from the hip, the knee between the hip and the ankle: not bowed
+        expect(figure.knee[0]).withContext(type).toBeGreaterThan(figure.hip[0]);
+        expect(figure.knee[0]).withContext(type).toBeLessThan(figure.ankle[0]);
+        // The measured reference stands feet no wider than its hips: the stance is the style's
+        expect(MEASURED[type].ankle[0]).withContext(type).toBeLessThanOrEqual(MEASURED[type].hip[0]);
       });
     });
 

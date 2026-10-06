@@ -156,9 +156,15 @@ export interface Style {
   elbowBend?: number;
   /** Whether the torso is one round egg, arms at its side (eggProfile), rather than the measured outline. */
   round?: boolean;
+  /**
+   * How far apart the feet stand, as a share of the hips' width: 0 is each
+   * ankle straight under its hip (feet together, a doll's stance). The knee
+   * goes half as far, so each leg is straight from hip to ankle.
+   */
+  stance?: number;
 }
 
-export const STYLE: Style = { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.35, round: true };
+export const STYLE: Style = { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.55, round: true, stance: 0.4 };
 
 /**
  * The torso as one round shape, the way the dragon's body is (Yobyn,
@@ -227,6 +233,12 @@ export function stylise(measured: Figure, style: Style): Figure {
     neckRadius: w(measured.neckRadius) * Math.sqrt(style.head),
     foot: [measured.foot[0] * style.build, w(measured.foot[1])]
   };
+  if (style.stance) {
+    // Feet a little apart: each leg leans out from its hip, straight, its knee halfway
+    const spread = stylised.hip[0] * style.stance;
+    stylised.knee = [stylised.knee[0] + spread / 2, stylised.knee[1]];
+    stylised.ankle = [stylised.ankle[0] + spread, stylised.ankle[1]];
+  }
   if (style.round) {
     // The arms start at the body's side, where the egg is at shoulder
     // height, and move out from there only as far as the tummy needs
