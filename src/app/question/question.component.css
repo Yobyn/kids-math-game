@@ -341,3 +341,14 @@ input[type="number"].incorrect {
 .resume-hello {
   font-weight: 700;
 }
+
+/* On a phone the button is the card's full width, so 2rem a side was more
+   padding than it needed: at 320 wide "Controleer antwoord" wrapped onto a
+   second line and the button grew from 47px to 70px. */
+@media (max-width: 600px) {
+  .check-button,
+  .next-button {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
