@@ -15,6 +15,7 @@ function answer(sum: SchoolSum): number {
     case '+': return sum.num1 + sum.num2;
     case '-': return sum.num1 - sum.num2;
     case '*': return sum.num1 * sum.num2;
+    case '%': return sum.num1 % sum.num2;
     default: return sum.num1 / sum.num2;
   }
 }
@@ -198,6 +199,31 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       // Both + and − come up
       ['tot-1000-zonder', 'tot-1000-over'].forEach(topic =>
         expect(new Set(made(topic).map(sum => sum.operation))).toEqual(new Set(['+', '-'])));
+    });
+
+    it('shares out with something left over at the end of the year: inside the tables, the rest more than nothing and less than the share', () => {
+      made('delen-met-rest', 600).forEach(sum => {
+        const at = `${sum.num1} : ${sum.num2}`;
+        expect(sum.operation).toBe('%');
+        expect(sum.num2).withContext(at).toBeGreaterThanOrEqual(2);
+        expect(sum.num2).withContext(at).toBeLessThanOrEqual(9);
+        expect(answer(sum)).withContext(at).toBeGreaterThanOrEqual(1);
+        expect(answer(sum)).withContext(at).toBeLessThan(sum.num2);
+        // the whole part is a table fact
+        expect(Math.floor(sum.num1 / sum.num2)).withContext(at).toBeLessThanOrEqual(9);
+      });
+    });
+
+    it('changes a measure into a smaller unit by what the unit is: 100 cm in a metre, 1000 m in a kilometre and g in a kilogram, 60 minutes in an hour', () => {
+      const seen = new Set<string>();
+      made('maten', 600).forEach(sum => {
+        seen.add(sum.form!);
+        expect(sum.operation).toBe('*');
+        expect(sum.num2).withContext(sum.form!).toBe(({ 'm-cm': 100, 'km-m': 1000, 'kg-g': 1000, 'uur-min': 60 } as any)[sum.form!]);
+        expect(sum.num1).toBeGreaterThanOrEqual(2);
+        expect(sum.num1).toBeLessThanOrEqual(9);
+      });
+      expect(seen).toEqual(new Set(['m-cm', 'km-m', 'kg-g', 'uur-min']));
     });
 
     it('multiplies by a ten (4 × 30) in the middle of the year and a ten-and-ones by one digit (4 × 23) at its end', () => {

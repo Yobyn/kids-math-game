@@ -161,8 +161,18 @@ middle, hard the end), one groep per run.
   to 1000; 340 + 200 is a fine sum), so the rule went.
   STILL TO DO for groep 5: dividing with a remainder (23 : 4 = 5 rest ?)
   and measures (3 m = ? cm, 2 uur = ? minuten), each a form of its own.
-- **Next, in order:** groep 5's remainders and measures; groep 6, 7, 8;
-  then verhaaltjessommen.
+- **Groep 5, the second half: DONE (2026-10-06). Groep 5 is complete.** At
+  the end of the year: dividing with a remainder, 19 : 3 = 6 rest ?, the
+  whole part on the card and the box for what is left over (the one sum
+  with a sign of its own, %, since no other sum's answer is a remainder;
+  worked as 3 × 6 = 18 → 19 − 18 = 1), and measures into a smaller unit,
+  3 m = ? cm, 2 km = ? m, 4 kg = ? g, 2 uur = ? minuten, the unit after
+  the box as in the workbook (kept as 3 × 100; worked as 1 m = 100 cm →
+  3 × 100 = 300). Units are symbols; hours and minutes are words in all
+  three languages, and English writes the remainder 25 ÷ 6 = 4 r ?.
+  Everything fits a 320px phone. Mutation sweep: 21 mutants, 21 killed.
+  Not yet: measures the other way (300 cm = ? m), litres.
+- **Next, in order:** groep 6, 7, 8; then verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 
