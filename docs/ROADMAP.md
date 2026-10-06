@@ -1321,6 +1321,8 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**THE SIGN-UP SCREEN IS TAPPABLE — DONE (2026-10-06).** Its two targets were the only ones left under the size the rest of the game holds to: the Sign up button was 42px tall and "Already have an account? Log in" was a bare 17px line of text. Both are now 48px. The screen had no spec at all; it has one now.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
