@@ -33,6 +33,11 @@ function crossesTen(sum: SchoolSum): boolean {
   return sum.operation === '+' ? ones(sum.num1) + ones(sum.num2) > 10 : ones(sum.num2) > ones(sum.num1);
 }
 
+/** Does it stay clear of the ten: 13 + 4, not 13 + 7 = 20, which is aanvullen to the ten, a topic of its own? */
+function staysInsideTen(sum: SchoolSum): boolean {
+  return sum.operation === '+' ? ones(sum.num1) + ones(sum.num2) < 10 : ones(sum.num2) <= ones(sum.num1);
+}
+
 describe('school sums (docs/CURRICULUM-NL.md)', () => {
   it('asks only what a child can type: whole numbers, never below nought, a division that comes out', () => {
     const misses: string[] = [];
@@ -57,7 +62,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
 
     it('adds and takes away in the teens without going through the ten in the middle of the year, through it at the end', () => {
       made('plus-tot-20-zonder').concat(made('min-tot-20-zonder')).forEach(sum => {
-        expect(crossesTen(sum)).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeFalse();
+        expect(staysInsideTen(sum)).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeTrue();
         expect(Math.max(sum.num1, answer(sum))).toBeLessThanOrEqual(20);
         expect(Math.min(sum.num1, answer(sum))).toBeGreaterThanOrEqual(10);
       });
@@ -107,7 +112,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
         expect(sum.num2).toBeLessThan(10);
         expect(Math.max(sum.num1, answer(sum))).toBeLessThan(100);
       });
-      made('te-e-zonder').forEach(sum => expect(crossesTen(sum)).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeFalse());
+      made('te-e-zonder').forEach(sum => expect(staysInsideTen(sum)).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeTrue());
       made('te-e-over').forEach(sum => expect(crossesTen(sum)).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeTrue());
       made('te-t').forEach(sum => {
         expect(sum.num1 % 10).not.toBe(0);
@@ -122,7 +127,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
         expect(twoDigit(sum.num1) && twoDigit(sum.num2)).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeTrue();
         expect(Math.max(sum.num1, answer(sum))).toBeLessThan(100);
       });
-      made('te-te-zonder').forEach(sum => expect(crossesTen(sum)).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeFalse());
+      made('te-te-zonder').forEach(sum => expect(staysInsideTen(sum)).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeTrue());
       made('te-te-over').forEach(sum => expect(crossesTen(sum)).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeTrue());
     });
 
@@ -143,6 +148,8 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       expect(TABLES_FIRST.every(table => TABLES_GROEP_4.includes(table))).toBeTrue();
       // A keersom is up to ten times the table; a deelsom comes out at one to ten
       made('tafels-1-5-10').forEach(sum => expect(sum.num1).toBeLessThanOrEqual(10));
+      // Sharing out by 1 teaches nothing a child does not already know
+      made('deeltafels-2-5-10').concat(made('deeltafels-1-5-10')).forEach(sum => expect(sum.num2).toBeGreaterThan(1));
       made('deeltafels-1-5-10').forEach(sum => {
         expect(answer(sum)).toBeGreaterThanOrEqual(1);
         expect(answer(sum)).toBeLessThanOrEqual(10);
@@ -180,6 +187,32 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
         // Nothing that is not on the list for this moment
         Object.keys(counts).forEach(topic => expect(Object.keys(weights)).withContext(`groep ${groep} ${moment}`).toContain(topic));
       }));
+    });
+
+    it('asks what is new at a moment about twice as often as what it carries on from the moment before', () => {
+      const before: [number, Moment, number, Moment][] = [[3, 'M', 3, 'B'], [3, 'E', 3, 'M'], [4, 'M', 4, 'B'], [4, 'E', 4, 'M']];
+      before.forEach(([groep, moment, earlierGroep, earlier]) => {
+        const random = seeded(groep * 7 + moment.charCodeAt(0));
+        const counts: { [topic: string]: number } = {};
+        for (let i = 0; i < 8000; i++) {
+          const sum = schoolSum(groep, moment, random)!;
+          counts[sum.topic] = (counts[sum.topic] || 0) + 1;
+        }
+        const carried = Object.keys(CURRICULUM[earlierGroep][earlier]);
+        const topics = Object.keys(CURRICULUM[groep][moment]);
+        const fresh = topics.filter(topic => !carried.includes(topic));
+        const again = topics.filter(topic => carried.includes(topic));
+        expect(fresh.length).withContext(`groep ${groep} ${moment}`).toBeGreaterThan(0);
+        again.forEach(old => fresh.forEach(topic => {
+          const ratio = counts[topic] / counts[old];
+          expect(ratio).withContext(`groep ${groep} ${moment}: ${topic} against ${old}`).toBeGreaterThan(1.6);
+          expect(ratio).withContext(`groep ${groep} ${moment}: ${topic} against ${old}`).toBeLessThan(2.5);
+        }));
+        // With nothing carried over (groep 3's start, its middle), the new topics come up alike
+        if (!again.length) {
+          fresh.forEach(topic => expect(counts[topic] / counts[fresh[0]]).withContext(`groep ${groep} ${moment}: ${topic}`).toBeGreaterThan(0.8));
+        }
+      });
     });
 
     it('builds every topic it names', () => {

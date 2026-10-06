@@ -83,10 +83,10 @@ describe('GradeSelectComponent naming the year as the school does', () => {
     expect(names).toEqual(['Groep 3', 'Groep 4', 'Groep 5', 'Groep 6', 'Groep 7', 'Groep 8', 'Klas 1', 'Klas 2', 'Klas 3', 'Klas 4']);
     expect(fixture.componentInstance.grades[0].description).toBe('Rekenen in groep 3');
     expect(fixture.componentInstance.grades[6].description).toBe('Wiskunde in klas 1');
-    const badges = Array.from(fixture.nativeElement.querySelectorAll('.grade-card') as NodeListOf<HTMLElement>)
-      .map(card => card.textContent!);
-    expect(badges[0]).toContain('3');
-    expect(badges[0]).toContain('Groep 3');
+    const badges = Array.from(fixture.nativeElement.querySelectorAll('.grade-card .grade-badge') as NodeListOf<HTMLElement>)
+      .map(badge => badge.textContent!.trim());
+    expect(badges).toEqual(['3', '4', '5', '6', '7', '8', '1', '2', '3', '4']);
+    expect(fixture.nativeElement.querySelector('.grade-card').textContent).toContain('Groep 3');
     expect(fixture.componentInstance.grades.map(grade => grade.badge)).toEqual([3, 4, 5, 6, 7, 8, 1, 2, 3, 4]);
   });
 

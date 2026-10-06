@@ -124,7 +124,7 @@ export const TOPICS: { [id: string]: Maker } = {
   'te-te-zonder': random => {
     if (random() < 0.5) {
       const num1 = 10 * between(random, 1, 7) + between(random, 1, 7);
-      const num2 = 10 * between(random, 1, 8 - Math.floor(num1 / 10)) + between(random, 1, 8 - ones(num1));
+      const num2 = 10 * between(random, 1, 8 - Math.floor(num1 / 10)) + between(random, 1, 9 - ones(num1));
       return { num1, num2, operation: '+' };
     }
     const num1 = 10 * between(random, 3, 9) + between(random, 2, 9);
@@ -138,7 +138,7 @@ export const TOPICS: { [id: string]: Maker } = {
       return { num1, num2, operation: '+' };
     }
     const num1 = 10 * between(random, 3, 9) + between(random, 1, 8);
-    const num2 = 10 * between(random, 1, Math.floor(num1 / 10) - 2) + between(random, ones(num1) + 1, 9);
+    const num2 = 10 * between(random, 1, Math.floor(num1 / 10) - 1) + between(random, ones(num1) + 1, 9);
     return { num1, num2, operation: '-' };
   },
   'honderdtallen': random => {
@@ -184,7 +184,7 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     B: { 'plus-tot-10-klein': NEW, 'min-tot-10-klein': NEW },
     M: {
       'plus-tot-10': NEW, 'min-tot-10': NEW, 'plus-tot-20-zonder': NEW, 'min-tot-20-zonder': NEW,
-      'dubbel-tot-10': REVIEW
+      'dubbel-tot-10': NEW
     },
     E: {
       'plus-tot-20-over': NEW, 'min-tot-20-over': NEW, 'dubbel-tot-20': NEW, 'sprong-van-10': NEW,
