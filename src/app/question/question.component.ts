@@ -26,6 +26,7 @@ import {
   isResumable,
   resumeQuestionNumber
 } from './round-state';
+import { PLAY_WORDS } from './play-words';
 
 /** The quiz is ten questions long; ScoreService.isGameComplete() agrees. */
 const TOTAL_QUESTIONS = QUESTIONS_IN_ROUND;
@@ -146,6 +147,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     private progressService: ProgressService,
     private fieldPulse: FieldPulseService
   ) {
+    languageService.extend(PLAY_WORDS);
     this.difficulty = localStorage.getItem('difficulty') || 'medium';
     this.grade = Number(localStorage.getItem('grade')) || 1;
   }
