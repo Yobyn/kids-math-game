@@ -93,9 +93,10 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       });
     });
 
-    it('never multiplies or divides, and never goes past 100', () => {
+    it('never asks a times or share sum, and never goes past 100', () => {
       (['B', 'M', 'E'] as Moment[]).forEach(moment => Object.keys(CURRICULUM[3][moment]).forEach(topic => made(topic, 100).forEach(sum => {
-        expect(['+', '-']).withContext(topic).toContain(sum.operation);
+        // A half is kept as a share by 2, but asked as "de helft van": never written with :
+        expect(sum.form === 'helft' ? '-' : sum.operation).withContext(topic).toMatch(/^[+-]$/);
         expect(Math.max(sum.num1, sum.num2, answer(sum))).withContext(topic).toBeLessThanOrEqual(100);
       })));
     });
