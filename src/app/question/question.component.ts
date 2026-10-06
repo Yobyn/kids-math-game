@@ -17,6 +17,8 @@ import { MAX_PICKED, addPiece, pickMatches, removeAt } from '../teaching/coin-pi
 import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
 import { momentFor, schoolSum } from '../teaching/school/groep';
+import { SumLayout, formWorkedStep, sumLayout } from '../teaching/school/written-form';
+import { SumForm } from './sum-form';
 import {
   QUESTIONS_IN_ROUND,
   RESUME_CHOICE_KEY,
@@ -43,6 +45,8 @@ export interface AskedQuestion {
   num2: number;
   operation: string;
   money?: MoneyQuestion;
+  /** Written as 7 + ? = 10 rather than 10 - 7 = ?; see sum-form.ts. */
+  form?: SumForm;
 }
 
 interface PendingReplay {
@@ -437,7 +441,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     this.progressService.takeMissedFacts(2).forEach((fact, index) => {
       this.missed.push({
         question: { num1: fact.num1, num2: fact.num2, operation: fact.operation,
-                    money: fact.money },
+                    money: fact.money, ...(fact.form ? { form: fact.form } : {}) },
         dueAfter: index + 1,
         reviewOf: fact
       });
@@ -486,6 +490,27 @@ export class QuestionComponent implements OnInit, OnDestroy {
   get answerSuffix(): string {
     return this.currentQuestion.money ? unitSuffix(this.currentQuestion.money.unit) : '';
   }
+
+  /**
+   * The sum as written round the answer box: in front of it for 7 + 5 = ?,
+   * between its halves for 7 + ? = 10 (sum-form.ts). Kept until the sum or
+   * the language changes, so the pieces are not redrawn on every check.
+   */
+  get layout(): SumLayout {
+    const q = this.currentQuestion;
+    const key = [q.num1, q.operation, q.num2, q.form, this.languageService.getLanguage()].join('|');
+    if (key !== this.layoutKey) {
+      this.layoutKey = key;
+      this.layoutCache = sumLayout({ num1: q.num1, num2: q.num2, sign: this.sign, form: q.form }, {
+        double: this.languageService.translate('sum-double'),
+        half: this.languageService.translate('sum-half')
+      });
+    }
+    return this.layoutCache!;
+  }
+
+  private layoutKey = '';
+  private layoutCache?: SumLayout;
 
   /** The sign as it is written in class: × for keer, : for delen (÷ in English). */
   get sign(): string {
@@ -543,6 +568,9 @@ export class QuestionComponent implements OnInit, OnDestroy {
     const school = schoolSum(this.grade + 2, momentFor(this.difficulty));
     if (school) {
       this.currentQuestion = { num1: school.num1, num2: school.num2, operation: school.operation };
+      if (school.form) {
+        this.currentQuestion.form = school.form;
+      }
       this.userAnswer = '';
       this.picked = [];
       this.feedback = '';
@@ -802,8 +830,9 @@ export class QuestionComponent implements OnInit, OnDestroy {
       // own line — a pile counted up, or change counted on from the price.
       this.workedLine = this.currentQuestion.money
         ? this.currentQuestion.money.worked
-        : workedStep(this.currentQuestion.num1, this.currentQuestion.num2,
-                     this.currentQuestion.operation) || '';
+        : formWorkedStep(this.currentQuestion.form, this.currentQuestion.num1, this.currentQuestion.num2)
+          || workedStep(this.currentQuestion.num1, this.currentQuestion.num2,
+                        this.currentQuestion.operation) || '';
       this.showOkButton = true;
       this.results.push(false);
       this.saveRound();
