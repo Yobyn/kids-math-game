@@ -1694,6 +1694,12 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()).toEqual(['de helft van', '16', '=', '[ ]']);
     ask({ num1: 20, num2: 4, operation: '/', form: 'deel' });
     expect(card()).toEqual(['¼', 'van', '20', '=', '[ ]']);
+    ask({ num1: 23, num2: 4, operation: '%', form: 'rest' });
+    expect(card()).toEqual(['23', ':', '4', '=', '5', 'rest', '[ ]']);
+    ask({ num1: 3, num2: 100, operation: '*', form: 'm-cm' });
+    expect(card()).toEqual(['3', 'm', '=', '[ ]', 'cm']);
+    ask({ num1: 2, num2: 60, operation: '*', form: 'uur-min' });
+    expect(card()).toEqual(['2', 'uur', '=', '[ ]', 'minuten']);
     // A plain sum keeps the box at the end
     ask({ num1: 7, num2: 5, operation: '+' });
     expect(card()).toEqual(['7', '+', '5', '=', '[ ]']);
@@ -1710,12 +1716,41 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()[0]).toBe('la mitad de');
     ask({ num1: 15, num2: 3, operation: '/', form: 'deel' });
     expect(card().slice(0, 2)).toEqual(['⅓', 'de']);
+    ask({ num1: 2, num2: 60, operation: '*', form: 'uur-min' });
+    expect(card()).toEqual(['2', 'horas', '=', '[ ]', 'minutos']);
+    component.languageService.setLanguage('en');
+    fixture.detectChanges();
+    expect(card()).toEqual(['2', 'hours', '=', '[ ]', 'minutes']);
+    ask({ num1: 23, num2: 4, operation: '%', form: 'rest' });
+    expect(card()).toEqual(['23', '÷', '4', '=', '5', 'r', '[ ]']);
   });
 
   it('marks the number that goes in the box: 3 for 7 + ? = 10', () => {
     build('nl');
     ask({ num1: 10, num2: 7, operation: '-', form: 'aanvullen' });
     component.userAnswer = '3';
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBe(true);
+  });
+
+  it('marks what is left over for 23 : 4 = 5 rest ?, and only that', () => {
+    build('nl');
+    ask({ num1: 23, num2: 4, operation: '%', form: 'rest' });
+    component.userAnswer = '3';
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBe(true);
+    ask({ num1: 23, num2: 4, operation: '%', form: 'rest' });
+    component.wrongAttempts = 0;
+    // 5 is the whole part, already on the card: not what is asked
+    component.userAnswer = '5';
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBe(false);
+  });
+
+  it('marks 300 for 3 m = ? cm', () => {
+    build('nl');
+    ask({ num1: 3, num2: 100, operation: '*', form: 'm-cm' });
+    component.userAnswer = '300';
     component.checkAnswer();
     expect(component.answerWasCorrect).toBe(true);
   });

@@ -1,4 +1,4 @@
-import { SumForm } from '../../question/sum-form';
+import { MeasureForm, SumForm } from '../../question/sum-form';
 
 /**
  * How a sum is laid out round its answer box, and how its written form is
@@ -32,7 +32,24 @@ export interface FormWords {
   half: string;
   /** "van" in ¼ van 20 */
   of: string;
+  /** "rest" in 23 : 4 = 5 rest ? */
+  remainder: string;
+  /** The time units, which are words; the others are symbols the same in every language */
+  hours: string;
+  minutes: string;
 }
+
+/**
+ * The measures groep 5 changes into a smaller unit, and by how much. The
+ * unit is written in symbols (m, cm, kg, g) as on a ruler or a scale; hours
+ * and minutes are words in the child's language.
+ */
+export const MEASURES: { [form in MeasureForm]: { from: string; to: string; factor: number } } = {
+  'm-cm': { from: 'm', to: 'cm', factor: 100 },
+  'km-m': { from: 'km', to: 'm', factor: 1000 },
+  'kg-g': { from: 'kg', to: 'g', factor: 1000 },
+  'uur-min': { from: 'h', to: 'min', factor: 60 }
+};
 
 /** The fraction a part of an amount is written with: ¼ van 20. Only the ones groep 5 meets. */
 export const UNIT_FRACTIONS: { [parts: number]: string } = { 2: '½', 3: '⅓', 4: '¼', 5: '⅕' };
@@ -62,6 +79,25 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
         before: [{ kind: 'number', text: UNIT_FRACTIONS[sum.num2] }, { kind: 'word', text: words.of }, number(sum.num1), equals],
         after: []
       };
+    // 23 : 4 = 5 rest ?, kept as 23 % 4: the box is what is left over
+    case 'rest':
+      return {
+        before: [number(sum.num1), operation(sum.sign), number(sum.num2), equals,
+                 number(Math.floor(sum.num1 / sum.num2)), { kind: 'word', text: words.remainder }],
+        after: []
+      };
+    // 3 m = ? cm, kept as 3 × 100
+    case 'm-cm':
+    case 'km-m':
+    case 'kg-g':
+    case 'uur-min': {
+      const unit = (symbol: string) => symbol === 'h' ? words.hours : symbol === 'min' ? words.minutes : symbol;
+      const measure = MEASURES[sum.form];
+      return {
+        before: [number(sum.num1), { kind: 'word', text: unit(measure.from) }, equals],
+        after: [{ kind: 'word', text: unit(measure.to) }]
+      };
+    }
     default:
       return { before: [number(sum.num1), operation(sum.sign), number(sum.num2), equals], after: [] };
   }
@@ -87,6 +123,19 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
     // ¼ van 20: share 20 out in 4
     case 'deel':
       return `${num1} : ${num2} = ${num1 / num2}`;
+    // 23 : 4: four fives is 20, and 3 is left
+    case 'rest': {
+      const quotient = Math.floor(num1 / num2);
+      return `${num2} × ${quotient} = ${num2 * quotient} → ${num1} − ${num2 * quotient} = ${num1 % num2}`;
+    }
+    // 3 m: one metre is 100 cm, so three is three hundreds
+    case 'm-cm':
+    case 'km-m':
+    case 'kg-g':
+    case 'uur-min': {
+      const measure = MEASURES[form];
+      return `1 ${measure.from} = ${measure.factor} ${measure.to} → ${num1} × ${measure.factor} = ${num1 * num2}`;
+    }
     default:
       return undefined;
   }
