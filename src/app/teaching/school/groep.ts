@@ -6,7 +6,9 @@
  *
  * So far groep 3 and 4: the plain sums (a number, a sign, a number) and the
  * written forms of the workbook (7 + ? = 10, 8 = 5 + ?, dubbel 7, de helft
- * van 16). Groep 5 to 8 follow the build order in the doc.
+ * van 16); and groep 5 without its remainders and measures (all the tables,
+ * to 1000, 4 × 30, 4 × 23, ¼ van 20). The rest follows the build order in
+ * the doc.
  */
 
 import { SumForm } from '../../question/sum-form';
@@ -198,6 +200,63 @@ TOPICS['deeltafels-2-5-10'] = shareOut(TABLES_FIRST);
 TOPICS['tafels-1-5-10'] = times(TABLES_GROEP_4);
 TOPICS['deeltafels-1-5-10'] = shareOut(TABLES_GROEP_4);
 
+/** Groep 5's new tables. With them a child knows all ten. */
+export const TABLES_GROEP_5 = [6, 7, 8, 9];
+TOPICS['tafels-6-7-8-9'] = times(TABLES_GROEP_5);
+TOPICS['deeltafels-6-7-8-9'] = shareOut(TABLES_GROEP_5);
+
+/** The digits of a number below 1000: hundreds, tens, ones. */
+const digits = (n: number) => [Math.floor(n / 100), Math.floor(n / 10) % 10, n % 10];
+
+/** Does adding these carry in any column, or taking away borrow in any? */
+export function carries(num1: number, num2: number, operation: '+' | '-'): boolean {
+  const [a, b] = [digits(num1), digits(num2)];
+  return a.some((digit, i) => operation === '+' ? digit + b[i] > 9 : digit < b[i]);
+}
+
+/**
+ * A sum to 1000 that does, or does not, go through a ten or a hundred. Drawn
+ * and tried again until it is one; the fallback is a sum of the right kind,
+ * so a run of bad luck can never ask the wrong thing.
+ */
+function within1000(through: boolean): Maker {
+  return random => {
+    for (let tries = 0; tries < 200; tries++) {
+      const operation = random() < 0.5 ? '+' : '-';
+      // 340 + 250, 563 - 30 without; 367 + 258, 512 - 347 through
+      const num1 = between(random, through ? 120 : 110, 899);
+      const num2 = through ? between(random, 101, 899) : 10 * between(random, 1, 89);
+      const answer = operation === '+' ? num1 + num2 : num1 - num2;
+      if (answer > 0 && answer < 1000 && carries(num1, num2, operation) === through) {
+        return { num1, num2, operation };
+      }
+    }
+    return through ? { num1: 367, num2: 258, operation: '+' } : { num1: 340, num2: 250, operation: '+' };
+  };
+}
+
+Object.assign(TOPICS, {
+  // Groep 5, the middle: within 1000 without going through a ten or a hundred; times a ten
+  'tot-1000-zonder': within1000(false),
+  'keer-tiental': random => ({ num1: between(random, 2, 9), num2: 10 * between(random, 2, 9), operation: '*' }),
+  // a part of an amount: ¼ van 20, kept as 20 : 4
+  'deel-van': random => {
+    const parts = pick(random, [3, 4, 5]);
+    return { num1: parts * between(random, 2, 10), num2: parts, operation: '/', form: 'deel' };
+  },
+  // Groep 5, the end: within 1000 through a ten or a hundred (kolomsgewijs); TE × E
+  'tot-1000-over': within1000(true),
+  'te-keer-e': random => {
+    const num1 = between(random, 2, 9);
+    let num2 = between(random, 11, Math.max(11, Math.floor(200 / num1)));
+    // 4 × 23, not 4 × 20 (that is times a ten): step down, so it stays under the cap
+    if (num2 % 10 === 0) {
+      num2 -= 1;
+    }
+    return { num1, num2, operation: '*' };
+  }
+} as { [id: string]: Maker });
+
 /** How often a topic comes up in a round: what is new at a moment most, what it builds on less. */
 const NEW = 2;
 const REVIEW = 1;
@@ -232,6 +291,20 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
       'te-te-zonder': NEW, 'te-te-over': NEW, 'tafels-1-5-10': NEW, 'deeltafels-1-5-10': NEW,
       'honderdtallen': NEW, 'dubbel-van-tot-100': NEW, 'helft-van-tot-100': NEW,
       'te-e-over': REVIEW, 'te-t': REVIEW
+    }
+  },
+  5: {
+    B: {
+      'tafels-1-5-10': NEW, 'deeltafels-1-5-10': NEW, 'te-te-over': NEW,
+      'honderdtallen': REVIEW, 'dubbel-van-tot-100': REVIEW, 'helft-van-tot-100': REVIEW
+    },
+    M: {
+      'tafels-6-7-8-9': NEW, 'deeltafels-6-7-8-9': NEW, 'tot-1000-zonder': NEW, 'keer-tiental': NEW,
+      'deel-van': NEW, 'tafels-1-5-10': REVIEW, 'helft-van-tot-100': REVIEW
+    },
+    E: {
+      'tot-1000-over': NEW, 'te-keer-e': NEW,
+      'tafels-6-7-8-9': REVIEW, 'deeltafels-6-7-8-9': REVIEW, 'tot-1000-zonder': REVIEW, 'deel-van': REVIEW
     }
   }
 };
