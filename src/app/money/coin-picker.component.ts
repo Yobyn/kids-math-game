@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { LanguageService } from '../services/language.service';
 import { formatCents } from '../teaching/money';
 import { pickTotal } from '../teaching/coin-pick';
+import { PLAY_WORDS } from '../question/play-words';
 
 /**
  * Putting coins down to make an amount: the purse a child fills, the tray
@@ -43,7 +44,9 @@ export class CoinPickerComponent {
   /** A coin taken back out of the purse, by its position in there. */
   @Output() putBack = new EventEmitter<number>();
 
-  constructor(public languageService: LanguageService) {}
+  constructor(public languageService: LanguageService) {
+    languageService.extend(PLAY_WORDS);
+  }
 
   /** What is down so far, written the way this band writes amounts. */
   get soFar(): string {

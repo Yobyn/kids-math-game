@@ -1,3 +1,4 @@
+import { PLAY_WORDS } from '../question/play-words';
 import {
   STAR_STEP_MS, TILE_STEP_MS, praiseFor, revealTimeline, roundTiles, starsFor, StarCount
 } from './round-card';
@@ -19,6 +20,8 @@ describe('round card: stars', () => {
 
 describe('round card: praise for the work, never a verdict on the child', () => {
   const language = new LanguageService();
+  // As the result screen does when it opens: the words come with the round
+  language.extend(PLAY_WORDS);
   const all: StarCount[] = [0, 1, 2, 3];
 
   it('has a different headline for every star count', () => {
