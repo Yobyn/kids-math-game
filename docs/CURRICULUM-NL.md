@@ -134,13 +134,14 @@ its groep:
    groep 4 B), dubbel/helft tot 100 at groep 4 E. Not yet: aanvullen tot 20
    and to the next ten (34 + ? = 40), splitsen above 10.
 3. **Groep 5**: all tables, +/− within 1000, times a ten, TE × E, remainder,
-   part of an amount, measures. FIRST HALF DONE in the third school-levels
-   PR: the tables of 6–9 and dividing within them (all ten tables known by
+   part of an amount, measures. DONE in the third and fourth school-levels
+   PRs: the tables of 6–9 and dividing within them (all ten tables known by
    the middle of the year), +/− to 1000 without going through a ten or a
-   hundred (M) and through them (E), times a ten (M), TE × E (E), and a
-   third, a quarter or a fifth of an amount written ¼ van 20 (M). STILL TO
-   DO: dividing with a remainder (23 : 4 = 5 rest ?) and measures
-   (3 m = ? cm, 2 uur = ? minuten), which each need a form of their own.
+   hundred (M) and through them (E), times a ten (M), TE × E (E), a third,
+   a quarter or a fifth of an amount written ¼ van 20 (M), dividing with a
+   remainder written 23 : 4 = 5 rest ? (E) and measures into a smaller
+   unit, 3 m = ? cm, 2 km = ? m, 4 kg = ? g, 2 uur = ? minuten (E). Not
+   yet: measures the other way (300 cm = ? m), litres.
 4. **Groep 6**: +/− within 10 000, larger × and :, fractions of amounts,
    decimals (the comma on the keypad), area, rounding.
 5. **Groep 7**: big numbers, cijferend × and :, decimals × 10/100/1000,
