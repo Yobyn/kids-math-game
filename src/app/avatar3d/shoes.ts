@@ -32,8 +32,6 @@ export const SHOE_GLOW = 'shoe-glow';
  * graphics ... robot are perfect, bear play foodbal is awesome").
  */
 export const CHUNK = 1.15;
-/** How far the toe box reaches forward, as a share of the shoe's length: past the trouser hem, where its laces show. */
-export const TOE_REACH = 0.62;
 
 const SOLE = '#f4f6f7';
 /** The sneakers everyone starts with: the bright blue the pizza's sneakers are. */
@@ -115,34 +113,26 @@ export function buildShoe(id: string, colour: string, figure: Figure, side: numb
   const sole = part(id === 'light-up' ? SHOE_GLOW : 'shoe-sole', new THREE.CylinderGeometry(0.5, 0.5, style.soleHeight, 28), style.sole, 0.02);
   sole.scale.set(footWidth, 1, footLength);
   sole.position.y = style.soleHeight / 2;
-  // The upper: a dome on the sole, its toe box reaching forward past the trouser hem
+  // The upper: a dome on the sole
   const base = style.soleHeight - 0.02;
-  const [halfWidth, height, back, front] = [footWidth * 0.47, 0.62, footLength * 0.47, footLength * TOE_REACH];
+  const [halfWidth, height, halfLength] = [footWidth * 0.47, 0.62, footLength * 0.47];
   const upper = part('shoe-upper', new THREE.SphereGeometry(0.5, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2), toon(style.upper), 0.025);
-  upper.scale.set(halfWidth * 2, height * 2, back * 2);
+  upper.scale.set(halfWidth * 2, height * 2, halfLength * 2);
   upper.position.y = base;
-  // Longer in front than behind: the front half stretched forward
-  const position = upper.geometry.attributes.position as THREE.BufferAttribute;
-  for (let i = 0; i < position.count; i++) {
-    if (position.getZ(i) > 0) {
-      position.setZ(i, position.getZ(i) * (front / back));
-    }
-  }
-  upper.geometry.computeVertexNormals();
   foot.add(sole, upper);
   // How high the upper's surface is a distance z along the foot from its middle
-  const surface = (z: number) => base + height * Math.sqrt(Math.max(1 - Math.pow(z / (z > 0 ? front : back), 2), 0));
+  const surface = (z: number) => base + height * Math.sqrt(Math.max(1 - Math.pow(z / halfLength, 2), 0));
   if (style.toe) {
     // A rubber toe cap reaching just past the toe box, so the two never lie on each other
     const toe = part('shoe-toe', new THREE.SphereGeometry(0.5, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), toon(style.toe), 0.02);
-    toe.scale.set(halfWidth * 1.6, height * 0.9, front * 0.8);
-    toe.position.set(0, base, front * 0.66);
+    toe.scale.set(halfWidth * 1.6, height * 0.9, halfLength * 0.8);
+    toe.position.set(0, base, halfLength * 0.66);
     foot.add(toe);
   }
   if (style.laces) {
     // Laces up the top of the toe box, lying on it, in front of the trousers
     for (let i = 0; i < 3; i++) {
-      const z = front * (0.5 - i * 0.16);
+      const z = halfLength * (0.5 - i * 0.16);
       const lace = part('shoe-lace', new THREE.CylinderGeometry(0.035, 0.035, halfWidth * 0.9, 8), toon(style.laces), 0.008);
       lace.rotation.z = Math.PI / 2;
       lace.position.set(0, surface(z) + 0.01, z);
@@ -153,8 +143,8 @@ export function buildShoe(id: string, colour: string, figure: Figure, side: numb
     // A stripe of the same light round the upper
     const stripe = part('shoe-stripe', new THREE.TorusGeometry(0.5, 0.035, 8, 40), new THREE.MeshBasicMaterial({ color: colour }), 0);
     stripe.rotation.x = Math.PI / 2;
-    stripe.scale.set(halfWidth * 2 * 0.93, (back + front) * 0.93, 1);
-    stripe.position.set(0, base + height * 0.35, (front - back) / 2);
+    stripe.scale.set(halfWidth * 2 * 0.93, halfLength * 2 * 0.93, 1);
+    stripe.position.y = base + height * 0.35;
     foot.add(stripe);
   }
   group.add(foot);
