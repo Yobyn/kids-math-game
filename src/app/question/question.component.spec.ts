@@ -1693,7 +1693,7 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     ask({ num1: 16, num2: 2, operation: '/', form: 'helft' });
     expect(card()).toEqual(['de helft van', '16', '=', '[ ]']);
     ask({ num1: 20, num2: 4, operation: '/', form: 'deel' });
-    expect(card()).toEqual(['¼ van', '20', '=', '[ ]']);
+    expect(card()).toEqual(['¼', 'van', '20', '=', '[ ]']);
     // A plain sum keeps the box at the end
     ask({ num1: 7, num2: 5, operation: '+' });
     expect(card()).toEqual(['7', '+', '5', '=', '[ ]']);
@@ -1709,7 +1709,7 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     ask({ num1: 16, num2: 2, operation: '/', form: 'helft' });
     expect(card()[0]).toBe('la mitad de');
     ask({ num1: 15, num2: 3, operation: '/', form: 'deel' });
-    expect(card()[0]).toBe('⅓ de');
+    expect(card().slice(0, 2)).toEqual(['⅓', 'de']);
   });
 
   it('marks the number that goes in the box: 3 for 7 + ? = 10', () => {

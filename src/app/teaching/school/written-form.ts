@@ -58,7 +58,8 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     // ¼ van 20 = ?, kept as 20 : 4
     case 'deel':
       return {
-        before: [{ kind: 'word', text: `${UNIT_FRACTIONS[sum.num2]} ${words.of}` }, number(sum.num1), equals],
+        // The fraction is what the sum is about: it is as big as the numbers, only "van" is a word
+        before: [{ kind: 'number', text: UNIT_FRACTIONS[sum.num2] }, { kind: 'word', text: words.of }, number(sum.num1), equals],
         after: []
       };
     default:
