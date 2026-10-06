@@ -140,6 +140,14 @@ describe('the facts an adult is asked to practise', () => {
     expect(plan.facts[0].worked).toBe('8 + 2 = 10 → 10 + 5 = 15');
   });
 
+  it('shows a fact missed in a written form as it was asked, with the fact that form is taught through', () => {
+    // 10 - 7 alone has no method worth showing; 7 + ? = 10 is worked out by taking away
+    const plan = practicePlan([], [{ ...fact(10, 7, '-'), form: 'aanvullen' }, { ...fact(7, 7, '+'), form: 'dubbel' }]);
+
+    expect(plan.facts.map(item => item.question)).toEqual(['7 + ? = 10', '7 + 7']);
+    expect(plan.facts.map(item => item.worked)).toEqual(['10 − 7 = 3', '7 + 7 = 14']);
+  });
+
   it('leaves the line off a fact that has no method worth showing', () => {
     const plan = practicePlan([], [fact(2, 3, '+')]);
 
