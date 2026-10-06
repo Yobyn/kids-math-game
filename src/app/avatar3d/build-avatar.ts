@@ -394,15 +394,34 @@ const TROUSERS = '#a86f3f';
 const BELT = '#2f2a3a';
 
 /**
+ * How much slimmer the forearm starts than the upper arm ends: its rounded
+ * start lies inside the upper arm's, clear of it by more than either
+ * surface's facets stray from the true curve, so they never cross.
+ */
+export const ELBOW_INSIDE = 0.94;
+
+/** How many steps round a limb's rounded end, from its side to its tip. */
+export const DOME_STEPS = 8;
+
+/**
  * A rounded tube from `from` to `to`, its radius following `radii` along the
  * way (first to last, straight between). A limb, a sleeve, a trouser leg.
+ * Either end can be rounded: a dome as wide as the tube there, round the end
+ * point, made in the same surface as the tube. A joint is then one smooth
+ * surface; a separate ball as wide as the tube it meets is not, its facets
+ * and the tube's crossing in a frayed band (Yobyn, 2026-10-05: "Kid hero
+ * needs more graphics").
  */
-function limb(radii: number[], from: THREE.Vector3, to: THREE.Vector3, segments = 20): THREE.BufferGeometry {
+function limb(radii: number[], from: THREE.Vector3, to: THREE.Vector3, segments = 20, round: { from?: boolean; to?: boolean } = {}): THREE.BufferGeometry {
   const length = from.distanceTo(to);
   const points = radii.map((r, i) => new THREE.Vector2(r, (1 - i / (radii.length - 1)) * length));
-  // Close both ends so an outline does not show down the inside
-  points.unshift(new THREE.Vector2(0.001, length));
-  points.push(new THREE.Vector2(0.001, 0));
+  // Close both ends so an outline does not show down the inside: flat, or round
+  const dome = (r: number, y: number, up: number) => Array.from({ length: DOME_STEPS }, (_, k) => {
+    const angle = (Math.PI / 2) * (k / DOME_STEPS);
+    return new THREE.Vector2(Math.max(r * Math.sin(angle), 0.001), y + up * r * Math.cos(angle));
+  });
+  points.unshift(...(round.from ? dome(radii[0], length, 1) : [new THREE.Vector2(0.001, length)]));
+  points.push(...(round.to ? dome(radii[radii.length - 1], 0, -1).reverse() : [new THREE.Vector2(0.001, 0)]));
   const geometry = new THREE.LatheGeometry(points.reverse(), segments);
   const up = new THREE.Vector3(0, 1, 0);
   const direction = from.clone().sub(to).normalize();
@@ -478,11 +497,8 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     const knee = new THREE.Vector3(side * figure.knee[0], figure.knee[1], KNEE_FORWARD);
     const ankle = new THREE.Vector3(side * figure.ankle[0], figure.ankle[1], 0);
     const [rHip] = figure.legRadii;
-    body.add(part('leg', limb([rHip, rHip * 0.92], hip, knee), trousers, 0.04));
-    // A round knee, so the leg bends softly rather than breaking at a seam
-    const kneeBall = part('knee', new THREE.SphereGeometry(rHip * 0.93, 18, 14), trousers, 0.035);
-    kneeBall.position.copy(knee);
-    body.add(kneeBall);
+    // Rounded at the knee, so the leg bends softly rather than breaking at a seam
+    body.add(part('leg', limb([rHip, rHip * 0.92], hip, knee, 20, { to: true }), trousers, 0.04));
     // Tucked into a shoe that comes up the leg (shoes.ts), or down to the hem
     const worn = avatar.shoes && avatar.shoes !== NO_ITEM ? findItem('shoes', avatar.shoes) : undefined;
     const share = worn ? collarShare(worn.id) : 0;
@@ -501,10 +517,6 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     const elbow = new THREE.Vector3(side * elbowXY[0], elbowXY[1], 0.08);
     const wristV = new THREE.Vector3(side * wristXY[0], wristXY[1], 0.18);
     const [rShoulder, rElbow, rWrist] = figure.armRadii;
-    // The sleeve's round top, no fuller than the sleeve: a bigger ball balloons
-    const cap = part('shoulder', new THREE.SphereGeometry(rShoulder * (cut === 'short' ? 1.05 : 1), 20, 14), cloth, 0.04);
-    cap.position.copy(shoulder);
-    body.add(cap);
     // The arm turns at the shoulder and bends at the elbow (motion.ts, rig.ts):
     // the upper arm hangs from a joint at the shoulder, the forearm and hand
     // from one at the elbow. At rest every part is exactly where it was built.
@@ -527,15 +539,20 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
       mesh.position.sub(elbow);
       lower.add(mesh);
     };
+    // Each part of the arm rounded where it turns: the sleeve's top at the
+    // shoulder, the upper arm at the elbow, and the forearm starting a little
+    // slimmer inside it, so the bend stays covered and the two never fight
+    // The forearm's radius where it starts at the elbow and where it ends at the wrist
+    const forearmRadii = cut === 'short' ? [rElbow * 0.78 * ELBOW_INSIDE, rWrist * 0.75] : [rElbow * 1.05 * ELBOW_INSIDE, rWrist * 1.02];
     if (cut === 'short') {
       // A short sleeve ends above the elbow; below it is a bare arm
       const sleeveEnd = shoulder.clone().lerp(elbow, 0.55);
-      onUpper(part('arm', limb([rShoulder * 1.05, rShoulder], shoulder, sleeveEnd), cloth, 0.04));
-      onUpper(part('bare-arm', limb([rElbow * 0.8, rElbow * 0.78], sleeveEnd, elbow), skin, 0.035));
-      onLower(part('forearm', limb([rElbow * 0.78, rWrist * 0.75], elbow, wristV), skin, 0.035));
+      onUpper(part('arm', limb([rShoulder * 1.05, rShoulder], shoulder, sleeveEnd, 20, { from: true }), cloth, 0.04));
+      onUpper(part('bare-arm', limb([rElbow * 0.8, rElbow * 0.78], sleeveEnd, elbow, 20, { to: true }), skin, 0.035));
+      onLower(part('forearm', limb(forearmRadii, elbow, wristV, 20, { from: true }), skin, 0.035));
     } else {
-      onUpper(part('arm', limb([rShoulder, rElbow * 1.05], shoulder, elbow), cloth, 0.04));
-      onLower(part('forearm', limb([rElbow, rWrist * 1.02], elbow, wristV), cloth, 0.04));
+      onUpper(part('arm', limb([rShoulder, rElbow * 1.05], shoulder, elbow, 20, { from: true, to: true }), cloth, 0.04));
+      onLower(part('forearm', limb(forearmRadii, elbow, wristV, 20, { from: true }), cloth, 0.04));
       // A ribbed cuff at the wrist
       onLower(part('cuff', limb([rWrist * 1.12, rWrist * 1.12], wristV.clone().lerp(elbow, 0.12), wristV), toon(shade(topColour, 0.12)), 0.02));
       if (cut === 'hoodie') {
@@ -543,14 +560,10 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
         onLower(part('undershirt-cuff', limb([rWrist * 1.0, rWrist * 0.98], wristV, wristV.clone().add(wristV.clone().sub(elbow).normalize().multiplyScalar(0.12))), toon('#b5302b'), 0.015));
       }
     }
-    // A round elbow, so the arm bends softly rather than breaking at a seam
-    const elbowSkin = cut === 'short';
-    const elbowBall = part('elbow', new THREE.SphereGeometry(elbowSkin ? rElbow * 0.79 : rElbow * 1.04, 18, 14), elbowSkin ? skin : cloth, 0.035);
-    elbowBall.position.copy(elbow);
-    onUpper(elbowBall);
     if (wearsGear(avatar.stage)) {
       // A wristband over the sleeve, or the bare arm, just above the hand
-      const [atWrist, atElbow] = cut === 'short' ? [rWrist * 0.75, rElbow * 0.78] : [rWrist * 1.12, rElbow];
+      // (over the cuff on a long sleeve)
+      const [atWrist, atElbow] = [cut === 'short' ? forearmRadii[1] : rWrist * 1.12, forearmRadii[0]];
       const under = Math.max(atWrist, atWrist + (atElbow - atWrist) * BAND_TO);
       onLower(wristband(avatar.stage, topColour, wristV, elbow, under + 0.05));
     }
