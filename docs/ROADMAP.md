@@ -931,7 +931,10 @@ round past the elbow and the forearm starts rounded inside it,
 `ELBOW_INSIDE` (0.94) slimmer, clear by more than either surface's facets
 stray, so they never cross and the bend stays covered; the thigh comes
 round past the knee. The separate balls are gone; every fit test passed as
-it was. `STILL_VERSION` 10. 1,802 unit tests.
+it was. `STILL_VERSION` 10. 1,802 unit tests. The mutation sweep caught 10
+of 12: domes coarse enough for the upper arm's facets to cut inside the
+forearm's round now fail a test that checks it facet by facet, and the
+wristband takes the forearm's own radius instead of repeating its numbers.
 
 WHAT IS NEXT, in the order the runs should take them:
 
