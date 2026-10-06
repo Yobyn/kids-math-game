@@ -950,15 +950,25 @@ deep the picture is. `STILL_VERSION` 11. 1,805 unit tests. The mutation
 sweep caught 9 of 11: a longer toe box held nothing and looked no better,
 so it went; the thick sole got a test of its own.
 
+**THE KID HERO'S FINISH, STEP 3: THE TOPS — DONE.** The tees, the striped
+top and the plain one were a plain egg with a thin wire of a neckline,
+sleeves that just stopped, and a flower print that read as a pink blob.
+Now, as on a ringer tee: a thick rolled crew collar (`COLLAR_BAND`) where
+the neck meets the body, in a trim that always shows (`ringerTrim`: white,
+or dark on a light top), the long sleeves' cuffs in it too; a hem band in
+the trim round each short sleeve's end, clear of the sleeve; a patch pocket
+lying on the plain top's chest; a yellow middle in the flower. The hoodie
+is as it was. `STILL_VERSION` 12. 1,810 unit tests.
+
 WHAT IS NEXT, in the order the runs should take them:
 
 1. **The kid hero: more graphics, and the rest of the posture** (Yobyn,
    2026-10-05). Feet apart and soft elbows are done (step 1), the
-   shoulders slope (step 2), the joints are clean and the shoes are
-   chunky and bright. Next: a little life in the stance (a slight head tilt; weight on one leg would break the mirror
+   shoulders slope (step 2), the joints are clean, the shoes are chunky
+   and bright and the tops are finished. Next: a little life in the stance (a slight head tilt; weight on one leg would break the mirror
    the fit tests rely on, so only if it can be done safely), and more
-   finish to the dragon's and the robots' level (clothes with seams,
-   folds, a collar; small details), with
+   finish to the dragon's and the robots' level (fabric folds and small
+   details), with
    before and after shots for Yobyn. His answer to steps 1 and 2 comes first.
 2. **Every family is built.** Go on below.
 3. **Better materials.** Hair strands or clumps rather than one smooth
