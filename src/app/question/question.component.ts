@@ -512,6 +512,16 @@ export class QuestionComponent implements OnInit, OnDestroy {
   private layoutKey = '';
   private layoutCache?: SumLayout;
 
+  /**
+   * The worked line in its steps, each from its arrow to its answer, so a
+   * narrow phone wraps it between steps and never inside one: "77 + 8 ="
+   * left at a line's end, with its 85 alone on the next, reads as a sum
+   * with no answer.
+   */
+  get workedSteps(): string[] {
+    return this.workedLine.split(' → ').map((step, i) => (i ? '→ ' + step : step));
+  }
+
   /** The sign as it is written in class: × for keer, : for delen (÷ in English). */
   get sign(): string {
     const operation = this.currentQuestion.operation;
