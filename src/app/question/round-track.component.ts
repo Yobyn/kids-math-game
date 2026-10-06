@@ -1,6 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { LanguageService } from '../services/language.service';
 import { Pip, currentStep, roundPips } from './round-track';
+import { PLAY_WORDS } from './play-words';
 
 /**
  * The strip above the question: a pip for every question in the round, lit
@@ -18,7 +19,9 @@ export class RoundTrackComponent {
   @Input() score = 0;
   @Input() streak = 0;
 
-  constructor(public languageService: LanguageService) {}
+  constructor(public languageService: LanguageService) {
+    languageService.extend(PLAY_WORDS);
+  }
 
   get pips(): Pip[] {
     return roundPips(this.answered, this.total);
