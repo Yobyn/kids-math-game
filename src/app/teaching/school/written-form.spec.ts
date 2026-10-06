@@ -3,7 +3,7 @@ import { CURRICULUM, Moment, Random, SchoolSum, TOPICS, schoolSum } from './groe
 import { FormWords, SumLayout, formWorkedStep, sumLayout } from './written-form';
 
 const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van', remainder: 'rest', hours: 'uur', minutes: 'minuten',
-  toTens: 'op tientallen', toHundreds: 'op honderdtallen' };
+  toTens: 'Rond af op tientallen', toHundreds: 'Rond af op honderdtallen' };
 
 function seeded(seed: number): Random {
   return () => {
@@ -59,12 +59,12 @@ function holds(written: string, filled: number): boolean {
     const per: { [unit: string]: number } = { 'm cm': 100, 'km m': 1000, 'kg g': 1000, 'uur minuten': 60, 'h min': 60 };
     return per[`${measure[2]} ${measure[4]}`] * +measure[1] === +measure[3];
   }
-  // 347 ≈ 350 op tientallen: a ten, and no ten nearer; halfway (345) goes up
-  const rounded = text.match(/^(\d+) ≈ (\d+) op (tientallen|honderdtallen)$/);
+  // Rond af op tientallen: 347 ≈ 350. A ten, and no ten nearer; halfway (345) goes up
+  const rounded = text.match(/^Rond af op (tientallen|honderdtallen) (\d+) ≈ (\d+)$/);
   if (rounded) {
-    const [n, to] = [+rounded[1], rounded[3] === 'tientallen' ? 10 : 100];
-    const distance = Math.abs(n - +rounded[2]);
-    return +rounded[2] % to === 0 && (distance < to / 2 || (distance === to / 2 && +rounded[2] > n));
+    const [n, to, filled] = [+rounded[2], rounded[1] === 'tientallen' ? 10 : 100, +rounded[3]];
+    const distance = Math.abs(n - filled);
+    return filled % to === 0 && (distance < to / 2 || (distance === to / 2 && filled > n));
   }
   const part = text.match(/^(½|⅓|¼|⅕) van (\d+) = (\d+)$/);
   if (part) {
@@ -114,8 +114,8 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('rest', 23, 4, '%')).toBe('23 : 4 = 5 rest ?');
     expect(shown('m-cm', 3, 100, '*')).toBe('3 m = ? cm');
     expect(shown('uur-min', 2, 60, '*')).toBe('2 uur = ? minuten');
-    expect(shown('afronden', 347, 10, '≈')).toBe('347 ≈ ? op tientallen');
-    expect(shown('afronden', 2468, 100, '≈')).toBe('2468 ≈ ? op honderdtallen');
+    expect(shown('afronden', 347, 10, '≈')).toBe('Rond af op tientallen 347 ≈ ?');
+    expect(shown('afronden', 2468, 100, '≈')).toBe('Rond af op honderdtallen 2468 ≈ ?');
     // and a plain sum is still a plain sum, the box at the end
     expect(read(sumLayout({ num1: 7, num2: 5, sign: '+' }, WORDS))).toBe('7 + 5 = ?');
   });

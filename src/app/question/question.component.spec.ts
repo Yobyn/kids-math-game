@@ -1718,9 +1718,9 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     ask({ num1: 2, num2: 60, operation: '*', form: 'uur-min' });
     expect(card()).toEqual(['2', 'uur', '=', '[ ]', 'minuten']);
     ask({ num1: 347, num2: 10, operation: '≈', form: 'afronden' });
-    expect(card()).toEqual(['347', '≈', '[ ]', 'op tientallen']);
+    expect(card()).toEqual(['Rond af op tientallen', '347', '≈', '[ ]']);
     ask({ num1: 2468, num2: 100, operation: '≈', form: 'afronden' });
-    expect(card()).toEqual(['2468', '≈', '[ ]', 'op honderdtallen']);
+    expect(card()).toEqual(['Rond af op honderdtallen', '2468', '≈', '[ ]']);
     // A plain sum keeps the box at the end
     ask({ num1: 7, num2: 5, operation: '+' });
     expect(card()).toEqual(['7', '+', '5', '=', '[ ]']);
@@ -1745,12 +1745,12 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     ask({ num1: 23, num2: 4, operation: '%', form: 'rest' });
     expect(card()).toEqual(['23', '÷', '4', '=', '5', 'r', '[ ]']);
     ask({ num1: 347, num2: 10, operation: '≈', form: 'afronden' });
-    expect(card()).toEqual(['347', '≈', '[ ]', 'to tens']);
+    expect(card()).toEqual(['Round to the nearest ten', '347', '≈', '[ ]']);
     component.languageService.setLanguage('es');
     fixture.detectChanges();
-    expect(card()).toEqual(['347', '≈', '[ ]', 'a decenas']);
+    expect(card()).toEqual(['Redondea a la decena', '347', '≈', '[ ]']);
     ask({ num1: 2468, num2: 100, operation: '≈', form: 'afronden' });
-    expect(card()).toEqual(['2468', '≈', '[ ]', 'a centenas']);
+    expect(card()).toEqual(['Redondea a la centena', '2468', '≈', '[ ]']);
   });
 
   it('marks the number that goes in the box: 3 for 7 + ? = 10', () => {
@@ -1773,6 +1773,18 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     component.userAnswer = '5';
     component.checkAnswer();
     expect(component.answerWasCorrect).toBe(false);
+  });
+
+  it('puts "Rond af op tientallen" on a line of its own above the sum, as the workbook heads it', () => {
+    build('nl');
+    ask({ num1: 2468, num2: 100, operation: '≈', form: 'afronden' });
+    const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    const heading = (problem.querySelector('.caption') as HTMLElement).getBoundingClientRect();
+    const sum = (problem.querySelector('.number') as HTMLElement).getBoundingClientRect();
+    const box = (problem.querySelector('input') as HTMLElement).getBoundingClientRect();
+    expect(heading.bottom).toBeLessThanOrEqual(sum.top);
+    // and the sum below it is one line: the number and the box side by side
+    expect(Math.abs((sum.top + sum.bottom) / 2 - (box.top + box.bottom) / 2)).toBeLessThan(sum.height / 2);
   });
 
   it('marks the nearest ten or hundred for a rounding, a 5 going up, and not the number itself or the other way', () => {

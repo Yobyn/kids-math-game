@@ -8,7 +8,7 @@ import { MeasureForm, SumForm } from '../../question/sum-form';
 
 /** One piece of a sum on the screen. `kind` is its CSS class on the question card. */
 export interface SumPart {
-  kind: 'number' | 'operation' | 'equals' | 'word';
+  kind: 'number' | 'operation' | 'equals' | 'word' | 'caption';
   text: string;
 }
 
@@ -37,7 +37,7 @@ export interface FormWords {
   /** The time units, which are words; the others are symbols the same in every language */
   hours: string;
   minutes: string;
-  /** "op tientallen" / "op honderdtallen" in 347 ≈ ? op tientallen */
+  /** "Rond af op tientallen", the heading over 347 ≈ ? (a line of its own) */
   toTens: string;
   toHundreds: string;
 }
@@ -94,11 +94,12 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
                  number(Math.floor(sum.num1 / sum.num2)), { kind: 'word', text: words.remainder }],
         after: []
       };
-    // 347 ≈ ? op tientallen, kept as 347 ≈ 10
+    // Rond af op tientallen: 347 ≈ ?, kept as 347 ≈ 10. The instruction is a
+    // heading on a line of its own, as in the workbook, so it never crowds the sum
     case 'afronden':
       return {
-        before: [number(sum.num1), operation('≈')],
-        after: [{ kind: 'word', text: sum.num2 === 100 ? words.toHundreds : words.toTens }]
+        before: [{ kind: 'caption', text: sum.num2 === 100 ? words.toHundreds : words.toTens }, number(sum.num1), operation('≈')],
+        after: []
       };
     // 3 m = ? cm, kept as 3 × 100
     case 'm-cm':

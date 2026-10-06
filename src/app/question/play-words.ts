@@ -105,8 +105,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-remainder': 'r',
     'unit-hours': 'hours',
     'unit-minutes': 'minutes',
-    'round-tens': 'to tens',
-    'round-hundreds': 'to hundreds'
+    'round-tens': 'Round to the nearest ten',
+    'round-hundreds': 'Round to the nearest hundred'
   },
   nl: {
     'praise-3': 'Knap gewerkt!',
@@ -156,8 +156,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-remainder': 'rest',
     'unit-hours': 'uur',
     'unit-minutes': 'minuten',
-    'round-tens': 'op tientallen',
-    'round-hundreds': 'op honderdtallen'
+    'round-tens': 'Rond af op tientallen',
+    'round-hundreds': 'Rond af op honderdtallen'
   },
   es: {
     'praise-3': '¡Un trabajo brillante!',
@@ -207,7 +207,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-remainder': 'resto',
     'unit-hours': 'horas',
     'unit-minutes': 'minutos',
-    'round-tens': 'a decenas',
-    'round-hundreds': 'a centenas'
+    'round-tens': 'Redondea a la decena',
+    'round-hundreds': 'Redondea a la centena'
   }
 };
