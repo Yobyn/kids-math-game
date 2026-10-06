@@ -60,8 +60,10 @@ export function framedBox(model: THREE.Object3D, framing: StillFraming, figure: 
     return box;
   }
   // Head to hips: the clothes and who is wearing them. The whole figure is
-  // seven heads tall, which in a small round frame is a matchstick
-  ['body', 'head-group', 'hair', 'hat', 'glasses'].forEach(name => {
+  // seven heads tall, which in a small round frame is a matchstick. Not the
+  // shoes, far below the hips: a chunky toe would set how deep the picture is
+  model.getObjectByName('body')!.children.filter(child => child.name !== 'shoe').forEach(child => box.expandByObject(child));
+  ['head-group', 'hair', 'hat', 'glasses'].forEach(name => {
     const part = model.getObjectByName(name);
     if (part) {
       box.expandByObject(part);

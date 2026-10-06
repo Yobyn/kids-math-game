@@ -26,10 +26,17 @@ export const TUCKED = 0.78;
 export const TAPER = 0.4;
 /** The light-up trainers' soles, named so rig.ts can make them glow. */
 export const SHOE_GLOW = 'shoe-glow';
+/**
+ * How much bigger round than the foot a shoe is: chunky, as the bear's boots
+ * and the robot's feet are (Yobyn, 2026-10-05: "Kid hero needs more
+ * graphics ... robot are perfect, bear play foodbal is awesome").
+ */
+export const CHUNK = 1.15;
 
-const SOLE = '#e4e9ea';
-const SHOE = '#2c3944';
-const LACE = '#dfe6ea';
+const SOLE = '#f4f6f7';
+/** The sneakers everyone starts with: the bright blue the pizza's sneakers are. */
+export const SNEAKER = '#5b6cff';
+const LACE = '#ffffff';
 
 interface Look {
   upper: string;
@@ -44,14 +51,14 @@ interface Look {
 function look(id: string, colour: string): Look | null {
   switch (id) {
     case NO_ITEM:
-      return { upper: SHOE, sole: toon(SOLE), toe: SOLE, laces: LACE, collar: 0, soleHeight: 0.26 };
+      return { upper: SNEAKER, sole: toon(SOLE), toe: SOLE, laces: LACE, collar: 0, soleHeight: 0.34 };
     case 'high-tops':
-      return { upper: colour, sole: toon(SOLE), toe: SOLE, laces: LACE, collar: 0.2, soleHeight: 0.26 };
+      return { upper: colour, sole: toon(SOLE), toe: SOLE, laces: LACE, collar: 0.2, soleHeight: 0.34 };
     case 'boots':
-      return { upper: colour, sole: toon(shade(colour, 0.55)), toe: null, laces: null, collar: 0.45, soleHeight: 0.32 };
+      return { upper: colour, sole: toon(shade(colour, 0.55)), toe: null, laces: null, collar: 0.45, soleHeight: 0.38 };
     case 'light-up':
       // An unlit sole, so it reads as light, not as a colour in shadow
-      return { upper: '#f2f4f7', sole: new THREE.MeshBasicMaterial({ color: colour }), toe: null, laces: colour, collar: 0, soleHeight: 0.26 };
+      return { upper: '#f2f4f7', sole: new THREE.MeshBasicMaterial({ color: colour }), toe: null, laces: colour, collar: 0, soleHeight: 0.34 };
     default:
       return null;
   }
@@ -90,7 +97,7 @@ export function buildShoe(id: string, colour: string, figure: Figure, side: numb
   if (!style) {
     return null;
   }
-  const [footLength, footWidth] = figure.foot;
+  const [footLength, footWidth] = figure.foot.map(v => v * CHUNK);
   const ankle = new THREE.Vector3(side * figure.ankle[0], figure.ankle[1], 0);
   const knee = new THREE.Vector3(side * figure.knee[0], figure.knee[1], KNEE_FORWARD);
   const group = new THREE.Group();
@@ -101,25 +108,34 @@ export function buildShoe(id: string, colour: string, figure: Figure, side: numb
   // the tucked-in trousers, is narrower than the foot it stands on (a test
   // holds it)
   const foot = new THREE.Group();
+  foot.name = 'shoe-foot';
   foot.position.set(ankle.x, 0, 0.18 * footLength);
   const sole = part(id === 'light-up' ? SHOE_GLOW : 'shoe-sole', new THREE.CylinderGeometry(0.5, 0.5, style.soleHeight, 28), style.sole, 0.02);
   sole.scale.set(footWidth, 1, footLength);
   sole.position.y = style.soleHeight / 2;
-  const rise = style.soleHeight - 0.26;
+  // The upper: a dome on the sole
+  const base = style.soleHeight - 0.02;
+  const [halfWidth, height, halfLength] = [footWidth * 0.47, 0.62, footLength * 0.47];
   const upper = part('shoe-upper', new THREE.SphereGeometry(0.5, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2), toon(style.upper), 0.025);
-  upper.scale.set(footWidth * 0.94, 1.15, footLength * 0.94);
-  upper.position.y = 0.24 + rise;
+  upper.scale.set(halfWidth * 2, height * 2, halfLength * 2);
+  upper.position.y = base;
   foot.add(sole, upper);
+  // How high the upper's surface is a distance z along the foot from its middle
+  const surface = (z: number) => base + height * Math.sqrt(Math.max(1 - Math.pow(z / halfLength, 2), 0));
   if (style.toe) {
+    // A rubber toe cap reaching just past the toe box, so the two never lie on each other
     const toe = part('shoe-toe', new THREE.SphereGeometry(0.5, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), toon(style.toe), 0.02);
-    toe.scale.set(footWidth * 0.8, 0.5, footLength * 0.34);
-    toe.position.set(0, 0.24 + rise, footLength * 0.3);
+    toe.scale.set(halfWidth * 1.6, height * 0.9, halfLength * 0.8);
+    toe.position.set(0, base, halfLength * 0.66);
     foot.add(toe);
   }
   if (style.laces) {
+    // Laces up the top of the toe box, lying on it, in front of the trousers
     for (let i = 0; i < 3; i++) {
-      const lace = part('shoe-lace', new THREE.BoxGeometry(footWidth * 0.5, 0.05, 0.06), toon(style.laces), 0.008);
-      lace.position.set(0, 0.62 + rise + i * 0.1 - i * i * 0.02, footLength * (0.14 - i * 0.1));
+      const z = halfLength * (0.5 - i * 0.16);
+      const lace = part('shoe-lace', new THREE.CylinderGeometry(0.035, 0.035, halfWidth * 0.9, 8), toon(style.laces), 0.008);
+      lace.rotation.z = Math.PI / 2;
+      lace.position.set(0, surface(z) + 0.01, z);
       foot.add(lace);
     }
   }
@@ -127,8 +143,8 @@ export function buildShoe(id: string, colour: string, figure: Figure, side: numb
     // A stripe of the same light round the upper
     const stripe = part('shoe-stripe', new THREE.TorusGeometry(0.5, 0.035, 8, 40), new THREE.MeshBasicMaterial({ color: colour }), 0);
     stripe.rotation.x = Math.PI / 2;
-    stripe.scale.set(footWidth * 0.94 * 0.93, footLength * 0.94 * 0.93, 1);
-    stripe.position.y = 0.24 + 0.2;
+    stripe.scale.set(halfWidth * 2 * 0.93, halfLength * 2 * 0.93, 1);
+    stripe.position.y = base + height * 0.35;
     foot.add(stripe);
   }
   group.add(foot);
