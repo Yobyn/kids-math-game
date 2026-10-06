@@ -1,10 +1,10 @@
 import { Component, NgZone } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { PreloadingStrategy, Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { of } from 'rxjs';
-import { PreloadGameScreens, routes } from './app-routing.module';
+import { AppRoutingModule, PreloadGameScreens, routes } from './app-routing.module';
 
 @Component({ template: '<router-outlet></router-outlet>' })
 class HostComponent {}
@@ -68,6 +68,12 @@ describe('the routes, and which of them the first load carries', () => {
     });
     // Not the between-rounds screens: the dressing-up screen's 3D is not worth a child's data until they open it
     LAZY.forEach(path => expect(preloaded(path)).withContext(path).toBeFalse());
+  });
+
+  it('has the app\u2019s own router preload that way', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ imports: [AppRoutingModule, HttpClientTestingModule] });
+    expect(TestBed.inject(PreloadingStrategy) instanceof PreloadGameScreens).toBeTrue();
   });
 
   it('fetches the between-rounds screens when they are opened', () => {
