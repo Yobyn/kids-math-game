@@ -13,6 +13,8 @@ import {
   HAIR_COLOURS,
   HAIR_STYLES,
   HAIR_TEXTURES,
+  HATCHLINGS,
+  hatchlingFor,
   MOUTH_SHAPES,
   NO_ITEM,
   SKIN_TONES,
@@ -84,6 +86,18 @@ describe('reading a stored character', () => {
     expect(normaliseAvatar({ ...defaultAvatar(), bodyType: 'dragon' }).bodyType).toBe('boy');
   });
 
+  it('keeps the pet the egg hatches into once it is picked, and leaves it to be picked otherwise', () => {
+    HATCHLINGS.forEach(id => expect(normaliseAvatar({ ...defaultAvatar(), hatchling: id }).hatchling).toBe(id));
+    const old: any = { ...defaultAvatar() };
+    delete old.hatchling;
+    expect(normaliseAvatar(old).hatchling).toBe('');
+    expect(normaliseAvatar({ ...defaultAvatar(), hatchling: 'unicorn' }).hatchling).toBe('');
+    // Every pet it can hatch into is a pet there is
+    HATCHLINGS.forEach(id => expect(findItem('pet', id)).withContext(id).toBeTruthy());
+    // The same child, the same pet
+    expect(hatchlingFor('account:sam')).toBe(hatchlingFor('account:sam'));
+  });
+
   it('offers the body type as a choice, boy and girl', () => {
     const choice = AVATAR_CHOICES.find(entry => entry.key === 'bodyType')!;
     expect(choice.options).toEqual(BODY_TYPES);
@@ -109,6 +123,7 @@ describe('reading a stored character', () => {
       glasses: NO_ITEM,
       top: NO_ITEM,
       pet: 'kitten',
+      hatchling: 'dragon',
       back: 'backpack',
       shoes: 'high-tops',
       topColour: '#8e5bd6'
