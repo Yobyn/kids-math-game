@@ -936,16 +936,29 @@ of 12: domes coarse enough for the upper arm's facets to cut inside the
 forearm's round now fail a test that checks it facet by facet, and the
 wristband takes the forearm's own radius instead of repeating its numbers.
 
+**THE KID HERO'S FINISH, STEP 2: CHUNKY, BRIGHT SHOES — DONE.** Next to the
+bear's boots and the robot's feet the kid's shoes were small, dark and half
+hidden: a slate upper, laces under the trouser hem, a toe cap lying on the
+toe box in a ragged white smear, and boots the trousers' own brown. Every
+pair is now `CHUNK` (1.15) bigger round than the foot on a thicker sole (a
+third of the shoe's height or more); the sneakers everyone starts with are
+bright blue (`SNEAKER`, the pizza's sneakers) with round white laces lying
+on the toe box in front of the trousers and a toe cap reaching just past
+it; the boots are a deep chocolate, clear of the tan trousers. The full
+still (head to hips) leaves the shoes out, so a chunky toe cannot set how
+deep the picture is. `STILL_VERSION` 11. 1,805 unit tests. The mutation
+sweep caught 9 of 11: a longer toe box held nothing and looked no better,
+so it went; the thick sole got a test of its own.
+
 WHAT IS NEXT, in the order the runs should take them:
 
 1. **The kid hero: more graphics, and the rest of the posture** (Yobyn,
    2026-10-05). Feet apart and soft elbows are done (step 1), the
-   shoulders slope (step 2), and the joints are clean. Next: a little
-   life in the stance (a slight head tilt; weight on one leg would break the mirror
+   shoulders slope (step 2), the joints are clean and the shoes are
+   chunky and bright. Next: a little life in the stance (a slight head tilt; weight on one leg would break the mirror
    the fit tests rely on, so only if it can be done safely), and more
    finish to the dragon's and the robots' level (clothes with seams,
-   folds, a collar; chunkier, brighter shoes, as the bear's boots and the
-   robot's feet are; small details), with
+   folds, a collar; small details), with
    before and after shots for Yobyn. His answer to steps 1 and 2 comes first.
 2. **Every family is built.** Go on below.
 3. **Better materials.** Hair strands or clumps rather than one smooth
