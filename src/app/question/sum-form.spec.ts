@@ -67,6 +67,7 @@ describe('a written form travels with its sum (sum-form.ts)', () => {
   it('shows the grown-ups the fact as it was asked', () => {
     expect(factText(aanvullen)).toBe('7 + ? = 10');
     expect(factText({ num1: 8, num2: 5, operation: '-', form: 'splitsen' })).toBe('8 = 5 + ?');
+    expect(factText({ num1: 20, num2: 4, operation: '/', form: 'deel' })).toBe('¼ × 20');
     expect(factText({ num1: 10, num2: 7, operation: '-' })).toBe('10 − 7');
   });
 });

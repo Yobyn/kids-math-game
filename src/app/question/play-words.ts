@@ -48,6 +48,7 @@ export type PlayKey =
   | 'total'
   | 'sum-double'
   | 'sum-half'
+  | 'sum-part-of'
   | 'play-again';
 
 export const PLAY_WORDS: Words<PlayKey> = {
@@ -94,7 +95,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'total': 'Total',
     'play-again': 'Play Again',
     'sum-double': 'double',
-    'sum-half': 'half of'
+    'sum-half': 'half of',
+    'sum-part-of': 'of'
   },
   nl: {
     'praise-3': 'Knap gewerkt!',
@@ -139,7 +141,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'total': 'Totaal',
     'play-again': 'Opnieuw Spelen',
     'sum-double': 'dubbel',
-    'sum-half': 'de helft van'
+    'sum-half': 'de helft van',
+    'sum-part-of': 'van'
   },
   es: {
     'praise-3': '¡Un trabajo brillante!',
@@ -184,6 +187,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'total': 'Total',
     'play-again': 'Jugar de nuevo',
     'sum-double': 'el doble de',
-    'sum-half': 'la mitad de'
+    'sum-half': 'la mitad de',
+    'sum-part-of': 'de'
   }
 };
