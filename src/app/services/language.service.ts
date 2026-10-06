@@ -22,6 +22,8 @@ export type TranslationKeys =
   | 'score'
   | 'correct'
   | 'total'
+  | 'sum-double'
+  | 'sum-half'
   | 'play-again'
   | 'logout'
   | 'need-account'

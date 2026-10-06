@@ -46,6 +46,8 @@ export type PlayKey =
   | 'money-take-back'
   | 'money-and'
   | 'total'
+  | 'sum-double'
+  | 'sum-half'
   | 'play-again';
 
 export const PLAY_WORDS: Words<PlayKey> = {
@@ -90,7 +92,9 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'money-take-back': 'Take back',
     'money-and': 'and',
     'total': 'Total',
-    'play-again': 'Play Again'
+    'play-again': 'Play Again',
+    'sum-double': 'double',
+    'sum-half': 'half of'
   },
   nl: {
     'praise-3': 'Knap gewerkt!',
@@ -133,7 +137,9 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'money-take-back': 'Terugnemen',
     'money-and': 'en',
     'total': 'Totaal',
-    'play-again': 'Opnieuw Spelen'
+    'play-again': 'Opnieuw Spelen',
+    'sum-double': 'dubbel',
+    'sum-half': 'de helft van'
   },
   es: {
     'praise-3': '¡Un trabajo brillante!',
@@ -176,6 +182,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'money-take-back': 'Quitar',
     'money-and': 'y',
     'total': 'Total',
-    'play-again': 'Jugar de nuevo'
+    'play-again': 'Jugar de nuevo',
+    'sum-double': 'el doble de',
+    'sum-half': 'la mitad de'
   }
 };
