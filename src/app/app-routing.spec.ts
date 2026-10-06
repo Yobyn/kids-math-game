@@ -3,7 +3,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { routes } from './app-routing.module';
+import { of } from 'rxjs';
+import { PreloadGameScreens, routes } from './app-routing.module';
 
 @Component({ template: '<router-outlet></router-outlet>' })
 class HostComponent {}
@@ -17,8 +18,10 @@ class HostComponent {}
  * navigated to. These navigate for real.
  */
 describe('the routes, and which of them the first load carries', () => {
-  /** A route a child reaches while playing: it must be there immediately. */
-  const EAGER = ['login', 'grade', 'difficulty', 'questions', 'result'];
+  /** The way into a round: there immediately. */
+  const EAGER = ['login', 'grade', 'difficulty'];
+  /** The round and its result: fetched on their own, but as soon as the app opens. */
+  const PRELOADED = ['questions', 'result'];
   /** A screen a child opens BETWEEN rounds: fetched when they open it. */
   const LAZY = ['register', 'avatar', 'progress', 'scrapbook', 'grown-ups'];
 
@@ -36,18 +39,35 @@ describe('the routes, and which of them the first load carries', () => {
   afterEach(() => localStorage.clear());
 
   it('still has every screen it had before', () => {
-    EAGER.concat(LAZY).forEach(path => expect(find(path)).toBeTruthy());
+    EAGER.concat(PRELOADED, LAZY).forEach(path => expect(find(path)).toBeTruthy());
     expect(find('')).toBeTruthy();
     expect(routes[routes.length - 1].path).toBe('**');
   });
 
-  it('carries the game itself in the first load', () => {
-    // A child who is playing must never wait for a network fetch between
-    // one question and the next
+  it('carries the way into a round in the first load', () => {
     EAGER.forEach(path => {
       expect(find(path)!.component).toBeTruthy();
       expect(find(path)!.loadChildren).toBeUndefined();
     });
+  });
+
+  it('fetches the round and its result as soon as the app opens, and only those, so a child never waits for them', () => {
+    const strategy = new PreloadGameScreens();
+    const preloaded = (path: string) => {
+      let loaded = false;
+      strategy.preload(find(path)!, () => {
+        loaded = true;
+        return of(null);
+      }).subscribe();
+      return loaded;
+    };
+    // The round, its result: fetched (and cached for offline) while the child is still choosing
+    PRELOADED.forEach(path => {
+      expect(find(path)!.loadChildren).withContext(path).toBeTruthy();
+      expect(preloaded(path)).withContext(path).toBeTrue();
+    });
+    // Not the between-rounds screens: the dressing-up screen's 3D is not worth a child's data until they open it
+    LAZY.forEach(path => expect(preloaded(path)).withContext(path).toBeFalse());
   });
 
   it('fetches the between-rounds screens when they are opened', () => {
@@ -92,6 +112,25 @@ describe('the routes, and which of them the first load carries', () => {
 
       return { arrived, router, fixture };
     }
+
+    it('really loads a round when a child starts one', async () => {
+      // As a child arrives from the difficulty screen: with a grade and a difficulty chosen
+      localStorage.setItem('grade', '1');
+      localStorage.setItem('difficulty', 'easy');
+      const { arrived, router, fixture } = await open('questions');
+
+      expect(arrived).toBe(true);
+      expect(router.url).toBe('/questions');
+      expect(fixture.nativeElement.querySelector('.question-box')).toBeTruthy();
+    });
+
+    it('really loads the result screen, which sends a child with no round behind it to the grades', async () => {
+      const { arrived, router } = await open('result');
+
+      // It arrived, and its own screen sent the child on: a module that failed to load would not have arrived
+      expect(arrived).toBe(true);
+      expect(router.url).toBe('/grade');
+    });
 
     LAZY.forEach(path => {
       it(`really loads /${path} when a child goes there`, async () => {
