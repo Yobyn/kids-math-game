@@ -154,6 +154,11 @@ middle, hard the end), one groep per run.
   turning 4 × 50 into 4 × 51 went past the cap of 200. The fraction is set
   as big as the numbers; at first it was part of the small word "¼ van",
   so the one thing the sum is about read smallest on the card.
+  Mutation sweep: 25 mutants, 23 killed. Of the two that lived, one was a
+  real gap (a "¼ van" question in a round put down halfway would have come
+  back as a plain 20 : 4; every form the topics make is now read back in a
+  test) and one was a rule that changed nothing (no round hundreds in a sum
+  to 1000; 340 + 200 is a fine sum), so the rule went.
   STILL TO DO for groep 5: dividing with a remainder (23 : 4 = 5 rest ?)
   and measures (3 m = ? cm, 2 uur = ? minuten), each a form of its own.
 - **Next, in order:** groep 5's remainders and measures; groep 6, 7, 8;

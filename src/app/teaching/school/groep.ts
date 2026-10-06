@@ -227,7 +227,7 @@ function within1000(through: boolean): Maker {
       const num1 = between(random, through ? 120 : 110, 899);
       const num2 = through ? between(random, 101, 899) : 10 * between(random, 1, 89);
       const answer = operation === '+' ? num1 + num2 : num1 - num2;
-      if (answer > 0 && answer < 1000 && num2 % 100 !== 0 && carries(num1, num2, operation) === through) {
+      if (answer > 0 && answer < 1000 && carries(num1, num2, operation) === through) {
         return { num1, num2, operation };
       }
     }

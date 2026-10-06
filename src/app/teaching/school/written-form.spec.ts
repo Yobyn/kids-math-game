@@ -1,4 +1,4 @@
-import { SUM_FORMS, SumForm } from '../../question/sum-form';
+import { SUM_FORMS, SumForm, readForm } from '../../question/sum-form';
 import { CURRICULUM, Moment, Random, SchoolSum, TOPICS, schoolSum } from './groep';
 import { FormWords, SumLayout, formWorkedStep, sumLayout } from './written-form';
 
@@ -71,6 +71,10 @@ const FORM_TOPICS = Object.keys(TOPICS).filter(topic => made(topic, 1)[0].form);
 describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
   it('has a topic for every form', () => {
     SUM_FORMS.forEach(form => expect(FORM_TOPICS.some(topic => made(topic, 1)[0].form === form)).withContext(form).toBeTrue());
+  });
+
+  it('reads back every form the topics make, so a round put down halfway comes back in the form it was asked', () => {
+    FORM_TOPICS.forEach(topic => made(topic, 20).forEach(sum => expect(readForm(sum.form)).withContext(topic).toBe(sum.form)));
   });
 
   it('writes each one as the workbook does, the box where the "?" is', () => {
