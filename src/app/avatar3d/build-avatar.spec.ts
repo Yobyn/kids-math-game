@@ -280,6 +280,100 @@ describe('buildAvatar', () => {
     }));
   });
 
+  it('finishes every crew-neck top as a ringer tee: a collar and sleeve ends in a trim that shows, in any colour', () => {
+    const misses: string[] = [];
+    const colourOf = (mesh: THREE.Object3D) => ((mesh as THREE.Mesh).material as THREE.MeshToonMaterial).color;
+    WARDROBE.filter(item => item.slot === 'top' && item.id !== 'hoodie').forEach(top => [undefined, ...TOP_COLOURS].forEach(topColour => {
+      const root = buildAvatar(avatar({ top: top.id, ...(topColour ? { topColour } : {}) } as Partial<Avatar>));
+      const [body, trim] = [colourOf(find(root, 'torso')[0]), colourOf(find(root, 'neckline')[0])];
+      if (Math.hypot(body.r - trim.r, body.g - trim.g, body.b - trim.b) < 0.35) {
+        misses.push(`${top.id} ${topColour || 'own'}: the collar does not show`);
+      }
+      // The sleeve ends in the same trim: a hem on a short sleeve, a cuff on a long one
+      const ends = topCut(top.id) === 'short' ? find(root, 'sleeve-hem') : find(root, 'cuff');
+      if (ends.length !== 2 || ends.some(end => colourOf(end).getHex() !== trim.getHex())) {
+        misses.push(`${top.id} ${topColour || 'own'}: sleeve ends not in the trim`);
+      }
+      disposeAvatar(root);
+    }));
+    expect(misses).toEqual([]);
+  });
+
+  it('rolls a crew collar over where the neck meets the body: thick enough to read, no gap to the neck', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const figure = figureFor(bodyType);
+      const neckline = find(buildAvatar(avatar({ bodyType, top: 'striped' })), 'neckline')[0] as THREE.Mesh;
+      const { radius, tube } = (neckline.geometry as THREE.TorusGeometry).parameters;
+      // Twice the body's ink line at least, or it reads as a wire round the neck
+      expect(tube).withContext(bodyType).toBeGreaterThan(0.1);
+      // Its inside edge closer to the neck than the band is thick
+      expect(radius - tube - figure.neckRadius).withContext(bodyType).toBeLessThan(tube);
+    });
+  });
+
+  it('hems each short sleeve with a band clear of the sleeve, at its end', () => {
+    BODY_TYPES.forEach(bodyType => ['star-tee', 'flower-tee'].forEach(top => {
+      const root = buildAvatar(avatar({ bodyType, top }));
+      root.updateMatrixWorld(true);
+      find(root, ARM_RIG).forEach(rig => {
+        const sleeve = rig.children.find(child => child.name === 'arm') as THREE.Mesh;
+        const hem = rig.children.find(child => child.name === 'sleeve-hem') as THREE.Mesh;
+        const widest = (mesh: THREE.Mesh) => Math.max(...(mesh.geometry as THREE.LatheGeometry).parameters.points.map(p => p.x));
+        // Wider than the sleeve anywhere, by more than either surface's facets stray, so the two never cross
+        expect(widest(hem) / widest(sleeve)).withContext(`${bodyType} ${top}`).toBeGreaterThan(1.02);
+        // At the sleeve's end, where the bare arm comes out
+        const bare = rig.children.find(child => child.name === 'bare-arm') as THREE.Mesh;
+        const hemBox = new THREE.Box3().setFromObject(hem);
+        const bareTop = new THREE.Box3().setFromObject(bare).max.y;
+        expect(hemBox.min.y).withContext(`${bodyType} ${top}`).toBeLessThan(bareTop);
+        expect(hemBox.max.y).withContext(`${bodyType} ${top}`).toBeGreaterThan(bareTop - 0.05);
+      });
+      disposeAvatar(root);
+    }));
+  });
+
+  it('puts a patch pocket on the plain top\u2019s chest, lying on it: its front just outside the body, its back inside', () => {
+    BODY_TYPES.forEach(bodyType => [undefined, '#f2f2f5'].forEach(topColour => {
+      const figure = figureFor(bodyType);
+      const root = buildAvatar(avatar({ bodyType, top: NO_ITEM, ...(topColour ? { topColour } : {}) } as Partial<Avatar>));
+      root.updateMatrixWorld(true);
+      const patch = find(root, 'chest-pocket-patch')[0] as THREE.Mesh;
+      expect(patch).withContext(bodyType).toBeDefined();
+      // How far a point is outside the oval of the torso at its height
+      const outside = (p: THREE.Vector3) => Math.hypot(p.x, p.z / figure.torsoDepth) - torsoRadius(figure, p.y);
+      const { width, height, depth } = (patch.geometry as THREE.BoxGeometry).parameters;
+      [-1, 1].forEach(sx => [-1, 1].forEach(sy => {
+        const front = patch.localToWorld(new THREE.Vector3(sx * width / 2, sy * height / 2, depth / 2));
+        const back = patch.localToWorld(new THREE.Vector3(sx * width / 2, sy * height / 2, -depth / 2));
+        // Seen, and not standing off the body by more than its own thickness twice over
+        expect(outside(front)).withContext(`${bodyType} front corner`).toBeGreaterThan(0);
+        expect(outside(front)).withContext(`${bodyType} front corner`).toBeLessThan(depth * 2);
+        // No gap behind it
+        expect(outside(back)).withContext(`${bodyType} back corner`).toBeLessThan(0);
+      }));
+      // On the chest: above the middle of the top, on the character's left
+      const at = patch.getWorldPosition(new THREE.Vector3());
+      expect(at.y).withContext(bodyType).toBeGreaterThan((figure.hem + collar(figure)) / 2);
+      expect(at.x).withContext(bodyType).toBeGreaterThan(0);
+      disposeAvatar(root);
+    }));
+    // Only the plain top: the others have their own print, stripes or pouch
+    ['striped', 'star-tee', 'flower-tee', 'hoodie'].forEach(top => expect(find(buildAvatar(avatar({ top })), 'chest-pocket-patch').length).withContext(top).toBe(0));
+  });
+
+  it('gives the flower print a yellow middle, in front of the flower and inside it', () => {
+    const root = buildAvatar(avatar({ top: 'flower-tee' }));
+    root.updateMatrixWorld(true);
+    const [flower] = find(root, 'decal');
+    const [middle] = find(root, 'decal-middle');
+    expect(((middle as THREE.Mesh).material as THREE.MeshBasicMaterial).color.getHexString()).toBe('ffd166');
+    const box = new THREE.Box3().setFromObject(flower);
+    const at = middle.getWorldPosition(new THREE.Vector3());
+    expect(at.z).toBeGreaterThan(box.max.z);
+    expect(box.containsPoint(at.clone().setZ(box.max.z))).toBeTrue();
+    expect(find(buildAvatar(avatar({ top: 'star-tee' })), 'decal-middle').length).toBe(0);
+  });
+
   it('colours the face from the choices', () => {
     const root = buildAvatar(avatar({ skin: '#8d5524', eyeColour: '#3f8f5a', hairColour: '#e0b35a' }));
     const colour = (name: string) => ((find(root, name)[0] as THREE.Mesh).material as THREE.MeshToonMaterial).color.getHexString();
