@@ -743,18 +743,30 @@ describe('QuestionComponent', () => {
   });
 });
 
-describe('QuestionComponent sums for the youngest players', () => {
+describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', () => {
   let component: QuestionComponent;
   let fixture: ComponentFixture<QuestionComponent>;
 
-  /** Grade 1-2 are only ever asked to add, so every question is the sum path. */
-  function build(grade: string, difficulty: string) {
+  function build(grade: string, difficulty: string, language = 'nl') {
     localStorage.clear();
     localStorage.setItem('grade', grade);
     localStorage.setItem('difficulty', difficulty);
+    localStorage.setItem('language', language);
     fixture = TestBed.createComponent(QuestionComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
+  }
+
+  /** The plain sums of a round, money left aside (its own strand). */
+  function sums(count = 200) {
+    const asked = [];
+    for (let i = 0; i < count; i++) {
+      component.generateQuestion();
+      if (!component.currentQuestion.money) {
+        asked.push({ ...component.currentQuestion });
+      }
+    }
+    return asked;
   }
 
   beforeEach(async () => {
@@ -767,39 +779,66 @@ describe('QuestionComponent sums for the youngest players', () => {
 
   afterEach(() => localStorage.clear());
 
-  const ranges: { [key: string]: number } = { easy: 5, medium: 10, hard: 10 };
-
-  ['1', '2'].forEach(grade => {
-    ['easy', 'medium', 'hard'].forEach(difficulty => {
-      it(`keeps grade ${grade} ${difficulty} sums inside the range`, () => {
-        build(grade, difficulty);
-        const limit = ranges[difficulty];
-
-        for (let i = 0; i < 200; i++) {
-          component.generateQuestion();
-          if (component.currentQuestion.money) {
-            continue;
-          }
-          const { num1, num2 } = component.currentQuestion;
-          expect(num1).toBeGreaterThanOrEqual(1);
-          expect(num2).toBeGreaterThanOrEqual(1);
-          expect(num1 + num2).toBeLessThanOrEqual(limit);
-        }
-      });
+  it('asks grade 1 (groep 3) at the start of the year to add and take away within 10, small numbers', () => {
+    build('1', 'easy');
+    sums().forEach(({ num1, num2, operation }) => {
+      expect(['+', '-']).toContain(operation);
+      expect(num2).toBeLessThanOrEqual(5);
+      expect(operation === '+' ? num1 + num2 : num1).toBeLessThanOrEqual(10);
+      expect(operation === '-' ? num1 - num2 : 1).toBeGreaterThan(0);
     });
   });
 
-  it('still finishes when the first number lands at the top of the range', () => {
+  it('asks groep 3 at the end of the year to go through the ten, as in 8 + 5 and 14 \u2212 6', () => {
+    build('1', 'hard');
+    const asked = sums();
+    const through = asked.filter(({ num1, num2, operation }) =>
+      operation === '+' ? num1 % 10 + num2 % 10 > 10 : num2 % 10 > num1 % 10);
+    expect(through.length).toBeGreaterThan(asked.length / 4);
+    asked.forEach(({ operation }) => expect(['+', '-']).toContain(operation));
+  });
+
+  it('asks grade 2 (groep 4) the tables of 1, 2, 5 and 10 in the middle of the year, and dividing within them', () => {
+    build('2', 'medium');
+    const asked = sums(400);
+    const tables = asked.filter(sum => sum.operation === '*' || sum.operation === '/');
+    expect(tables.some(sum => sum.operation === '*')).toBeTrue();
+    expect(tables.some(sum => sum.operation === '/')).toBeTrue();
+    tables.forEach(({ num1, num2, operation }) => {
+      expect([1, 2, 5, 10]).toContain(num2);
+      expect(operation === '/' ? num1 % num2 : 0).toBe(0);
+    });
+    // And the sums within 100 that are new then: 34 + 5, 45 + 30
+    expect(asked.some(sum => sum.operation === '+' && sum.num1 >= 20 && sum.num1 + sum.num2 > 20)).toBeTrue();
+    // Within 100: 100 : 10 is the top of the tables
+    asked.forEach(sum => expect(Math.max(sum.num1, sum.num2)).toBeLessThanOrEqual(100));
+  });
+
+  it('keeps the old questions for a groep not built yet: grade 3 (groep 5) is still asked as before', () => {
+    build('3', 'medium');
+    sums(50).forEach(({ operation }) => expect(['+', '-']).toContain(operation));
+  });
+
+  it('writes the sign as it is written in class: \u00d7 and : in Dutch, \u00f7 in English, a real minus', () => {
+    build('2', 'hard');
+    const cases: [string, string, string][] = [['*', 'nl', '\u00d7'], ['/', 'nl', ':'], ['/', 'en', '\u00f7'], ['-', 'nl', '\u2212'], ['+', 'nl', '+']];
+    cases.forEach(([operation, language, shown]) => {
+      component.languageService.setLanguage(language as 'nl' | 'en');
+      component.currentQuestion = { num1: 12, num2: 3, operation };
+      fixture.detectChanges();
+      expect(component.sign).withContext(`${operation} in ${language}`).toBe(shown);
+      expect(fixture.nativeElement.querySelector('.math-problem .operation').textContent.trim()).withContext(`${operation} in ${language}`).toBe(shown);
+    });
+  });
+
+  it('still finishes when every draw lands at the top', () => {
     build('1', 'easy');
-    // The old code re-rolled only the second number, so a first number that
-    // had already used the whole range could never be brought back under it —
-    // the loop spun forever and the tab froze. Pinning random high reproduces it.
+    // The old code once span forever on a high first number; no school topic may
     spyOn(Math, 'random').and.returnValue(0.9999);
 
     component.generateQuestion();
 
-    expect(component.currentQuestion.num1 + component.currentQuestion.num2)
-      .toBeLessThanOrEqual(5);
+    expect(component.currentQuestion.num1).toBeGreaterThan(0);
   });
 });
 

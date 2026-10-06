@@ -423,6 +423,18 @@ function girth(figure: Figure, y: number): [number, number] {
   return [r, r * figure.torsoDepth];
 }
 
+/** A crew-neck top's collar band, how thick round. */
+export const COLLAR_BAND = 0.13;
+
+/**
+ * The trim on a crew-neck top's collar and sleeve ends, as on a ringer tee:
+ * white, or on a light top a dark one, so it always shows (Yobyn,
+ * 2026-10-05: "Kid hero needs more graphics").
+ */
+export function ringerTrim(topColour: string): string {
+  return new THREE.Color(topColour).getHSL({ h: 0, s: 0, l: 0 }).l > 0.7 ? '#2d2d38' : '#f4f6f7';
+}
+
 /** Which kind of sleeve and neckline a top has. */
 export function topCut(top: string): 'long' | 'short' | 'hoodie' {
   if (top === 'hoodie') {
@@ -535,13 +547,16 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
       // A short sleeve ends above the elbow; below it is a bare arm
       const sleeveEnd = shoulder.clone().lerp(elbow, 0.55);
       onUpper(part('arm', limb([rShoulder * 1.05, rShoulder], shoulder, sleeveEnd, 20, { from: true }), cloth, 0.04));
+      // A hem band round the end of the sleeve, in the trim
+      onUpper(part('sleeve-hem', limb([rShoulder * 1.08, rShoulder * 1.08], sleeveEnd.clone().lerp(shoulder, 0.25), sleeveEnd), toon(ringerTrim(topColour)), 0.02));
       onUpper(part('bare-arm', limb([rElbow * 0.8, rElbow * 0.78], sleeveEnd, elbow, 20, { to: true }), skin, 0.035));
       onLower(part('forearm', limb(forearmRadii, elbow, wristV, 20, { from: true }), skin, 0.035));
     } else {
       onUpper(part('arm', limb([rShoulder, rElbow * 1.05], shoulder, elbow, 20, { from: true, to: true }), cloth, 0.04));
       onLower(part('forearm', limb(forearmRadii, elbow, wristV, 20, { from: true }), cloth, 0.04));
-      // A ribbed cuff at the wrist
-      onLower(part('cuff', limb([rWrist * 1.12, rWrist * 1.12], wristV.clone().lerp(elbow, 0.12), wristV), toon(shade(topColour, 0.12)), 0.02));
+      // A ribbed cuff at the wrist: the hoodie's a shade of it, a crew top's in its trim
+      const cuffColour = cut === 'hoodie' ? shade(topColour, 0.12) : ringerTrim(topColour);
+      onLower(part('cuff', limb([rWrist * 1.12, rWrist * 1.12], wristV.clone().lerp(elbow, 0.12), wristV), toon(cuffColour), 0.02));
       if (cut === 'hoodie') {
         // The red of the shirt underneath shows at the wrist, as in the reference
         onLower(part('undershirt-cuff', limb([rWrist * 1.0, rWrist * 0.98], wristV, wristV.clone().add(wristV.clone().sub(elbow).normalize().multiplyScalar(0.12))), toon('#b5302b'), 0.015));
@@ -634,11 +649,33 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     pocket.scale.z = depth;
     body.add(pocket);
   } else {
-    // A plain round neckline
-    const neckline = part('neckline', new THREE.TorusGeometry(figure.neckRadius * 1.18, 0.07, 8, 28), toon(shade(topColour, 0.14)), 0.012);
+    // A crew collar: a rolled band in the trim, round where the neck meets the body
+    const neckline = part('neckline', new THREE.TorusGeometry(figure.neckRadius * 1.18, COLLAR_BAND, 12, 32), toon(ringerTrim(topColour)), 0.02);
     neckline.rotation.x = Math.PI / 2;
-    neckline.position.y = collarY + 0.04;
+    neckline.position.y = collarY + 0.02;
     body.add(neckline);
+    if (!top || top.id === NO_ITEM) {
+      // The plain top: a patch pocket on the left of the chest, with a band of the trim along its top
+      const y = figure.hem + (collarY - figure.hem) * 0.6;
+      const [r] = girth(figure, y);
+      const x = r * 0.42;
+      const z = Math.sqrt(r * r - x * x) * depth;
+      const pocket = new THREE.Group();
+      pocket.name = 'chest-pocket';
+      pocket.position.set(x, y, z);
+      // Facing out from the body there: leaning back as the chest rounds in
+      // towards the collar, and turned round the oval of the chest
+      const rise = 0.05;
+      const slope = (Math.sqrt(girth(figure, y + rise)[0] ** 2 - x * x) - Math.sqrt(girth(figure, y - rise)[0] ** 2 - x * x)) * depth / (2 * rise);
+      pocket.rotation.order = 'YXZ';
+      pocket.rotation.x = Math.atan(slope);
+      pocket.rotation.y = Math.atan2(x, z / (depth * depth));
+      const patch = part('chest-pocket-patch', new THREE.BoxGeometry(0.6, 0.6, 0.1), toon(shade(topColour, 0.16)), 0.015);
+      const band = part('chest-pocket-band', new THREE.BoxGeometry(0.62, 0.1, 0.11), toon(ringerTrim(topColour)), 0.01);
+      band.position.y = 0.27;
+      pocket.add(patch, band);
+      body.add(pocket);
+    }
   }
 
   if (top && top.id === 'striped') {
@@ -663,6 +700,13 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     const y = figure.hem + (collarY - figure.hem) * 0.58;
     mesh.position.set(0, y, girth(figure, y)[0] * depth + 0.03);
     body.add(mesh);
+    if (top.id === 'flower-tee') {
+      // A yellow middle, so it reads as a flower
+      const middle = new THREE.Mesh(new THREE.CircleGeometry(0.15, 20), new THREE.MeshBasicMaterial({ color: '#ffd166' }));
+      middle.name = 'decal-middle';
+      middle.position.set(0, y, girth(figure, y)[0] * depth + 0.04);
+      body.add(middle);
+    }
   }
   return body;
 }
