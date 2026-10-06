@@ -148,6 +148,14 @@ describe('the facts an adult is asked to practise', () => {
     expect(plan.facts.map(item => item.worked)).toEqual(['10 − 7 = 3', '7 + 7 = 14']);
   });
 
+  it('gives the grown-ups the answer to a remainder as what is left over', () => {
+    const plan = practicePlan([], [{ ...fact(23, 4, '%'), form: 'rest' }]);
+
+    expect(plan.facts[0].question).toBe('23 : 4 = 5 r ?');
+    expect(plan.facts[0].answer).toBe('3');
+    expect(plan.facts[0].worked).toBe('4 × 5 = 20 → 23 − 20 = 3');
+  });
+
   it('leaves the line off a fact that has no method worth showing', () => {
     const plan = practicePlan([], [fact(2, 3, '+')]);
 

@@ -504,7 +504,10 @@ export class QuestionComponent implements OnInit, OnDestroy {
       this.layoutCache = sumLayout({ num1: q.num1, num2: q.num2, sign: this.sign, form: q.form }, {
         double: this.languageService.translate('sum-double'),
         half: this.languageService.translate('sum-half'),
-        of: this.languageService.translate('sum-part-of')
+        of: this.languageService.translate('sum-part-of'),
+        remainder: this.languageService.translate('sum-remainder'),
+        hours: this.languageService.translate('unit-hours'),
+        minutes: this.languageService.translate('unit-minutes')
       });
     }
     return this.layoutCache!;
@@ -529,7 +532,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
     if (operation === '*') {
       return '×';
     }
-    if (operation === '/') {
+    // A remainder is a share too: 23 : 4 = 5 rest 3
+    if (operation === '/' || operation === '%') {
       return this.languageService.getLanguage() === 'en' ? '÷' : ':';
     }
     return operation === '-' ? '−' : operation;
@@ -760,6 +764,10 @@ export class QuestionComponent implements OnInit, OnDestroy {
       case '/':
         isCorrect = answer === this.currentQuestion.num1 / this.currentQuestion.num2;
         this.correctAnswer = this.currentQuestion.num1 / this.currentQuestion.num2;
+        break;      // What is left over: 23 : 4 = 5 rest 3 (sum-form.ts)
+      case '%':
+        isCorrect = answer === this.currentQuestion.num1 % this.currentQuestion.num2;
+        this.correctAnswer = this.currentQuestion.num1 % this.currentQuestion.num2;
         break;
     }
 

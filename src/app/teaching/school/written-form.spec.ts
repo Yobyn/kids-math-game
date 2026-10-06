@@ -2,7 +2,7 @@ import { SUM_FORMS, SumForm, readForm } from '../../question/sum-form';
 import { CURRICULUM, Moment, Random, SchoolSum, TOPICS, schoolSum } from './groep';
 import { FormWords, SumLayout, formWorkedStep, sumLayout } from './written-form';
 
-const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van' };
+const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van', remainder: 'rest', hours: 'uur', minutes: 'minuten' };
 
 function seeded(seed: number): Random {
   return () => {
@@ -19,6 +19,7 @@ function answer(sum: { num1: number; num2: number; operation: string }): number 
     case '+': return sum.num1 + sum.num2;
     case '-': return sum.num1 - sum.num2;
     case '*': return sum.num1 * sum.num2;
+    case '%': return sum.num1 % sum.num2;
     default: return sum.num1 / sum.num2;
   }
 }
@@ -41,6 +42,16 @@ function holds(written: string, filled: number): boolean {
   const half = text.match(/^de helft van (\d+) = (\d+)$/);
   if (half) {
     return +half[1] === 2 * +half[2];
+  }
+  const rest = text.match(/^(\d+) : (\d+) = (\d+) rest (\d+)$/);
+  if (rest) {
+    const [whole, parts, times, left] = rest.slice(1).map(Number);
+    return whole === parts * times + left && left < parts;
+  }
+  const measure = text.match(/^(\d+) (m|km|kg|uur|h) = (\d+) (cm|m|g|minuten|min)$/);
+  if (measure) {
+    const per: { [unit: string]: number } = { 'm cm': 100, 'km m': 1000, 'kg g': 1000, 'uur minuten': 60, 'h min': 60 };
+    return per[`${measure[2]} ${measure[4]}`] * +measure[1] === +measure[3];
   }
   const part = text.match(/^(½|⅓|¼|⅕) van (\d+) = (\d+)$/);
   if (part) {
@@ -67,10 +78,12 @@ function made(topic: string, count = 300): SchoolSum[] {
 }
 
 const FORM_TOPICS = Object.keys(TOPICS).filter(topic => made(topic, 1)[0].form);
+/** Every form any topic makes, over many draws: one topic (maten) makes four. */
+const FORMS_MADE = new Set(FORM_TOPICS.map(topic => made(topic, 200).map(sum => sum.form)).reduce((all, list) => all.concat(list), [] as (SumForm | undefined)[]));
 
 describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
   it('has a topic for every form', () => {
-    SUM_FORMS.forEach(form => expect(FORM_TOPICS.some(topic => made(topic, 1)[0].form === form)).withContext(form).toBeTrue());
+    SUM_FORMS.forEach(form => expect(FORMS_MADE.has(form)).withContext(form).toBeTrue());
   });
 
   it('reads back every form the topics make, so a round put down halfway comes back in the form it was asked', () => {
@@ -79,12 +92,15 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
 
   it('writes each one as the workbook does, the box where the "?" is', () => {
     const shown = (form: SumForm, num1: number, num2: number, operation: string) =>
-      read(sumLayout({ num1, num2, sign: operation === '/' ? ':' : operation, form }, WORDS));
+      read(sumLayout({ num1, num2, sign: operation === '/' || operation === '%' ? ':' : operation, form }, WORDS));
     expect(shown('aanvullen', 10, 7, '-')).toBe('7 + ? = 10');
     expect(shown('splitsen', 8, 5, '-')).toBe('8 = 5 + ?');
     expect(shown('dubbel', 7, 7, '+')).toBe('dubbel 7 = ?');
     expect(shown('helft', 16, 2, '/')).toBe('de helft van 16 = ?');
     expect(shown('deel', 20, 4, '/')).toBe('¼ van 20 = ?');
+    expect(shown('rest', 23, 4, '%')).toBe('23 : 4 = 5 rest ?');
+    expect(shown('m-cm', 3, 100, '*')).toBe('3 m = ? cm');
+    expect(shown('uur-min', 2, 60, '*')).toBe('2 uur = ? minuten');
     // and a plain sum is still a plain sum, the box at the end
     expect(read(sumLayout({ num1: 7, num2: 5, sign: '+' }, WORDS))).toBe('7 + 5 = ?');
   });
@@ -92,7 +108,7 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
   it('is true, as written, with the answer the child is marked against in the box: every sum of every form', () => {
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
-      const written = read(sumLayout({ num1: sum.num1, num2: sum.num2, sign: sum.operation, form: sum.form }, WORDS));
+      const written = read(sumLayout({ num1: sum.num1, num2: sum.num2, sign: sum.operation === '%' ? ':' : sum.operation, form: sum.form }, WORDS));
       const right = answer(sum);
       if (!holds(written, right) || holds(written, right + 1)) {
         misses.push(`${topic}: ${written} with ${right}`);
@@ -107,12 +123,20 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('dubbel', 7, 7)).toBe('7 + 7 = 14');
     expect(formWorkedStep('helft', 16, 2)).toBe('8 + 8 = 16');
     expect(formWorkedStep('deel', 20, 4)).toBe('20 : 4 = 5');
+    expect(formWorkedStep('rest', 23, 4)).toBe('4 × 5 = 20 → 23 − 20 = 3');
+    expect(formWorkedStep('m-cm', 3, 100)).toBe('1 m = 100 cm → 3 × 100 = 300');
+    expect(formWorkedStep('uur-min', 2, 60)).toBe('1 h = 60 min → 2 × 60 = 120');
     expect(formWorkedStep(undefined, 7, 5)).toBeUndefined();
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2)!;
-      // It lands on the answer, and it is true
-      if (!holds(line.replace(/ = \d+$/, ' = ?'), +line.split(' = ')[1]) || !line.includes(String(answer(sum)))) {
+      // Every step is true, and the answer is in it (last for most; a half is worked as 8 + 8 = 16)
+      const steps = line.split(' → ');
+      const trueSteps = steps.every(step => {
+        const result = step.match(/= (\d+)( \S+)?$/)!;
+        return holds(step.replace(/= \d+( \S+)?$/, '= ?' + (result[2] || '')), +result[1]);
+      });
+      if (!trueSteps || !new RegExp(`(^|\\D)${answer(sum)}(\\D|$)`).test(line)) {
         misses.push(`${topic}: ${line}`);
       }
     }));
@@ -183,6 +207,8 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       expect(firstSeen('dubbel', '100')).toBe('4E');
       expect(firstSeen('helft', '100')).toBe('4E');
       expect(firstSeen('deel', '100')).toBe('5M');
+      expect(firstSeen('rest', '100')).toBe('5E');
+      expect(firstSeen('m-cm', '100')).toBe('5E');
     });
 
     it('asks the start of groep 3 only plain sums: the forms come once the sums under them are known', () => {
