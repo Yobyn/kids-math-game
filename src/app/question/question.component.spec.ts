@@ -1,5 +1,5 @@
 import { RoundTrackComponent } from './round-track.component';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ElementRef, NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SoundService } from '../services/sound.service';
 import { Router } from '@angular/router';
@@ -695,6 +695,57 @@ describe('QuestionComponent', () => {
       expect(component.answerWasCorrect).toBe(true);
       expect(component.feedback).toContain(component.languageService.translate('correct'));
       expect(component.streakCount).toBe(1);
+    });
+  });
+
+  describe('bringing Next into view', () => {
+    // Where the verdict's top and Next's bottom sit on the screen, as a phone
+    // held sideways would have them once the answer and the easier offer show
+    function place(verdictTop: number, nextBottom: number) {
+      const next = document.createElement('button');
+      spyOn(next, 'getBoundingClientRect').and.returnValue({ top: nextBottom - 48, bottom: nextBottom } as DOMRect);
+      spyOn(next, 'focus');
+      const verdict = document.createElement('div');
+      spyOn(verdict, 'getBoundingClientRect').and.returnValue({ top: verdictTop, bottom: verdictTop + 70 } as DOMRect);
+      component.nextButton = new ElementRef(next);
+      component.verdict = new ElementRef(verdict);
+      return next;
+    }
+
+    function focusNext() {
+      (component as unknown as { focusNext(): void }).focusNext();
+    }
+
+    beforeEach(() => spyOn(window, 'scrollBy'));
+
+    it('focuses Next without the browser centring it', () => {
+      const next = place(100, 300);
+      focusNext();
+      expect(next.focus).toHaveBeenCalledWith({ preventScroll: true });
+    });
+
+    it('scrolls the answer back into view rather than leaving it above the screen', () => {
+      place(-80, window.innerHeight - 100);
+      focusNext();
+      expect(window.scrollBy).toHaveBeenCalledWith(0, -88);
+    });
+
+    it('scrolls down only as far as Next needs', () => {
+      place(300, window.innerHeight + 100);
+      focusNext();
+      expect(window.scrollBy).toHaveBeenCalledWith(0, 108);
+    });
+
+    it('keeps the answer on screen when the answer and Next will not both fit', () => {
+      place(200, window.innerHeight + 300);
+      focusNext();
+      expect(window.scrollBy).toHaveBeenCalledWith(0, 192);
+    });
+
+    it('leaves the page where it is when both are already on screen', () => {
+      place(100, window.innerHeight - 50);
+      focusNext();
+      expect(window.scrollBy).not.toHaveBeenCalled();
     });
   });
 
