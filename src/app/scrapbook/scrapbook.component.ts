@@ -7,6 +7,7 @@ import { Avatar, WardrobeItem, itemById } from '../avatar/avatar-model';
 import { AvatarService } from '../services/avatar.service';
 import { SCRAPBOOK_WORDS } from './scrapbook-words';
 import { itemIcon } from '../avatar/item-icons';
+import { ITEM_WORDS } from '../avatar/item-words';
 
 /**
  * What the child has done, in the order it happened.
@@ -29,6 +30,7 @@ export class ScrapbookComponent implements OnInit {
     private router: Router,
     public languageService: LanguageService
   ) {
+    languageService.extend(ITEM_WORDS);
     languageService.extend(SCRAPBOOK_WORDS);
   }
 

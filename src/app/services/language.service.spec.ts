@@ -1,3 +1,7 @@
+import { LOGIN_WORDS } from '../login/login-words';
+import { SELECT_WORDS } from '../grade-select/select-words';
+import { PLAY_WORDS } from '../question/play-words';
+import { ITEM_WORDS } from '../avatar/item-words';
 import { ADULTS_WORDS } from '../adults/adults-words';
 import { SCRAPBOOK_WORDS } from '../scrapbook/scrapbook-words';
 import { PROGRESS_WORDS } from '../progress/progress-words';
@@ -65,8 +69,9 @@ describe('LanguageService', () => {
     });
   });
 
-  it('names everything a child can earn, in every language, from the first load', () => {
+  it('names everything a child can earn, in every language, once a screen that shows it has opened', () => {
     const service = new LanguageService();
+    service.extend(ITEM_WORDS);
     SUPPORTED_LANGUAGES.forEach(lang => {
       service.setLanguage(lang);
       WARDROBE.filter(item => item.id !== NO_ITEM).forEach(item => {
@@ -80,7 +85,9 @@ describe('LanguageService', () => {
 
 describe('LanguageService: a lazy screen\u2019s own words', () => {
   const SCREENS: Array<[string, Words<string>]> = [
-    ['adults', ADULTS_WORDS], ['scrapbook', SCRAPBOOK_WORDS], ['progress', PROGRESS_WORDS], ['chooser', CHOOSER_WORDS]
+    ['adults', ADULTS_WORDS], ['scrapbook', SCRAPBOOK_WORDS], ['progress', PROGRESS_WORDS], ['chooser', CHOOSER_WORDS],
+    ['title and sign-up', LOGIN_WORDS], ['grade and difficulty', SELECT_WORDS], ['round and result', PLAY_WORDS],
+    ['things to win', ITEM_WORDS]
   ];
 
   afterEach(() => localStorage.clear());
@@ -124,8 +131,9 @@ describe('LanguageService: a lazy screen\u2019s own words', () => {
 
   it('still prefers the first-load words, which a screen cannot overwrite', () => {
     const service = new LanguageService();
-    const before = service.translate('check');
-    service.extend({ en: { check: 'nope' }, nl: { check: 'nee' }, es: { check: 'no' } });
-    expect(service.translate('check')).toBe(before);
+    const before = service.translate('logout');
+    expect(before).not.toBe('logout');
+    service.extend({ en: { logout: 'nope' }, nl: { logout: 'nee' }, es: { logout: 'no' } });
+    expect(service.translate('logout')).toBe(before);
   });
 });
