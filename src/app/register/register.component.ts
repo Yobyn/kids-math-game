@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { LanguageService } from '../services/language.service';
 import { HttpErrorResponse } from '@angular/common/http';
+import { LOGIN_WORDS } from '../login/login-words';
 
 @Component({
   selector: 'app-register',
@@ -18,7 +19,9 @@ export class RegisterComponent {
     private authService: AuthService,
     private router: Router,
     public languageService: LanguageService
-  ) {}
+  ) {
+    languageService.extend(LOGIN_WORDS);
+  }
 
   register() {
     if (!this.username || !this.password) {
