@@ -121,9 +121,28 @@ middle, hard the end), one groep per run.
   new topics outweighing what they build on, the badge number). The other
   two were bounds tighter than school's own (23 + 16, 52 − 47), so the code
   took the mutant.
-- **Next, in order:** the written forms of groep 3–4 (aanvullen 7 + ? = 10,
-  splitsen 8 = 5 + ?, dubbel, helft), which need the answer box in the
-  middle of a sum; then groep 5, 6, 7, 8; then verhaaltjessommen.
+- **The written forms of groep 3 and 4: DONE (2026-10-06).** The sums
+  the workbook writes another way than "7 + 5 = ?": aanvullen (7 + ? = 10)
+  from the middle of groep 3; splitsen (8 = 5 + ?), dubbel 7 and de helft
+  van 16 to 20 at its end, revisited at the start of groep 4; dubbel and
+  helft to 100 at the end of groep 4. The answer box sits where the "?" is.
+  A question carries its form (question/sum-form.ts) but keeps the sum
+  whose answer is asked (7 + ? = 10 is kept as 10 - 7, de helft van 16 as
+  16 : 2), so marking did not change at all; the form only says how it is
+  written, and travels with the question through a saved round, a fact
+  missed for another day (whose identity includes it: knowing 10 - 7 is
+  not knowing 7 + ? = 10) and the replay of either. After two tries the
+  child sees the fact the form is taught through: 10 - 7 = 3 for
+  aanvullen, 7 + 7 = 14 for dubbel, 8 + 8 = 16 for a half. The tests read
+  every generated sum back as it is written, put the answer in the box
+  and check the sum is then true (and not with one more). On a 320px phone
+  "de helft van" broke over three lines beside the sum; the words are one
+  phrase now, a little quieter than the numbers.
+  Mutation sweep: 33 mutants, 32 killed first time; the one that lived (the
+  grown-ups' list losing a form's worked line) has its test now.
+  Not yet: aanvullen tot 20 and to the next ten (34 + ? = 40), splitsen
+  above 10.
+- **Next, in order:** groep 5, 6, 7, 8; then verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 
