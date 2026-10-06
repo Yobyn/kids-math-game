@@ -8,6 +8,10 @@
         type="text" 
         id="username"
         name="username"
+        autocomplete="username"
+        autocapitalize="none"
+        autocorrect="off"
+        spellcheck="false"
         [(ngModel)]="username"
         required>
     </div>
@@ -18,6 +22,7 @@
         type="password" 
         id="password"
         name="password"
+        autocomplete="new-password"
         [(ngModel)]="password"
         required>
     </div>
