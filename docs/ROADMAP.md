@@ -2032,7 +2032,10 @@ device would stay asleep. It now keeps listening, and a test covers it.
   progress, not a quick move. Past that the floor is Angular 12 itself
   (about 248 kB of the 308 kB main file): a framework upgrade is the next
   big saving, and is its own piece of work.
-  Mutation sweep: running (20 mutants over the routes, every screen's words and the per-language cards); result to follow.
+  Mutation sweep: 20 mutants, 20 killed: a preload mark taken off the
+  title, grade or difficulty route, the guard taken off, a preloader that
+  fetches everything, any one of the twelve screens not handing over its
+  words, and cards built once for every language.
 - **The header fits a phone now.** It used to be 598px across at 390px wide,
   so every screen scrolled sideways. On phones the language buttons show the
   flag alone with the name moved to the accessible label, the controls row
