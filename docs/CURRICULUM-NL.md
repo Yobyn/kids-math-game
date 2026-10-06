@@ -128,8 +128,11 @@ its groep:
    as written in class; the grade cards say groep 3 and 4. DONE in the first
    school-levels PR.
 2. **The written forms of groep 3–4**: aanvullen and splitsen (7 + ? = 10,
-   8 = 5 + ?), dubbel and helft. Needs a question shown with the answer box
-   in the middle.
+   8 = 5 + ?), dubbel and helft, with the answer box where the "?" is.
+   DONE in the second school-levels PR: aanvullen tot 10 from groep 3 M,
+   splitsen tot 10 and dubbel/helft tot 20 at groep 3 E (revisited at
+   groep 4 B), dubbel/helft tot 100 at groep 4 E. Not yet: aanvullen tot 20
+   and to the next ten (34 + ? = 40), splitsen above 10.
 3. **Groep 5**: all tables, +/− within 1000, times a ten, TE × E, remainder,
    part of an amount, measures.
 4. **Groep 6**: +/− within 10 000, larger × and :, fractions of amounts,

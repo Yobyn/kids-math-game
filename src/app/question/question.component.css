@@ -56,6 +56,13 @@
   font-weight: bold;
 }
 
+/* "dubbel", "de helft van": read as words, and never broken over lines */
+.word {
+  color: var(--text-read-dim);
+  font-size: 0.6em;
+  white-space: nowrap;
+}
+
 input[type="number"] {
   width: 120px;
   height: 60px;
