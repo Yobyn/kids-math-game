@@ -1,4 +1,4 @@
-import { ARM_CLEARANCE, ARM_TOUCH, Figure, FIGURES, HH, MEASURED, STYLE, clearOfChest, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist, PROFILE_SAMPLES, TUMMY_AT, FULL_ABOVE, FULL_BELOW } from './figure';
+import { ARM_CLEARANCE, ARM_TOUCH, Figure, FIGURES, HH, MEASURED, SHOULDER_TUCK, STYLE, clearOfChest, stylise, chinY, crownY, figureFor, hang, headsTall, torsoRadius, wrist, PROFILE_SAMPLES, TUMMY_AT, FULL_ABOVE, FULL_BELOW } from './figure';
 import { STILL_VERSION } from '../avatar/avatar-still.service';
 
 const BODY_TYPES_HERE = ['boy', 'girl'] as const;
@@ -210,7 +210,8 @@ describe('figure', () => {
         expect(s.crotch).toBeCloseTo(m.crotch * STYLE.body, 9);
         expect(s.knee[1]).toBeCloseTo(m.knee[1] * STYLE.body, 9);
         expect(s.legRadii[0]).toBeCloseTo(m.legRadii[0] * STYLE.build, 9);
-        expect(s.upperArm).toBeCloseTo(m.upperArm * STYLE.body, 9);
+        // The arm in the measured proportion, upper arm to forearm, the elbow halfway as it was
+        expect(s.upperArm / s.forearm).toBeCloseTo(m.upperArm / m.forearm, 9);
         // A neck fit for a bigger head, hands and feet in proportion
         expect(s.neckRadius).toBeCloseTo(m.neckRadius * STYLE.build * Math.sqrt(STYLE.head), 9);
         expect(s.handLength).toBeCloseTo(m.handLength * STYLE.body * STYLE.build, 9);
@@ -239,6 +240,31 @@ describe('figure', () => {
       });
     });
 
+    it('slopes the shoulders down from the neck: the top of each arm under the collar, not standing up beside it (Yobyn, 2026-10-05)', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        const s = FIGURES[type];
+        const collar = s.torso[s.torso.length - 1][1];
+        const [rShoulder] = s.armRadii;
+        const top = s.shoulder[1] + rShoulder;
+        // Under the collar by a little: a shoulder, not a balloon beside the chin...
+        expect(collar - top).withContext(type).toBeGreaterThan(rShoulder * 0.2);
+        // ...and no further than an arm's width: still a shoulder, not an arm from the chest
+        expect(collar - top).withContext(type).toBeLessThan(rShoulder);
+      });
+    });
+
+    it('keeps the hands at the hips when the shoulders come down: the arm is shorter, not the hands lower', () => {
+      BODY_TYPES_HERE.forEach(type => {
+        const [s, m] = [FIGURES[type], MEASURED[type]];
+        // Where the wrist hung with the shoulder at its measured height and the arm its measured length
+        const measuredDrop = (m.upperArm * Math.cos(s.armSwing) + m.forearm * Math.cos(s.armSwing * 0.8)) * STYLE.body;
+        expect(wrist(s)[1]).withContext(type).toBeCloseTo(m.shoulder[1] * STYLE.body - measuredDrop, 9);
+        // By the hip: below the belt, above halfway down the thigh
+        expect(wrist(s)[1]).withContext(type).toBeLessThan(s.belt);
+        expect(wrist(s)[1]).withContext(type).toBeGreaterThan((s.crotch + s.knee[1]) / 2);
+      });
+    });
+
     it('stands relaxed, not in the reference\u2019s A-pose: arms nearer the body, elbows soft', () => {
       BODY_TYPES_HERE.forEach(type => {
         expect(FIGURES[type].armSwing).toBeLessThan(MEASURED[type].armSwing);
@@ -251,8 +277,8 @@ describe('figure', () => {
     it('re-draws the pictures on other screens when the look changes: STILL_VERSION goes up with STYLE', () => {
       // Saved pictures are kept by version; a new STYLE with the old version
       // would leave every screen showing the old character
-      expect({ version: STILL_VERSION, style: STYLE }).toEqual({
-        version: 8, style: { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.55, round: true, stance: 0.4 }
+      expect({ version: STILL_VERSION, style: STYLE, tuck: SHOULDER_TUCK }).toEqual({
+        version: 9, style: { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.55, round: true, stance: 0.4 }, tuck: 0.3
       });
     });
 
