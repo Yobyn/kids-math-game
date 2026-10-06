@@ -921,15 +921,28 @@ to how it was (not needed once the strap lies nearer the neck), and the
 tee's print got a test of its own (up on the chest, clear of the
 neckline).
 
+**THE KID HERO'S FINISH, STEP 1: CLEAN JOINTS — DONE.** Close up, every
+joint was frayed: the shoulder cap, the elbow ball and the knee ball were
+each as wide as the tube they met, so their facets and the tube's crossed
+back and forth in a ragged band, a sawtooth round each knee. `limb()` can
+now round either end in its own surface (a dome as wide as the tube there,
+`DOME_STEPS` round). The sleeve's top is its shoulder; the upper arm comes
+round past the elbow and the forearm starts rounded inside it,
+`ELBOW_INSIDE` (0.94) slimmer, clear by more than either surface's facets
+stray, so they never cross and the bend stays covered; the thigh comes
+round past the knee. The separate balls are gone; every fit test passed as
+it was. `STILL_VERSION` 10. 1,802 unit tests.
+
 WHAT IS NEXT, in the order the runs should take them:
 
 1. **The kid hero: more graphics, and the rest of the posture** (Yobyn,
-   2026-10-05). Feet apart and soft elbows are done (step 1), and the
-   shoulders slope (step 2). Next: a little life in the
-   stance (a slight head tilt; weight on one leg would break the mirror
+   2026-10-05). Feet apart and soft elbows are done (step 1), the
+   shoulders slope (step 2), and the joints are clean. Next: a little
+   life in the stance (a slight head tilt; weight on one leg would break the mirror
    the fit tests rely on, so only if it can be done safely), and more
    finish to the dragon's and the robots' level (clothes with seams,
-   folds, a collar; shoes with laces and soles; small details), with
+   folds, a collar; chunkier, brighter shoes, as the bear's boots and the
+   robot's feet are; small details), with
    before and after shots for Yobyn. His answer to steps 1 and 2 comes first.
 2. **Every family is built.** Go on below.
 3. **Better materials.** Hair strands or clumps rather than one smooth
