@@ -1895,6 +1895,17 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(component.answerWasCorrect).toBe(true);
   });
 
+  it('draws the box for a decimal as wide as the box for a whole number, so 1,7 + 4,1 = stays on one line', () => {
+    build('nl');
+    const box = () => (fixture.nativeElement.querySelector('.math-problem input') as HTMLElement).getBoundingClientRect();
+    ask({ num1: 17, num2: 41, operation: '+', form: 'tienden' });
+    const decimal = box();
+    ask({ num1: 17, num2: 41, operation: '+' });
+    const whole = box();
+    expect(Math.abs(decimal.width - whole.width)).toBeLessThan(1);
+    expect(Math.abs(decimal.height - whole.height)).toBeLessThan(1);
+  });
+
   it('gives the answer to a sum in tenths as it is written, with the way to it, after two tries', () => {
     build('nl');
     ask({ num1: 15, num2: 27, operation: '+', form: 'tienden' });
