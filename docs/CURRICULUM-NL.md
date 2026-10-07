@@ -146,8 +146,9 @@ its groep:
    decimals (the comma on the keypad), area, rounding. FIRST HALF DONE in
    the fifth school-levels PR: +/− to 10 000 in columns, 25 × 8 and 96 : 4
    (M), TE × TE and rounding to tens and hundreds, written
-   "Rond af op tientallen: 347 ≈ ?" (E). Not yet: fractions of an amount,
-   equal fractions, decimals, area.
+   "Rond af op tientallen: 347 ≈ ?" (E). Fractions and area DONE in the
+   sixth: ¾ van 20 and ½ = ?/8 (M), the area of a rectangle, 6 m × 4 m =
+   ? m² (E). Not yet: decimals.
 5. **Groep 7**: big numbers, cijferend × and :, decimals × 10/100/1000,
    fractions, percentages, ratios, the metric system.
 6. **Groep 8**: percentages, scale, the mean, area and volume, time spans,

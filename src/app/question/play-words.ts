@@ -54,6 +54,7 @@ export type PlayKey =
   | 'unit-minutes'
   | 'round-tens'
   | 'round-hundreds'
+  | 'sum-area'
   | 'play-again';
 
 export const PLAY_WORDS: Words<PlayKey> = {
@@ -106,7 +107,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'unit-hours': 'hours',
     'unit-minutes': 'minutes',
     'round-tens': 'Round to the nearest ten',
-    'round-hundreds': 'Round to the nearest hundred'
+    'round-hundreds': 'Round to the nearest hundred',
+    'sum-area': 'Area of the rectangle'
   },
   nl: {
     'praise-3': 'Knap gewerkt!',
@@ -157,7 +159,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'unit-hours': 'uur',
     'unit-minutes': 'minuten',
     'round-tens': 'Rond af op tientallen',
-    'round-hundreds': 'Rond af op honderdtallen'
+    'round-hundreds': 'Rond af op honderdtallen',
+    'sum-area': 'Oppervlakte van de rechthoek'
   },
   es: {
     'praise-3': '¡Un trabajo brillante!',
@@ -208,6 +211,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'unit-hours': 'horas',
     'unit-minutes': 'minutos',
     'round-tens': 'Redondea a la decena',
-    'round-hundreds': 'Redondea a la centena'
+    'round-hundreds': 'Redondea a la centena',
+    'sum-area': 'Área del rectángulo'
   }
 };
