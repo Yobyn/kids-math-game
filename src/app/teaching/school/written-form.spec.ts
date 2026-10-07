@@ -263,7 +263,8 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('breuk-komma', 25, 3, '*')).toBe('¾ = 75/100 → 0,75');
     expect(formWorkedStep('breuk-komma', 50, 1, '*', '.')).toBe('½ = 50/100 → 0.5');
     expect(formWorkedStep('verhouding-3', 7, 2, '*')).toBe('6 : 3 = 2 → 7 × 2 = 14');
-    expect(formWorkedStep('korting-20', 45, 9, '-')).toBe('20% = ⅕ → 45 : 5 = 9 → 45 − 9 = 36');
+    expect(formWorkedStep('korting-20', 45, 9, '-')).toBe('45 : 5 = 9 → 45 − 9 = 36');
+    expect(formWorkedStep('korting-25', 92, 23, '-')).toBe('92 : 4 = 23 → 92 − 23 = 69');
     expect(formWorkedStep(undefined, 7, 5)).toBeUndefined();
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
@@ -352,11 +353,11 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     const misses: string[] = [];
     made('korting').forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
-      const [part, share, paid] = line.split(' → ');
+      const [share, paid, ...more] = line.split(' → ');
       const percent = Number(sum.form!.split('-')[1]);
-      const glyph = part.split(' = ')[1];
-      if (!GLYPHS[glyph] || GLYPHS[glyph][0] * 100 !== percent * GLYPHS[glyph][1] || !holds(share, 0) || !holds(paid, 0)
-          || !share.startsWith(`${sum.num1} :`) || !paid.startsWith(`${sum.num1} − ${share.split(' = ')[1]}`) || !paid.endsWith(`= ${answer(sum)}`)) {
+      // 20% is one part in five: the price shared in as many parts as the percentage goes into 100
+      if (more.length || !holds(share, 0) || !holds(paid, 0) || !share.startsWith(`${sum.num1} : ${100 / percent} =`)
+          || !paid.startsWith(`${sum.num1} − ${share.split(' = ')[1]}`) || !paid.endsWith(`= ${answer(sum)}`)) {
         misses.push(line);
       }
     });

@@ -214,7 +214,7 @@ describe('the facts an adult is asked to practise', () => {
     // ¾ answered with its comma, the ratio and the discount in whole euros
     expect(items.map(item => item.answer)).toEqual(['5', '0,75', '14', '36']);
     expect(items.map(item => item.worked)).toEqual([
-      '2 + 3 = 5 → 2/8 + 3/8 = 5/8', '¾ = 75/100 → 0,75', '6 : 3 = 2 → 7 × 2 = 14', '20% = ⅕ → 45 : 5 = 9 → 45 − 9 = 36'
+      '2 + 3 = 5 → 2/8 + 3/8 = 5/8', '¾ = 75/100 → 0,75', '6 : 3 = 2 → 7 × 2 = 14', '45 : 5 = 9 → 45 − 9 = 36'
     ]);
   });
 

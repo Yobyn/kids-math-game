@@ -396,13 +396,13 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
       const packs = packsOf(form);
       return `${packs * num2} : ${packs} = ${num2} → ${num1} × ${num2} = ${num1 * num2}`;
     }
-    // 20% is a fifth: 45 : 5 = 9 off, so 45 − 9 is paid
+    // 20% is a fifth: 45 : 5 = 9 off, so 45 − 9 is paid. Two steps, so the line fits a phone
     case 'korting-10':
     case 'korting-20':
     case 'korting-25':
     case 'korting-50': {
       const parts = 100 / percentOf(form);
-      return `${percentOf(form)}% = ${FRACTIONS[`1/${parts}`]} → ${num1} : ${parts} = ${num2} → ${num1} − ${num2} = ${num1 - num2}`;
+      return `${num1} : ${parts} = ${num2} → ${num1} − ${num2} = ${num1 - num2}`;
     }
     // a rectangle's area is its length times its width
     case 'oppervlakte':
