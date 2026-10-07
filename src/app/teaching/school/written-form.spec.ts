@@ -212,7 +212,7 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('komma-km-m', 25, 1000, '*')).toBe('2,5 km = ? m');
     expect(shown('komma-l-dl', 15, 10, '*')).toBe('1,5 l = ? dl');
     expect(shown('gelijknamig-8', 2, 3, '+')).toBe('2/8 + 3/8 = ? / 8');
-    expect(shown('gelijknamig-12', 7, 4, '−')).toBe('7/12 − 4/12 = ? / 12');
+    expect(shown('gelijknamig-6', 5, 4, '−')).toBe('5/6 − 4/6 = ? / 6');
     expect(shown('breuk-komma', 25, 3, '*')).toBe('¾ = ?');
     expect(shown('breuk-komma', 20, 2, '*')).toBe('⅖ = ?');
     expect(shown('verhouding-3', 7, 2, '*')).toBe('3 pakken kosten €6 7 pakken = € ?');
@@ -259,7 +259,7 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('komma-3', 72000, 100, '/')).toBe('0,72 × 100 = 72 → 72 : 100 = 0,72');
     expect(formWorkedStep('komma-km-m', 25, 1000, '*')).toBe('1 km = 1000 m → 2,5 × 1000 = 2500');
     expect(formWorkedStep('gelijknamig-8', 2, 3, '+')).toBe('2 + 3 = 5 → 2/8 + 3/8 = 5/8');
-    expect(formWorkedStep('gelijknamig-12', 7, 4, '-')).toBe('7 − 4 = 3 → 7/12 − 4/12 = 3/12');
+    expect(formWorkedStep('gelijknamig-6', 5, 4, '-')).toBe('5 − 4 = 1 → 5/6 − 4/6 = 1/6');
     expect(formWorkedStep('breuk-komma', 25, 3, '*')).toBe('¾ = 75/100 → 0,75');
     expect(formWorkedStep('breuk-komma', 50, 1, '*', '.')).toBe('½ = 50/100 → 0.5');
     expect(formWorkedStep('verhouding-3', 7, 2, '*')).toBe('6 : 3 = 2 → 7 × 2 = 14');
@@ -627,7 +627,8 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
         expect(answer(sum)).withContext(at).toBeLessThan(under);
       });
       expect(new Set(sums.map(sum => sum.operation))).toEqual(new Set(['+', '-']));
-      expect(new Set(sums.map(sum => Number(sum.form!.split('-')[1])))).toEqual(new Set([4, 5, 6, 8, 10, 12]));
+      // one figure under the line, so the sum fits one line of a 320px phone
+      expect(new Set(sums.map(sum => Number(sum.form!.split('-')[1])))).toEqual(new Set([4, 5, 6, 8]));
     });
 
     it('writes the fractions school knows as decimals in groep 7: halves, quarters, fifths and a tenth, in hundredths', () => {

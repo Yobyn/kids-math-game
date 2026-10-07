@@ -237,9 +237,7 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     case 'gelijknamig-4':
     case 'gelijknamig-5':
     case 'gelijknamig-6':
-    case 'gelijknamig-8':
-    case 'gelijknamig-10':
-    case 'gelijknamig-12': {
+    case 'gelijknamig-8': {
       const under = denominatorOf(sum.form);
       return {
         before: [{ kind: 'number', text: `${sum.num1}/${under}` }, operation(sum.sign), { kind: 'number', text: `${sum.num2}/${under}` }, equals],
@@ -381,9 +379,7 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
     case 'gelijknamig-4':
     case 'gelijknamig-5':
     case 'gelijknamig-6':
-    case 'gelijknamig-8':
-    case 'gelijknamig-10':
-    case 'gelijknamig-12': {
+    case 'gelijknamig-8': {
       const under = denominatorOf(form);
       const answer = operation === '-' ? num1 - num2 : num1 + num2;
       const sign = operation === '-' ? '−' : '+';

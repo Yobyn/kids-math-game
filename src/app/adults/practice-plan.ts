@@ -139,9 +139,7 @@ export function factText(fact: MissedFact): string {
     case 'gelijknamig-4':
     case 'gelijknamig-5':
     case 'gelijknamig-6':
-    case 'gelijknamig-8':
-    case 'gelijknamig-10':
-    case 'gelijknamig-12': {
+    case 'gelijknamig-8': {
       const under = denominatorOf(fact.form);
       return `${fact.num1}/${under} ${operationSymbol(fact.operation)} ${fact.num2}/${under} = ?/${under}`;
     }

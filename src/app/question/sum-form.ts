@@ -43,10 +43,13 @@ export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | '
   | MeasureForm | FractionOfForm | EqualFractionForm | PercentForm | DecimalForm | DecimalMeasureForm
   | FractionSumForm | 'breuk-komma' | RatioForm | DiscountForm;
 
-/** 2/8 + 3/8 = ?/8: fractions with the same denominator added or taken away. The number is the denominator. */
-export type FractionSumForm = 'gelijknamig-4' | 'gelijknamig-5' | 'gelijknamig-6' | 'gelijknamig-8' | 'gelijknamig-10' | 'gelijknamig-12';
-export const FRACTION_SUM_FORMS: FractionSumForm[] = ['gelijknamig-4', 'gelijknamig-5', 'gelijknamig-6', 'gelijknamig-8',
-  'gelijknamig-10', 'gelijknamig-12'];
+/**
+ * 2/8 + 3/8 = ?/8: fractions with the same denominator added or taken away. The number is the denominator.
+ * One figure under the line: with tenths or twelfths, 7/12 + 4/12 = ? / 12 is too wide for one line of a
+ * 320px phone. They come when a fraction is drawn over its line.
+ */
+export type FractionSumForm = 'gelijknamig-4' | 'gelijknamig-5' | 'gelijknamig-6' | 'gelijknamig-8';
+export const FRACTION_SUM_FORMS: FractionSumForm[] = ['gelijknamig-4', 'gelijknamig-5', 'gelijknamig-6', 'gelijknamig-8'];
 
 /** 3 pakken kosten €6, 7 pakken = €?: a ratio, worked through the price of one. The number is the packs priced. */
 export type RatioForm = 'verhouding-2' | 'verhouding-3' | 'verhouding-4' | 'verhouding-5';
