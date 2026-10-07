@@ -1,4 +1,4 @@
-import { DecimalMeasureForm, MeasureForm, SumForm, denominatorOf, percentOf, placesOf } from '../../question/sum-form';
+import { DecimalMeasureForm, MeasureForm, SumForm, denominatorOf, packsOf, percentOf, placesOf } from '../../question/sum-form';
 
 /**
  * How a sum is laid out round its answer box, and how its written form is
@@ -45,6 +45,11 @@ export interface FormWords {
   area: string;
   /** The decimal sign: a comma in Dutch and Spanish (0,7), a point in English (0.7) */
   point: string;
+  /** "pakken" and "kosten" in 3 pakken kosten €6, the line over 7 pakken = €? */
+  packs: string;
+  cost: string;
+  /** "korting: wat betaal je?" after the 20% in the heading over €45 → €? */
+  discount: string;
 }
 
 /**
@@ -228,6 +233,42 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
         before: [{ kind: 'number', text: `${percentOf(sum.form)}%` }, { kind: 'word', text: words.of }, number(sum.num1), equals],
         after: []
       };
+    // 2/8 + 3/8 = ?/8, kept as 2 + 3: the box is the new numerator, over the same denominator
+    case 'gelijknamig-4':
+    case 'gelijknamig-5':
+    case 'gelijknamig-6':
+    case 'gelijknamig-8': {
+      const under = denominatorOf(sum.form);
+      return {
+        before: [{ kind: 'number', text: `${sum.num1}/${under}` }, operation(sum.sign), { kind: 'number', text: `${sum.num2}/${under}` }, equals],
+        after: [operation('/'), number(under)]
+      };
+    }
+    // ¾ = ?, kept as 25 × 3 in hundredths: the answer is written with a comma
+    case 'breuk-komma':
+      return { before: [{ kind: 'number', text: FRACTIONS[`${sum.num2}/${100 / sum.num1}`] }, equals], after: [] };
+    // 3 pakken kosten €6 over 7 pakken = €?, kept as 7 × 2: what is known is the heading, what is asked the sum
+    case 'verhouding-2':
+    case 'verhouding-3':
+    case 'verhouding-4':
+    case 'verhouding-5': {
+      const packs = packsOf(sum.form);
+      return {
+        before: [{ kind: 'caption', text: `${packs} ${words.packs} ${words.cost} €${packs * sum.num2}` },
+                 number(sum.num1), { kind: 'word', text: words.packs }, equals, { kind: 'word', text: '€' }],
+        after: []
+      };
+    }
+    // 20% korting: wat betaal je? over €45 → €?, kept as 45 − 9
+    case 'korting-10':
+    case 'korting-20':
+    case 'korting-25':
+    case 'korting-50':
+      return {
+        before: [{ kind: 'caption', text: `${percentOf(sum.form)}% ${words.discount}` },
+                 { kind: 'word', text: '€' }, number(sum.num1), operation('→'), { kind: 'word', text: '€' }],
+        after: []
+      };
     // Oppervlakte: 6 m × 4 m = ? m², kept as 6 × 4
     case 'oppervlakte':
       return {
@@ -334,6 +375,35 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
     case 'procent-25':
     case 'procent-10':
       return `${percentOf(form)}% = ${FRACTIONS[`1/${num2}`]} → ${num1} : ${num2} = ${num1 / num2}`;
+    // 2/8 + 3/8: count in eighths, 2 + 3 = 5 eighths
+    case 'gelijknamig-4':
+    case 'gelijknamig-5':
+    case 'gelijknamig-6':
+    case 'gelijknamig-8': {
+      const under = denominatorOf(form);
+      const answer = operation === '-' ? num1 - num2 : num1 + num2;
+      const sign = operation === '-' ? '−' : '+';
+      return `${num1} ${sign} ${num2} = ${answer} → ${num1}/${under} ${sign} ${num2}/${under} = ${answer}/${under}`;
+    }
+    // ¾ is 75 hundredths: a quarter is 25 of them
+    case 'breuk-komma':
+      return `${FRACTIONS[`${num2}/${100 / num1}`]} = ${num1 * num2}/100 → ${decimal(num1 * num2, 2, point)}`;
+    // 3 pakken €6: one pak is 6 : 3 = 2, so 7 pakken 7 × 2
+    case 'verhouding-2':
+    case 'verhouding-3':
+    case 'verhouding-4':
+    case 'verhouding-5': {
+      const packs = packsOf(form);
+      return `${packs * num2} : ${packs} = ${num2} → ${num1} × ${num2} = ${num1 * num2}`;
+    }
+    // 20% is a fifth: 45 : 5 = 9 off, so 45 − 9 is paid. Two steps, so the line fits a phone
+    case 'korting-10':
+    case 'korting-20':
+    case 'korting-25':
+    case 'korting-50': {
+      const parts = 100 / percentOf(form);
+      return `${num1} : ${parts} = ${num2} → ${num1} − ${num2} = ${num1 - num2}`;
+    }
     // a rectangle's area is its length times its width
     case 'oppervlakte':
       return `${num1} × ${num2} = ${num1 * num2}`;

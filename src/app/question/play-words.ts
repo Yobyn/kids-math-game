@@ -56,6 +56,9 @@ export type PlayKey =
   | 'round-hundreds'
   | 'round-thousands'
   | 'sum-area'
+  | 'sum-packs'
+  | 'sum-cost'
+  | 'sum-discount'
   | 'play-again';
 
 export const PLAY_WORDS: Words<PlayKey> = {
@@ -110,7 +113,10 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'round-tens': 'Round to the nearest ten',
     'round-hundreds': 'Round to the nearest hundred',
     'round-thousands': 'Round to the nearest thousand',
-    'sum-area': 'Area of the rectangle'
+    'sum-area': 'Area of the rectangle',
+    'sum-packs': 'packs',
+    'sum-cost': 'cost',
+    'sum-discount': 'off: what do you pay?'
   },
   nl: {
     'praise-3': 'Knap gewerkt!',
@@ -163,7 +169,10 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'round-tens': 'Rond af op tientallen',
     'round-hundreds': 'Rond af op honderdtallen',
     'round-thousands': 'Rond af op duizendtallen',
-    'sum-area': 'Oppervlakte van de rechthoek'
+    'sum-area': 'Oppervlakte van de rechthoek',
+    'sum-packs': 'pakken',
+    'sum-cost': 'kosten',
+    'sum-discount': 'korting: wat betaal je?'
   },
   es: {
     'praise-3': '¡Un trabajo brillante!',
@@ -216,6 +225,9 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'round-tens': 'Redondea a la decena',
     'round-hundreds': 'Redondea a la centena',
     'round-thousands': 'Redondea al millar',
-    'sum-area': 'Área del rectángulo'
+    'sum-area': 'Área del rectángulo',
+    'sum-packs': 'paquetes',
+    'sum-cost': 'cuestan',
+    'sum-discount': 'de descuento: ¿cuánto pagas?'
   }
 };

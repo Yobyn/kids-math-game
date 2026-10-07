@@ -1,5 +1,5 @@
 import { DECIMAL_MEASURES, FRACTIONS, MEASURES, UNIT_FRACTIONS, decimal, formWorkedStep, roundTo, tenths } from '../teaching/school/written-form';
-import { denominatorOf, percentOf, placesOf } from '../question/sum-form';
+import { denominatorOf, packsOf, percentOf, placesOf } from '../question/sum-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
 import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
@@ -135,6 +135,31 @@ export function factText(fact: MissedFact): string {
       const measure = DECIMAL_MEASURES[fact.form];
       return `${tenths(fact.num1)} ${measure.from} = ? ${measure.to}`;
     }
+    // 2/8 + 3/8, kept as 2 + 3 eighths
+    case 'gelijknamig-4':
+    case 'gelijknamig-5':
+    case 'gelijknamig-6':
+    case 'gelijknamig-8': {
+      const under = denominatorOf(fact.form);
+      return `${fact.num1}/${under} ${operationSymbol(fact.operation)} ${fact.num2}/${under} = ?/${under}`;
+    }
+    // ¾ = 0,75, kept as 25 × 3 hundredths
+    case 'breuk-komma':
+      return `${FRACTIONS[`${fact.num2}/${100 / fact.num1}`]} = ?`;
+    // 3 → €6, 7 → €?, read in any language
+    case 'verhouding-2':
+    case 'verhouding-3':
+    case 'verhouding-4':
+    case 'verhouding-5': {
+      const packs = packsOf(fact.form);
+      return `${packs} → €${packs * fact.num2}, ${fact.num1} → €?`;
+    }
+    // €45 − 20%, kept as 45 − 9
+    case 'korting-10':
+    case 'korting-20':
+    case 'korting-25':
+    case 'korting-50':
+      return `€${fact.num1} − ${percentOf(fact.form)}%`;
     // 0,3 + 0,4, kept as 3 + 4 tenths
     case 'tienden':
       return `${tenths(fact.num1)} ${operationSymbol(fact.operation)} ${tenths(fact.num2)}`;

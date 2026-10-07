@@ -11,11 +11,15 @@
  * 25 × 8, 96 : 4, 23 × 14, 347 ≈ ? op tientallen, ¾ van 20, ½ = ?/8, the
  * area of a rectangle, 0,3 + 0,4); and groep 7's whole numbers (345 678 ≈ ? op
  * duizendtallen, 124 × 36, 864 : 24, 25% van 60) and its decimals (3,45 × 100,
- * 72 : 100, 2,5 × 4, 2,5 km = ? m). The rest follows the
+ * 72 : 100, 2,5 × 4, 2,5 km = ? m) and the rest of groep 7 (2/8 + 3/8,
+ * ¾ = 0,75, 3 pakken kosten €6, 20% korting). The rest follows the
  * build order in the doc.
  */
 
-import { DECIMAL_MEASURE_FORMS, MEASURE_FORMS, PERCENT_FORMS, SumForm, percentOf } from '../../question/sum-form';
+import {
+  DECIMAL_MEASURE_FORMS, DISCOUNT_FORMS, FRACTION_SUM_FORMS, MEASURE_FORMS, PERCENT_FORMS, RATIO_FORMS, SumForm,
+  denominatorOf, packsOf, percentOf
+} from '../../question/sum-form';
 import { DECIMAL_MEASURES, MEASURES, numeratorsOf } from './written-form';
 
 export type Moment = 'B' | 'M' | 'E';
@@ -422,6 +426,48 @@ Object.assign(TOPICS, {
   }
 } as { [id: string]: Maker });
 
+Object.assign(TOPICS, {
+  // Groep 7, the middle: fractions with the same denominator. 2/8 + 3/8 = ?/8, kept as 2 + 3;
+  // the answer stays below a whole, as groep 7 first meets it
+  'gelijknamige-breuken': random => {
+    const form = pick(random, FRACTION_SUM_FORMS);
+    const under = denominatorOf(form);
+    if (random() < 0.5) {
+      const num1 = between(random, 1, under - 2);
+      return { num1, num2: between(random, 1, under - 1 - num1), operation: '+', form };
+    }
+    const num1 = between(random, 2, under - 1);
+    return { num1, num2: between(random, 1, num1 - 1), operation: '-', form };
+  },
+  // a fraction as a decimal. ¾ = 0,75, kept as 25 × 3 in hundredths: a quarter is 25 hundredths
+  'breuk-naar-komma': random => {
+    const under = pick(random, [2, 4, 5, 10]);
+    return { num1: 100 / under, num2: pick(random, numeratorsOf(under)), operation: '*', form: 'breuk-komma' };
+  },
+  // Groep 7, the end: a ratio through the price of one. 3 pakken kosten €6, 7 pakken = €?, kept as 7 × 2
+  'verhoudingen': random => {
+    const form = pick(random, RATIO_FORMS);
+    let asked = between(random, 2, 12);
+    // 3 pakken and 3 pakken is no question: ask for one more
+    if (asked === packsOf(form)) {
+      asked += 1;
+    }
+    return { num1: asked, num2: between(random, 2, 9), operation: '*', form };
+  },
+  // 20% korting op €45: what is paid, in whole euros. Kept as 45 − 9
+  'korting': random => {
+    const form = pick(random, DISCOUNT_FORMS);
+    // a price the percentage takes a whole number of euros off: 10% of a ten, 20% of a five, 25% of a four
+    const step = 100 / gcd(percentOf(form), 100);
+    const price = step * between(random, Math.ceil(20 / step), Math.floor(200 / step));
+    return { num1: price, num2: price * percentOf(form) / 100, operation: '-', form };
+  }
+} as { [id: string]: Maker });
+
+function gcd(a: number, b: number): number {
+  return b ? gcd(b, a % b) : a;
+}
+
 /** How often a topic comes up in a round: what is new at a moment most, what it builds on less. */
 const NEW = 2;
 const REVIEW = 1;
@@ -486,7 +532,6 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
       'tot-10000': REVIEW, 'keer-groter': REVIEW, 'delen-groter': REVIEW, 'breuk-van': REVIEW, 'gelijke-breuken': REVIEW
     }
   },
-  // Groep 7 so far: its whole numbers and its decimals. Fractions, ratios and discount come next
   7: {
     B: {
       'te-keer-te': NEW, 'afronden': NEW, 'tienden': NEW,
@@ -494,11 +539,13 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     },
     M: {
       'afronden-duizendtallen': NEW, 'cijferend-keer': NEW, 'staartdeling': NEW, 'procenten': NEW, 'komma-maal-10': NEW,
+      'gelijknamige-breuken': NEW, 'breuk-naar-komma': NEW,
       'te-keer-te': REVIEW, 'tienden': REVIEW
     },
     E: {
-      'kommagetal-keer': NEW, 'metriek': NEW,
-      'afronden-duizendtallen': REVIEW, 'cijferend-keer': REVIEW, 'staartdeling': REVIEW, 'procenten': REVIEW, 'komma-maal-10': REVIEW
+      'kommagetal-keer': NEW, 'metriek': NEW, 'verhoudingen': NEW, 'korting': NEW,
+      'afronden-duizendtallen': REVIEW, 'cijferend-keer': REVIEW, 'staartdeling': REVIEW, 'procenten': REVIEW, 'komma-maal-10': REVIEW,
+      'gelijknamige-breuken': REVIEW, 'breuk-naar-komma': REVIEW
     }
   }
 };

@@ -261,8 +261,30 @@ middle, hard the end), one groep per run.
   3,45 × 100; two in a number shared by 100; ,50 and × 3 among the
   quarters of 1,25 × 8; and the comma key offered only on tenths, which
   would have left 72 : 100 untypeable).
-- **Next, in order:** groep 7's fractions, ratios and discount; groep 8;
-  then verhaaltjessommen.
+- **Groep 7, fractions, ratios and discount: DONE (2026-10-07). GROEP 7 IS
+  COMPLETE.** The middle of the year adds fractions with the same
+  denominator added and taken away (2/8 + 3/8 = ?/8, the box the new
+  numerator over the same denominator, kept as 2 + 3; the answer a part of
+  a whole, never nothing and never a whole) and a fraction written as a
+  decimal (¾ = ?, answered 0,75 with the comma key; halves, quarters,
+  fifths and a tenth, kept as 25 × 3 in hundredths). The end adds a ratio
+  worked through the price of one ("3 pakken kosten €6" as the heading,
+  7 pakken = €? under it, kept as 7 × 2, worked 6 : 3 = 2 → 7 × 2 = 14)
+  and a discount ("20% korting: wat betaal je?" over €45 → €?, 10/20/25/50%
+  of a whole-euro price from €20 to €200 that comes out whole, kept as
+  45 − 9, worked 45 : 5 = 9 → 45 − 9 = 36), and keeps practising the
+  middle's new topics. Words "packs/cost/off: what do you pay?" in nl, en
+  and es. Same-denominator fractions keep one figure under the line
+  (4, 5, 6, 8): with tenths or twelfths, 7/12 + 4/12 = ? / 12 wrapped onto
+  two lines of a 320px phone; they come when a fraction is drawn over its
+  line. A discount is worked in two steps so the line fits a phone. Every
+  card fits a 320px phone on one row in nl/en/es. Mutation sweep: 45
+  mutants, 43 killed at once; the two survivors each got a test (prices
+  that vary as a shop's do, not only €100 and €200; a fraction taken away
+  written with a minus for the grown-ups); six more on the code changed
+  after it, all killed.
+- **Next, in order:** Yobyn checks groep 7 against his children's school
+  work; groep 8; then verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 
