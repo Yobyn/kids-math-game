@@ -172,6 +172,18 @@ describe('the facts an adult is asked to practise', () => {
     expect(plan.facts[0].worked).toBe('20 : 4 = 5 → 3 × 5 = 15');
   });
 
+  it('gives the grown-ups a sum in tenths as it is written: 1,5 + 2,7 = 4,2', () => {
+    const plan = practicePlan([], [{ ...fact(15, 27, '+'), form: 'tienden' }]);
+
+    expect(plan.facts[0].question).toBe('1,5 + 2,7');
+    expect(plan.facts[0].answer).toBe('4,2');
+    expect(plan.facts[0].worked).toBe('15 + 27 = 42 → 1,5 + 2,7 = 4,2');
+    // and a taking away is worked as one
+    const away = practicePlan([], [{ ...fact(24, 8, '-'), form: 'tienden' }]);
+    expect(away.facts[0].answer).toBe('1,6');
+    expect(away.facts[0].worked).toBe('24 − 8 = 16 → 2,4 − 0,8 = 1,6');
+  });
+
   it('leaves the line off a fact that has no method worth showing', () => {
     const plan = practicePlan([], [fact(2, 3, '+')]);
 

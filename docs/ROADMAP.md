@@ -204,10 +204,27 @@ middle, hard the end), one groep per run.
   at once; two survivors (¾ van 4, a part of one; the end of the year
   dropping ½ = ?/8) each got a test, and one is equivalent (a fallback
   denominator for a form name without a number, which none is).
-  STILL TO DO for groep 6: decimals with the comma on the keypad
-  (0,3 + 0,4, 1,5 + 2,7).
-- **Next, in order:** groep 6's decimals, groep 7, 8; then
-  verhaaltjessommen.
+- **Groep 6, decimals: DONE (2026-10-07). Groep 6 is complete.** At the
+  end of the year, adding and taking away tenths: 0,3 + 0,4, 1,5 + 2,7,
+  2,4 − 0,8, below 10, never a whole number in the sum. Kept as whole
+  tenths (3 + 4), so nothing is a float on the way: a typed "0,7", "0.7"
+  or ".7" is read as 7 tenths and "0,75" as no number of tenths at all.
+  Written as the child's school writes it: 0,7 in Dutch and Spanish, 0.7
+  in English, on the card, in the box as it is typed, in the answer given
+  after two tries and in the worked line (15 + 27 = 42 → 1,5 + 2,7 = 4,2);
+  the keypad's decimal key shows a comma there. A box that takes a decimal
+  is now a text box: a number box empties itself on "0." halfway through
+  typing 0,7, which had been blanking the decimal money answers too (€3.40
+  typed as 3, point: an empty box). The card's box rules were written for
+  number boxes, so they now match its one input whatever its type (the
+  text box had fallen back to the browser's width and wrapped below the
+  sum). Mutation sweep: 31 mutants, 28 killed at once; two
+  survivors got tests (the keypad showing a comma in English; the
+  grown-ups' plan working 2,4 − 0,8 as an adding) and one was a guard that
+  decided nothing, so it went.
+  Money still writes €3.40 with a point in Dutch; a Dutch school writes
+  €3,40. A follow-up, with the money strand's own words.
+- **Next, in order:** groep 7, 8; then verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 

@@ -596,6 +596,19 @@ describe('QuestionComponent', () => {
 
       expect(component.needsDecimalKey).toBe(true);
     });
+
+    it('keeps "3." in the box while €3.40 is being typed: a number box would empty itself', () => {
+      let money = askMoney(6);
+      for (let i = 0; i < 120 && money.unit !== 'decimal'; i++) {
+        money = askMoney(6);
+      }
+      component.userAnswer = '';
+      component.onKeypadPress('3');
+      component.onKeypadPress('.');
+      fixture.detectChanges();
+      const box = fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement;
+      expect(box.value).toBe('3.');
+    });
   });
 
   describe('progress through the round', () => {
@@ -835,9 +848,11 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     expect(asked.some(sum => sum.operation === '*' && sum.num1 > 10)).toBeTrue();
   });
 
-  it('asks grade 4 (groep 6) at the end of the year to round: 347 ≈ ? op tientallen', () => {
+  it('asks grade 4 (groep 6) at the end of the year to round: 347 ≈ ? op tientallen, and to add tenths', () => {
     build('4', 'hard');
-    expect(sums(300).some(sum => sum.operation === '≈' && sum.form === 'afronden')).toBeTrue();
+    const asked = sums(300);
+    expect(asked.some(sum => sum.operation === '≈' && sum.form === 'afronden')).toBeTrue();
+    expect(asked.some(sum => sum.form === 'tienden')).toBeTrue();
   });
 
   it('keeps the old questions for a groep not built yet: grade 5 (groep 7) is still asked as before', () => {
@@ -1727,6 +1742,10 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()).toEqual(['½', '=', '[ ]', '/', '8']);
     ask({ num1: 6, num2: 4, operation: '*', form: 'oppervlakte' });
     expect(card()).toEqual(['Oppervlakte van de rechthoek', '6', 'm', '×', '4', 'm', '=', '[ ]', 'm²']);
+    ask({ num1: 3, num2: 4, operation: '+', form: 'tienden' });
+    expect(card()).toEqual(['0,3', '+', '0,4', '=', '[ ]']);
+    ask({ num1: 24, num2: 8, operation: '-', form: 'tienden' });
+    expect(card()).toEqual(['2,4', '−', '0,8', '=', '[ ]']);
     // A plain sum keeps the box at the end
     ask({ num1: 7, num2: 5, operation: '+' });
     expect(card()).toEqual(['7', '+', '5', '=', '[ ]']);
@@ -1764,6 +1783,9 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     component.languageService.setLanguage('en');
     fixture.detectChanges();
     expect(card()[0]).toBe('Area of the rectangle');
+    // English writes a decimal point, Dutch and Spanish a comma
+    ask({ num1: 15, num2: 27, operation: '+', form: 'tienden' });
+    expect(card()).toEqual(['1.5', '+', '2.7', '=', '[ ]']);
   });
 
   it('marks the number that goes in the box: 3 for 7 + ? = 10', () => {
@@ -1836,6 +1858,72 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(marked({ num1: 6, num2: 4, operation: '*', form: 'oppervlakte' }, '24')).toBe(true);
     // the way round a rectangle is another sum
     expect(marked({ num1: 6, num2: 4, operation: '*', form: 'oppervlakte' }, '20')).toBe(false);
+  });
+
+  it('marks 0,7 for 0,3 + 0,4, typed with a comma or a point, and not 7 or 0,75', () => {
+    build('nl');
+    const marked = (typed: string) => {
+      ask({ num1: 3, num2: 4, operation: '+', form: 'tienden' });
+      component.wrongAttempts = 0;
+      component.userAnswer = typed;
+      component.checkAnswer();
+      return component.answerWasCorrect;
+    };
+    expect(marked('0,7')).toBe(true);
+    expect(marked('0.7')).toBe(true);
+    expect(marked('7')).toBe(false);
+    expect(marked('0,75')).toBe(false);
+    expect(marked('0,8')).toBe(false);
+  });
+
+  it('types 0,7 on the keypad with a comma key in Dutch, and shows the comma in the box as it is typed', () => {
+    build('nl');
+    component.useKeypad = true;
+    ask({ num1: 3, num2: 4, operation: '+', form: 'tienden' });
+    const keyFaces = () => Array.from(fixture.nativeElement.querySelectorAll('.key')).map((key: any) => key.textContent.trim());
+    expect(keyFaces()).toContain(',');
+    expect(keyFaces()).not.toContain('-');
+    component.onKeypadPress('0');
+    component.onKeypadPress('.');
+    fixture.detectChanges();
+    const box = fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement;
+    expect(box.value).toBe('0,');
+    component.onKeypadPress('7');
+    fixture.detectChanges();
+    expect(box.value).toBe('0,7');
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBe(true);
+  });
+
+  it('keeps the decimal key a point in English, where 0.7 is written with one', () => {
+    build('en');
+    component.useKeypad = true;
+    ask({ num1: 3, num2: 4, operation: '+', form: 'tienden' });
+    const keyFaces = Array.from(fixture.nativeElement.querySelectorAll('.key')).map((key: any) => key.textContent.trim());
+    expect(keyFaces).toContain('.');
+    expect(keyFaces).not.toContain(',');
+  });
+
+  it('draws the box for a decimal as wide as the box for a whole number, so 1,7 + 4,1 = stays on one line', () => {
+    build('nl');
+    const box = () => (fixture.nativeElement.querySelector('.math-problem input') as HTMLElement).getBoundingClientRect();
+    ask({ num1: 17, num2: 41, operation: '+', form: 'tienden' });
+    const decimal = box();
+    ask({ num1: 17, num2: 41, operation: '+' });
+    const whole = box();
+    expect(Math.abs(decimal.width - whole.width)).toBeLessThan(1);
+    expect(Math.abs(decimal.height - whole.height)).toBeLessThan(1);
+  });
+
+  it('gives the answer to a sum in tenths as it is written, with the way to it, after two tries', () => {
+    build('nl');
+    ask({ num1: 15, num2: 27, operation: '+', form: 'tienden' });
+    component.userAnswer = '4';
+    component.checkAnswer();
+    component.userAnswer = '4';
+    component.checkAnswer();
+    expect(component.feedback).toContain('4,2');
+    expect(component.workedLine).toBe('15 + 27 = 42 → 1,5 + 2,7 = 4,2');
   });
 
   it('marks 300 for 3 m = ? cm', () => {

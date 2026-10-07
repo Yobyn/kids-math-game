@@ -148,7 +148,9 @@ its groep:
    (M), TE × TE and rounding to tens and hundreds, written
    "Rond af op tientallen: 347 ≈ ?" (E). Fractions and area DONE in the
    sixth: ¾ van 20 and ½ = ?/8 (M), the area of a rectangle, 6 m × 4 m =
-   ? m² (E). Not yet: decimals.
+   ? m² (E). Decimals DONE in the seventh: 0,3 + 0,4, 1,5 + 2,7,
+   2,4 − 0,8 with the comma on the card and the keypad (E). GROEP 6 IS
+   COMPLETE.
 5. **Groep 7**: big numbers, cijferend × and :, decimals × 10/100/1000,
    fractions, percentages, ratios, the metric system.
 6. **Groep 8**: percentages, scale, the mean, area and volume, time spans,

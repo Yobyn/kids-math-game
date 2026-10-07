@@ -50,9 +50,12 @@
       <!-- The unit sits on the box itself, so a child is never left guessing
            whether the answer wanted is 75 or 0.75. -->
       <span class="currency" *ngIf="answerPrefix">{{ answerPrefix }}</span>
+      <!-- A box that takes a decimal is a text box: a number box empties itself
+           on "0." halfway through typing 0.7, and cannot show 0,7 -->
       <input #answerInput
-             type="number"
-             [value]="userAnswer"
+             [type]="needsDecimalKey ? 'text' : 'number'"
+             [attr.inputmode]="needsDecimalKey ? 'decimal' : null"
+             [value]="shownAnswer"
              (input)="userAnswer = $any($event.target).value"
              [placeholder]="inputPlaceholder"
              (focus)="onInputFocus()"
@@ -71,6 +74,7 @@
     <app-keypad *ngIf="useKeypad && !isPicking"
                 [disabled]="showOkButton"
                 [decimal]="needsDecimalKey"
+                [comma]="inTenths && decimalSign === ','"
                 (press)="onKeypadPress($event)"></app-keypad>
 
     <div class="feedback-container">
