@@ -256,7 +256,11 @@ middle, hard the end), one groep per run.
   (25 × 4 = 100 → 2,5 × 4 = 10) or read a share back as the times it
   undoes (0,72 × 100 = 72 → 72 : 100 = 0,72). Every card fits a 320px
   phone on one row in nl/en/es; typed on the keypad the box shows "0,"
-  after 0 and the comma. Mutation sweep: see the PR.
+  after 0 and the comma. Mutation sweep: 33 mutants, 28 killed at once;
+  the five survivors each got a test (only one figure after the comma in
+  3,45 × 100; two in a number shared by 100; ,50 and × 3 among the
+  quarters of 1,25 × 8; and the comma key offered only on tenths, which
+  would have left 72 : 100 untypeable).
 - **Next, in order:** groep 7's fractions, ratios and discount; groep 8;
   then verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in
