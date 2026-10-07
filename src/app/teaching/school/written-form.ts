@@ -1,4 +1,4 @@
-import { MeasureForm, SumForm } from '../../question/sum-form';
+import { MeasureForm, SumForm, denominatorOf } from '../../question/sum-form';
 
 /**
  * How a sum is laid out round its answer box, and how its written form is
@@ -40,6 +40,8 @@ export interface FormWords {
   /** "Rond af op tientallen", the heading over 347 ≈ ? (a line of its own) */
   toTens: string;
   toHundreds: string;
+  /** "Oppervlakte", the heading over 6 m × 4 m = ? m² */
+  area: string;
 }
 
 /**
@@ -56,6 +58,22 @@ export const MEASURES: { [form in MeasureForm]: { from: string; to: string; fact
 
 /** The fraction a part of an amount is written with: ¼ van 20. Only the ones groep 5 meets. */
 export const UNIT_FRACTIONS: { [parts: number]: string } = { 2: '½', 3: '⅓', 4: '¼', 5: '⅕' };
+
+/**
+ * Every fraction groep 6 writes, as the one character a workbook prints:
+ * ¾ under its numerator and denominator. Only fractions in their simplest
+ * form, each with a character of its own.
+ */
+export const FRACTIONS: { [fraction: string]: string } = {
+  '1/2': '½', '1/3': '⅓', '2/3': '⅔', '1/4': '¼', '3/4': '¾', '1/5': '⅕', '2/5': '⅖', '3/5': '⅗', '4/5': '⅘',
+  '1/6': '⅙', '5/6': '⅚', '1/8': '⅛', '3/8': '⅜', '5/8': '⅝', '7/8': '⅞'
+};
+
+/** The numerators a denominator is written with in FRACTIONS: 2 for thirds, 3 for quarters, 2, 3, 4 for fifths. */
+export function numeratorsOf(denominator: number, from = 1): number[] {
+  return Object.keys(FRACTIONS).map(key => key.split('/').map(Number))
+    .filter(([top, bottom]) => bottom === denominator && top >= from).map(([top]) => top);
+}
 
 /** A number rounded to the nearest ten or hundred, a 5 going up as at school: 345 → 350. */
 export function roundTo(value: number, to: number): number {
@@ -100,6 +118,33 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
       return {
         before: [{ kind: 'caption', text: sum.num2 === 100 ? words.toHundreds : words.toTens }, number(sum.num1), operation('≈')],
         after: []
+      };
+    // ¾ van 20 = ?, kept as 5 × 3: the amount is one part times the parts
+    case 'van-3':
+    case 'van-4':
+    case 'van-5':
+    case 'van-6':
+    case 'van-8':
+      return {
+        before: [{ kind: 'number', text: FRACTIONS[`${sum.num2}/${denominatorOf(sum.form)}`] }, { kind: 'word', text: words.of },
+                 number(sum.num1 * denominatorOf(sum.form)), equals],
+        after: []
+      };
+    // ¾ = ?/12, kept as 3 × 3: the box is the new numerator, over the new denominator
+    case 'gelijk-2':
+    case 'gelijk-3':
+    case 'gelijk-4':
+    case 'gelijk-5':
+      return {
+        before: [{ kind: 'number', text: FRACTIONS[`${sum.num1}/${denominatorOf(sum.form)}`] }, equals],
+        after: [operation('/'), number(denominatorOf(sum.form) * sum.num2)]
+      };
+    // Oppervlakte: 6 m × 4 m = ? m², kept as 6 × 4
+    case 'oppervlakte':
+      return {
+        before: [{ kind: 'caption', text: words.area }, number(sum.num1), { kind: 'word', text: 'm' }, operation('×'),
+                 number(sum.num2), { kind: 'word', text: 'm' }, equals],
+        after: [{ kind: 'word', text: 'm²' }]
       };
     // 3 m = ? cm, kept as 3 × 100
     case 'm-cm':
@@ -148,6 +193,26 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
       const figure = Math.floor(num1 / (num2 / 10)) % 10;
       return `${num1}: ${figure} ${figure >= 5 ? '≥' : '<'} 5 → ${roundTo(num1, num2)}`;
     }
+    // ¾ van 20: a quarter is 20 : 4 = 5, three quarters three fives
+    case 'van-3':
+    case 'van-4':
+    case 'van-5':
+    case 'van-6':
+    case 'van-8': {
+      const parts = denominatorOf(form);
+      return `${num1 * parts} : ${parts} = ${num1} → ${num2} × ${num1} = ${num1 * num2}`;
+    }
+    // ¾ = ?/12: the 4 became 12 by times 3, so the 3 does too
+    case 'gelijk-2':
+    case 'gelijk-3':
+    case 'gelijk-4':
+    case 'gelijk-5': {
+      const under = denominatorOf(form);
+      return `${under} × ${num2} = ${under * num2} → ${num1} × ${num2} = ${num1 * num2}`;
+    }
+    // a rectangle's area is its length times its width
+    case 'oppervlakte':
+      return `${num1} × ${num2} = ${num1 * num2}`;
     // 3 m: one metre is 100 cm, so three is three hundreds
     case 'm-cm':
     case 'km-m':
