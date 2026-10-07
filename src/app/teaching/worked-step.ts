@@ -103,6 +103,20 @@ function subtraction(num1: number, num2: number): string | undefined {
 function multiplication(num1: number, num2: number): string | undefined {
   const product = num1 * num2;
 
+  // Groep 5 and 6: a two-figure number is split in tens and ones, the way
+  // 4 × 23 and 23 × 14 are taught. 4 × 20 = 80 → 4 × 3 = 12 → 80 + 12 = 92
+  if (num2 > 10 && num2 % 10 && num1 > 1) {
+    const [tens, ones] = [num2 - num2 % 10, num2 % 10];
+    return `${num1} × ${tens} = ${num1 * tens}${THEN}${num1} × ${ones} = ${num1 * ones}` +
+      `${THEN}${num1 * tens} + ${num1 * ones} = ${product}`;
+  }
+  // 25 × 8 = 20 × 8 + 5 × 8
+  if (num1 > 10 && num1 % 10 && num2 > 1) {
+    const [tens, ones] = [num1 - num1 % 10, num1 % 10];
+    return `${tens} × ${num2} = ${tens * num2}${THEN}${ones} × ${num2} = ${ones * num2}` +
+      `${THEN}${tens * num2} + ${ones * num2} = ${product}`;
+  }
+
   // Only six through nine: below that the fives anchor is no shortcut, and
   // the ten times table is "add a nought", which needs no working out
   if (num2 < 6 || num2 > 9 || num1 < 2 || num1 > 10) {
@@ -125,6 +139,15 @@ function division(num1: number, num2: number): string | undefined {
   const answer = num1 / num2;
   if (answer <= 1) {
     return undefined;
+  }
+
+  // Groep 6: past the tables, shared out in a handy part and the rest.
+  // 96 : 4 as 80 : 4 = 20 and 16 : 4 = 4, so 24
+  const tens = Math.floor(answer / 10) * 10;
+  if (answer > 10 && answer !== tens) {
+    const handy = num2 * tens;
+    return `${handy} ÷ ${num2} = ${tens}${THEN}${num1 - handy} ÷ ${num2} = ${answer - tens}` +
+      `${THEN}${tens} + ${answer - tens} = ${answer}`;
   }
 
   return `${num2} × ${answer} = ${num1}${THEN}${num1} ÷ ${num2} = ${answer}`;
