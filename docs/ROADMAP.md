@@ -277,8 +277,12 @@ middle, hard the end), one groep per run.
   and es. Same-denominator fractions keep one figure under the line
   (4, 5, 6, 8): with tenths or twelfths, 7/12 + 4/12 = ? / 12 wrapped onto
   two lines of a 320px phone; they come when a fraction is drawn over its
-  line. Every card fits a 320px phone on one row in nl/en/es. Mutation
-  sweep: SWEEP_RESULT.
+  line. A discount is worked in two steps so the line fits a phone. Every
+  card fits a 320px phone on one row in nl/en/es. Mutation sweep: 45
+  mutants, 43 killed at once; the two survivors each got a test (prices
+  that vary as a shop's do, not only €100 and €200; a fraction taken away
+  written with a minus for the grown-ups); six more on the code changed
+  after it, all killed.
 - **Next, in order:** Yobyn checks groep 7 against his children's school
   work; groep 8; then verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in
