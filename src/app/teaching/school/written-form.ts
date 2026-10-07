@@ -8,7 +8,7 @@ import { MeasureForm, SumForm } from '../../question/sum-form';
 
 /** One piece of a sum on the screen. `kind` is its CSS class on the question card. */
 export interface SumPart {
-  kind: 'number' | 'operation' | 'equals' | 'word';
+  kind: 'number' | 'operation' | 'equals' | 'word' | 'caption';
   text: string;
 }
 
@@ -37,6 +37,9 @@ export interface FormWords {
   /** The time units, which are words; the others are symbols the same in every language */
   hours: string;
   minutes: string;
+  /** "Rond af op tientallen", the heading over 347 ≈ ? (a line of its own) */
+  toTens: string;
+  toHundreds: string;
 }
 
 /**
@@ -53,6 +56,11 @@ export const MEASURES: { [form in MeasureForm]: { from: string; to: string; fact
 
 /** The fraction a part of an amount is written with: ¼ van 20. Only the ones groep 5 meets. */
 export const UNIT_FRACTIONS: { [parts: number]: string } = { 2: '½', 3: '⅓', 4: '¼', 5: '⅕' };
+
+/** A number rounded to the nearest ten or hundred, a 5 going up as at school: 345 → 350. */
+export function roundTo(value: number, to: number): number {
+  return Math.round(value / to) * to;
+}
 
 const number = (value: number): SumPart => ({ kind: 'number', text: String(value) });
 const operation = (text: string): SumPart => ({ kind: 'operation', text });
@@ -84,6 +92,13 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
       return {
         before: [number(sum.num1), operation(sum.sign), number(sum.num2), equals,
                  number(Math.floor(sum.num1 / sum.num2)), { kind: 'word', text: words.remainder }],
+        after: []
+      };
+    // Rond af op tientallen: 347 ≈ ?, kept as 347 ≈ 10. The instruction is a
+    // heading on a line of its own, as in the workbook, so it never crowds the sum
+    case 'afronden':
+      return {
+        before: [{ kind: 'caption', text: sum.num2 === 100 ? words.toHundreds : words.toTens }, number(sum.num1), operation('≈')],
         after: []
       };
     // 3 m = ? cm, kept as 3 × 100
@@ -127,6 +142,11 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
     case 'rest': {
       const quotient = Math.floor(num1 / num2);
       return `${num2} × ${quotient} = ${num2 * quotient} → ${num1} − ${num2 * quotient} = ${num1 % num2}`;
+    }
+    // 347 op tientallen: look at the figure after the tens, 7; 5 or more goes up. 347: 7 ≥ 5 → 350
+    case 'afronden': {
+      const figure = Math.floor(num1 / (num2 / 10)) % 10;
+      return `${num1}: ${figure} ${figure >= 5 ? '≥' : '<'} 5 → ${roundTo(num1, num2)}`;
     }
     // 3 m: one metre is 100 cm, so three is three hundreds
     case 'm-cm':

@@ -1,4 +1,4 @@
-import { CURRICULUM, Moment, Random, SchoolSum, TABLES_FIRST, TABLES_GROEP_4, TOPICS, momentFor, schoolSum } from './groep';
+import { CURRICULUM, Moment, Random, SchoolSum, TABLES_FIRST, TABLES_GROEP_4, TOPICS, carries, momentFor, schoolSum } from './groep';
 
 /** A repeatable source of numbers, so a failure can be found again. */
 function seeded(seed: number): Random {
@@ -16,8 +16,15 @@ function answer(sum: SchoolSum): number {
     case '-': return sum.num1 - sum.num2;
     case '*': return sum.num1 * sum.num2;
     case '%': return sum.num1 % sum.num2;
+    case '≈': return nearest(sum.num1, sum.num2);
     default: return sum.num1 / sum.num2;
   }
+}
+
+/** The multiple of `to` nearest to n, by distance; halfway (345 to tens) goes up, as taught. */
+function nearest(n: number, to: number): number {
+  const down = n - n % to;
+  return n - down < down + to - n ? down : down + to;
 }
 
 /** Many sums of one topic. */
@@ -243,6 +250,105 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     });
   });
 
+  describe('groep 6', () => {
+    const at = (sum: SchoolSum) => `${sum.num1} ${sum.operation} ${sum.num2}`;
+    const figures = (n: number) => String(n).length;
+
+    it('starts the year where groep 5 ended', () => {
+      Object.keys(CURRICULUM[6].B).forEach(topic => expect(Object.keys(CURRICULUM[5].E)).withContext(topic).toContain(topic));
+      // and its sums are built: groep 6 no longer gets the old questions
+      (['B', 'M', 'E'] as Moment[]).forEach(moment => expect(schoolSum(6, moment)).withContext(moment).not.toBeNull());
+    });
+
+    it('adds and takes away to 10 000 in columns in the middle of the year: two numbers of four figures, something carried or borrowed', () => {
+      const sums = made('tot-10000', 800);
+      sums.forEach(sum => {
+        expect(figures(sum.num1)).withContext(at(sum)).toBe(4);
+        expect(figures(sum.num2)).withContext(at(sum)).toBe(4);
+        expect(answer(sum)).withContext(at(sum)).toBeGreaterThan(0);
+        expect(answer(sum)).withContext(at(sum)).toBeLessThan(10000);
+        // some column, read off the written figures, carries or borrows
+        const [a, b] = [String(sum.num1), String(sum.num2).padStart(4, '0')].map(n => n.split('').map(Number));
+        expect(a.some((figure, i) => sum.operation === '+' ? figure + b[i] > 9 : figure < b[i])).withContext(at(sum)).toBeTrue();
+      });
+      expect(new Set(sums.map(sum => sum.operation))).toEqual(new Set(['+', '-']));
+      // Past the thousand: answers in the thousands, not only just over one
+      expect(sums.some(sum => answer(sum) >= 5000)).toBeTrue();
+    });
+
+    it('carries and borrows in the thousands column too: 5003 − 2468 borrows, 2000 + 1000 does not', () => {
+      expect(carries(5003, 2468, '-')).toBeTrue();
+      expect(carries(2400, 1600, '+')).toBeTrue();
+      expect(carries(2000, 1000, '+')).toBeFalse();
+      expect(carries(5000, 1000, '-')).toBeFalse();
+      expect(carries(9000, 1000, '+')).toBeTrue();
+    });
+
+    it('multiplies two figures by a table past groep 5\'s 200 in the middle of the year: 25 × 8, never a round ten', () => {
+      const sums = made('keer-groter', 800);
+      sums.forEach(sum => {
+        expect(figures(sum.num1)).withContext(at(sum)).toBe(2);
+        expect(sum.num1 % 10).withContext(at(sum)).not.toBe(0);
+        expect(sum.num2).withContext(at(sum)).toBeGreaterThanOrEqual(3);
+        expect(sum.num2).withContext(at(sum)).toBeLessThanOrEqual(9);
+        expect(answer(sum)).withContext(at(sum)).toBeLessThanOrEqual(600);
+      });
+      expect(sums.some(sum => answer(sum) > 200)).toBeTrue();
+      expect(sums.some(sum => sum.num1 > 50)).toBeTrue();
+    });
+
+    it('shares out past the tables in the middle of the year: 96 : 4, 150 : 6, coming out whole between 10 and 50', () => {
+      const sums = made('delen-groter', 800);
+      sums.forEach(sum => {
+        expect(sum.operation).toBe('/');
+        expect(isWhole(answer(sum))).withContext(at(sum)).toBeTrue();
+        expect(answer(sum)).withContext(at(sum)).toBeGreaterThan(10);
+        expect(answer(sum)).withContext(at(sum)).toBeLessThan(50);
+        expect(answer(sum) % 10).withContext(at(sum)).not.toBe(0);
+        expect(sum.num2).withContext(at(sum)).toBeGreaterThanOrEqual(2);
+        expect(sum.num2).withContext(at(sum)).toBeLessThanOrEqual(9);
+      });
+      expect(sums.some(sum => sum.num1 > 100)).toBeTrue();
+      expect(new Set(sums.map(sum => sum.num2))).toEqual(new Set([2, 3, 4, 5, 6, 7, 8, 9]));
+    });
+
+    it('multiplies two figures by two figures at the end of the year: 23 × 14, neither a round ten', () => {
+      made('te-keer-te', 800).forEach(sum => {
+        expect(sum.operation).toBe('*');
+        [sum.num1, sum.num2].forEach(n => {
+          expect(n).withContext(at(sum)).toBeGreaterThan(10);
+          expect(n).withContext(at(sum)).toBeLessThan(40);
+          expect(n % 10).withContext(at(sum)).not.toBe(0);
+        });
+      });
+    });
+
+    it('rounds to tens and to hundreds at the end of the year: a number that is not one already, a 5 going up', () => {
+      const sums = made('afronden', 800);
+      sums.forEach(sum => {
+        expect(sum.operation).toBe('≈');
+        expect(sum.form).toBe('afronden');
+        expect([10, 100]).toContain(sum.num2);
+        // 340 to tens is nothing to round
+        expect(sum.num1 % sum.num2).withContext(at(sum)).not.toBe(0);
+        expect(figures(sum.num1)).withContext(at(sum)).toBeGreaterThanOrEqual(3);
+        expect(answer(sum)).withContext(at(sum)).toBeLessThanOrEqual(10000);
+        if (sum.num2 === 10) {
+          expect(figures(sum.num1)).withContext(at(sum)).toBe(3);
+        }
+      });
+      expect(new Set(sums.map(sum => sum.num2))).toEqual(new Set([10, 100]));
+      expect(sums.some(sum => sum.num2 === 100 && sum.num1 >= 1000)).toBeTrue();
+      // the halfway case comes up: 345, which rounds up
+      expect(sums.some(sum => sum.num2 === 10 && sum.num1 % 10 === 5)).toBeTrue();
+    });
+
+    it('asks nothing a child cannot type in the keypad\'s six figures', () => {
+      (['B', 'M', 'E'] as Moment[]).forEach(moment => Object.keys(CURRICULUM[6][moment]).forEach(topic =>
+        made(topic).forEach(sum => expect(figures(answer(sum))).withContext(`${topic} ${at(sum)}`).toBeLessThanOrEqual(6))));
+    });
+  });
+
   describe('a round', () => {
     it('reads the difficulty as the moment in the school year: easy the start, medium the middle, hard the end', () => {
       expect(momentFor('easy')).toBe('B');
@@ -251,7 +357,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     });
 
     it('asks every topic of a moment, the new ones about twice as often as the ones they build on', () => {
-      ([3, 4, 5] as number[]).forEach(groep => (['B', 'M', 'E'] as Moment[]).forEach(moment => {
+      ([3, 4, 5, 6] as number[]).forEach(groep => (['B', 'M', 'E'] as Moment[]).forEach(moment => {
         const weights = CURRICULUM[groep][moment];
         const random = seeded(groep * 10 + moment.charCodeAt(0));
         const counts: { [topic: string]: number } = {};
@@ -273,7 +379,8 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
 
     it('asks what is new at a moment about twice as often as what it carries on from the moment before', () => {
       const before: [number, Moment, number, Moment][] = [
-        [3, 'M', 3, 'B'], [3, 'E', 3, 'M'], [4, 'M', 4, 'B'], [4, 'E', 4, 'M'], [5, 'M', 5, 'B'], [5, 'E', 5, 'M']
+        [3, 'M', 3, 'B'], [3, 'E', 3, 'M'], [4, 'M', 4, 'B'], [4, 'E', 4, 'M'], [5, 'M', 5, 'B'], [5, 'E', 5, 'M'],
+        [6, 'M', 6, 'B'], [6, 'E', 6, 'M']
       ];
       before.forEach(([groep, moment, earlierGroep, earlier]) => {
         const random = seeded(groep * 7 + moment.charCodeAt(0));
@@ -305,7 +412,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     });
 
     it('leaves a groep not built yet to the old questions', () => {
-      [6, 7, 8, 9].forEach(groep => expect(schoolSum(groep, 'M')).withContext(`groep ${groep}`).toBeNull());
+      [7, 8, 9].forEach(groep => expect(schoolSum(groep, 'M')).withContext(`groep ${groep}`).toBeNull());
     });
   });
 });
