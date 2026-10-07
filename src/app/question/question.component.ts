@@ -17,7 +17,7 @@ import { MAX_PICKED, addPiece, pickMatches, removeAt } from '../teaching/coin-pi
 import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
 import { momentFor, schoolSum } from '../teaching/school/groep';
-import { SumLayout, formWorkedStep, sumLayout } from '../teaching/school/written-form';
+import { SumLayout, formWorkedStep, roundTo, sumLayout } from '../teaching/school/written-form';
 import { SumForm } from './sum-form';
 import {
   QUESTIONS_IN_ROUND,
@@ -507,7 +507,9 @@ export class QuestionComponent implements OnInit, OnDestroy {
         of: this.languageService.translate('sum-part-of'),
         remainder: this.languageService.translate('sum-remainder'),
         hours: this.languageService.translate('unit-hours'),
-        minutes: this.languageService.translate('unit-minutes')
+        minutes: this.languageService.translate('unit-minutes'),
+        toTens: this.languageService.translate('round-tens'),
+        toHundreds: this.languageService.translate('round-hundreds')
       });
     }
     return this.layoutCache!;
@@ -758,6 +760,11 @@ export class QuestionComponent implements OnInit, OnDestroy {
       case '%':
         isCorrect = answer === this.currentQuestion.num1 % this.currentQuestion.num2;
         this.correctAnswer = this.currentQuestion.num1 % this.currentQuestion.num2;
+        break;
+      // Rounded to the nearest ten or hundred: 347 ≈ 350
+      case '≈':
+        this.correctAnswer = roundTo(this.currentQuestion.num1, this.currentQuestion.num2);
+        isCorrect = answer === this.correctAnswer;
         break;
     }
 
