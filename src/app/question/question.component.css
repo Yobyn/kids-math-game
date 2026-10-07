@@ -34,6 +34,7 @@
 
 .math-problem {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 1rem;
@@ -64,6 +65,14 @@
   color: var(--accent-blue-read);
   font-size: 1.5em;
   line-height: 1;
+}
+
+/* "Rond af op tientallen": a heading on a line of its own */
+.caption {
+  flex-basis: 100%;
+  text-align: center;
+  color: var(--text-read-dim);
+  font-size: 0.6em;
 }
 
 /* "dubbel", "de helft van": read as words, and never broken over lines */
@@ -234,6 +243,19 @@ input[type="number"].incorrect {
     width: 100%;
   }
 }
+
+/* The smallest phones: room for 4518 + 1467 = on one line */
+@media (max-width: 360px) {
+  .question-box {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .math-problem {
+    gap: 0.4rem;
+  }
+}
+
 /* Money questions read as a sentence, so they need room to breathe */
 .money-prompt {
   margin: 0 0 1.25rem;
