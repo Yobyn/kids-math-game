@@ -355,6 +355,69 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     });
   });
 
+  describe('groep 7', () => {
+    const at = (sum: SchoolSum) => `${sum.num1} ${sum.operation} ${sum.num2}`;
+    const figures = (n: number) => String(n).length;
+
+    it('starts the year where groep 6 ended', () => {
+      Object.keys(CURRICULUM[7].B).forEach(topic => expect(Object.keys(CURRICULUM[6].E)).withContext(topic).toContain(topic));
+      (['B', 'M', 'E'] as Moment[]).forEach(moment => expect(schoolSum(7, moment)).withContext(moment).not.toBeNull());
+    });
+
+    it('rounds numbers to a million to thousands in the middle of the year, never one that is a thousand already', () => {
+      const sums = made('afronden-duizendtallen', 800);
+      sums.forEach(sum => {
+        expect(sum.operation).toBe('≈');
+        expect(sum.num2).toBe(1000);
+        expect(sum.num1 % 1000).withContext(at(sum)).not.toBe(0);
+        expect(sum.num1).withContext(at(sum)).toBeGreaterThan(10000);
+        expect(sum.num1).withContext(at(sum)).toBeLessThan(1000000);
+        // the answer fits the keypad's six figures
+        expect(figures(answer(sum))).withContext(at(sum)).toBeLessThanOrEqual(6);
+      });
+      expect(sums.some(sum => sum.num1 >= 100000)).toBeTrue();
+      expect(sums.some(sum => sum.num1 < 100000)).toBeTrue();
+    });
+
+    it('multiplies three figures by two in columns: 124 × 36, neither a round ten', () => {
+      made('cijferend-keer', 800).forEach(sum => {
+        expect(sum.operation).toBe('*');
+        expect(figures(sum.num1)).withContext(at(sum)).toBe(3);
+        expect(figures(sum.num2)).withContext(at(sum)).toBe(2);
+        expect(sum.num1 % 10).withContext(at(sum)).not.toBe(0);
+        expect(sum.num2 % 10).withContext(at(sum)).not.toBe(0);
+      });
+    });
+
+    it('divides by two figures in a staartdeling, coming out whole: 864 : 24', () => {
+      const sums = made('staartdeling', 800);
+      sums.forEach(sum => {
+        expect(sum.operation).toBe('/');
+        expect(figures(sum.num2)).withContext(at(sum)).toBe(2);
+        expect(sum.num2 % 10).withContext(at(sum)).not.toBe(0);
+        expect(isWhole(answer(sum))).withContext(at(sum)).toBeTrue();
+        expect(answer(sum)).withContext(at(sum)).toBeGreaterThan(10);
+        expect(answer(sum) % 10).withContext(at(sum)).not.toBe(0);
+      });
+      expect(sums.some(sum => sum.num1 >= 1000)).toBeTrue();
+    });
+
+    it('takes 50%, 25% and 10% of an amount, each a half, a quarter and a tenth, coming out whole', () => {
+      const seen = new Set<string>();
+      made('procenten', 800).forEach(sum => {
+        seen.add(sum.form!);
+        const percent = Number(sum.form!.split('-')[1]);
+        expect(sum.operation).toBe('/');
+        // the part the percentage is: 25% of 100 is 25, so the amount is shared in 100 : 25
+        expect(sum.num2 * percent).withContext(sum.form!).toBe(100);
+        expect(isWhole(answer(sum))).withContext(at(sum)).toBeTrue();
+        expect(answer(sum)).withContext(at(sum)).toBeGreaterThanOrEqual(2);
+        expect(sum.num1).withContext(at(sum)).toBeLessThanOrEqual(500);
+      });
+      expect(seen).toEqual(new Set(['procent-50', 'procent-25', 'procent-10']));
+    });
+  });
+
   describe('a round', () => {
     it('reads the difficulty as the moment in the school year: easy the start, medium the middle, hard the end', () => {
       expect(momentFor('easy')).toBe('B');
@@ -363,7 +426,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     });
 
     it('asks every topic of a moment, the new ones about twice as often as the ones they build on', () => {
-      ([3, 4, 5, 6] as number[]).forEach(groep => (['B', 'M', 'E'] as Moment[]).forEach(moment => {
+      ([3, 4, 5, 6, 7] as number[]).forEach(groep => (['B', 'M', 'E'] as Moment[]).forEach(moment => {
         const weights = CURRICULUM[groep][moment];
         const random = seeded(groep * 10 + moment.charCodeAt(0));
         const counts: { [topic: string]: number } = {};
@@ -386,7 +449,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     it('asks what is new at a moment about twice as often as what it carries on from the moment before', () => {
       const before: [number, Moment, number, Moment][] = [
         [3, 'M', 3, 'B'], [3, 'E', 3, 'M'], [4, 'M', 4, 'B'], [4, 'E', 4, 'M'], [5, 'M', 5, 'B'], [5, 'E', 5, 'M'],
-        [6, 'M', 6, 'B'], [6, 'E', 6, 'M']
+        [6, 'M', 6, 'B'], [6, 'E', 6, 'M'], [7, 'M', 7, 'B']
       ];
       before.forEach(([groep, moment, earlierGroep, earlier]) => {
         const random = seeded(groep * 7 + moment.charCodeAt(0));
@@ -418,7 +481,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     });
 
     it('leaves a groep not built yet to the old questions', () => {
-      [7, 8, 9].forEach(groep => expect(schoolSum(groep, 'M')).withContext(`groep ${groep}`).toBeNull());
+      [8, 9].forEach(groep => expect(schoolSum(groep, 'M')).withContext(`groep ${groep}`).toBeNull());
     });
   });
 });

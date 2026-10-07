@@ -1,9 +1,10 @@
 import { SUM_FORMS, SumForm, readForm } from '../../question/sum-form';
 import { CURRICULUM, Moment, Random, SchoolSum, TOPICS, schoolSum } from './groep';
-import { FormWords, SumLayout, formWorkedStep, sumLayout, tenths, typedTenths } from './written-form';
+import { FormWords, SumLayout, formWorkedStep, grouped, sumLayout, tenths, typedTenths } from './written-form';
 
 const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van', remainder: 'rest', hours: 'uur', minutes: 'minuten',
-  toTens: 'Rond af op tientallen', toHundreds: 'Rond af op honderdtallen', area: 'Oppervlakte van de rechthoek', point: ',' };
+  toTens: 'Rond af op tientallen', toHundreds: 'Rond af op honderdtallen', area: 'Oppervlakte van de rechthoek', point: ',',
+  toThousands: 'Rond af op duizendtallen' };
 
 /** A number as written in Dutch, 0,7 or 4, read as tenths: 7, 40. */
 const asTenths = (text: string) => {
@@ -14,7 +15,7 @@ const asTenths = (text: string) => {
 /** A fraction character read as its numerator and denominator, as a child reads ¾ as 3 over 4. */
 const GLYPHS: { [glyph: string]: [number, number] } = {
   '½': [1, 2], '⅓': [1, 3], '⅔': [2, 3], '¼': [1, 4], '¾': [3, 4], '⅕': [1, 5], '⅖': [2, 5], '⅗': [3, 5], '⅘': [4, 5],
-  '⅙': [1, 6], '⅚': [5, 6], '⅛': [1, 8], '⅜': [3, 8], '⅝': [5, 8], '⅞': [7, 8]
+  '⅙': [1, 6], '⅚': [5, 6], '⅛': [1, 8], '⅜': [3, 8], '⅝': [5, 8], '⅞': [7, 8], '⅒': [1, 10]
 };
 const GLYPH = `(${Object.keys(GLYPHS).join('|')})`;
 
@@ -73,9 +74,10 @@ function holds(written: string, filled: number): boolean {
     return per[`${measure[2]} ${measure[4]}`] * +measure[1] === +measure[3];
   }
   // Rond af op tientallen: 347 ≈ 350. A ten, and no ten nearer; halfway (345) goes up
-  const rounded = text.match(/^Rond af op (tientallen|honderdtallen) (\d+) ≈ (\d+)$/);
+  const rounded = text.match(/^Rond af op (tientallen|honderdtallen|duizendtallen) ([\d\u202f]+) ≈ (\d+)$/);
   if (rounded) {
-    const [n, to, filled] = [+rounded[2], rounded[1] === 'tientallen' ? 10 : 100, +rounded[3]];
+    const to = ({ tientallen: 10, honderdtallen: 100, duizendtallen: 1000 } as { [place: string]: number })[rounded[1]];
+    const [n, filled] = [+rounded[2].replace(/\u202f/g, ''), +rounded[3]];
     const distance = Math.abs(n - filled);
     return filled % to === 0 && (distance < to / 2 || (distance === to / 2 && filled > n));
   }
@@ -96,6 +98,11 @@ function holds(written: string, filled: number): boolean {
   if (decimal && /,/.test(text.split(' = ')[0])) {
     const [a, b, result] = [decimal[1], decimal[3], decimal[4]].map(asTenths);
     return (decimal[2] === '+' ? a + b : a - b) === result;
+  }
+  // 25% van 60 = 15: a quarter of 60
+  const percent = text.match(/^(\d+)% van (\d+) = (\d+)$/);
+  if (percent) {
+    return +percent[1] * +percent[2] === 100 * +percent[3];
   }
   const area = text.match(/^Oppervlakte van de rechthoek (\d+) m × (\d+) m = (\d+) m²$/);
   if (area) {
@@ -152,6 +159,9 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('afronden', 347, 10, '≈')).toBe('Rond af op tientallen 347 ≈ ?');
     expect(shown('afronden', 2468, 100, '≈')).toBe('Rond af op honderdtallen 2468 ≈ ?');
     expect(shown('van-4', 5, 3, '*')).toBe('¾ van 20 = ?');
+    expect(shown('procent-25', 60, 4, '/')).toBe('25% van 60 = ?');
+    expect(shown('procent-10', 350, 10, '/')).toBe('10% van 350 = ?');
+    expect(shown('afronden', 345678, 1000, '≈')).toBe('Rond af op duizendtallen 345\u202f678 ≈ ?');
     expect(shown('van-5', 7, 2, '*')).toBe('⅖ van 35 = ?');
     expect(shown('gelijk-2', 1, 4, '*')).toBe('½ = ? / 8');
     expect(shown('gelijk-4', 3, 3, '*')).toBe('¾ = ? / 12');
@@ -189,6 +199,9 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('van-4', 5, 3)).toBe('20 : 4 = 5 → 3 × 5 = 15');
     expect(formWorkedStep('gelijk-4', 3, 3)).toBe('4 × 3 = 12 → 3 × 3 = 9');
     expect(formWorkedStep('oppervlakte', 6, 4)).toBe('6 × 4 = 24');
+    expect(formWorkedStep('procent-25', 60, 4)).toBe('25% = ¼ → 60 : 4 = 15');
+    expect(formWorkedStep('procent-10', 350, 10)).toBe('10% = ⅒ → 350 : 10 = 35');
+    expect(formWorkedStep('procent-50', 36, 2)).toBe('50% = ½ → 36 : 2 = 18');
     expect(formWorkedStep('tienden', 15, 27, '+')).toBe('15 + 27 = 42 → 1,5 + 2,7 = 4,2');
     expect(formWorkedStep('tienden', 24, 8, '-')).toBe('24 − 8 = 16 → 2,4 − 0,8 = 1,6');
     expect(formWorkedStep('tienden', 3, 7, '+', '.')).toBe('3 + 7 = 10 → 0.3 + 0.7 = 1');
@@ -196,8 +209,8 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
-      if (sum.form === 'afronden' || sum.form === 'tienden') {
-        return;  // read as rounding and as tenths below
+      if (sum.form === 'afronden' || sum.form === 'tienden' || /^procent/.test(sum.form!)) {
+        return;  // read as rounding, as tenths and as percentages below
       }
       // Every step is true, and the answer is in it (last for most; a half is worked as 8 + 8 = 16)
       const steps = line.split(' → ');
@@ -218,17 +231,41 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('afronden', 345, 10)).toBe('345: 5 ≥ 5 → 350');
     expect(formWorkedStep('afronden', 2468, 100)).toBe('2468: 6 ≥ 5 → 2500');
     expect(formWorkedStep('afronden', 2438, 100)).toBe('2438: 3 < 5 → 2400');
+    expect(formWorkedStep('afronden', 345678, 1000)).toBe('345678: 6 ≥ 5 → 346000');
+    expect(formWorkedStep('afronden', 345478, 1000)).toBe('345478: 4 < 5 → 345000');
     const misses: string[] = [];
-    made('afronden').forEach(sum => {
+    made('afronden').concat(made('afronden-duizendtallen')).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2)!;
       const step = line.match(/^(\d+): (\d) (≥|<) 5 → (\d+)$/);
       // the figure looked at is the one just right of the tens (or the hundreds)
-      const figure = +String(sum.num1).slice(sum.num2 === 10 ? -1 : -2)[0];
+      const figure = +String(sum.num1).slice(-String(sum.num2).length + 1)[0];
       if (!step || +step[1] !== sum.num1 || +step[2] !== figure || (step[3] === '≥') !== (figure >= 5) || +step[4] !== answer(sum)) {
         misses.push(line);
       }
     });
     expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('works a percentage out as the part it is: 25% is a quarter, so 60 shared in four', () => {
+    const misses: string[] = [];
+    made('procenten').forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2)!;
+      const [part, share] = line.split(' → ');
+      const percent = Number(sum.form!.split('-')[1]);
+      const glyph = part.split(' = ')[1];
+      if (!GLYPHS[glyph] || GLYPHS[glyph][0] * 100 !== percent * GLYPHS[glyph][1] || !holds(share, 0) || !share.endsWith(`= ${answer(sum)}`)) {
+        misses.push(line);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('sets the thousands apart from 10 000 up, as a workbook prints them, and leaves four figures together', () => {
+    expect(grouped(2345)).toBe('2345');
+    expect(grouped(9999)).toBe('9999');
+    expect(grouped(10000)).toBe('10\u202f000');
+    expect(grouped(345678)).toBe('345\u202f678');
+    expect(read(sumLayout({ num1: 34567, num2: 1234, sign: '+' }, WORDS))).toBe('34\u202f567 + 1234 = ?');
   });
 
   it('reads a typed answer in tenths, with a comma or a point, and nothing else', () => {

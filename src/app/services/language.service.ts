@@ -30,6 +30,7 @@ export type TranslationKeys =
   | 'unit-minutes'
   | 'round-tens'
   | 'round-hundreds'
+  | 'round-thousands'
   | 'sum-area'
   | 'play-again'
   | 'logout'

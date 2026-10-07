@@ -1,5 +1,5 @@
 import { FRACTIONS, MEASURES, UNIT_FRACTIONS, formWorkedStep, roundTo, tenths } from '../teaching/school/written-form';
-import { denominatorOf } from '../question/sum-form';
+import { denominatorOf, percentOf } from '../question/sum-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
 import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
@@ -118,6 +118,11 @@ export function factText(fact: MissedFact): string {
       return `${FRACTIONS[`${fact.num1}/${denominatorOf(fact.form)}`]} = ?/${denominatorOf(fact.form) * fact.num2}`;
     case 'oppervlakte':
       return `${fact.num1} m × ${fact.num2} m = ? m²`;
+    // 25% van 60, kept as 60 : 4
+    case 'procent-50':
+    case 'procent-25':
+    case 'procent-10':
+      return `${percentOf(fact.form)}% × ${fact.num1}`;
     // 0,3 + 0,4, kept as 3 + 4 tenths
     case 'tienden':
       return `${tenths(fact.num1)} ${operationSymbol(fact.operation)} ${tenths(fact.num2)}`;
