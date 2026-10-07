@@ -670,6 +670,10 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
         expect(sum.num1).withContext(at).toBeLessThanOrEqual(200);
       });
       expect(new Set(sums.map(sum => Number(sum.form!.split('-')[1])))).toEqual(new Set([10, 20, 25, 50]));
+      // prices as a shop has them, €45 as well as €120: many, and not only round tens
+      expect(new Set(sums.map(sum => sum.num1)).size).toBeGreaterThan(40);
+      ['korting-20', 'korting-25', 'korting-50'].forEach(form =>
+        expect(sums.some(sum => sum.form === form && sum.num1 % 10 !== 0)).withContext(form).toBeTrue());
     });
 
     it('brings fractions in at the middle of groep 6 and the area at its end', () => {
