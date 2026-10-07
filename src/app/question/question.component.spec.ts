@@ -1988,6 +1988,22 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(marked({ num1: 25, num2: 1000, operation: '*', form: 'komma-km-m' }, '250')).toBe(false);
   });
 
+  it('types 0,72 for 72 : 100 on the keypad with its comma key, and 2500 for 2,5 km in the same text box', () => {
+    build('nl');
+    component.useKeypad = true;
+    ask({ num1: 72000, num2: 100, operation: '/', form: 'komma-3' });
+    const keyFaces = () => Array.from(fixture.nativeElement.querySelectorAll('.key')).map((key: any) => key.textContent.trim());
+    expect(keyFaces()).toContain(',');
+    ['0', '.', '7', '2'].forEach(key => component.onKeypadPress(key));
+    fixture.detectChanges();
+    const box = fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement;
+    expect(box.value).toBe('0,72');
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBe(true);
+    ask({ num1: 25, num2: 1000, operation: '*', form: 'komma-km-m' });
+    expect(keyFaces()).toContain(',');
+  });
+
   it('gives 0,72 as the answer to 72 : 100 after two tries, with the times it undoes', () => {
     build('nl');
     ask({ num1: 72000, num2: 100, operation: '/', form: 'komma-3' });
