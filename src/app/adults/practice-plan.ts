@@ -1,4 +1,5 @@
-import { MEASURES, UNIT_FRACTIONS, formWorkedStep, roundTo } from '../teaching/school/written-form';
+import { FRACTIONS, MEASURES, UNIT_FRACTIONS, formWorkedStep, roundTo } from '../teaching/school/written-form';
+import { denominatorOf } from '../question/sum-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
 import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
@@ -103,6 +104,20 @@ export function factText(fact: MissedFact): string {
       return `${fact.num1} = ${fact.num2} + ?`;
     case 'rest':
       return `${fact.num1} : ${fact.num2} = ${Math.floor(fact.num1 / fact.num2)} r ?`;
+    // ¾ van 20, read in any language as ¾ × 20
+    case 'van-3':
+    case 'van-4':
+    case 'van-5':
+    case 'van-6':
+    case 'van-8':
+      return `${FRACTIONS[`${fact.num2}/${denominatorOf(fact.form)}`]} × ${fact.num1 * denominatorOf(fact.form)}`;
+    case 'gelijk-2':
+    case 'gelijk-3':
+    case 'gelijk-4':
+    case 'gelijk-5':
+      return `${FRACTIONS[`${fact.num1}/${denominatorOf(fact.form)}`]} = ?/${denominatorOf(fact.form) * fact.num2}`;
+    case 'oppervlakte':
+      return `${fact.num1} m × ${fact.num2} m = ? m²`;
     // 347 rounded to tens, read in any language as 347 ≈ ? (10)
     case 'afronden':
       return `${fact.num1} ≈ ? (${fact.num2})`;
