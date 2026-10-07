@@ -143,7 +143,11 @@ its groep:
    unit, 3 m = ? cm, 2 km = ? m, 4 kg = ? g, 2 uur = ? minuten (E). Not
    yet: measures the other way (300 cm = ? m), litres.
 4. **Groep 6**: +/− within 10 000, larger × and :, fractions of amounts,
-   decimals (the comma on the keypad), area, rounding.
+   decimals (the comma on the keypad), area, rounding. FIRST HALF DONE in
+   the fifth school-levels PR: +/− to 10 000 in columns, 25 × 8 and 96 : 4
+   (M), TE × TE and rounding to tens and hundreds, written
+   "Rond af op tientallen: 347 ≈ ?" (E). Not yet: fractions of an amount,
+   equal fractions, decimals, area.
 5. **Groep 7**: big numbers, cijferend × and :, decimals × 10/100/1000,
    fractions, percentages, ratios, the metric system.
 6. **Groep 8**: percentages, scale, the mean, area and volume, time spans,

@@ -34,6 +34,7 @@
 
 .math-problem {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
   gap: 1rem;
@@ -54,6 +55,14 @@
 .equals {
   color: var(--text-read-dim);
   font-weight: bold;
+}
+
+/* "Rond af op tientallen": a heading on a line of its own */
+.caption {
+  flex-basis: 100%;
+  text-align: center;
+  color: var(--text-read-dim);
+  font-size: 0.6em;
 }
 
 /* "dubbel", "de helft van": read as words, and never broken over lines */
@@ -233,6 +242,18 @@ input[type="number"].incorrect {
     padding: 0.5rem 1rem;
     font-size: 1.05rem;
     line-height: 1.25;
+  }
+}
+
+/* The smallest phones: room for 4518 + 1467 = on one line */
+@media (max-width: 360px) {
+  .question-box {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .math-problem {
+    gap: 0.4rem;
   }
 }
 
