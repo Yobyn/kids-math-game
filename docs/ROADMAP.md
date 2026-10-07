@@ -200,9 +200,10 @@ middle, hard the end), one groep per run.
   multiplication. Worked as 20 : 4 = 5 → 3 × 5 = 15 and 4 × 3 = 12 →
   3 × 3 = 9. The end of groep 6 keeps practising everything new in its
   middle. Every card fits a 320px phone on one row in nl/en/es
-  (11 m × 9 m = ? m² the widest). Mutation sweep: 32 mutants; the two
-  survivors (¾ van 4, a part of one; the end of the year dropping ½ = ?/8)
-  each got a test.
+  (11 m × 9 m = ? m² the widest). Mutation sweep: 32 mutants, 29 killed
+  at once; two survivors (¾ van 4, a part of one; the end of the year
+  dropping ½ = ?/8) each got a test, and one is equivalent (a fallback
+  denominator for a form name without a number, which none is).
   STILL TO DO for groep 6: decimals with the comma on the keypad
   (0,3 + 0,4, 1,5 + 2,7).
 - **Next, in order:** groep 6's decimals, groep 7, 8; then
