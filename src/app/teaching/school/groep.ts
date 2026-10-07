@@ -8,12 +8,13 @@
  * written forms of the workbook (7 + ? = 10, 8 = 5 + ?, dubbel 7, de helft
  * van 16); and groep 5 (all the tables, to 1000, 4 × 30, 4 × 23, ¼ van
  * 20, 23 : 4 = 5 rest ?, 3 m = ? cm); and groep 6's plain sums (to 10 000,
- * 25 × 8, 96 : 4, 23 × 14, 347 ≈ ? op tientallen). The rest follows the
+ * 25 × 8, 96 : 4, 23 × 14, 347 ≈ ? op tientallen, ¾ van 20, ½ = ?/8, the
+ * area of a rectangle). The rest follows the
  * build order in the doc.
  */
 
 import { MEASURE_FORMS, SumForm } from '../../question/sum-form';
-import { MEASURES } from './written-form';
+import { MEASURES, numeratorsOf } from './written-form';
 
 export type Moment = 'B' | 'M' | 'E';
 /**
@@ -327,6 +328,27 @@ Object.assign(TOPICS, {
   }
 } as { [id: string]: Maker });
 
+Object.assign(TOPICS, {
+  // Groep 6, the middle: more than one part of an amount. ¾ van 20, kept as 5 × 3
+  'breuk-van': random => {
+    const parts = pick(random, [3, 4, 5, 6, 8]);
+    return { num1: between(random, 2, 10), num2: pick(random, numeratorsOf(parts, 2)), operation: '*', form: `van-${parts}` as SumForm };
+  },
+  // the same fraction over a bigger denominator, up to 20. ½ = ?/8, kept as 1 × 4
+  'gelijke-breuken': random => {
+    const under = pick(random, [2, 3, 4, 5]);
+    return {
+      num1: pick(random, numeratorsOf(under)), num2: between(random, 2, Math.floor(20 / under)), operation: '*',
+      form: `gelijk-${under}` as SumForm
+    };
+  },
+  // Groep 6, the end: the area of a rectangle in whole metres. 6 m × 4 m = ? m²
+  'oppervlakte': random => {
+    const width = between(random, 2, 9);
+    return { num1: between(random, width + 1, 12), num2: width, operation: '*', form: 'oppervlakte' };
+  }
+} as { [id: string]: Maker });
+
 /** How often a topic comes up in a round: what is new at a moment most, what it builds on less. */
 const NEW = 2;
 const REVIEW = 1;
@@ -383,12 +405,12 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
       'maten': REVIEW, 'tafels-6-7-8-9': REVIEW, 'deeltafels-6-7-8-9': REVIEW
     },
     M: {
-      'tot-10000': NEW, 'keer-groter': NEW, 'delen-groter': NEW,
+      'tot-10000': NEW, 'keer-groter': NEW, 'delen-groter': NEW, 'breuk-van': NEW, 'gelijke-breuken': NEW,
       'tot-1000-over': REVIEW, 'te-keer-e': REVIEW, 'delen-met-rest': REVIEW
     },
     E: {
-      'te-keer-te': NEW, 'afronden': NEW,
-      'tot-10000': REVIEW, 'keer-groter': REVIEW, 'delen-groter': REVIEW
+      'te-keer-te': NEW, 'afronden': NEW, 'oppervlakte': NEW,
+      'tot-10000': REVIEW, 'keer-groter': REVIEW, 'delen-groter': REVIEW, 'breuk-van': REVIEW, 'gelijke-breuken': REVIEW
     }
   }
 };

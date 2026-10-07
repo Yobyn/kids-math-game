@@ -71,6 +71,9 @@ describe('a written form travels with its sum (sum-form.ts)', () => {
     expect(factText({ num1: 23, num2: 4, operation: '%', form: 'rest' })).toBe('23 : 4 = 5 r ?');
     expect(factText({ num1: 3, num2: 100, operation: '*', form: 'm-cm' })).toBe('3 m = ? cm');
     expect(factText({ num1: 347, num2: 10, operation: '≈', form: 'afronden' })).toBe('347 ≈ ? (10)');
+    expect(factText({ num1: 5, num2: 3, operation: '*', form: 'van-4' })).toBe('¾ × 20');
+    expect(factText({ num1: 3, num2: 3, operation: '*', form: 'gelijk-4' })).toBe('¾ = ?/12');
+    expect(factText({ num1: 6, num2: 4, operation: '*', form: 'oppervlakte' })).toBe('6 m × 4 m = ? m²');
     expect(factText({ num1: 2, num2: 60, operation: '*', form: 'uur-min' })).toBe('2 h = ? min');
     expect(factText({ num1: 10, num2: 7, operation: '-' })).toBe('10 − 7');
   });
