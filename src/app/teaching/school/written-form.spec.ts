@@ -231,12 +231,13 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('afronden', 345, 10)).toBe('345: 5 ≥ 5 → 350');
     expect(formWorkedStep('afronden', 2468, 100)).toBe('2468: 6 ≥ 5 → 2500');
     expect(formWorkedStep('afronden', 2438, 100)).toBe('2438: 3 < 5 → 2400');
-    expect(formWorkedStep('afronden', 345678, 1000)).toBe('345678: 6 ≥ 5 → 346000');
-    expect(formWorkedStep('afronden', 345478, 1000)).toBe('345478: 4 < 5 → 345000');
+    // six figures as the card prints them, the thousands set apart
+    expect(formWorkedStep('afronden', 345678, 1000)).toBe('345\u202f678: 6 ≥ 5 → 346\u202f000');
+    expect(formWorkedStep('afronden', 345478, 1000)).toBe('345\u202f478: 4 < 5 → 345\u202f000');
     const misses: string[] = [];
     made('afronden').concat(made('afronden-duizendtallen')).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2)!;
-      const step = line.match(/^(\d+): (\d) (≥|<) 5 → (\d+)$/);
+      const step = line.replace(/\u202f/g, '').match(/^(\d+): (\d) (≥|<) 5 → (\d+)$/);
       // the figure looked at is the one just right of the tens (or the hundreds)
       const figure = +String(sum.num1).slice(-String(sum.num2).length + 1)[0];
       if (!step || +step[1] !== sum.num1 || +step[2] !== figure || (step[3] === '≥') !== (figure >= 5) || +step[4] !== answer(sum)) {

@@ -1952,7 +1952,7 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     component.userAnswer = '345000';
     component.checkAnswer();
     expect(component.feedback).toContain('346\u202f000');
-    expect(component.workedLine).toBe('345678: 6 ≥ 5 → 346000');
+    expect(component.workedLine).toBe('345\u202f678: 6 ≥ 5 → 346\u202f000');
   });
 
   it('marks 300 for 3 m = ? cm', () => {

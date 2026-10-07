@@ -243,7 +243,7 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
     // 347 op tientallen: look at the figure after the tens, 7; 5 or more goes up. 347: 7 ≥ 5 → 350
     case 'afronden': {
       const figure = Math.floor(num1 / (num2 / 10)) % 10;
-      return `${num1}: ${figure} ${figure >= 5 ? '≥' : '<'} 5 → ${roundTo(num1, num2)}`;
+      return `${grouped(num1)}: ${figure} ${figure >= 5 ? '≥' : '<'} 5 → ${grouped(roundTo(num1, num2))}`;
     }
     // ¾ van 20: a quarter is 20 : 4 = 5, three quarters three fives
     case 'van-3':
