@@ -172,7 +172,27 @@ middle, hard the end), one groep per run.
   three languages, and English writes the remainder 25 ÷ 6 = 4 r ?.
   Everything fits a 320px phone. Mutation sweep: 21 mutants, 21 killed.
   Not yet: measures the other way (300 cm = ? m), litres.
-- **Next, in order:** groep 6, 7, 8; then verhaaltjessommen.
+- **Groep 6, the first half: DONE (2026-10-06).** Grade 4 is groep 6 now.
+  The start of the year is groep 5's end. The middle: +/− to 10 000 in
+  columns (2345 + 1678, 5003 − 2468: two four-figure numbers, something
+  carried or borrowed, `carries` reading four columns), a two-figure number
+  times a table up to 600 (25 × 8) and sharing out past the tables (96 : 4,
+  150 : 6, whole, between 10 and 50). The end: TE × TE (23 × 14) and
+  rounding to tens and hundreds, a written form with its own sign ≈ under
+  the heading "Rond af op tientallen" (on a line of its own: after the sum
+  it ran 38px off a 320px card), a 5 going up. The worked line now splits a
+  two-figure number in tens and ones (26 × 10 = 260 → 26 × 4 = 104 →
+  260 + 104 = 364), shares out a handy part first (120 ÷ 4 = 30 → 20 ÷ 4 =
+  5 → 30 + 5 = 35) and rounds by the figure after the place (7394: 9 ≥ 5 →
+  7400). The question card now wraps rather than overflowing, and on
+  phones up to 360px its sides and gaps are a little narrower, so 4518 +
+  1467 = stays on one line; no card of groep 3–6 wraps or overflows at 320
+  or 360px in nl/en/es. Mutation sweep: 46 mutants, 46 killed.
+  STILL TO DO for groep 6: fractions of an amount (¾ van 20), equal
+  fractions (½ = ?/8), decimals with the comma on the keypad (0,3 + 0,4),
+  area of a rectangle.
+- **Next, in order:** groep 6's second half, groep 7, 8; then
+  verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 
