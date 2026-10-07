@@ -126,7 +126,7 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     case 'van-6':
     case 'van-8':
       return {
-        before: [{ kind: 'number', text: FRACTIONS[`${sum.num2}/${denominatorOf(sum.form)}`] }, { kind: 'word', text: words.of },
+        before: [{ kind: 'fraction', text: FRACTIONS[`${sum.num2}/${denominatorOf(sum.form)}`] }, { kind: 'word', text: words.of },
                  number(sum.num1 * denominatorOf(sum.form)), equals],
         after: []
       };
@@ -136,7 +136,7 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     case 'gelijk-4':
     case 'gelijk-5':
       return {
-        before: [{ kind: 'number', text: FRACTIONS[`${sum.num1}/${denominatorOf(sum.form)}`] }, equals],
+        before: [{ kind: 'fraction', text: FRACTIONS[`${sum.num1}/${denominatorOf(sum.form)}`] }, equals],
         after: [operation('/'), number(denominatorOf(sum.form) * sum.num2)]
       };
     // Oppervlakte: 6 m × 4 m = ? m², kept as 6 × 4
