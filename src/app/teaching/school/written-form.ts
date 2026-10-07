@@ -1,4 +1,4 @@
-import { MeasureForm, SumForm, denominatorOf, percentOf } from '../../question/sum-form';
+import { DecimalMeasureForm, MeasureForm, SumForm, denominatorOf, percentOf, placesOf } from '../../question/sum-form';
 
 /**
  * How a sum is laid out round its answer box, and how its written form is
@@ -84,27 +84,46 @@ export function roundTo(value: number, to: number): number {
 }
 
 /**
- * A number of tenths as it is written: 7 as 0,7, 42 as 4,2, 40 as 4. The
- * tenths topic keeps whole numbers, so nothing is ever a float on the way.
+ * A number counted in tenths, hundredths or thousandths as it is written:
+ * 7 tenths as 0,7, 345 hundredths as 3,45, 720 thousandths as 0,72, 40
+ * tenths as 4. Decimal sums keep whole numbers, so nothing is ever a float
+ * on the way.
  */
-export function tenths(value: number, point = ','): string {
-  const whole = Math.floor(value / 10);
-  return value % 10 ? `${whole}${point}${value % 10}` : String(whole);
+export function decimal(value: number, places: number, point = ','): string {
+  const unit = 10 ** places;
+  const whole = Math.floor(value / unit);
+  const figures = String(value % unit).padStart(places, '0').replace(/0+$/, '');
+  return figures ? `${whole}${point}${figures}` : String(whole);
 }
 
 /**
- * A typed answer read as a number of tenths: "0,7", "0.7" and ".7" are 7,
- * "4" and "4,0" are 40. NaN for anything that is not a whole number of
- * tenths, so 0,75 is never taken for 0,8.
+ * A typed answer read as a whole number of tenths, hundredths or
+ * thousandths: "0,72", "0.72" and ".72" are 72 hundredths, "4" is 400.
+ * NaN for anything with more figures after the comma than the unit has, so
+ * 0,75 is never taken for 0,8.
  */
-export function typedTenths(typed: string): number {
+export function typedDecimal(typed: string, places: number): number {
   const text = String(typed == null ? '' : typed).trim().replace(',', '.');
-  const match = text.match(/^(\d*)(?:\.(\d)0*)?$/);
-  if (!text || !match) {
+  const match = text.match(/^(\d*)(?:\.(\d+?)0*)?$/);
+  if (!text || !match || (match[2] || '').length > places) {
     return NaN;
   }
-  return Number(match[1] || 0) * 10 + Number(match[2] || 0);
+  return Number(match[1] || 0) * 10 ** places + Number((match[2] || '').padEnd(places, '0') || 0);
 }
+
+/** A number of tenths as it is written: 7 as 0,7 (decimal with one figure). */
+export const tenths = (value: number, point = ',') => decimal(value, 1, point);
+
+/** A typed answer read as tenths: "0,7" is 7 (typedDecimal with one figure). */
+export const typedTenths = (typed: string) => typedDecimal(typed, 1);
+
+/** The measures groep 7 changes into a smaller unit with a comma: 2,5 km = ? m. */
+export const DECIMAL_MEASURES: { [form in DecimalMeasureForm]: { from: string; to: string; factor: number } } = {
+  'komma-km-m': { from: 'km', to: 'm', factor: 1000 },
+  'komma-kg-g': { from: 'kg', to: 'g', factor: 1000 },
+  'komma-l-dl': { from: 'l', to: 'dl', factor: 10 },
+  'komma-m-cm': { from: 'm', to: 'cm', factor: 100 }
+};
 
 /**
  * A number as a Dutch workbook prints it: from 10 000 up, the thousands set
@@ -182,6 +201,25 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
                  { kind: 'number', text: tenths(sum.num2, words.point) }, equals],
         after: []
       };
+    // 3,45 × 100 = ?, 72 : 100 = ?, 2,5 × 4 = ?: the comma number first, the whole number after
+    case 'komma-2':
+    case 'komma-3':
+      return {
+        before: [{ kind: 'number', text: decimal(sum.num1, placesOf(sum.form), words.point) }, operation(sum.sign),
+                 number(sum.num2), equals],
+        after: []
+      };
+    // 2,5 km = ? m, kept as 25 × 1000 in tenths
+    case 'komma-km-m':
+    case 'komma-kg-g':
+    case 'komma-l-dl':
+    case 'komma-m-cm': {
+      const measure = DECIMAL_MEASURES[sum.form];
+      return {
+        before: [{ kind: 'number', text: tenths(sum.num1, words.point) }, { kind: 'word', text: measure.from }, equals],
+        after: [{ kind: 'word', text: measure.to }]
+      };
+    }
     // 25% van 60 = ?, kept as 60 : 4
     case 'procent-50':
     case 'procent-25':
@@ -267,6 +305,29 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
       const answer = operation === '-' ? num1 - num2 : num1 + num2;
       const sign = operation === '-' ? '−' : '+';
       return `${num1} ${sign} ${num2} = ${answer} → ${tenths(num1, point)} ${sign} ${tenths(num2, point)} = ${tenths(answer, point)}`;
+    }
+    // 3,45 × 100: count in hundredths, 345 × 100 = 34500, which is 345;
+    // 72 : 100 read back as the times it undoes: 0,72 × 100 = 72
+    case 'komma-2':
+    case 'komma-3': {
+      const places = placesOf(form);
+      const written = decimal(num1, places, point);
+      if (operation === '/') {
+        const quotient = decimal(num1 / num2, places, point);
+        return `${quotient} × ${num2} = ${written} → ${written} : ${num2} = ${quotient}`;
+      }
+      // the number in its own smallest unit: 2,5 in tenths is 25, 3,45 in hundredths 345
+      const shown = (written.split(point)[1] || '').length;
+      const counted = num1 / 10 ** (places - shown);
+      return `${counted} × ${num2} = ${counted * num2} → ${written} × ${num2} = ${decimal(num1 * num2, places, point)}`;
+    }
+    // 2,5 km: one kilometre is 1000 m, so 2,5 is 2,5 thousands
+    case 'komma-km-m':
+    case 'komma-kg-g':
+    case 'komma-l-dl':
+    case 'komma-m-cm': {
+      const measure = DECIMAL_MEASURES[form];
+      return `1 ${measure.from} = ${measure.factor} ${measure.to} → ${tenths(num1, point)} × ${measure.factor} = ${tenths(num1 * num2, point)}`;
     }
     // 25% is a quarter, so 25% van 60 is 60 shared out in four
     case 'procent-50':

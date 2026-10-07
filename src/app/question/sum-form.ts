@@ -18,6 +18,10 @@
  *   tienden    0,3 + 0,4 = ?     kept as 3 + 4, counted in tenths: the answer
  *                                7 is shown and typed as 0,7
  *   procent-25 25% van 60 = ?    kept as 60 : 4 (25% is a quarter)
+ *   komma-2    3,45 × 100 = ?    kept as 345 × 100 in hundredths: the answer
+ *                                34500 hundredths is shown and typed as 345
+ *   komma-3    72 : 100 = ?      kept as 72000 : 100 in thousandths (0,72)
+ *   komma-km-m 2,5 km = ? m      kept as 25 × 1000 in tenths (2500)
  *
  * so marking, the worked line and a missed fact's identity all still work
  * from the sum. A remainder and a rounding are the sums with signs of their
@@ -29,7 +33,31 @@
  * since a sum keeps two numbers and both are taken.
  */
 export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | 'rest' | 'afronden' | 'oppervlakte' | 'tienden'
-  | MeasureForm | FractionOfForm | EqualFractionForm | PercentForm;
+  | MeasureForm | FractionOfForm | EqualFractionForm | PercentForm | DecimalForm | DecimalMeasureForm;
+
+/**
+ * A sum with a comma in it, kept as whole numbers counted in hundredths
+ * (komma-2) or thousandths (komma-3), so marking never compares floats. The
+ * number before the sign is in that unit; the one after is a plain whole
+ * number (× 100, : 4).
+ */
+export type DecimalForm = 'komma-2' | 'komma-3';
+
+/** A measure with a comma changed into a smaller unit: 2,5 km = ? m, kept in tenths. */
+export type DecimalMeasureForm = 'komma-km-m' | 'komma-kg-g' | 'komma-l-dl' | 'komma-m-cm';
+export const DECIMAL_MEASURE_FORMS: DecimalMeasureForm[] = ['komma-km-m', 'komma-kg-g', 'komma-l-dl', 'komma-m-cm'];
+
+/**
+ * How many figures after the comma a form counts in: 1 for tenths (0,3 + 0,4
+ * and 2,5 km), 2 for hundredths, 3 for thousandths; 0 for a sum of whole
+ * numbers.
+ */
+export function placesOf(form: SumForm | undefined): number {
+  if (form === 'tienden' || DECIMAL_MEASURE_FORMS.includes(form as DecimalMeasureForm)) {
+    return 1;
+  }
+  return form === 'komma-2' ? 2 : form === 'komma-3' ? 3 : 0;
+}
 
 /** 50%, 25% and 10% of an amount: the ones groep 7 learns first. The number is the percentage. */
 export type PercentForm = 'procent-50' | 'procent-25' | 'procent-10';
@@ -59,7 +87,7 @@ export type MeasureForm = 'm-cm' | 'km-m' | 'kg-g' | 'uur-min';
 export const MEASURE_FORMS: MeasureForm[] = ['m-cm', 'km-m', 'kg-g', 'uur-min'];
 
 export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft', 'deel', 'rest', 'afronden', 'oppervlakte', 'tienden',
-  ...MEASURE_FORMS, ...FRACTION_OF_FORMS, ...EQUAL_FRACTION_FORMS, ...PERCENT_FORMS];
+  ...MEASURE_FORMS, ...FRACTION_OF_FORMS, ...EQUAL_FRACTION_FORMS, ...PERCENT_FORMS, 'komma-2', 'komma-3', ...DECIMAL_MEASURE_FORMS];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */
 export function readForm(raw: unknown): SumForm | undefined {

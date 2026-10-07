@@ -76,6 +76,8 @@ describe('a written form travels with its sum (sum-form.ts)', () => {
     expect(factText({ num1: 6, num2: 4, operation: '*', form: 'oppervlakte' })).toBe('6 m × 4 m = ? m²');
     expect(factText({ num1: 24, num2: 8, operation: '-', form: 'tienden' })).toBe('2,4 − 0,8');
     expect(factText({ num1: 350, num2: 10, operation: '/', form: 'procent-10' })).toBe('10% × 350');
+    expect(factText({ num1: 345, num2: 100, operation: '*', form: 'komma-2' })).toBe('3,45 × 100');
+    expect(factText({ num1: 25, num2: 1000, operation: '*', form: 'komma-km-m' })).toBe('2,5 km = ? m');
     expect(factText({ num1: 2, num2: 60, operation: '*', form: 'uur-min' })).toBe('2 h = ? min');
     expect(factText({ num1: 10, num2: 7, operation: '-' })).toBe('10 − 7');
   });

@@ -240,8 +240,29 @@ middle, hard the end), one groep per run.
   discount) are built. Mutation sweep: 30 mutants, 29 killed; the survivor
   caps a staartdeling's answer at 40 rather than 60, a choice of range no
   curriculum fact decides.
-- **Next, in order:** groep 7's decimals and end of year, groep 8; then
-  verhaaltjessommen.
+- **Groep 7, decimals: DONE (2026-10-07).** In the middle of the year, a
+  comma number times 10, 100 or 1000 (4,5 × 10, 3,45 × 100) and a whole or
+  comma number shared by them (72 : 100 = 0,72, 4,5 : 10 = 0,45, never more
+  than three figures after the comma). At the end, a comma number times a
+  whole one (2,5 × 4; 1,25 × 8 = 10, a quarter or three quarters times 4
+  or 8) and the metric system with a comma (2,5 km = ? m, 3,5 kg = ? g,
+  1,5 l = ? dl, 4,5 m = ? cm); the end now has its own new topics and keeps
+  practising the middle's. The tenths of groep 6 became a general rule: a
+  comma sum is kept as whole numbers counted in tenths, hundredths or
+  thousandths (forms komma-2, komma-3 and the comma measures; `placesOf`
+  says which), written by `decimal` (345 hundredths as 3,45, 34500 as 345)
+  and read back by `typedDecimal` ("0,72" or "0.72"; nothing finer than
+  the sum counts in). Worked lines count in the number's own unit
+  (25 × 4 = 100 → 2,5 × 4 = 10) or read a share back as the times it
+  undoes (0,72 × 100 = 72 → 72 : 100 = 0,72). Every card fits a 320px
+  phone on one row in nl/en/es; typed on the keypad the box shows "0,"
+  after 0 and the comma. Mutation sweep: 33 mutants, 28 killed at once;
+  the five survivors each got a test (only one figure after the comma in
+  3,45 × 100; two in a number shared by 100; ,50 and × 3 among the
+  quarters of 1,25 × 8; and the comma key offered only on tenths, which
+  would have left 72 : 100 untypeable).
+- **Next, in order:** groep 7's fractions, ratios and discount; groep 8;
+  then verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 

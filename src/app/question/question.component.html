@@ -74,7 +74,7 @@
     <app-keypad *ngIf="useKeypad && !isPicking"
                 [disabled]="showOkButton"
                 [decimal]="needsDecimalKey"
-                [comma]="inTenths && decimalSign === ','"
+                [comma]="inDecimals && decimalSign === ','"
                 (press)="onKeypadPress($event)"></app-keypad>
 
     <div class="feedback-container">
