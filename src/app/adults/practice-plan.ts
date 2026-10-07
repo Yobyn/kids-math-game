@@ -1,4 +1,4 @@
-import { MEASURES, UNIT_FRACTIONS, formWorkedStep } from '../teaching/school/written-form';
+import { MEASURES, UNIT_FRACTIONS, formWorkedStep, roundTo } from '../teaching/school/written-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
 import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
@@ -103,6 +103,9 @@ export function factText(fact: MissedFact): string {
       return `${fact.num1} = ${fact.num2} + ?`;
     case 'rest':
       return `${fact.num1} : ${fact.num2} = ${Math.floor(fact.num1 / fact.num2)} r ?`;
+    // 347 rounded to tens, read in any language as 347 ≈ ? (10)
+    case 'afronden':
+      return `${fact.num1} ≈ ? (${fact.num2})`;
     case 'm-cm':
     case 'km-m':
     case 'kg-g':
@@ -125,6 +128,7 @@ export function factAnswer(fact: MissedFact): number {
     case '*': return fact.num1 * fact.num2;
     case '/': return fact.num2 === 0 ? 0 : fact.num1 / fact.num2;
     case '%': return fact.num2 === 0 ? 0 : fact.num1 % fact.num2;
+    case '≈': return fact.num2 === 0 ? 0 : roundTo(fact.num1, fact.num2);
     default: return 0;
   }
 }
