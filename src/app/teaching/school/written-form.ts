@@ -1,4 +1,4 @@
-import { MeasureForm, SumForm, denominatorOf } from '../../question/sum-form';
+import { MeasureForm, SumForm, denominatorOf, percentOf } from '../../question/sum-form';
 
 /**
  * How a sum is laid out round its answer box, and how its written form is
@@ -40,6 +40,7 @@ export interface FormWords {
   /** "Rond af op tientallen", the heading over 347 ≈ ? (a line of its own) */
   toTens: string;
   toHundreds: string;
+  toThousands: string;
   /** "Oppervlakte", the heading over 6 m × 4 m = ? m² */
   area: string;
   /** The decimal sign: a comma in Dutch and Spanish (0,7), a point in English (0.7) */
@@ -68,7 +69,7 @@ export const UNIT_FRACTIONS: { [parts: number]: string } = { 2: '½', 3: '⅓', 
  */
 export const FRACTIONS: { [fraction: string]: string } = {
   '1/2': '½', '1/3': '⅓', '2/3': '⅔', '1/4': '¼', '3/4': '¾', '1/5': '⅕', '2/5': '⅖', '3/5': '⅗', '4/5': '⅘',
-  '1/6': '⅙', '5/6': '⅚', '1/8': '⅛', '3/8': '⅜', '5/8': '⅝', '7/8': '⅞'
+  '1/6': '⅙', '5/6': '⅚', '1/8': '⅛', '3/8': '⅜', '5/8': '⅝', '7/8': '⅞', '1/10': '⅒'
 };
 
 /** The numerators a denominator is written with in FRACTIONS: 2 for thirds, 3 for quarters, 2, 3, 4 for fifths. */
@@ -105,7 +106,16 @@ export function typedTenths(typed: string): number {
   return Number(match[1] || 0) * 10 + Number(match[2] || 0);
 }
 
-const number = (value: number): SumPart => ({ kind: 'number', text: String(value) });
+/**
+ * A number as a Dutch workbook prints it: from 10 000 up, the thousands set
+ * apart by a narrow space (345 678), so six figures can be read at a glance.
+ * Four figures stay together (2345).
+ */
+export function grouped(value: number): string {
+  return value >= 10000 ? String(value).replace(/\B(?=(\d{3})+$)/g, '\u202f') : String(value);
+}
+
+const number = (value: number): SumPart => ({ kind: 'number', text: grouped(value) });
 const operation = (text: string): SumPart => ({ kind: 'operation', text });
 const equals: SumPart = { kind: 'equals', text: '=' };
 
@@ -141,7 +151,8 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     // heading on a line of its own, as in the workbook, so it never crowds the sum
     case 'afronden':
       return {
-        before: [{ kind: 'caption', text: sum.num2 === 100 ? words.toHundreds : words.toTens }, number(sum.num1), operation('≈')],
+        before: [{ kind: 'caption', text: sum.num2 === 1000 ? words.toThousands : sum.num2 === 100 ? words.toHundreds : words.toTens },
+                 number(sum.num1), operation('≈')],
         after: []
       };
     // ¾ van 20 = ?, kept as 5 × 3: the amount is one part times the parts
@@ -169,6 +180,14 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
       return {
         before: [{ kind: 'number', text: tenths(sum.num1, words.point) }, operation(sum.sign),
                  { kind: 'number', text: tenths(sum.num2, words.point) }, equals],
+        after: []
+      };
+    // 25% van 60 = ?, kept as 60 : 4
+    case 'procent-50':
+    case 'procent-25':
+    case 'procent-10':
+      return {
+        before: [{ kind: 'number', text: `${percentOf(sum.form)}%` }, { kind: 'word', text: words.of }, number(sum.num1), equals],
         after: []
       };
     // Oppervlakte: 6 m × 4 m = ? m², kept as 6 × 4
@@ -224,7 +243,7 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
     // 347 op tientallen: look at the figure after the tens, 7; 5 or more goes up. 347: 7 ≥ 5 → 350
     case 'afronden': {
       const figure = Math.floor(num1 / (num2 / 10)) % 10;
-      return `${num1}: ${figure} ${figure >= 5 ? '≥' : '<'} 5 → ${roundTo(num1, num2)}`;
+      return `${grouped(num1)}: ${figure} ${figure >= 5 ? '≥' : '<'} 5 → ${grouped(roundTo(num1, num2))}`;
     }
     // ¾ van 20: a quarter is 20 : 4 = 5, three quarters three fives
     case 'van-3':
@@ -249,6 +268,11 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
       const sign = operation === '-' ? '−' : '+';
       return `${num1} ${sign} ${num2} = ${answer} → ${tenths(num1, point)} ${sign} ${tenths(num2, point)} = ${tenths(answer, point)}`;
     }
+    // 25% is a quarter, so 25% van 60 is 60 shared out in four
+    case 'procent-50':
+    case 'procent-25':
+    case 'procent-10':
+      return `${percentOf(form)}% = ${FRACTIONS[`1/${num2}`]} → ${num1} : ${num2} = ${num1 / num2}`;
     // a rectangle's area is its length times its width
     case 'oppervlakte':
       return `${num1} × ${num2} = ${num1 * num2}`;

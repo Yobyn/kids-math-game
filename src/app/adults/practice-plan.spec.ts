@@ -184,6 +184,14 @@ describe('the facts an adult is asked to practise', () => {
     expect(away.facts[0].worked).toBe('24 − 8 = 16 → 2,4 − 0,8 = 1,6');
   });
 
+  it('gives the grown-ups 25% van 60 as a quarter of 60, with the way to it', () => {
+    const plan = practicePlan([], [{ ...fact(60, 4, '/'), form: 'procent-25' }]);
+
+    expect(plan.facts[0].question).toBe('25% × 60');
+    expect(plan.facts[0].answer).toBe('15');
+    expect(plan.facts[0].worked).toBe('25% = ¼ → 60 : 4 = 15');
+  });
+
   it('leaves the line off a fact that has no method worth showing', () => {
     const plan = practicePlan([], [fact(2, 3, '+')]);
 

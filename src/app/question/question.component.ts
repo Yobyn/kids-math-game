@@ -17,7 +17,7 @@ import { MAX_PICKED, addPiece, pickMatches, removeAt } from '../teaching/coin-pi
 import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
 import { momentFor, schoolSum } from '../teaching/school/groep';
-import { SumLayout, formWorkedStep, roundTo, sumLayout, tenths, typedTenths } from '../teaching/school/written-form';
+import { SumLayout, formWorkedStep, grouped, roundTo, sumLayout, tenths, typedTenths } from '../teaching/school/written-form';
 import { SumForm } from './sum-form';
 import {
   QUESTIONS_IN_ROUND,
@@ -510,6 +510,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
         minutes: this.languageService.translate('unit-minutes'),
         toTens: this.languageService.translate('round-tens'),
         toHundreds: this.languageService.translate('round-hundreds'),
+        toThousands: this.languageService.translate('round-thousands'),
         area: this.languageService.translate('sum-area'),
         point: this.decimalSign
       });
@@ -789,7 +790,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
         break;
     }
 
-    this.correctAnswerText = this.inTenths ? tenths(this.correctAnswer, this.decimalSign) : String(this.correctAnswer);
+    this.correctAnswerText = this.inTenths ? tenths(this.correctAnswer, this.decimalSign) : grouped(this.correctAnswer);
 
     if (isCorrect) {
       this.handleCorrectAnswer();

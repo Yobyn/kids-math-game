@@ -9,11 +9,12 @@
  * van 16); and groep 5 (all the tables, to 1000, 4 × 30, 4 × 23, ¼ van
  * 20, 23 : 4 = 5 rest ?, 3 m = ? cm); and groep 6's plain sums (to 10 000,
  * 25 × 8, 96 : 4, 23 × 14, 347 ≈ ? op tientallen, ¾ van 20, ½ = ?/8, the
- * area of a rectangle). The rest follows the
+ * area of a rectangle, 0,3 + 0,4); and groep 7's whole numbers (345 678 ≈ ? op
+ * duizendtallen, 124 × 36, 864 : 24, 25% van 60). The rest follows the
  * build order in the doc.
  */
 
-import { MEASURE_FORMS, SumForm } from '../../question/sum-form';
+import { MEASURE_FORMS, PERCENT_FORMS, SumForm, percentOf } from '../../question/sum-form';
 import { MEASURES, numeratorsOf } from './written-form';
 
 export type Moment = 'B' | 'M' | 'E';
@@ -359,6 +360,34 @@ Object.assign(TOPICS, {
   }
 } as { [id: string]: Maker });
 
+Object.assign(TOPICS, {
+  // Groep 7, the middle: numbers to a million rounded to thousands. 345 678 ≈ ?, kept as 345 678 ≈ 1000;
+  // never past 994 999, so the answer fits the keypad's six figures
+  'afronden-duizendtallen': random => {
+    let num1 = between(random, 10001, 994999);
+    // 345 000 is already a thousand: nothing to round
+    if (num1 % 1000 === 0) {
+      num1 += between(random, 1, 999);
+    }
+    return { num1, num2: 1000, operation: '≈', form: 'afronden' };
+  },
+  // in columns: three figures times two. 124 × 36
+  'cijferend-keer': random => ({ num1: notRound(random, 102, 499), num2: notRound(random, 12, 49), operation: '*' }),
+  // a staartdeling: by two figures, coming out whole. 864 : 24
+  'staartdeling': random => {
+    const num2 = notRound(random, 12, 49);
+    return { num1: num2 * notRound(random, 12, 60), num2, operation: '/' };
+  },
+  // 50%, 25% and 10% of an amount that shares out whole. 25% van 60, kept as 60 : 4
+  'procenten': random => {
+    const form = pick(random, PERCENT_FORMS);
+    const parts = 100 / percentOf(form);
+    // 50% van 36, 25% van 60, 10% van 350: amounts a workbook uses, a whole number of parts
+    const amount = parts === 10 ? 10 * between(random, 2, 50) : parts * between(random, 3, 30);
+    return { num1: amount, num2: parts, operation: '/', form };
+  }
+} as { [id: string]: Maker });
+
 /** How often a topic comes up in a round: what is new at a moment most, what it builds on less. */
 const NEW = 2;
 const REVIEW = 1;
@@ -421,6 +450,21 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     E: {
       'te-keer-te': NEW, 'afronden': NEW, 'oppervlakte': NEW, 'tienden': NEW,
       'tot-10000': REVIEW, 'keer-groter': REVIEW, 'delen-groter': REVIEW, 'breuk-van': REVIEW, 'gelijke-breuken': REVIEW
+    }
+  },
+  // Groep 7 so far: its whole numbers. The end of its year (ratios, the metric system, a decimal
+  // times a whole number, discount) is built next; until then it practises the middle's new topics
+  7: {
+    B: {
+      'te-keer-te': NEW, 'afronden': NEW, 'tienden': NEW,
+      'oppervlakte': REVIEW, 'breuk-van': REVIEW, 'tot-10000': REVIEW
+    },
+    M: {
+      'afronden-duizendtallen': NEW, 'cijferend-keer': NEW, 'staartdeling': NEW, 'procenten': NEW,
+      'te-keer-te': REVIEW, 'tienden': REVIEW
+    },
+    E: {
+      'afronden-duizendtallen': NEW, 'cijferend-keer': NEW, 'staartdeling': NEW, 'procenten': NEW
     }
   }
 };

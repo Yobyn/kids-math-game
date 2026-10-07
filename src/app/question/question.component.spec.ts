@@ -855,8 +855,17 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     expect(asked.some(sum => sum.form === 'tienden')).toBeTrue();
   });
 
-  it('keeps the old questions for a groep not built yet: grade 5 (groep 7) is still asked as before', () => {
+  it('asks grade 5 (groep 7) in the middle of the year to round to thousands, multiply and divide in columns, and take a percentage', () => {
     build('5', 'medium');
+    const asked = sums(400);
+    expect(asked.some(sum => sum.operation === '≈' && sum.num2 === 1000)).toBeTrue();
+    expect(asked.some(sum => sum.operation === '*' && sum.num1 > 100 && sum.num2 > 10)).toBeTrue();
+    expect(asked.some(sum => sum.operation === '/' && sum.num2 > 10 && !sum.form)).toBeTrue();
+    expect(asked.some(sum => /^procent/.test(sum.form || ''))).toBeTrue();
+  });
+
+  it('keeps the old questions for a groep not built yet: grade 6 (groep 8) is still asked as before', () => {
+    build('6', 'medium');
     sums(80).forEach(({ operation, form }) => {
       expect(['+', '-', '*']).toContain(operation);
       expect(form).toBeUndefined();
@@ -1744,6 +1753,10 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()).toEqual(['Oppervlakte van de rechthoek', '6', 'm', '×', '4', 'm', '=', '[ ]', 'm²']);
     ask({ num1: 3, num2: 4, operation: '+', form: 'tienden' });
     expect(card()).toEqual(['0,3', '+', '0,4', '=', '[ ]']);
+    ask({ num1: 60, num2: 4, operation: '/', form: 'procent-25' });
+    expect(card()).toEqual(['25%', 'van', '60', '=', '[ ]']);
+    ask({ num1: 345678, num2: 1000, operation: '≈', form: 'afronden' });
+    expect(card()).toEqual(['Rond af op duizendtallen', '345\u202f678', '≈', '[ ]']);
     ask({ num1: 24, num2: 8, operation: '-', form: 'tienden' });
     expect(card()).toEqual(['2,4', '−', '0,8', '=', '[ ]']);
     // A plain sum keeps the box at the end
@@ -1924,6 +1937,22 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     component.checkAnswer();
     expect(component.feedback).toContain('4,2');
     expect(component.workedLine).toBe('15 + 27 = 42 → 1,5 + 2,7 = 4,2');
+  });
+
+  it('marks 15 for 25% van 60, and gives 346 000 with its thousands set apart after two tries at rounding 345 678', () => {
+    build('nl');
+    ask({ num1: 60, num2: 4, operation: '/', form: 'procent-25' });
+    component.userAnswer = '15';
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBe(true);
+    ask({ num1: 345678, num2: 1000, operation: '≈', form: 'afronden' });
+    component.wrongAttempts = 0;
+    component.userAnswer = '345000';
+    component.checkAnswer();
+    component.userAnswer = '345000';
+    component.checkAnswer();
+    expect(component.feedback).toContain('346\u202f000');
+    expect(component.workedLine).toBe('345\u202f678: 6 ≥ 5 → 346\u202f000');
   });
 
   it('marks 300 for 3 m = ? cm', () => {

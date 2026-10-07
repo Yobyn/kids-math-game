@@ -54,6 +54,7 @@ export type PlayKey =
   | 'unit-minutes'
   | 'round-tens'
   | 'round-hundreds'
+  | 'round-thousands'
   | 'sum-area'
   | 'play-again';
 
@@ -108,6 +109,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'unit-minutes': 'minutes',
     'round-tens': 'Round to the nearest ten',
     'round-hundreds': 'Round to the nearest hundred',
+    'round-thousands': 'Round to the nearest thousand',
     'sum-area': 'Area of the rectangle'
   },
   nl: {
@@ -160,6 +162,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'unit-minutes': 'minuten',
     'round-tens': 'Rond af op tientallen',
     'round-hundreds': 'Rond af op honderdtallen',
+    'round-thousands': 'Rond af op duizendtallen',
     'sum-area': 'Oppervlakte van de rechthoek'
   },
   es: {
@@ -212,6 +215,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'unit-minutes': 'minutos',
     'round-tens': 'Redondea a la decena',
     'round-hundreds': 'Redondea a la centena',
+    'round-thousands': 'Redondea al millar',
     'sum-area': 'Área del rectángulo'
   }
 };

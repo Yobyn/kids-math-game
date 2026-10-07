@@ -17,6 +17,7 @@
  *   oppervlakte 6 m × 4 m = ? m²  kept as 6 × 4
  *   tienden    0,3 + 0,4 = ?     kept as 3 + 4, counted in tenths: the answer
  *                                7 is shown and typed as 0,7
+ *   procent-25 25% van 60 = ?    kept as 60 : 4 (25% is a quarter)
  *
  * so marking, the worked line and a missed fact's identity all still work
  * from the sum. A remainder and a rounding are the sums with signs of their
@@ -28,7 +29,11 @@
  * since a sum keeps two numbers and both are taken.
  */
 export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | 'rest' | 'afronden' | 'oppervlakte' | 'tienden'
-  | MeasureForm | FractionOfForm | EqualFractionForm;
+  | MeasureForm | FractionOfForm | EqualFractionForm | PercentForm;
+
+/** 50%, 25% and 10% of an amount: the ones groep 7 learns first. The number is the percentage. */
+export type PercentForm = 'procent-50' | 'procent-25' | 'procent-10';
+export const PERCENT_FORMS: PercentForm[] = ['procent-50', 'procent-25', 'procent-10'];
 
 /** ¾ van 20, ⅖ van 35: a part of an amount, more than one part taken. The number is the denominator. */
 export type FractionOfForm = 'van-3' | 'van-4' | 'van-5' | 'van-6' | 'van-8';
@@ -43,13 +48,18 @@ export function denominatorOf(form: FractionOfForm | EqualFractionForm): number 
   return Number(form.split('-')[1]);
 }
 
+/** The percentage a percent form carries in its name: 25 for procent-25. */
+export function percentOf(form: PercentForm): number {
+  return Number(form.split('-')[1]);
+}
+
 /** A measure changed into a smaller unit: 3 m = ? cm. See teaching/school/written-form.ts MEASURES. */
 export type MeasureForm = 'm-cm' | 'km-m' | 'kg-g' | 'uur-min';
 
 export const MEASURE_FORMS: MeasureForm[] = ['m-cm', 'km-m', 'kg-g', 'uur-min'];
 
 export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft', 'deel', 'rest', 'afronden', 'oppervlakte', 'tienden',
-  ...MEASURE_FORMS, ...FRACTION_OF_FORMS, ...EQUAL_FRACTION_FORMS];
+  ...MEASURE_FORMS, ...FRACTION_OF_FORMS, ...EQUAL_FRACTION_FORMS, ...PERCENT_FORMS];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */
 export function readForm(raw: unknown): SumForm | undefined {
