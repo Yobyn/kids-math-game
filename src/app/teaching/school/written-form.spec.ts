@@ -3,7 +3,14 @@ import { CURRICULUM, Moment, Random, SchoolSum, TOPICS, schoolSum } from './groe
 import { FormWords, SumLayout, formWorkedStep, sumLayout } from './written-form';
 
 const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van', remainder: 'rest', hours: 'uur', minutes: 'minuten',
-  toTens: 'Rond af op tientallen', toHundreds: 'Rond af op honderdtallen' };
+  toTens: 'Rond af op tientallen', toHundreds: 'Rond af op honderdtallen', area: 'Oppervlakte van de rechthoek' };
+
+/** A fraction character read as its numerator and denominator, as a child reads ¾ as 3 over 4. */
+const GLYPHS: { [glyph: string]: [number, number] } = {
+  '½': [1, 2], '⅓': [1, 3], '⅔': [2, 3], '¼': [1, 4], '¾': [3, 4], '⅕': [1, 5], '⅖': [2, 5], '⅗': [3, 5], '⅘': [4, 5],
+  '⅙': [1, 6], '⅚': [5, 6], '⅛': [1, 8], '⅜': [3, 8], '⅝': [5, 8], '⅞': [7, 8]
+};
+const GLYPH = `(${Object.keys(GLYPHS).join('|')})`;
 
 function seeded(seed: number): Random {
   return () => {
@@ -66,6 +73,22 @@ function holds(written: string, filled: number): boolean {
     const distance = Math.abs(n - filled);
     return filled % to === 0 && (distance < to / 2 || (distance === to / 2 && filled > n));
   }
+  // ¾ van 20 = 15: three of the four equal parts of 20
+  const fractionOf = text.match(new RegExp(`^${GLYPH} van (\\d+) = (\\d+)$`));
+  if (fractionOf) {
+    const [top, bottom] = GLYPHS[fractionOf[1]];
+    return +fractionOf[2] % bottom === 0 && +fractionOf[2] / bottom * top === +fractionOf[3];
+  }
+  // ¾ = 9 / 12: the same part of a whole
+  const equal = text.match(new RegExp(`^${GLYPH} = (\\d+) / (\\d+)$`));
+  if (equal) {
+    const [top, bottom] = GLYPHS[equal[1]];
+    return top * +equal[3] === +equal[2] * bottom;
+  }
+  const area = text.match(/^Oppervlakte van de rechthoek (\d+) m × (\d+) m = (\d+) m²$/);
+  if (area) {
+    return +area[1] * +area[2] === +area[3];
+  }
   const part = text.match(/^(½|⅓|¼|⅕) van (\d+) = (\d+)$/);
   if (part) {
     return +part[2] === ({ '½': 2, '⅓': 3, '¼': 4, '⅕': 5 } as { [glyph: string]: number })[part[1]] * +part[3];
@@ -116,6 +139,11 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('uur-min', 2, 60, '*')).toBe('2 uur = ? minuten');
     expect(shown('afronden', 347, 10, '≈')).toBe('Rond af op tientallen 347 ≈ ?');
     expect(shown('afronden', 2468, 100, '≈')).toBe('Rond af op honderdtallen 2468 ≈ ?');
+    expect(shown('van-4', 5, 3, '*')).toBe('¾ van 20 = ?');
+    expect(shown('van-5', 7, 2, '*')).toBe('⅖ van 35 = ?');
+    expect(shown('gelijk-2', 1, 4, '*')).toBe('½ = ? / 8');
+    expect(shown('gelijk-4', 3, 3, '*')).toBe('¾ = ? / 12');
+    expect(shown('oppervlakte', 6, 4, '*')).toBe('Oppervlakte van de rechthoek 6 m × 4 m = ? m²');
     // and a plain sum is still a plain sum, the box at the end
     expect(read(sumLayout({ num1: 7, num2: 5, sign: '+' }, WORDS))).toBe('7 + 5 = ?');
   });
@@ -141,6 +169,9 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('rest', 23, 4)).toBe('4 × 5 = 20 → 23 − 20 = 3');
     expect(formWorkedStep('m-cm', 3, 100)).toBe('1 m = 100 cm → 3 × 100 = 300');
     expect(formWorkedStep('uur-min', 2, 60)).toBe('1 h = 60 min → 2 × 60 = 120');
+    expect(formWorkedStep('van-4', 5, 3)).toBe('20 : 4 = 5 → 3 × 5 = 15');
+    expect(formWorkedStep('gelijk-4', 3, 3)).toBe('4 × 3 = 12 → 3 × 3 = 9');
+    expect(formWorkedStep('oppervlakte', 6, 4)).toBe('6 × 4 = 24');
     expect(formWorkedStep(undefined, 7, 5)).toBeUndefined();
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
@@ -247,6 +278,66 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       expect(firstSeen('rest', '100')).toBe('5E');
       expect(firstSeen('m-cm', '100')).toBe('5E');
       expect(firstSeen('afronden', '100')).toBe('6E');
+    });
+
+    it('takes more than one part of an amount in groep 6: a fraction in its simplest form, of an amount that shares out whole', () => {
+      const gcd = (a: number, b: number): number => b ? gcd(b, a % b) : a;
+      const denominators = new Set<number>();
+      made('breuk-van').forEach(sum => {
+        const written = read(sumLayout({ num1: sum.num1, num2: sum.num2, sign: '×', form: sum.form }, WORDS));
+        const [glyph, , amount] = written.split(' ');
+        const [top, bottom] = GLYPHS[glyph];
+        denominators.add(bottom);
+        expect(top).withContext(written).toBeGreaterThan(1);
+        expect(top).withContext(written).toBeLessThan(bottom);
+        expect(gcd(top, bottom)).withContext(written).toBe(1);
+        expect(+amount % bottom).withContext(written).toBe(0);
+        // a part more than one: ¾ van 4 asks nothing a child needs to share out
+        expect(+amount / bottom).withContext(written).toBeGreaterThanOrEqual(2);
+        expect(+amount).withContext(written).toBeLessThanOrEqual(80);
+      });
+      expect(denominators).toEqual(new Set([3, 4, 5, 6, 8]));
+    });
+
+    it('writes a fraction over a bigger denominator in groep 6, up to 20: ½ = ?/8, never the same denominator again', () => {
+      const seen = new Set<string>();
+      made('gelijke-breuken').forEach(sum => {
+        const written = read(sumLayout({ num1: sum.num1, num2: sum.num2, sign: '×', form: sum.form }, WORDS));
+        seen.add(written);
+        const [glyph, , , , under] = written.split(' ');
+        const [top, bottom] = GLYPHS[glyph];
+        expect(top).withContext(written).toBeLessThan(bottom);
+        expect(+under).withContext(written).toBeGreaterThan(bottom);
+        expect(+under).withContext(written).toBeLessThanOrEqual(20);
+      });
+      expect(seen.has('½ = ? / 8')).toBeTrue();
+    });
+
+    it('measures a rectangle in whole metres in groep 6, longer than it is wide', () => {
+      made('oppervlakte').forEach(sum => {
+        expect(sum.num2).toBeGreaterThanOrEqual(2);
+        expect(sum.num1).toBeGreaterThan(sum.num2);
+        expect(sum.num1).toBeLessThanOrEqual(12);
+      });
+    });
+
+    it('brings fractions in at the middle of groep 6 and the area at its end', () => {
+      const first: { [kind: string]: string } = {};
+      const kind = (form: string) => form.replace(/-\d$/, '');
+      for (const groep of [3, 4, 5, 6]) {
+        for (const moment of ['B', 'M', 'E'] as Moment[]) {
+          const random = seeded(groep * 7 + moment.charCodeAt(0));
+          for (let i = 0; i < 400; i++) {
+            const form = schoolSum(groep, moment, random)!.form;
+            if (form && !first[kind(form)]) {
+              first[kind(form)] = `${groep}${moment}`;
+            }
+          }
+        }
+      }
+      expect(first['van']).toBe('6M');
+      expect(first['gelijk']).toBe('6M');
+      expect(first['oppervlakte']).toBe('6E');
     });
 
     it('asks the start of groep 3 only plain sums: the forms come once the sums under them are known', () => {
