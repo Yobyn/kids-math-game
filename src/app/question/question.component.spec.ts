@@ -870,6 +870,15 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     expect(asked.some(sum => sum.operation === '/' && sum.num2 > 10 && !sum.form)).toBeTrue();
     expect(asked.some(sum => /^procent/.test(sum.form || ''))).toBeTrue();
     expect(asked.some(sum => sum.form === 'komma-3')).toBeTrue();
+    expect(asked.some(sum => /^gelijknamig-/.test(sum.form || ''))).toBeTrue();
+    expect(asked.some(sum => sum.form === 'breuk-komma')).toBeTrue();
+  });
+
+  it('asks grade 5 (groep 7) at the end of the year a ratio and a discount', () => {
+    build('5', 'hard');
+    const asked = sums(400);
+    expect(asked.some(sum => /^verhouding-/.test(sum.form || ''))).toBeTrue();
+    expect(asked.some(sum => /^korting-/.test(sum.form || ''))).toBeTrue();
   });
 
   it('keeps the old questions for a groep not built yet: grade 6 (groep 8) is still asked as before', () => {
@@ -1773,6 +1782,14 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()).toEqual(['2,5', 'km', '=', '[ ]', 'm']);
     ask({ num1: 24, num2: 8, operation: '-', form: 'tienden' });
     expect(card()).toEqual(['2,4', '−', '0,8', '=', '[ ]']);
+    ask({ num1: 2, num2: 3, operation: '+', form: 'gelijknamig-8' });
+    expect(card()).toEqual(['2/8', '+', '3/8', '=', '[ ]', '/', '8']);
+    ask({ num1: 25, num2: 3, operation: '*', form: 'breuk-komma' });
+    expect(card()).toEqual(['¾', '=', '[ ]']);
+    ask({ num1: 7, num2: 2, operation: '*', form: 'verhouding-3' });
+    expect(card()).toEqual(['3 pakken kosten €6', '7', 'pakken', '=', '€', '[ ]']);
+    ask({ num1: 45, num2: 9, operation: '-', form: 'korting-20' });
+    expect(card()).toEqual(['20% korting: wat betaal je?', '€', '45', '→', '€', '[ ]']);
     // A plain sum keeps the box at the end
     ask({ num1: 7, num2: 5, operation: '+' });
     expect(card()).toEqual(['7', '+', '5', '=', '[ ]']);
@@ -2002,6 +2019,53 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(component.answerWasCorrect).toBe(true);
     ask({ num1: 25, num2: 1000, operation: '*', form: 'komma-km-m' });
     expect(keyFaces()).toContain(',');
+  });
+
+  it('marks the rest of groep 7 as written: 5 for 2/8 + 3/8, 0,75 for ¾, 14 for the packs, 36 paid after 20% off', () => {
+    build('nl');
+    const marked = (question: AskedQuestion, typed: string) => {
+      ask(question);
+      component.wrongAttempts = 0;
+      component.userAnswer = typed;
+      component.checkAnswer();
+      return component.answerWasCorrect;
+    };
+    expect(marked({ num1: 2, num2: 3, operation: '+', form: 'gelijknamig-8' }, '5')).toBe(true);
+    expect(marked({ num1: 25, num2: 3, operation: '*', form: 'breuk-komma' }, '0,75')).toBe(true);
+    expect(marked({ num1: 25, num2: 3, operation: '*', form: 'breuk-komma' }, '0.75')).toBe(true);
+    expect(marked({ num1: 50, num2: 1, operation: '*', form: 'breuk-komma' }, '0,5')).toBe(true);
+    // ¾ is not 75, nor 3,4
+    expect(marked({ num1: 25, num2: 3, operation: '*', form: 'breuk-komma' }, '75')).toBe(false);
+    expect(marked({ num1: 25, num2: 3, operation: '*', form: 'breuk-komma' }, '3,4')).toBe(false);
+    expect(marked({ num1: 7, num2: 2, operation: '*', form: 'verhouding-3' }, '14')).toBe(true);
+    expect(marked({ num1: 45, num2: 9, operation: '-', form: 'korting-20' }, '36')).toBe(true);
+    // the discount itself is not what is paid
+    expect(marked({ num1: 45, num2: 9, operation: '-', form: 'korting-20' }, '9')).toBe(false);
+  });
+
+  it('puts the comma key on the keypad for ¾ = ?, and none for the packs or the discount, which come out in whole euros', () => {
+    build('nl');
+    component.useKeypad = true;
+    const keyFaces = () => Array.from(fixture.nativeElement.querySelectorAll('.key')).map((key: any) => key.textContent.trim());
+    ask({ num1: 25, num2: 3, operation: '*', form: 'breuk-komma' });
+    expect(keyFaces()).toContain(',');
+    ask({ num1: 7, num2: 2, operation: '*', form: 'verhouding-3' });
+    expect(keyFaces()).not.toContain(',');
+    ask({ num1: 45, num2: 9, operation: '-', form: 'korting-20' });
+    expect(keyFaces()).not.toContain(',');
+  });
+
+  it('says the packs and the discount in the child’s language', () => {
+    build('en');
+    ask({ num1: 7, num2: 2, operation: '*', form: 'verhouding-3' });
+    expect(card()).toEqual(['3 packs cost €6', '7', 'packs', '=', '€', '[ ]']);
+    ask({ num1: 45, num2: 9, operation: '-', form: 'korting-20' });
+    expect(card()[0]).toBe('20% off: what do you pay?');
+    component.languageService.setLanguage('es');
+    fixture.detectChanges();
+    expect(card()[0]).toBe('20% de descuento: ¿cuánto pagas?');
+    ask({ num1: 7, num2: 2, operation: '*', form: 'verhouding-3' });
+    expect(card()[0]).toBe('3 paquetes cuestan €6');
   });
 
   it('gives 0,72 as the answer to 72 : 100 after two tries, with the times it undoes', () => {

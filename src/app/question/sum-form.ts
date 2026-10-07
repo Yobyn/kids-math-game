@@ -22,6 +22,13 @@
  *                                34500 hundredths is shown and typed as 345
  *   komma-3    72 : 100 = ?      kept as 72000 : 100 in thousandths (0,72)
  *   komma-km-m 2,5 km = ? m      kept as 25 × 1000 in tenths (2500)
+ *   gelijknamig-8 2/8 + 3/8 = ?/8 kept as 2 + 3: the numerators, counted in eighths
+ *   breuk-komma ¾ = ?            kept as 25 × 3 in hundredths: a quarter is 25
+ *                                hundredths, so the answer 75 is shown and typed as 0,75
+ *   verhouding-3 3 pakken kosten €6, 7 pakken = €?
+ *                                kept as 7 × 2: the packs asked for times the
+ *                                price of one (€6 : 3)
+ *   korting-20 20% korting op €45 kept as 45 − 9: the price less 20% of it
  *
  * so marking, the worked line and a missed fact's identity all still work
  * from the sum. A remainder and a rounding are the sums with signs of their
@@ -33,7 +40,26 @@
  * since a sum keeps two numbers and both are taken.
  */
 export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | 'rest' | 'afronden' | 'oppervlakte' | 'tienden'
-  | MeasureForm | FractionOfForm | EqualFractionForm | PercentForm | DecimalForm | DecimalMeasureForm;
+  | MeasureForm | FractionOfForm | EqualFractionForm | PercentForm | DecimalForm | DecimalMeasureForm
+  | FractionSumForm | 'breuk-komma' | RatioForm | DiscountForm;
+
+/** 2/8 + 3/8 = ?/8: fractions with the same denominator added or taken away. The number is the denominator. */
+export type FractionSumForm = 'gelijknamig-4' | 'gelijknamig-5' | 'gelijknamig-6' | 'gelijknamig-8' | 'gelijknamig-10' | 'gelijknamig-12';
+export const FRACTION_SUM_FORMS: FractionSumForm[] = ['gelijknamig-4', 'gelijknamig-5', 'gelijknamig-6', 'gelijknamig-8',
+  'gelijknamig-10', 'gelijknamig-12'];
+
+/** 3 pakken kosten €6, 7 pakken = €?: a ratio, worked through the price of one. The number is the packs priced. */
+export type RatioForm = 'verhouding-2' | 'verhouding-3' | 'verhouding-4' | 'verhouding-5';
+export const RATIO_FORMS: RatioForm[] = ['verhouding-2', 'verhouding-3', 'verhouding-4', 'verhouding-5'];
+
+/** The packs a ratio form prices in its name: 3 for verhouding-3. */
+export function packsOf(form: RatioForm): number {
+  return Number(form.split('-')[1]);
+}
+
+/** 20% korting op €45: what is paid after a discount. The number is the percentage off. */
+export type DiscountForm = 'korting-10' | 'korting-20' | 'korting-25' | 'korting-50';
+export const DISCOUNT_FORMS: DiscountForm[] = ['korting-10', 'korting-20', 'korting-25', 'korting-50'];
 
 /**
  * A sum with a comma in it, kept as whole numbers counted in hundredths
@@ -56,7 +82,7 @@ export function placesOf(form: SumForm | undefined): number {
   if (form === 'tienden' || DECIMAL_MEASURE_FORMS.includes(form as DecimalMeasureForm)) {
     return 1;
   }
-  return form === 'komma-2' ? 2 : form === 'komma-3' ? 3 : 0;
+  return form === 'komma-2' || form === 'breuk-komma' ? 2 : form === 'komma-3' ? 3 : 0;
 }
 
 /** 50%, 25% and 10% of an amount: the ones groep 7 learns first. The number is the percentage. */
@@ -71,13 +97,13 @@ export const FRACTION_OF_FORMS: FractionOfForm[] = ['van-3', 'van-4', 'van-5', '
 export type EqualFractionForm = 'gelijk-2' | 'gelijk-3' | 'gelijk-4' | 'gelijk-5';
 export const EQUAL_FRACTION_FORMS: EqualFractionForm[] = ['gelijk-2', 'gelijk-3', 'gelijk-4', 'gelijk-5'];
 
-/** The denominator a fraction form carries in its name: 4 for van-4 and gelijk-4. */
-export function denominatorOf(form: FractionOfForm | EqualFractionForm): number {
+/** The denominator a fraction form carries in its name: 4 for van-4, gelijk-4 and gelijknamig-4. */
+export function denominatorOf(form: FractionOfForm | EqualFractionForm | FractionSumForm): number {
   return Number(form.split('-')[1]);
 }
 
-/** The percentage a percent form carries in its name: 25 for procent-25. */
-export function percentOf(form: PercentForm): number {
+/** The percentage a percent or discount form carries in its name: 25 for procent-25 and korting-25. */
+export function percentOf(form: PercentForm | DiscountForm): number {
   return Number(form.split('-')[1]);
 }
 
@@ -87,7 +113,8 @@ export type MeasureForm = 'm-cm' | 'km-m' | 'kg-g' | 'uur-min';
 export const MEASURE_FORMS: MeasureForm[] = ['m-cm', 'km-m', 'kg-g', 'uur-min'];
 
 export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft', 'deel', 'rest', 'afronden', 'oppervlakte', 'tienden',
-  ...MEASURE_FORMS, ...FRACTION_OF_FORMS, ...EQUAL_FRACTION_FORMS, ...PERCENT_FORMS, 'komma-2', 'komma-3', ...DECIMAL_MEASURE_FORMS];
+  ...MEASURE_FORMS, ...FRACTION_OF_FORMS, ...EQUAL_FRACTION_FORMS, ...PERCENT_FORMS, 'komma-2', 'komma-3', ...DECIMAL_MEASURE_FORMS,
+  ...FRACTION_SUM_FORMS, 'breuk-komma', ...RATIO_FORMS, ...DISCOUNT_FORMS];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */
 export function readForm(raw: unknown): SumForm | undefined {

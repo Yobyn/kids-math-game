@@ -512,7 +512,10 @@ export class QuestionComponent implements OnInit, OnDestroy {
         toHundreds: this.languageService.translate('round-hundreds'),
         toThousands: this.languageService.translate('round-thousands'),
         area: this.languageService.translate('sum-area'),
-        point: this.decimalSign
+        point: this.decimalSign,
+        packs: this.languageService.translate('sum-packs'),
+        cost: this.languageService.translate('sum-cost'),
+        discount: this.languageService.translate('sum-discount')
       });
     }
     return this.layoutCache!;
