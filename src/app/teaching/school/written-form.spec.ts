@@ -146,6 +146,10 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('oppervlakte', 6, 4, '*')).toBe('Oppervlakte van de rechthoek 6 m × 4 m = ? m²');
     // and a plain sum is still a plain sum, the box at the end
     expect(read(sumLayout({ num1: 7, num2: 5, sign: '+' }, WORDS))).toBe('7 + 5 = ?');
+    // Only ¾ = ?/12 has its box as a numerator, drawn over the 12
+    expect(sumLayout({ num1: 3, num2: 3, sign: '×', form: 'gelijk-4' }, WORDS).over).toBeTrue();
+    expect(sumLayout({ num1: 5, num2: 3, sign: '×', form: 'van-4' }, WORDS).over).toBeFalsy();
+    expect(sumLayout({ num1: 7, num2: 5, sign: '+' }, WORDS).over).toBeFalsy();
   });
 
   it('is true, as written, with the answer the child is marked against in the box: every sum of every form', () => {

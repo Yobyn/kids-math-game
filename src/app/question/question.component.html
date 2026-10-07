@@ -50,6 +50,10 @@
       <!-- The unit sits on the box itself, so a child is never left guessing
            whether the answer wanted is 75 or 0.75. -->
       <span class="currency" *ngIf="answerPrefix">{{ answerPrefix }}</span>
+      <!-- For ¾ = ?/12 the box is a numerator, so it stands over the 12 with
+           a fraction bar between them; for every other sum this wrapper
+           takes no room of its own (display: contents). -->
+      <span class="answer-group" [class.over]="layout.over">
       <input #answerInput
              type="number"
              [value]="userAnswer"
@@ -66,6 +70,7 @@
       <ng-container *ngIf="!currentQuestion.money">
         <span *ngFor="let part of layout.after" [class]="part.kind">{{ part.text }}</span>
       </ng-container>
+      </span>
     </div>
 
     <app-keypad *ngIf="useKeypad && !isPicking"

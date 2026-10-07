@@ -1405,6 +1405,13 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**¾ = ?/12 IS WRITTEN AS A FRACTION — DONE (2026-10-07).** The box for the
+  new numerator stood on one line with "/ 12" after it, which reads as a
+  division to a child who has only ever seen fractions stacked. The box now
+  stands over the 12 with a fraction bar between them. `over` on the sum's
+  layout (written-form.ts) marks it; the slash stays in the page for a
+  screen reader and is drawn as the bar.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,

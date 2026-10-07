@@ -1677,7 +1677,11 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
   /** The sum on the card, in order, with the answer box as "[ ]". */
   function card(): string[] {
     const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    // The box and what follows it sit in a wrapper that only lays them out
+    // (.answer-group), so read through it
     return Array.from(problem.children)
+      .reduce((all: Element[], child) =>
+        all.concat(child.classList.contains('answer-group') ? Array.from(child.children) : [child]), [])
       .filter(child => !child.classList.contains('currency'))
       .map(child => child.tagName === 'INPUT' ? '[ ]' : child.textContent!.trim());
   }
@@ -1798,6 +1802,34 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(heading.bottom).toBeLessThanOrEqual(sum.top);
     // and the sum below it is one line: the number and the box side by side
     expect(Math.abs((sum.top + sum.bottom) / 2 - (box.top + box.bottom) / 2)).toBeLessThan(sum.height / 2);
+  });
+
+  it('stands the box over the 12 for ¾ = ?/12, with a fraction bar between, as the workbook writes it', () => {
+    build('nl');
+    ask({ num1: 3, num2: 3, operation: '*', form: 'gelijk-4' });
+    const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    const box = (problem.querySelector('input') as HTMLElement).getBoundingClientRect();
+    const under = problem.querySelector('.answer-group .number') as HTMLElement;
+    const twelve = under.getBoundingClientRect();
+    expect(under.textContent!.trim()).toBe('12');
+    // under the box, not beside it, and centred on it
+    expect(twelve.top).toBeGreaterThanOrEqual(box.bottom);
+    expect(Math.abs((twelve.left + twelve.right) / 2 - (box.left + box.right) / 2)).toBeLessThan(1);
+    // the bar is drawn, and the slash is gone from sight but not from a screen reader
+    expect(parseFloat(getComputedStyle(under).borderTopWidth)).toBeGreaterThanOrEqual(3);
+    const slash = problem.querySelector('.answer-group .operation') as HTMLElement;
+    expect(slash.getBoundingClientRect().width).toBeLessThanOrEqual(1);
+    expect(getComputedStyle(slash).display).not.toBe('none');
+  });
+
+  it('keeps every other sum on one line, the box beside what follows it', () => {
+    build('nl');
+    ask({ num1: 3, num2: 100, operation: '*', form: 'm-cm' });
+    const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    const box = (problem.querySelector('input') as HTMLElement).getBoundingClientRect();
+    const unit = (problem.querySelector('.answer-group .word') as HTMLElement).getBoundingClientRect();
+    expect(unit.left).toBeGreaterThanOrEqual(box.right);
+    expect(problem.querySelector('.answer-group.over')).toBeNull();
   });
 
   it('marks the nearest ten or hundred for a rounding, a 5 going up, and not the number itself or the other way', () => {
