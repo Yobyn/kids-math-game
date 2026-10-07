@@ -7,16 +7,20 @@
  * So far groep 3 and 4: the plain sums (a number, a sign, a number) and the
  * written forms of the workbook (7 + ? = 10, 8 = 5 + ?, dubbel 7, de helft
  * van 16); and groep 5 (all the tables, to 1000, 4 × 30, 4 × 23, ¼ van
- * 20, 23 : 4 = 5 rest ?, 3 m = ? cm). The rest follows the build order in
- * the doc.
+ * 20, 23 : 4 = 5 rest ?, 3 m = ? cm); and groep 6's plain sums (to 10 000,
+ * 25 × 8, 96 : 4, 23 × 14, 347 ≈ ? op tientallen). The rest follows the
+ * build order in the doc.
  */
 
 import { MEASURE_FORMS, SumForm } from '../../question/sum-form';
 import { MEASURES } from './written-form';
 
 export type Moment = 'B' | 'M' | 'E';
-/** % is what is left over: 23 % 4 is the 3 in 23 : 4 = 5 rest 3 */
-export type Operation = '+' | '-' | '*' | '/' | '%';
+/**
+ * % is what is left over: 23 % 4 is the 3 in 23 : 4 = 5 rest 3.
+ * ≈ is rounding: 347 ≈ 10 is 347 rounded to the nearest ten, 350.
+ */
+export type Operation = '+' | '-' | '*' | '/' | '%' | '≈';
 
 /** A sum as the screen shows it: num1, the sign, num2, and the answer box. */
 export interface SchoolSum {
@@ -207,8 +211,8 @@ export const TABLES_GROEP_5 = [6, 7, 8, 9];
 TOPICS['tafels-6-7-8-9'] = times(TABLES_GROEP_5);
 TOPICS['deeltafels-6-7-8-9'] = shareOut(TABLES_GROEP_5);
 
-/** The digits of a number below 1000: hundreds, tens, ones. */
-const digits = (n: number) => [Math.floor(n / 100), Math.floor(n / 10) % 10, n % 10];
+/** The digits of a number below 10 000: thousands, hundreds, tens, ones. */
+const digits = (n: number) => [Math.floor(n / 1000), Math.floor(n / 100) % 10, Math.floor(n / 10) % 10, n % 10];
 
 /** Does adding these carry in any column, or taking away borrow in any? */
 export function carries(num1: number, num2: number, operation: '+' | '-'): boolean {
@@ -270,6 +274,59 @@ Object.assign(TOPICS, {
   }
 } as { [id: string]: Maker });
 
+/** Not a round ten: 4 × 23, not 4 × 20 (that is times a ten, a sum of its own). */
+function notRound(random: Random, lo: number, hi: number): number {
+  const n = between(random, lo, hi);
+  return n % 10 === 0 ? n - 1 : n;
+}
+
+/**
+ * A sum to 10 000 done in columns (cijferend): four figures, and at least one
+ * column carries or borrows, else it is a sum to do in the head.
+ */
+function within10000(random: Random): Omit<SchoolSum, 'topic'> {
+  for (let tries = 0; tries < 200; tries++) {
+    // 2345 + 1678, 5003 - 2468
+    const operation = random() < 0.5 ? '+' : '-';
+    const num1 = operation === '+' ? between(random, 1000, 7999) : between(random, 2000, 9999);
+    const num2 = operation === '+' ? between(random, 1000, 9999 - num1) : between(random, 1000, num1 - 100);
+    if (carries(num1, num2, operation)) {
+      return { num1, num2, operation };
+    }
+  }
+  return { num1: 2345, num2: 1678, operation: '+' };
+}
+
+Object.assign(TOPICS, {
+  // Groep 6, the middle: to 10 000 in columns; times and sharing out past the tables
+  'tot-10000': within10000,
+  // 25 × 8, 48 × 6: a two-figure number times a table, up to 600
+  'keer-groter': random => {
+    const num2 = between(random, 3, 9);
+    return { num1: notRound(random, 12, Math.min(99, Math.floor(600 / num2))), num2, operation: '*' };
+  },
+  // 96 : 4, 150 : 6: shared out past the tables, coming out whole, between 10 and 50
+  'delen-groter': random => {
+    const num2 = between(random, 2, 9);
+    return { num1: num2 * notRound(random, 11, 50), num2, operation: '/' };
+  },
+  // Groep 6, the end: two figures times two figures. 23 × 14
+  'te-keer-te': random => ({ num1: notRound(random, 12, 39), num2: notRound(random, 11, 29), operation: '*' }),
+  // 347 ≈ ? op tientallen, 2468 ≈ ? op honderdtallen
+  'afronden': random => {
+    if (random() < 0.5) {
+      const num1 = notRound(random, 101, 999);
+      return { num1, num2: 10, operation: '≈', form: 'afronden' };
+    }
+    let num1 = between(random, 110, 9949);
+    // 2400 is already a hundred: nothing to round
+    if (num1 % 100 === 0) {
+      num1 += between(random, 1, 99);
+    }
+    return { num1, num2: 100, operation: '≈', form: 'afronden' };
+  }
+} as { [id: string]: Maker });
+
 /** How often a topic comes up in a round: what is new at a moment most, what it builds on less. */
 const NEW = 2;
 const REVIEW = 1;
@@ -318,6 +375,20 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     E: {
       'tot-1000-over': NEW, 'te-keer-e': NEW, 'delen-met-rest': NEW, 'maten': NEW,
       'tafels-6-7-8-9': REVIEW, 'deeltafels-6-7-8-9': REVIEW, 'tot-1000-zonder': REVIEW, 'deel-van': REVIEW
+    }
+  },
+  6: {
+    B: {
+      'tot-1000-over': NEW, 'te-keer-e': NEW, 'delen-met-rest': NEW,
+      'maten': REVIEW, 'tafels-6-7-8-9': REVIEW, 'deeltafels-6-7-8-9': REVIEW
+    },
+    M: {
+      'tot-10000': NEW, 'keer-groter': NEW, 'delen-groter': NEW,
+      'tot-1000-over': REVIEW, 'te-keer-e': REVIEW, 'delen-met-rest': REVIEW
+    },
+    E: {
+      'te-keer-te': NEW, 'afronden': NEW,
+      'tot-10000': REVIEW, 'keer-groter': REVIEW, 'delen-groter': REVIEW
     }
   }
 };
