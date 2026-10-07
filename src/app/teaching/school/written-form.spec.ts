@@ -292,6 +292,8 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
         expect(top).withContext(written).toBeLessThan(bottom);
         expect(gcd(top, bottom)).withContext(written).toBe(1);
         expect(+amount % bottom).withContext(written).toBe(0);
+        // a part more than one: ¾ van 4 asks nothing a child needs to share out
+        expect(+amount / bottom).withContext(written).toBeGreaterThanOrEqual(2);
         expect(+amount).withContext(written).toBeLessThanOrEqual(80);
       });
       expect(denominators).toEqual(new Set([3, 4, 5, 6, 8]));
