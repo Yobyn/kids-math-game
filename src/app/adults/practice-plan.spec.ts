@@ -216,6 +216,10 @@ describe('the facts an adult is asked to practise', () => {
     expect(items.map(item => item.worked)).toEqual([
       '2 + 3 = 5 → 2/8 + 3/8 = 5/8', '¾ = 75/100 → 0,75', '6 : 3 = 2 → 7 × 2 = 14', '45 : 5 = 9 → 45 − 9 = 36'
     ]);
+    // and a taking away is written as one
+    const away = practicePlan([], [{ ...fact(5, 4, '-'), form: 'gelijknamig-6' }]);
+    expect(away.facts[0].question).toBe('5/6 − 4/6 = ?/6');
+    expect(away.facts[0].answer).toBe('1');
   });
 
   it('leaves the line off a fact that has no method worth showing', () => {
