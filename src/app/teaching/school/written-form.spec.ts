@@ -495,9 +495,14 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       });
       expect(new Set(sums.map(sum => sum.operation))).toEqual(new Set(['*', '/']));
       ['*', '/'].forEach(op => expect(new Set(sums.filter(sum => sum.operation === op).map(sum => sum.num2))).withContext(op).toEqual(new Set([10, 100, 1000])));
-      // 72 : 100 from a whole number, 4,5 : 10 from a comma number
+      // 72 : 100 from a whole number, 4,5 : 10 from a comma number with one figure after the comma
       expect(sums.some(sum => sum.operation === '/' && !decimal(sum.num1, 3).includes(','))).toBeTrue();
       expect(sums.some(sum => sum.operation === '/' && decimal(sum.num1, 3).includes(','))).toBeTrue();
+      sums.filter(sum => sum.operation === '/').forEach(sum =>
+        expect((decimal(sum.num1, 3).split(',')[1] || '').length).withContext(decimal(sum.num1, 3)).toBeLessThanOrEqual(1));
+      // 4,5 × 10 and 3,45 × 100: one and two figures after the comma
+      const figuresAfter = (sum: SchoolSum) => decimal(sum.num1, 2).split(',')[1].length;
+      expect(new Set(sums.filter(sum => sum.operation === '*').map(figuresAfter))).toEqual(new Set([1, 2]));
     });
 
     it('multiplies a comma number by a whole one at the end of groep 7: 2,5 × 4, 1,25 × 8, some coming out whole', () => {
@@ -508,7 +513,10 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
         expect(sum.num2).toBeLessThanOrEqual(9);
       });
       expect(sums.some(sum => !decimal(answer(sum), 2).includes(','))).toBeTrue();
-      expect(sums.some(sum => decimal(sum.num1, 2).split(',')[1].length === 2)).toBeTrue();
+      // two figures after the comma only for a quarter or three quarters (1,25, 2,75), times 4 or 8: they come out whole
+      const quarters = sums.filter(sum => decimal(sum.num1, 2).split(',')[1].length === 2);
+      expect(new Set(quarters.map(sum => sum.num1 % 100))).toEqual(new Set([25, 75]));
+      quarters.forEach(sum => expect(answer(sum) % 100).withContext(`${decimal(sum.num1, 2)} × ${sum.num2}`).toBe(0));
     });
 
     it('changes a measure with a comma into a smaller unit at the end of groep 7: 1000 m in a km and g in a kg, 10 dl in a litre, 100 cm in a metre', () => {
