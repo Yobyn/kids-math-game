@@ -188,10 +188,25 @@ middle, hard the end), one groep per run.
   phones up to 360px its sides and gaps are a little narrower, so 4518 +
   1467 = stays on one line; no card of groep 3–6 wraps or overflows at 320
   or 360px in nl/en/es. Mutation sweep: 46 mutants, 46 killed.
-  STILL TO DO for groep 6: fractions of an amount (¾ van 20), equal
-  fractions (½ = ?/8), decimals with the comma on the keypad (0,3 + 0,4),
-  area of a rectangle.
-- **Next, in order:** groep 6's second half, groep 7, 8; then
+- **Groep 6, fractions and area: DONE (2026-10-07).** In the middle of the
+  year, more than one part of an amount (¾ van 20, ⅖ van 35, ⅞ van 40: a
+  fraction in its simplest form, of an amount that shares out whole, each
+  part 2 to 10) and the same fraction over a bigger denominator (½ = ?/8,
+  ¾ = ?/12, up to 20). At the end, the area of a rectangle under the
+  heading "Oppervlakte van de rechthoek": 6 m × 4 m = ? m², whole metres,
+  longer than wide. A sum keeps two numbers, so the number under a
+  fraction's line lives in the form's name (van-4, gelijk-4); ¾ van 20 is
+  kept as 5 × 3 and ¾ = ?/12 as 3 × 3, so marking stays one
+  multiplication. Worked as 20 : 4 = 5 → 3 × 5 = 15 and 4 × 3 = 12 →
+  3 × 3 = 9. The end of groep 6 keeps practising everything new in its
+  middle. Every card fits a 320px phone on one row in nl/en/es
+  (11 m × 9 m = ? m² the widest). Mutation sweep: 32 mutants, 29 killed
+  at once; two survivors (¾ van 4, a part of one; the end of the year
+  dropping ½ = ?/8) each got a test, and one is equivalent (a fallback
+  denominator for a form name without a number, which none is).
+  STILL TO DO for groep 6: decimals with the comma on the keypad
+  (0,3 + 0,4, 1,5 + 2,7).
+- **Next, in order:** groep 6's decimals, groep 7, 8; then
   verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).

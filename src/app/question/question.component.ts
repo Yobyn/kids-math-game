@@ -509,7 +509,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
         hours: this.languageService.translate('unit-hours'),
         minutes: this.languageService.translate('unit-minutes'),
         toTens: this.languageService.translate('round-tens'),
-        toHundreds: this.languageService.translate('round-hundreds')
+        toHundreds: this.languageService.translate('round-hundreds'),
+        area: this.languageService.translate('sum-area')
       });
     }
     return this.layoutCache!;
