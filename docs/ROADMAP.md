@@ -218,7 +218,10 @@ middle, hard the end), one groep per run.
   typed as 3, point: an empty box). The card's box rules were written for
   number boxes, so they now match its one input whatever its type (the
   text box had fallen back to the browser's width and wrapped below the
-  sum). Mutation sweep: see the PR.
+  sum). Mutation sweep: 31 mutants, 28 killed at once; two
+  survivors got tests (the keypad showing a comma in English; the
+  grown-ups' plan working 2,4 − 0,8 as an adding) and one was a guard that
+  decided nothing, so it went.
   Money still writes €3.40 with a point in Dutch; a Dutch school writes
   €3,40. A follow-up, with the money strand's own words.
 - **Next, in order:** groep 7, 8; then verhaaltjessommen.
