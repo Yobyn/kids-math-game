@@ -1,4 +1,6 @@
 import { CURRICULUM, Moment, Random, SchoolSum, TABLES_FIRST, TABLES_GROEP_4, TOPICS, carries, momentFor, schoolSum } from './groep';
+import { placesOf } from '../../question/sum-form';
+import { decimal } from './written-form';
 
 /** A repeatable source of numbers, so a failure can be found again. */
 function seeded(seed: number): Random {
@@ -343,10 +345,12 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       expect(sums.some(sum => sum.num2 === 10 && sum.num1 % 10 === 5)).toBeTrue();
     });
 
-    it('keeps practising at the end of the year everything that was new in its middle', () => {
-      const end = Object.keys(CURRICULUM[6].E);
-      Object.keys(CURRICULUM[6].M).filter(topic => !Object.keys(CURRICULUM[6].B).includes(topic))
-        .forEach(topic => expect(end).withContext(topic).toContain(topic));
+    it('keeps practising at the end of the year everything that was new in its middle, in groep 6 and 7', () => {
+      [6, 7].forEach(groep => {
+        const end = Object.keys(CURRICULUM[groep].E);
+        Object.keys(CURRICULUM[groep].M).filter(topic => !Object.keys(CURRICULUM[groep].B).includes(topic))
+          .forEach(topic => expect(end).withContext(`groep ${groep}: ${topic}`).toContain(topic));
+      });
     });
 
     it('asks nothing a child cannot type in the keypad\'s six figures', () => {
@@ -402,6 +406,14 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       expect(sums.some(sum => sum.num1 >= 1000)).toBeTrue();
     });
 
+    it('asks nothing a child cannot type in the keypad\'s six figures, a comma answer counted as it is typed', () => {
+      (['B', 'M', 'E'] as Moment[]).forEach(moment => Object.keys(CURRICULUM[7][moment]).forEach(topic =>
+        made(topic).forEach(sum => {
+          const typed = placesOf(sum.form) ? decimal(answer(sum), placesOf(sum.form)) : String(answer(sum));
+          expect(typed.replace(',', '').length).withContext(`${topic} ${at(sum)} = ${typed}`).toBeLessThanOrEqual(6);
+        })));
+    });
+
     it('takes 50%, 25% and 10% of an amount, each a half, a quarter and a tenth, coming out whole', () => {
       const seen = new Set<string>();
       made('procenten', 800).forEach(sum => {
@@ -449,7 +461,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     it('asks what is new at a moment about twice as often as what it carries on from the moment before', () => {
       const before: [number, Moment, number, Moment][] = [
         [3, 'M', 3, 'B'], [3, 'E', 3, 'M'], [4, 'M', 4, 'B'], [4, 'E', 4, 'M'], [5, 'M', 5, 'B'], [5, 'E', 5, 'M'],
-        [6, 'M', 6, 'B'], [6, 'E', 6, 'M'], [7, 'M', 7, 'B']
+        [6, 'M', 6, 'B'], [6, 'E', 6, 'M'], [7, 'M', 7, 'B'], [7, 'E', 7, 'M']
       ];
       before.forEach(([groep, moment, earlierGroep, earlier]) => {
         const random = seeded(groep * 7 + moment.charCodeAt(0));

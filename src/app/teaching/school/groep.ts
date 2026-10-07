@@ -10,12 +10,13 @@
  * 20, 23 : 4 = 5 rest ?, 3 m = ? cm); and groep 6's plain sums (to 10 000,
  * 25 × 8, 96 : 4, 23 × 14, 347 ≈ ? op tientallen, ¾ van 20, ½ = ?/8, the
  * area of a rectangle, 0,3 + 0,4); and groep 7's whole numbers (345 678 ≈ ? op
- * duizendtallen, 124 × 36, 864 : 24, 25% van 60). The rest follows the
+ * duizendtallen, 124 × 36, 864 : 24, 25% van 60) and its decimals (3,45 × 100,
+ * 72 : 100, 2,5 × 4, 2,5 km = ? m). The rest follows the
  * build order in the doc.
  */
 
-import { MEASURE_FORMS, PERCENT_FORMS, SumForm, percentOf } from '../../question/sum-form';
-import { MEASURES, numeratorsOf } from './written-form';
+import { DECIMAL_MEASURE_FORMS, MEASURE_FORMS, PERCENT_FORMS, SumForm, percentOf } from '../../question/sum-form';
+import { DECIMAL_MEASURES, MEASURES, numeratorsOf } from './written-form';
 
 export type Moment = 'B' | 'M' | 'E';
 /**
@@ -388,6 +389,39 @@ Object.assign(TOPICS, {
   }
 } as { [id: string]: Maker });
 
+Object.assign(TOPICS, {
+  // Groep 7, the middle: a comma number times or shared by 10, 100 or 1000. 3,45 × 100, 72 : 100
+  'komma-maal-10': random => {
+    const by = pick(random, [10, 100, 1000]);
+    if (random() < 0.5) {
+      // 4,5 or 3,45, kept in hundredths: one or two figures after the comma, never a whole number
+      const hundredths = random() < 0.5 ? 10 * notRound(random, 11, 99) : notRound(random, 101, 999);
+      return { num1: hundredths, num2: by, operation: '*', form: 'komma-2' };
+    }
+    // 72 : 100 = 0,72, 4,5 : 10 = 0,45, kept in thousandths; never more than three figures after the comma
+    for (;;) {
+      const thousandths = random() < 0.5 ? 1000 * notRound(random, 2, 99) : 100 * notRound(random, 11, 99);
+      if (thousandths % by === 0) {
+        return { num1: thousandths, num2: by, operation: '/', form: 'komma-3' };
+      }
+    }
+  },
+  // Groep 7, the end: a comma number times a whole number. 2,5 × 4, 1,25 × 8
+  'kommagetal-keer': random => {
+    if (random() < 0.5) {
+      // a quarter or three quarters past a whole, times 4 or 8: 1,25 × 8 = 10
+      const hundredths = 100 * between(random, 0, 4) + pick(random, [25, 75]);
+      return { num1: hundredths, num2: pick(random, [4, 8]), operation: '*', form: 'komma-2' };
+    }
+    return { num1: 10 * notRound(random, 11, 99), num2: between(random, 2, 9), operation: '*', form: 'komma-2' };
+  },
+  // the metric system with a comma: 2,5 km = ? m, 1,5 l = ? dl, kept as 25 × 1000 in tenths
+  'metriek': random => {
+    const form = pick(random, DECIMAL_MEASURE_FORMS);
+    return { num1: notRound(random, 11, 99), num2: DECIMAL_MEASURES[form].factor, operation: '*', form };
+  }
+} as { [id: string]: Maker });
+
 /** How often a topic comes up in a round: what is new at a moment most, what it builds on less. */
 const NEW = 2;
 const REVIEW = 1;
@@ -452,19 +486,19 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
       'tot-10000': REVIEW, 'keer-groter': REVIEW, 'delen-groter': REVIEW, 'breuk-van': REVIEW, 'gelijke-breuken': REVIEW
     }
   },
-  // Groep 7 so far: its whole numbers. The end of its year (ratios, the metric system, a decimal
-  // times a whole number, discount) is built next; until then it practises the middle's new topics
+  // Groep 7 so far: its whole numbers and its decimals. Fractions, ratios and discount come next
   7: {
     B: {
       'te-keer-te': NEW, 'afronden': NEW, 'tienden': NEW,
       'oppervlakte': REVIEW, 'breuk-van': REVIEW, 'tot-10000': REVIEW
     },
     M: {
-      'afronden-duizendtallen': NEW, 'cijferend-keer': NEW, 'staartdeling': NEW, 'procenten': NEW,
+      'afronden-duizendtallen': NEW, 'cijferend-keer': NEW, 'staartdeling': NEW, 'procenten': NEW, 'komma-maal-10': NEW,
       'te-keer-te': REVIEW, 'tienden': REVIEW
     },
     E: {
-      'afronden-duizendtallen': NEW, 'cijferend-keer': NEW, 'staartdeling': NEW, 'procenten': NEW
+      'kommagetal-keer': NEW, 'metriek': NEW,
+      'afronden-duizendtallen': REVIEW, 'cijferend-keer': REVIEW, 'staartdeling': REVIEW, 'procenten': REVIEW, 'komma-maal-10': REVIEW
     }
   }
 };
