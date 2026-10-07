@@ -153,6 +153,10 @@ its groep:
    COMPLETE.
 5. **Groep 7**: big numbers, cijferend × and :, decimals × 10/100/1000,
    fractions, percentages, ratios, the metric system.
+   WHOLE NUMBERS DONE in the eighth school-levels PR: rounding to
+   thousands, 124 × 36, 864 : 24 and 50/25/10% van an amount (M). Not yet:
+   decimals × 10/100/1000, fractions, ratios, the metric system, a decimal
+   times a whole number, discount.
 6. **Groep 8**: percentages, scale, the mean, area and volume, time spans,
    speed, negative numbers.
 7. **Verhaaltjessommen** (word problems) for every groep, in all three

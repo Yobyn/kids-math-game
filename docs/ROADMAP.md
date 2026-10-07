@@ -224,7 +224,24 @@ middle, hard the end), one groep per run.
   decided nothing, so it went.
   Money still writes €3.40 with a point in Dutch; a Dutch school writes
   €3,40. A follow-up, with the money strand's own words.
-- **Next, in order:** groep 7, 8; then verhaaltjessommen.
+- **Groep 7, its whole numbers: DONE (2026-10-07).** Grade 5 is groep 7
+  now. The start of the year is groep 6's end. The middle: numbers to a
+  million rounded to thousands under "Rond af op duizendtallen"
+  (345 678 ≈ ?, never already a thousand, the answer within the keypad's
+  six figures), three figures times two in columns (124 × 36), a
+  staartdeling by two figures that comes out whole (864 : 24), and 50%,
+  25% and 10% of an amount (25% van 60, kept as 60 : 4, worked as
+  25% = ¼ → 60 : 4 = 15). Numbers from 10 000 up are printed as a workbook
+  prints them, the thousands set apart by a narrow space (345 678), on the
+  card, in the answer given after two tries and in the rounding line;
+  four figures stay together. Every card fits a 320px phone on one row in
+  nl/en/es. The end of the year practises the middle's new topics until
+  its own (ratios, the metric system, a decimal times a whole number,
+  discount) are built. Mutation sweep: 30 mutants, 29 killed; the survivor
+  caps a staartdeling's answer at 40 rather than 60, a choice of range no
+  curriculum fact decides.
+- **Next, in order:** groep 7's decimals and end of year, groep 8; then
+  verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 
