@@ -31,11 +31,22 @@ export class KeypadComponent {
    */
   @Input() decimal = false;
 
+  /**
+   * True only for a question whose answer can be below zero. No question in
+   * the game is one yet: every subtraction takes the smaller number from the
+   * larger. Without this the minus sat beside the 0 on every sum, where a
+   * stray tap turned 42 into -42 and a right answer into a wrong one.
+   */
+  @Input() minus = false;
+
   /** The key that was pressed. What it means is the answer box's business. */
   @Output() press = new EventEmitter<string>();
 
   get keys(): string[] {
-    return this.decimal ? KEYPAD_KEYS_DECIMAL : KEYPAD_KEYS;
+    if (this.decimal) {
+      return KEYPAD_KEYS_DECIMAL;
+    }
+    return this.minus ? KEYPAD_KEYS : KEYPAD_KEYS.map(key => (key === '-' ? '' : key));
   }
 
   face(key: string): string {

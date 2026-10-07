@@ -1,11 +1,16 @@
 <div class="keypad" role="group" aria-label="Number pad">
-  <button type="button"
-          class="key"
-          *ngFor="let key of keys"
-          [class.key-action]="key === 'del' || key === '-' || key === '.'"
-          [disabled]="disabled"
-          [attr.aria-label]="label(key)"
-          (click)="onPress(key)">
-    {{ face(key) }}
-  </button>
+  <ng-container *ngFor="let key of keys">
+    <!-- An empty corner where a key would do nothing but harm: it keeps 0 in
+         the middle column, where a child's thumb already knows to find it. -->
+    <span *ngIf="!key" class="key-gap" aria-hidden="true"></span>
+    <button *ngIf="key"
+            type="button"
+            class="key"
+            [class.key-action]="key === 'del' || key === '-' || key === '.'"
+            [disabled]="disabled"
+            [attr.aria-label]="label(key)"
+            (click)="onPress(key)">
+      {{ face(key) }}
+    </button>
+  </ng-container>
 </div>

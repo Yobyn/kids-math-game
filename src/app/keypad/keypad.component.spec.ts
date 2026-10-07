@@ -21,7 +21,28 @@ describe('KeypadComponent', () => {
   });
 
   it('draws a key for every key there is', () => {
+    component.minus = true;
+    fixture.detectChanges();
+
     expect(keys().length).toBe(KEYPAD_KEYS.length);
+  });
+
+  it('leaves the minus off when no answer can be below zero', () => {
+    // A stray tap beside the 0 turned 42 into -42, and a right answer into
+    // a wrong one, on sums whose answer is never negative
+    const labels = keys().map(key => key.getAttribute('aria-label'));
+
+    expect(labels).not.toContain('-');
+    expect(keys().length).toBe(KEYPAD_KEYS.length - 1);
+  });
+
+  it('keeps the 0 in the middle column without the minus', () => {
+    const zero = keys().find(key => key.getAttribute('aria-label') === '0')!;
+    const five = keys().find(key => key.getAttribute('aria-label') === '5')!;
+    const gap = fixture.nativeElement.querySelector('.key-gap');
+
+    expect(Math.abs(zero.getBoundingClientRect().left - five.getBoundingClientRect().left)).toBeLessThan(1);
+    expect(gap.getAttribute('aria-hidden')).toBe('true');
   });
 
   it('carries its own styles, which is the point of the move', () => {
@@ -81,6 +102,8 @@ describe('KeypadComponent', () => {
   });
 
   it('marks the keys that are not digits, so they read differently', () => {
+    component.minus = true;
+    fixture.detectChanges();
     const marked = keys().filter(key => key.classList.contains('key-action'));
 
     expect(marked.length).toBe(2);

@@ -1390,6 +1390,14 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**NO MINUS KEY WHERE NO ANSWER IS BELOW ZERO — DONE (2026-10-07).** The
+  keypad's minus sat beside the 0 on every sum, though no question in the
+  game has a negative answer (every subtraction takes the smaller number from
+  the larger). On a phone a thumb reaching for 0 sometimes caught it, and 42
+  became -42: a right answer marked wrong. The corner is left empty now, so 0
+  stays in the middle column. `minus` on the keypad brings the key back for
+  the first question that needs it (negative numbers, groep 8).
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
