@@ -156,8 +156,13 @@ its groep:
    WHOLE NUMBERS DONE in the eighth school-levels PR: rounding to
    thousands, 124 × 36, 864 : 24 and 50/25/10% van an amount (M).
    DECIMALS DONE in the ninth: × and : 10/100/1000 (M), a decimal times a
-   whole number and the metric system with a comma (E). Not yet: fractions
-   with the same denominator, fraction to decimal, ratios, discount.
+   whole number and the metric system with a comma (E). The rest DONE in
+   the tenth: fractions with the same denominator, 2/8 + 3/8 = ?/8, and a
+   fraction as a decimal, ¾ = 0,75 (M); ratios through the price of one,
+   "3 pakken kosten €6, 7 pakken = €?", and discount, "20% korting: wat
+   betaal je? €45 → €?" (E). GROEP 7 IS COMPLETE. Not yet: tenths and
+   twelfths in 7/12 + 4/12 (too wide for one line of a small phone until
+   a fraction is drawn over its line), mixed numbers.
 6. **Groep 8**: percentages, scale, the mean, area and volume, time spans,
    speed, negative numbers.
 7. **Verhaaltjessommen** (word problems) for every groep, in all three
