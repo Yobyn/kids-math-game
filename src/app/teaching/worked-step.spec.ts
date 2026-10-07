@@ -1,3 +1,4 @@
+import { CURRICULUM, TOPICS } from './school/groep';
 import { workedStep } from './worked-step';
 
 /**
@@ -129,6 +130,50 @@ describe('the method it chooses', () => {
   it('reads division back as the multiplication behind it', () => {
     expect(workedStep(42, 6, '/')).toBe('6 × 7 = 42 → 42 ÷ 6 = 7');
   });
+
+  it('splits a two-figure number in its tens and its ones, as 4 × 23, 25 × 8 and 23 × 14 are taught', () => {
+    expect(workedStep(4, 23, '*')).toBe('4 × 20 = 80 → 4 × 3 = 12 → 80 + 12 = 92');
+    expect(workedStep(25, 8, '*')).toBe('20 × 8 = 160 → 5 × 8 = 40 → 160 + 40 = 200');
+    expect(workedStep(23, 14, '*')).toBe('23 × 10 = 230 → 23 × 4 = 92 → 230 + 92 = 322');
+  });
+
+  it('shares out past the tables in a handy part and the rest: 96 : 4 as 80 : 4 and 16 : 4', () => {
+    expect(workedStep(96, 4, '/')).toBe('80 ÷ 4 = 20 → 16 ÷ 4 = 4 → 20 + 4 = 24');
+    expect(workedStep(150, 6, '/')).toBe('120 ÷ 6 = 20 → 30 ÷ 6 = 5 → 20 + 5 = 25');
+    // a round answer is a table times ten: read back as before
+    expect(workedStep(120, 6, '/')).toBe('6 × 20 = 120 → 120 ÷ 6 = 20');
+  });
+});
+
+describe('the sums groep 5 and 6 are set', () => {
+  it('prints only true steps for them, ending on the answer, and has a line for every × and : past the tables', () => {
+    const misses: string[] = [];
+    let seed = 1;
+    const random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+    [5, 6].forEach(groep => (['B', 'M', 'E'] as const).forEach(moment => Object.keys(CURRICULUM[groep][moment]).forEach(topic => {
+      for (let i = 0; i < 100; i++) {
+        const sum = TOPICS[topic](random);
+        if (sum.form || !['*', '/'].includes(sum.operation)) {
+          continue;
+        }
+        const step = workedStep(sum.num1, sum.num2, sum.operation);
+        const big = sum.operation === '*' ? Math.max(sum.num1, sum.num2) > 10 && Math.max(sum.num1, sum.num2) % 10 !== 0
+                                          : sum.num1 / sum.num2 > 10;
+        if (!step) {
+          if (big) {
+            misses.push(`${topic}: nothing for ${sum.num1} ${sum.operation} ${sum.num2}`);
+          }
+          continue;
+        }
+        const parts = equations(step);
+        if (!parts.every(({ left, right }) => evaluate(left) === right) ||
+            parts[parts.length - 1].right !== answerFor(sum.num1, sum.num2, sum.operation)) {
+          misses.push(`${topic}: ${step}`);
+        }
+      }
+    })));
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
 });
 
 describe('when it says nothing', () => {
@@ -148,6 +193,9 @@ describe('when it says nothing', () => {
     expect(workedStep(6, 2, '*')).toBeUndefined();
     expect(workedStep(6, 5, '*')).toBeUndefined();
     expect(workedStep(7, 10, '*')).toBeUndefined();
+    // times a ten is a table and a nought: 7 × 20
+    expect(workedStep(7, 20, '*')).toBeUndefined();
+    expect(workedStep(30, 4, '*')).toBeUndefined();
   });
 
   it('stays quiet about division that explains nothing', () => {
