@@ -343,6 +343,12 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       expect(sums.some(sum => sum.num2 === 10 && sum.num1 % 10 === 5)).toBeTrue();
     });
 
+    it('keeps practising at the end of the year everything that was new in its middle', () => {
+      const end = Object.keys(CURRICULUM[6].E);
+      Object.keys(CURRICULUM[6].M).filter(topic => !Object.keys(CURRICULUM[6].B).includes(topic))
+        .forEach(topic => expect(end).withContext(topic).toContain(topic));
+    });
+
     it('asks nothing a child cannot type in the keypad\'s six figures', () => {
       (['B', 'M', 'E'] as Moment[]).forEach(moment => Object.keys(CURRICULUM[6][moment]).forEach(topic =>
         made(topic).forEach(sum => expect(figures(answer(sum))).withContext(`${topic} ${at(sum)}`).toBeLessThanOrEqual(6))));
