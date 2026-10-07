@@ -42,6 +42,8 @@ export interface FormWords {
   toHundreds: string;
   /** "Oppervlakte", the heading over 6 m × 4 m = ? m² */
   area: string;
+  /** The decimal sign: a comma in Dutch and Spanish (0,7), a point in English (0.7) */
+  point: string;
 }
 
 /**
@@ -78,6 +80,29 @@ export function numeratorsOf(denominator: number, from = 1): number[] {
 /** A number rounded to the nearest ten or hundred, a 5 going up as at school: 345 → 350. */
 export function roundTo(value: number, to: number): number {
   return Math.round(value / to) * to;
+}
+
+/**
+ * A number of tenths as it is written: 7 as 0,7, 42 as 4,2, 40 as 4. The
+ * tenths topic keeps whole numbers, so nothing is ever a float on the way.
+ */
+export function tenths(value: number, point = ','): string {
+  const whole = Math.floor(value / 10);
+  return value % 10 ? `${whole}${point}${value % 10}` : String(whole);
+}
+
+/**
+ * A typed answer read as a number of tenths: "0,7", "0.7" and ".7" are 7,
+ * "4" and "4,0" are 40. NaN for anything that is not a whole number of
+ * tenths, so 0,75 is never taken for 0,8.
+ */
+export function typedTenths(typed: string): number {
+  const text = String(typed == null ? '' : typed).trim().replace(',', '.');
+  const match = text.match(/^(\d*)(?:\.(\d)0*)?$/);
+  if (!text || !match || (!match[1] && !match[2])) {
+    return NaN;
+  }
+  return Number(match[1] || 0) * 10 + Number(match[2] || 0);
 }
 
 const number = (value: number): SumPart => ({ kind: 'number', text: String(value) });
@@ -139,6 +164,13 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
         before: [{ kind: 'number', text: FRACTIONS[`${sum.num1}/${denominatorOf(sum.form)}`] }, equals],
         after: [operation('/'), number(denominatorOf(sum.form) * sum.num2)]
       };
+    // 0,3 + 0,4 = ?, kept as 3 + 4 in tenths
+    case 'tienden':
+      return {
+        before: [{ kind: 'number', text: tenths(sum.num1, words.point) }, operation(sum.sign),
+                 { kind: 'number', text: tenths(sum.num2, words.point) }, equals],
+        after: []
+      };
     // Oppervlakte: 6 m × 4 m = ? m², kept as 6 × 4
     case 'oppervlakte':
       return {
@@ -171,7 +203,8 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
  * a quarter of 20 is 20 shared out in four.
  * Undefined for a plain sum, which worked-step.ts handles.
  */
-export function formWorkedStep(form: SumForm | undefined, num1: number, num2: number): string | undefined {
+export function formWorkedStep(form: SumForm | undefined, num1: number, num2: number,
+                               operation = '+', point = ','): string | undefined {
   switch (form) {
     case 'aanvullen':
     case 'splitsen':
@@ -209,6 +242,12 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
     case 'gelijk-5': {
       const under = denominatorOf(form);
       return `${under} × ${num2} = ${under * num2} → ${num1} × ${num2} = ${num1 * num2}`;
+    }
+    // 1,5 + 2,7: count in tenths, 15 + 27 = 42 tenths, which is 4,2
+    case 'tienden': {
+      const answer = operation === '-' ? num1 - num2 : num1 + num2;
+      const sign = operation === '-' ? '−' : '+';
+      return `${num1} ${sign} ${num2} = ${answer} → ${tenths(num1, point)} ${sign} ${tenths(num2, point)} = ${tenths(answer, point)}`;
     }
     // a rectangle's area is its length times its width
     case 'oppervlakte':

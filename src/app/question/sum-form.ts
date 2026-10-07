@@ -15,6 +15,8 @@
  *   gelijk-4   ¾ = ?/12          kept as 3 × 3: the numerator times what the
  *                                denominator was multiplied by
  *   oppervlakte 6 m × 4 m = ? m²  kept as 6 × 4
+ *   tienden    0,3 + 0,4 = ?     kept as 3 + 4, counted in tenths: the answer
+ *                                7 is shown and typed as 0,7
  *
  * so marking, the worked line and a missed fact's identity all still work
  * from the sum. A remainder and a rounding are the sums with signs of their
@@ -25,7 +27,7 @@
  * The number under a fraction's line is in the form's name (van-4, gelijk-4),
  * since a sum keeps two numbers and both are taken.
  */
-export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | 'rest' | 'afronden' | 'oppervlakte'
+export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | 'rest' | 'afronden' | 'oppervlakte' | 'tienden'
   | MeasureForm | FractionOfForm | EqualFractionForm;
 
 /** ¾ van 20, ⅖ van 35: a part of an amount, more than one part taken. The number is the denominator. */
@@ -46,7 +48,7 @@ export type MeasureForm = 'm-cm' | 'km-m' | 'kg-g' | 'uur-min';
 
 export const MEASURE_FORMS: MeasureForm[] = ['m-cm', 'km-m', 'kg-g', 'uur-min'];
 
-export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft', 'deel', 'rest', 'afronden', 'oppervlakte',
+export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft', 'deel', 'rest', 'afronden', 'oppervlakte', 'tienden',
   ...MEASURE_FORMS, ...FRACTION_OF_FORMS, ...EQUAL_FRACTION_FORMS];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */

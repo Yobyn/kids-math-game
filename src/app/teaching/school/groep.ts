@@ -342,6 +342,16 @@ Object.assign(TOPICS, {
       form: `gelijk-${under}` as SumForm
     };
   },
+  // Groep 6, the end: adding and taking away tenths. 0,3 + 0,4, 1,5 + 2,7, 2,4 − 0,8,
+  // kept as whole tenths (3 + 4); never a round number, which would hide the comma
+  'tienden': random => {
+    if (random() < 0.5) {
+      const num1 = notRound(random, 1, 49);
+      return { num1, num2: notRound(random, 1, 49), operation: '+', form: 'tienden' };
+    }
+    const num1 = notRound(random, 12, 99);
+    return { num1, num2: notRound(random, 1, num1 - 1), operation: '-', form: 'tienden' };
+  },
   // Groep 6, the end: the area of a rectangle in whole metres. 6 m × 4 m = ? m²
   'oppervlakte': random => {
     const width = between(random, 2, 9);
@@ -409,7 +419,7 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
       'tot-1000-over': REVIEW, 'te-keer-e': REVIEW, 'delen-met-rest': REVIEW
     },
     E: {
-      'te-keer-te': NEW, 'afronden': NEW, 'oppervlakte': NEW,
+      'te-keer-te': NEW, 'afronden': NEW, 'oppervlakte': NEW, 'tienden': NEW,
       'tot-10000': REVIEW, 'keer-groter': REVIEW, 'delen-groter': REVIEW, 'breuk-van': REVIEW, 'gelijke-breuken': REVIEW
     }
   }

@@ -1,4 +1,4 @@
-import { FRACTIONS, MEASURES, UNIT_FRACTIONS, formWorkedStep, roundTo } from '../teaching/school/written-form';
+import { FRACTIONS, MEASURES, UNIT_FRACTIONS, formWorkedStep, roundTo, tenths } from '../teaching/school/written-form';
 import { denominatorOf } from '../question/sum-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
@@ -118,6 +118,9 @@ export function factText(fact: MissedFact): string {
       return `${FRACTIONS[`${fact.num1}/${denominatorOf(fact.form)}`]} = ?/${denominatorOf(fact.form) * fact.num2}`;
     case 'oppervlakte':
       return `${fact.num1} m × ${fact.num2} m = ? m²`;
+    // 0,3 + 0,4, kept as 3 + 4 tenths
+    case 'tienden':
+      return `${tenths(fact.num1)} ${operationSymbol(fact.operation)} ${tenths(fact.num2)}`;
     // 347 rounded to tens, read in any language as 347 ≈ ? (10)
     case 'afronden':
       return `${fact.num1} ≈ ? (${fact.num2})`;
@@ -260,12 +263,12 @@ function toItem(fact: MissedFact): PracticeItem {
 
   const item: PracticeItem = {
     question: factText(fact),
-    answer: String(answer),
+    answer: fact.form === 'tienden' ? tenths(answer) : String(answer),
     reviews,
     toGraduate
   };
 
-  const worked = formWorkedStep(fact.form, fact.num1, fact.num2) || workedStep(fact.num1, fact.num2, fact.operation);
+  const worked = formWorkedStep(fact.form, fact.num1, fact.num2, fact.operation) || workedStep(fact.num1, fact.num2, fact.operation);
   if (worked) {
     item.worked = worked;
   }

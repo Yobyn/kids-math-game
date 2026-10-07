@@ -17,7 +17,7 @@ import { MAX_PICKED, addPiece, pickMatches, removeAt } from '../teaching/coin-pi
 import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
 import { momentFor, schoolSum } from '../teaching/school/groep';
-import { SumLayout, formWorkedStep, roundTo, sumLayout } from '../teaching/school/written-form';
+import { SumLayout, formWorkedStep, roundTo, sumLayout, tenths, typedTenths } from '../teaching/school/written-form';
 import { SumForm } from './sum-form';
 import {
   QUESTIONS_IN_ROUND,
@@ -510,7 +510,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
         minutes: this.languageService.translate('unit-minutes'),
         toTens: this.languageService.translate('round-tens'),
         toHundreds: this.languageService.translate('round-hundreds'),
-        area: this.languageService.translate('sum-area')
+        area: this.languageService.translate('sum-area'),
+        point: this.decimalSign
       });
     }
     return this.layoutCache!;
@@ -534,7 +535,25 @@ export class QuestionComponent implements OnInit, OnDestroy {
 
   /** True where the band writes €3.40, which needs a point on the keypad. */
   get needsDecimalKey(): boolean {
-    return this.currentQuestion.money ? this.currentQuestion.money.unit === 'decimal' : false;
+    return this.currentQuestion.money ? this.currentQuestion.money.unit === 'decimal' : this.inTenths;
+  }
+
+  /** 0,3 + 0,4: a sum in tenths, written and typed with the decimal sign (sum-form.ts). */
+  get inTenths(): boolean {
+    return this.currentQuestion.form === 'tienden';
+  }
+
+  /** The decimal sign as the child's school writes it: 0,7 in Dutch and Spanish, 0.7 in English. */
+  get decimalSign(): string {
+    return this.languageService.getLanguage() === 'en' ? '.' : ',';
+  }
+
+  /**
+   * The answer as the box shows it. A sum in tenths shows the child's own
+   * decimal sign; money keeps the point its card is written with (€3.40).
+   */
+  get shownAnswer(): string {
+    return this.inTenths ? String(this.userAnswer).replace('.', this.decimalSign) : this.userAnswer;
   }
 
   generateQuestion() {
@@ -738,7 +757,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const answer = Number(this.userAnswer);
+    // A sum in tenths is marked in whole tenths: "0,7" is 7, as 0,3 + 0,4 is kept as 3 + 4
+    const answer = this.inTenths ? typedTenths(this.userAnswer) : Number(this.userAnswer);
     let isCorrect = false;
 
     switch (this.currentQuestion.operation) {
@@ -769,7 +789,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
         break;
     }
 
-    this.correctAnswerText = String(this.correctAnswer);
+    this.correctAnswerText = this.inTenths ? tenths(this.correctAnswer, this.decimalSign) : String(this.correctAnswer);
 
     if (isCorrect) {
       this.handleCorrectAnswer();
@@ -847,7 +867,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
       // own line — a pile counted up, or change counted on from the price.
       this.workedLine = this.currentQuestion.money
         ? this.currentQuestion.money.worked
-        : formWorkedStep(this.currentQuestion.form, this.currentQuestion.num1, this.currentQuestion.num2)
+        : formWorkedStep(this.currentQuestion.form, this.currentQuestion.num1, this.currentQuestion.num2,
+                         this.currentQuestion.operation, this.decimalSign)
           || workedStep(this.currentQuestion.num1, this.currentQuestion.num2,
                         this.currentQuestion.operation) || '';
       this.showOkButton = true;
