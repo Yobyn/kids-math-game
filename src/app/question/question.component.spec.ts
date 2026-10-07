@@ -1721,6 +1721,12 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()).toEqual(['Rond af op tientallen', '347', '≈', '[ ]']);
     ask({ num1: 2468, num2: 100, operation: '≈', form: 'afronden' });
     expect(card()).toEqual(['Rond af op honderdtallen', '2468', '≈', '[ ]']);
+    ask({ num1: 5, num2: 3, operation: '*', form: 'van-4' });
+    expect(card()).toEqual(['¾', 'van', '20', '=', '[ ]']);
+    ask({ num1: 1, num2: 4, operation: '*', form: 'gelijk-2' });
+    expect(card()).toEqual(['½', '=', '[ ]', '/', '8']);
+    ask({ num1: 6, num2: 4, operation: '*', form: 'oppervlakte' });
+    expect(card()).toEqual(['Oppervlakte van de rechthoek', '6', 'm', '×', '4', 'm', '=', '[ ]', 'm²']);
     // A plain sum keeps the box at the end
     ask({ num1: 7, num2: 5, operation: '+' });
     expect(card()).toEqual(['7', '+', '5', '=', '[ ]']);
@@ -1764,6 +1770,13 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()).toEqual(['Redondea a la decena', '347', '≈', '[ ]']);
     ask({ num1: 2468, num2: 100, operation: '≈', form: 'afronden' });
     expect(card()).toEqual(['Redondea a la centena', '2468', '≈', '[ ]']);
+    ask({ num1: 5, num2: 3, operation: '*', form: 'van-4' });
+    expect(card()).toEqual(['¾', 'de', '20', '=', '[ ]']);
+    ask({ num1: 6, num2: 4, operation: '*', form: 'oppervlakte' });
+    expect(card()[0]).toBe('Área del rectángulo');
+    component.languageService.setLanguage('en');
+    fixture.detectChanges();
+    expect(card()[0]).toBe('Area of the rectangle');
   });
 
   it('marks the number that goes in the box: 3 for 7 + ? = 10', () => {
@@ -1817,6 +1830,25 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(marked(2468, 100, '2500')).toBe(true);
     expect(marked(2468, 100, '2470')).toBe(false);
     expect(marked(2438, 100, '2400')).toBe(true);
+  });
+
+  it('marks the parts taken for ¾ van 20, not one part; the new numerator for ¾ = ?/12; the area for 6 m × 4 m', () => {
+    build('nl');
+    const marked = (question: AskedQuestion, typed: string) => {
+      ask(question);
+      component.wrongAttempts = 0;
+      component.userAnswer = typed;
+      component.checkAnswer();
+      return component.answerWasCorrect;
+    };
+    expect(marked({ num1: 5, num2: 3, operation: '*', form: 'van-4' }, '15')).toBe(true);
+    // a quarter of 20, the step on the way: not what is asked
+    expect(marked({ num1: 5, num2: 3, operation: '*', form: 'van-4' }, '5')).toBe(false);
+    expect(marked({ num1: 3, num2: 3, operation: '*', form: 'gelijk-4' }, '9')).toBe(true);
+    expect(marked({ num1: 3, num2: 3, operation: '*', form: 'gelijk-4' }, '12')).toBe(false);
+    expect(marked({ num1: 6, num2: 4, operation: '*', form: 'oppervlakte' }, '24')).toBe(true);
+    // the way round a rectangle is another sum
+    expect(marked({ num1: 6, num2: 4, operation: '*', form: 'oppervlakte' }, '20')).toBe(false);
   });
 
   it('marks 300 for 3 m = ? cm', () => {
