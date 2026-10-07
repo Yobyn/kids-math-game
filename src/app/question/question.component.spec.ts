@@ -1895,6 +1895,15 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(component.answerWasCorrect).toBe(true);
   });
 
+  it('keeps the decimal key a point in English, where 0.7 is written with one', () => {
+    build('en');
+    component.useKeypad = true;
+    ask({ num1: 3, num2: 4, operation: '+', form: 'tienden' });
+    const keyFaces = Array.from(fixture.nativeElement.querySelectorAll('.key')).map((key: any) => key.textContent.trim());
+    expect(keyFaces).toContain('.');
+    expect(keyFaces).not.toContain(',');
+  });
+
   it('draws the box for a decimal as wide as the box for a whole number, so 1,7 + 4,1 = stays on one line', () => {
     build('nl');
     const box = () => (fixture.nativeElement.querySelector('.math-problem input') as HTMLElement).getBoundingClientRect();
