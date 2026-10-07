@@ -99,7 +99,7 @@ export function tenths(value: number, point = ','): string {
 export function typedTenths(typed: string): number {
   const text = String(typed == null ? '' : typed).trim().replace(',', '.');
   const match = text.match(/^(\d*)(?:\.(\d)0*)?$/);
-  if (!text || !match || (!match[1] && !match[2])) {
+  if (!text || !match) {
     return NaN;
   }
   return Number(match[1] || 0) * 10 + Number(match[2] || 0);
