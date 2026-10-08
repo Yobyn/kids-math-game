@@ -103,7 +103,7 @@
   line-height: 1.1;
 }
 
-input[type="number"] {
+input {
   width: 120px;
   height: 60px;
   font-size: 2rem;
@@ -113,18 +113,18 @@ input[type="number"] {
   transition: all 0.3s ease;
 }
 
-input[type="number"]:focus {
+input:focus {
   outline: none;
   border-color: var(--accent-blue);
   box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.3);
 }
 
-input[type="number"].correct {
+input.correct {
   border-color: var(--good);
   background-color: var(--good-read-surface);
 }
 
-input[type="number"].incorrect {
+input.incorrect {
   border-color: var(--bad);
   background-color: var(--bad-read-surface);
 }
@@ -232,7 +232,7 @@ input[type="number"].incorrect {
     gap: 0.75rem;
   }
 
-  input[type="number"] {
+  input {
     width: 100px;
     height: 50px;
     font-size: 1.75rem;
@@ -249,7 +249,7 @@ input[type="number"].incorrect {
     gap: 0.5rem;
   }
 
-  input[type="number"] {
+  input {
     width: 80px;
     height: 40px;
     font-size: 1.5rem;

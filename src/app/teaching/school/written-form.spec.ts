@@ -1,14 +1,22 @@
-import { SUM_FORMS, SumForm, readForm } from '../../question/sum-form';
+import { SUM_FORMS, SumForm, placesOf, readForm } from '../../question/sum-form';
 import { CURRICULUM, Moment, Random, SchoolSum, TOPICS, schoolSum } from './groep';
-import { FormWords, SumLayout, formWorkedStep, sumLayout } from './written-form';
+import { FormWords, SumLayout, decimal, formWorkedStep, grouped, sumLayout, tenths, typedDecimal, typedTenths } from './written-form';
 
 const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van', remainder: 'rest', hours: 'uur', minutes: 'minuten',
-  toTens: 'Rond af op tientallen', toHundreds: 'Rond af op honderdtallen', area: 'Oppervlakte van de rechthoek' };
+  toTens: 'Rond af op tientallen', toHundreds: 'Rond af op honderdtallen', area: 'Oppervlakte van de rechthoek', point: ',',
+  toThousands: 'Rond af op duizendtallen', packs: 'pakken', cost: 'kosten', discount: 'korting: wat betaal je?' };
+
+/** A number as written in Dutch, 3,45 or 72, read in thousandths: 3450, 72000. NaN past three figures after the comma. */
+function thousandths(text: string): number {
+  const [whole, part = ''] = text.split(',');
+  return part.length > 3 ? NaN : Number(whole) * 1000 + Number(part.padEnd(3, '0'));
+}
+
 
 /** A fraction character read as its numerator and denominator, as a child reads ¾ as 3 over 4. */
 const GLYPHS: { [glyph: string]: [number, number] } = {
   '½': [1, 2], '⅓': [1, 3], '⅔': [2, 3], '¼': [1, 4], '¾': [3, 4], '⅕': [1, 5], '⅖': [2, 5], '⅗': [3, 5], '⅘': [4, 5],
-  '⅙': [1, 6], '⅚': [5, 6], '⅛': [1, 8], '⅜': [3, 8], '⅝': [5, 8], '⅞': [7, 8]
+  '⅙': [1, 6], '⅚': [5, 6], '⅛': [1, 8], '⅜': [3, 8], '⅝': [5, 8], '⅞': [7, 8], '⅒': [1, 10]
 };
 const GLYPH = `(${Object.keys(GLYPHS).join('|')})`;
 
@@ -42,12 +50,18 @@ function read(layout: SumLayout): string {
   return [...layout.before.map(part => part.text), '?', ...layout.after.map(part => part.text)].join(' ');
 }
 
+/** The sum with a number in its box: the last "?", since a heading can ask a question of its own (wat betaal je?). */
+function fill(written: string, value: number | string): string {
+  const at = written.lastIndexOf('?');
+  return written.slice(0, at) + String(value) + written.slice(at + 1);
+}
+
 /**
  * Is the written sum true with this number in the box? Read the way a child
  * would check it: "dubbel 7 = 14", "7 + 3 = 10", "8 = 5 + 3".
  */
-function holds(written: string, filled: number): boolean {
-  const text = written.replace('?', String(filled));
+function holds(written: string, filled: number | string): boolean {
+  const text = written.includes('?') ? fill(written, filled) : written;  // a worked step comes filled in
   const double = text.match(/^dubbel (\d+) = (\d+)$/);
   if (double) {
     return 2 * +double[1] === +double[2];
@@ -61,15 +75,16 @@ function holds(written: string, filled: number): boolean {
     const [whole, parts, times, left] = rest.slice(1).map(Number);
     return whole === parts * times + left && left < parts;
   }
-  const measure = text.match(/^(\d+) (m|km|kg|uur|h) = (\d+) (cm|m|g|minuten|min)$/);
+  const measure = text.match(/^(\d+(?:,\d)?) (m|km|kg|l|uur|h) = (\d+) (cm|m|g|dl|minuten|min)$/);
   if (measure) {
-    const per: { [unit: string]: number } = { 'm cm': 100, 'km m': 1000, 'kg g': 1000, 'uur minuten': 60, 'h min': 60 };
-    return per[`${measure[2]} ${measure[4]}`] * +measure[1] === +measure[3];
+    const per: { [unit: string]: number } = { 'm cm': 100, 'km m': 1000, 'kg g': 1000, 'l dl': 10, 'uur minuten': 60, 'h min': 60 };
+    return per[`${measure[2]} ${measure[4]}`] * thousandths(measure[1]) === 1000 * +measure[3];
   }
   // Rond af op tientallen: 347 ≈ 350. A ten, and no ten nearer; halfway (345) goes up
-  const rounded = text.match(/^Rond af op (tientallen|honderdtallen) (\d+) ≈ (\d+)$/);
+  const rounded = text.match(/^Rond af op (tientallen|honderdtallen|duizendtallen) ([\d\u202f]+) ≈ (\d+)$/);
   if (rounded) {
-    const [n, to, filled] = [+rounded[2], rounded[1] === 'tientallen' ? 10 : 100, +rounded[3]];
+    const to = ({ tientallen: 10, honderdtallen: 100, duizendtallen: 1000 } as { [place: string]: number })[rounded[1]];
+    const [n, filled] = [+rounded[2].replace(/\u202f/g, ''), +rounded[3]];
     const distance = Math.abs(n - filled);
     return filled % to === 0 && (distance < to / 2 || (distance === to / 2 && filled > n));
   }
@@ -84,6 +99,46 @@ function holds(written: string, filled: number): boolean {
   if (equal) {
     const [top, bottom] = GLYPHS[equal[1]];
     return top * +equal[3] === +equal[2] * bottom;
+  }
+  // 1,5 + 2,7 = 4,2, 3,45 × 100 = 345, 72 : 100 = 0,72: read in thousandths; the number after × or : is whole
+  const decimal = text.match(/^([\d,]+) ([+−×:]) ([\d,]+) = ([\d,]+)$/);
+  if (decimal && /,/.test(text)) {
+    const [a, result] = [decimal[1], decimal[4]].map(thousandths);
+    const sign = decimal[2];
+    if (sign === '+' || sign === '−') {
+      return (sign === '+' ? a + thousandths(decimal[3]) : a - thousandths(decimal[3])) === result;
+    }
+    const by = /,/.test(decimal[3]) ? NaN : +decimal[3];
+    return sign === '×' ? a * by === result : a === result * by;
+  }
+  // 2/8 + 3/8 = 5 / 8: the parts added, each part the same size; 1/2 + 1/4 would be 3/4
+  const fractions = text.match(/^(\d+)\/(\d+) ([+−]) (\d+)\/(\d+) = (\d+) ?\/ ?(\d+)$/);
+  if (fractions) {
+    const [a, n, b, m, c, under] = [1, 2, 4, 5, 6, 7].map(i => +fractions[i]);
+    return (fractions[3] === '+' ? a * m + b * n : a * m - b * n) * under === c * n * m;
+  }
+  // ¾ = 0,75: the same part of a whole, read in thousandths
+  const asDecimal = text.match(new RegExp(`^${GLYPH} = ([\\d,]+)$`));
+  if (asDecimal) {
+    const [top, bottom] = GLYPHS[asDecimal[1]];
+    return top * 1000 === thousandths(asDecimal[2]) * bottom;
+  }
+  // 3 pakken kosten €6, 7 pakken = € 14: every pak costs the same
+  const ratio = text.match(/^(\d+) pakken kosten €(\d+) (\d+) pakken = € (\d+)$/);
+  if (ratio) {
+    const [packs, price, asked, paid] = ratio.slice(1).map(Number);
+    return price * asked === paid * packs;
+  }
+  // 20% korting: € 45 → € 36: the price less a fifth of it
+  const discount = text.match(/^(\d+)% korting: wat betaal je\? € (\d+) → € (\d+)$/);
+  if (discount) {
+    const [off, price, paid] = discount.slice(1).map(Number);
+    return 100 * paid === price * (100 - off);
+  }
+  // 25% van 60 = 15: a quarter of 60
+  const percent = text.match(/^(\d+)% van (\d+) = (\d+)$/);
+  if (percent) {
+    return +percent[1] * +percent[2] === 100 * +percent[3];
   }
   const area = text.match(/^Oppervlakte van de rechthoek (\d+) m × (\d+) m = (\d+) m²$/);
   if (area) {
@@ -140,10 +195,28 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('afronden', 347, 10, '≈')).toBe('Rond af op tientallen 347 ≈ ?');
     expect(shown('afronden', 2468, 100, '≈')).toBe('Rond af op honderdtallen 2468 ≈ ?');
     expect(shown('van-4', 5, 3, '*')).toBe('¾ van 20 = ?');
+    expect(shown('procent-25', 60, 4, '/')).toBe('25% van 60 = ?');
+    expect(shown('procent-10', 350, 10, '/')).toBe('10% van 350 = ?');
+    expect(shown('afronden', 345678, 1000, '≈')).toBe('Rond af op duizendtallen 345\u202f678 ≈ ?');
     expect(shown('van-5', 7, 2, '*')).toBe('⅖ van 35 = ?');
     expect(shown('gelijk-2', 1, 4, '*')).toBe('½ = ? / 8');
     expect(shown('gelijk-4', 3, 3, '*')).toBe('¾ = ? / 12');
     expect(shown('oppervlakte', 6, 4, '*')).toBe('Oppervlakte van de rechthoek 6 m × 4 m = ? m²');
+    expect(read(sumLayout({ num1: 3, num2: 4, sign: '+', form: 'tienden' }, WORDS))).toBe('0,3 + 0,4 = ?');
+    expect(read(sumLayout({ num1: 24, num2: 8, sign: '−', form: 'tienden' }, WORDS))).toBe('2,4 − 0,8 = ?');
+    expect(read(sumLayout({ num1: 15, num2: 27, sign: '+', form: 'tienden' }, { ...WORDS, point: '.' }))).toBe('1.5 + 2.7 = ?');
+    expect(shown('komma-2', 345, 100, '×')).toBe('3,45 × 100 = ?');
+    expect(shown('komma-2', 250, 4, '×')).toBe('2,5 × 4 = ?');
+    expect(shown('komma-3', 72000, 100, '/')).toBe('72 : 100 = ?');
+    expect(shown('komma-3', 4500, 10, '/')).toBe('4,5 : 10 = ?');
+    expect(shown('komma-km-m', 25, 1000, '*')).toBe('2,5 km = ? m');
+    expect(shown('komma-l-dl', 15, 10, '*')).toBe('1,5 l = ? dl');
+    expect(shown('gelijknamig-8', 2, 3, '+')).toBe('2/8 + 3/8 = ? / 8');
+    expect(shown('gelijknamig-6', 5, 4, '−')).toBe('5/6 − 4/6 = ? / 6');
+    expect(shown('breuk-komma', 25, 3, '*')).toBe('¾ = ?');
+    expect(shown('breuk-komma', 20, 2, '*')).toBe('⅖ = ?');
+    expect(shown('verhouding-3', 7, 2, '*')).toBe('3 pakken kosten €6 7 pakken = € ?');
+    expect(shown('korting-20', 45, 9, '-')).toBe('20% korting: wat betaal je? € 45 → € ?');
     // and a plain sum is still a plain sum, the box at the end
     expect(read(sumLayout({ num1: 7, num2: 5, sign: '+' }, WORDS))).toBe('7 + 5 = ?');
     // Only ¾ = ?/12 has its box as a numerator, drawn over the 12
@@ -155,9 +228,12 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
   it('is true, as written, with the answer the child is marked against in the box: every sum of every form', () => {
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
-      const written = read(sumLayout({ num1: sum.num1, num2: sum.num2, sign: sum.operation === '%' ? ':' : sum.operation, form: sum.form }, WORDS));
+      const sign = ({ '%': ':', '-': '−', '*': '×', '/': ':' } as { [op: string]: string })[sum.operation] || sum.operation;
+      const written = read(sumLayout({ num1: sum.num1, num2: sum.num2, sign, form: sum.form }, WORDS));
       const right = answer(sum);
-      if (!holds(written, right) || holds(written, right + 1)) {
+      // a sum with a comma is answered with one: 7 tenths is written 0,7
+      const filled = (value: number) => placesOf(sum.form) ? decimal(value, placesOf(sum.form)) : value;
+      if (!holds(written, filled(right)) || holds(written, filled(right + 1))) {
         misses.push(`${topic}: ${written} with ${right}`);
       }
     }));
@@ -176,12 +252,29 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('van-4', 5, 3)).toBe('20 : 4 = 5 → 3 × 5 = 15');
     expect(formWorkedStep('gelijk-4', 3, 3)).toBe('4 × 3 = 12 → 3 × 3 = 9');
     expect(formWorkedStep('oppervlakte', 6, 4)).toBe('6 × 4 = 24');
+    expect(formWorkedStep('procent-25', 60, 4)).toBe('25% = ¼ → 60 : 4 = 15');
+    expect(formWorkedStep('procent-10', 350, 10)).toBe('10% = ⅒ → 350 : 10 = 35');
+    expect(formWorkedStep('procent-50', 36, 2)).toBe('50% = ½ → 36 : 2 = 18');
+    expect(formWorkedStep('tienden', 15, 27, '+')).toBe('15 + 27 = 42 → 1,5 + 2,7 = 4,2');
+    expect(formWorkedStep('tienden', 24, 8, '-')).toBe('24 − 8 = 16 → 2,4 − 0,8 = 1,6');
+    expect(formWorkedStep('tienden', 3, 7, '+', '.')).toBe('3 + 7 = 10 → 0.3 + 0.7 = 1');
+    expect(formWorkedStep('komma-2', 345, 100, '*')).toBe('345 × 100 = 34500 → 3,45 × 100 = 345');
+    expect(formWorkedStep('komma-2', 250, 4, '*')).toBe('25 × 4 = 100 → 2,5 × 4 = 10');
+    expect(formWorkedStep('komma-3', 72000, 100, '/')).toBe('0,72 × 100 = 72 → 72 : 100 = 0,72');
+    expect(formWorkedStep('komma-km-m', 25, 1000, '*')).toBe('1 km = 1000 m → 2,5 × 1000 = 2500');
+    expect(formWorkedStep('gelijknamig-8', 2, 3, '+')).toBe('2 + 3 = 5 → 2/8 + 3/8 = 5/8');
+    expect(formWorkedStep('gelijknamig-6', 5, 4, '-')).toBe('5 − 4 = 1 → 5/6 − 4/6 = 1/6');
+    expect(formWorkedStep('breuk-komma', 25, 3, '*')).toBe('¾ = 75/100 → 0,75');
+    expect(formWorkedStep('breuk-komma', 50, 1, '*', '.')).toBe('½ = 50/100 → 0.5');
+    expect(formWorkedStep('verhouding-3', 7, 2, '*')).toBe('6 : 3 = 2 → 7 × 2 = 14');
+    expect(formWorkedStep('korting-20', 45, 9, '-')).toBe('45 : 5 = 9 → 45 − 9 = 36');
+    expect(formWorkedStep('korting-25', 92, 23, '-')).toBe('92 : 4 = 23 → 92 − 23 = 69');
     expect(formWorkedStep(undefined, 7, 5)).toBeUndefined();
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
-      const line = formWorkedStep(sum.form, sum.num1, sum.num2)!;
-      if (sum.form === 'afronden') {
-        return;  // read as rounding below
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent|korting|gelijknamig)/.test(sum.form!)) {
+        return;  // read as rounding, as decimals, as percentages and as fractions below
       }
       // Every step is true, and the answer is in it (last for most; a half is worked as 8 + 8 = 16)
       const steps = line.split(' → ');
@@ -202,17 +295,140 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('afronden', 345, 10)).toBe('345: 5 ≥ 5 → 350');
     expect(formWorkedStep('afronden', 2468, 100)).toBe('2468: 6 ≥ 5 → 2500');
     expect(formWorkedStep('afronden', 2438, 100)).toBe('2438: 3 < 5 → 2400');
+    // six figures as the card prints them, the thousands set apart
+    expect(formWorkedStep('afronden', 345678, 1000)).toBe('345\u202f678: 6 ≥ 5 → 346\u202f000');
+    expect(formWorkedStep('afronden', 345478, 1000)).toBe('345\u202f478: 4 < 5 → 345\u202f000');
     const misses: string[] = [];
-    made('afronden').forEach(sum => {
+    made('afronden').concat(made('afronden-duizendtallen')).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2)!;
-      const step = line.match(/^(\d+): (\d) (≥|<) 5 → (\d+)$/);
+      const step = line.replace(/\u202f/g, '').match(/^(\d+): (\d) (≥|<) 5 → (\d+)$/);
       // the figure looked at is the one just right of the tens (or the hundreds)
-      const figure = +String(sum.num1).slice(sum.num2 === 10 ? -1 : -2)[0];
+      const figure = +String(sum.num1).slice(-String(sum.num2).length + 1)[0];
       if (!step || +step[1] !== sum.num1 || +step[2] !== figure || (step[3] === '≥') !== (figure >= 5) || +step[4] !== answer(sum)) {
         misses.push(line);
       }
     });
     expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('works a percentage out as the part it is: 25% is a quarter, so 60 shared in four', () => {
+    const misses: string[] = [];
+    made('procenten').forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2)!;
+      const [part, share] = line.split(' → ');
+      const percent = Number(sum.form!.split('-')[1]);
+      const glyph = part.split(' = ')[1];
+      if (!GLYPHS[glyph] || GLYPHS[glyph][0] * 100 !== percent * GLYPHS[glyph][1] || !holds(share, 0) || !share.endsWith(`= ${answer(sum)}`)) {
+        misses.push(line);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('works fractions with the same denominator out in parts: 2 + 3 = 5, so 2/8 + 3/8 = 5/8, both true', () => {
+    const misses: string[] = [];
+    made('gelijknamige-breuken').forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      const steps = line.split(' → ');
+      const under = Number(sum.form!.split('-')[1]);
+      if (steps.length !== 2 || !steps.every(step => holds(step, 0)) || !line.endsWith(`= ${answer(sum)}/${under}`)) {
+        misses.push(line);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('works a fraction into a decimal through hundredths: ¾ = 75/100, which is 0,75', () => {
+    const misses: string[] = [];
+    made('breuk-naar-komma').forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      const [glyph, rest] = line.split(' = ');
+      const [hundredths, written] = rest.split(' → ');
+      const [top, bottom] = GLYPHS[glyph] || [NaN, NaN];
+      if (!hundredths.endsWith('/100') || top * 100 !== parseInt(hundredths, 10) * bottom
+          || !holds(`${glyph} = ${written}`, 0) || written !== decimal(answer(sum), 2)) {
+        misses.push(line);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('works a discount out as the part it is, taken off: 20% is a fifth, 45 : 5 = 9, 45 − 9 = 36', () => {
+    const misses: string[] = [];
+    made('korting').forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      const [share, paid, ...more] = line.split(' → ');
+      const percent = Number(sum.form!.split('-')[1]);
+      // 20% is one part in five: the price shared in as many parts as the percentage goes into 100
+      if (more.length || !holds(share, 0) || !holds(paid, 0) || !share.startsWith(`${sum.num1} : ${100 / percent} =`)
+          || !paid.startsWith(`${sum.num1} − ${share.split(' = ')[1]}`) || !paid.endsWith(`= ${answer(sum)}`)) {
+        misses.push(line);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('sets the thousands apart from 10 000 up, as a workbook prints them, and leaves four figures together', () => {
+    expect(grouped(2345)).toBe('2345');
+    expect(grouped(9999)).toBe('9999');
+    expect(grouped(10000)).toBe('10\u202f000');
+    expect(grouped(345678)).toBe('345\u202f678');
+    expect(read(sumLayout({ num1: 34567, num2: 1234, sign: '+' }, WORDS))).toBe('34\u202f567 + 1234 = ?');
+  });
+
+  it('reads a typed answer in tenths, with a comma or a point, and nothing else', () => {
+    expect(typedTenths('0,7')).toBe(7);
+    expect(typedTenths('0.7')).toBe(7);
+    expect(typedTenths('.7')).toBe(7);
+    expect(typedTenths('4,2')).toBe(42);
+    expect(typedTenths('4')).toBe(40);
+    expect(typedTenths('4,0')).toBe(40);
+    expect(typedTenths('0,70')).toBe(7);
+    // 0,75 is not 0,8, and not a number of tenths at all
+    expect(typedTenths('0,75')).toBeNaN();
+    expect(typedTenths('')).toBeNaN();
+    expect(typedTenths(',')).toBeNaN();
+    expect(typedTenths('4,')).toBeNaN();
+    expect(typedTenths('1,2,3')).toBeNaN();
+    expect(typedTenths('-0,7')).toBeNaN();
+  });
+
+  it('writes hundredths and thousandths as school does, with no noughts at the end: 3,45, 0,72, 0,072, 345', () => {
+    expect(decimal(345, 2)).toBe('3,45');
+    expect(decimal(34500, 2)).toBe('345');
+    expect(decimal(720, 3)).toBe('0,72');
+    expect(decimal(72, 3)).toBe('0,072');
+    expect(decimal(4500, 3)).toBe('4,5');
+    expect(decimal(345, 2, '.')).toBe('3.45');
+  });
+
+  it('reads a typed answer in hundredths or thousandths, and nothing finer than the sum counts in', () => {
+    expect(typedDecimal('0,72', 3)).toBe(720);
+    expect(typedDecimal('0.072', 3)).toBe(72);
+    expect(typedDecimal('345', 2)).toBe(34500);
+    expect(typedDecimal('3,45', 2)).toBe(345);
+    expect(typedDecimal('3,450', 2)).toBe(345);
+    expect(typedDecimal('3,451', 2)).toBeNaN();
+    expect(typedDecimal('34,5', 2)).toBe(3450);
+  });
+
+  it('works a comma sum out in whole units and as written, both true, ending on the answer', () => {
+    const misses: string[] = [];
+    ['komma-maal-10', 'kommagetal-keer', 'metriek'].forEach(topic => made(topic).forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      const steps = line.split(' → ');
+      if (steps.length !== 2 || !steps.every(step => holds(step, 0)) || !line.endsWith(decimal(answer(sum), placesOf(sum.form)))) {
+        misses.push(`${topic}: ${line}`);
+      }
+    }));
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('writes tenths as school does: 0,7 with a nought in front, 4 for a whole number', () => {
+    expect(tenths(7)).toBe('0,7');
+    expect(tenths(42)).toBe('4,2');
+    expect(tenths(40)).toBe('4');
+    expect(tenths(7, '.')).toBe('0.7');
   });
 
   describe('as school sets them', () => {
@@ -325,10 +541,149 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       });
     });
 
+    it('adds and takes away tenths at the end of groep 6: below 10, never a whole number in the sum, never below nought', () => {
+      const sums = made('tienden', 600);
+      sums.forEach(sum => {
+        const written = read(sumLayout({ num1: sum.num1, num2: sum.num2, sign: sum.operation === '-' ? '−' : '+', form: sum.form }, WORDS));
+        expect(sum.num1 % 10).withContext(written).not.toBe(0);
+        expect(sum.num2 % 10).withContext(written).not.toBe(0);
+        expect(answer(sum)).withContext(written).toBeGreaterThan(0);
+        expect(answer(sum)).withContext(written).toBeLessThan(100);
+      });
+      expect(new Set(sums.map(sum => sum.operation))).toEqual(new Set(['+', '-']));
+      // both 0,3 + 0,4 and sums past one whole: 1,5 + 2,7
+      expect(sums.some(sum => sum.num1 < 10 && sum.num2 < 10)).toBeTrue();
+      expect(sums.some(sum => sum.operation === '+' && sum.num1 > 10 && sum.num2 > 10)).toBeTrue();
+      // the tenths carry over a whole: 0,8 + 0,5 = 1,3
+      expect(sums.some(sum => sum.operation === '+' && sum.num1 % 10 + sum.num2 % 10 > 10)).toBeTrue();
+      // worked in whole tenths and then as written, both true, ending on the answer
+      const misses: string[] = [];
+      sums.forEach(sum => {
+        const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+        const steps = line.split(' → ');
+        // each step read as written (it has no box, so nothing is filled in)
+        const [inTenths, written] = steps.map(step => holds(step, 0));
+        if (steps.length !== 2 || !inTenths || !written || !line.endsWith(tenths(answer(sum)))) {
+          misses.push(line);
+        }
+      });
+      expect(misses.slice(0, 5)).toEqual([]);
+    });
+
+    it('multiplies and shares by 10, 100 and 1000 in groep 7, never more than three figures after the comma', () => {
+      const sums = made('komma-maal-10', 800);
+      sums.forEach(sum => {
+        const at = `${decimal(sum.num1, placesOf(sum.form))} ${sum.operation} ${sum.num2}`;
+        expect([10, 100, 1000]).toContain(sum.num2);
+        if (sum.operation === '*') {
+          // 4,5 or 3,45: a comma number, not a whole one
+          expect(decimal(sum.num1, placesOf(sum.form))).withContext(at).toContain(',');
+        } else {
+          expect(sum.num1 % sum.num2).withContext(at).toBe(0);
+          expect(placesOf(sum.form)).toBeLessThanOrEqual(3);
+        }
+      });
+      expect(new Set(sums.map(sum => sum.operation))).toEqual(new Set(['*', '/']));
+      ['*', '/'].forEach(op => expect(new Set(sums.filter(sum => sum.operation === op).map(sum => sum.num2))).withContext(op).toEqual(new Set([10, 100, 1000])));
+      // 72 : 100 from a whole number, 4,5 : 10 from a comma number with one figure after the comma
+      expect(sums.some(sum => sum.operation === '/' && !decimal(sum.num1, 3).includes(','))).toBeTrue();
+      expect(sums.some(sum => sum.operation === '/' && decimal(sum.num1, 3).includes(','))).toBeTrue();
+      sums.filter(sum => sum.operation === '/').forEach(sum =>
+        expect((decimal(sum.num1, 3).split(',')[1] || '').length).withContext(decimal(sum.num1, 3)).toBeLessThanOrEqual(1));
+      // 4,5 × 10 and 3,45 × 100: one and two figures after the comma
+      const figuresAfter = (sum: SchoolSum) => decimal(sum.num1, 2).split(',')[1].length;
+      expect(new Set(sums.filter(sum => sum.operation === '*').map(figuresAfter))).toEqual(new Set([1, 2]));
+    });
+
+    it('multiplies a comma number by a whole one at the end of groep 7: 2,5 × 4, 1,25 × 8, some coming out whole', () => {
+      const sums = made('kommagetal-keer', 800);
+      sums.forEach(sum => {
+        expect(decimal(sum.num1, 2)).toContain(',');
+        expect(sum.num2).toBeGreaterThanOrEqual(2);
+        expect(sum.num2).toBeLessThanOrEqual(9);
+      });
+      expect(sums.some(sum => !decimal(answer(sum), 2).includes(','))).toBeTrue();
+      // two figures after the comma only for a quarter or three quarters (1,25, 2,75), times 4 or 8: they come out whole
+      const quarters = sums.filter(sum => decimal(sum.num1, 2).split(',')[1].length === 2);
+      expect(new Set(quarters.map(sum => sum.num1 % 100))).toEqual(new Set([25, 75]));
+      quarters.forEach(sum => expect(answer(sum) % 100).withContext(`${decimal(sum.num1, 2)} × ${sum.num2}`).toBe(0));
+    });
+
+    it('changes a measure with a comma into a smaller unit at the end of groep 7: 1000 m in a km and g in a kg, 10 dl in a litre, 100 cm in a metre', () => {
+      const factor: { [form: string]: number } = { 'komma-km-m': 1000, 'komma-kg-g': 1000, 'komma-l-dl': 10, 'komma-m-cm': 100 };
+      const seen = new Set<string>();
+      made('metriek', 600).forEach(sum => {
+        seen.add(sum.form!);
+        expect(sum.num2).withContext(sum.form!).toBe(factor[sum.form!]);
+        expect(tenths(sum.num1)).withContext(sum.form!).toContain(',');
+        expect(sum.num1).toBeLessThan(100);
+      });
+      expect(seen).toEqual(new Set(Object.keys(factor)));
+    });
+
+    it('adds and takes away fractions with the same denominator in groep 7, the answer a part of a whole: never nothing, never a whole', () => {
+      const sums = made('gelijknamige-breuken', 800);
+      sums.forEach(sum => {
+        const under = Number(sum.form!.split('-')[1]);
+        const at = `${sum.num1}/${under} ${sum.operation} ${sum.num2}/${under}`;
+        expect(Math.min(sum.num1, sum.num2)).withContext(at).toBeGreaterThanOrEqual(1);
+        expect(Math.max(sum.num1, sum.num2)).withContext(at).toBeLessThan(under);
+        expect(answer(sum)).withContext(at).toBeGreaterThanOrEqual(1);
+        expect(answer(sum)).withContext(at).toBeLessThan(under);
+      });
+      expect(new Set(sums.map(sum => sum.operation))).toEqual(new Set(['+', '-']));
+      // one figure under the line, so the sum fits one line of a 320px phone
+      expect(new Set(sums.map(sum => Number(sum.form!.split('-')[1])))).toEqual(new Set([4, 5, 6, 8]));
+    });
+
+    it('writes the fractions school knows as decimals in groep 7: halves, quarters, fifths and a tenth, in hundredths', () => {
+      const seen = new Set<string>();
+      made('breuk-naar-komma', 800).forEach(sum => {
+        const glyph = read(sumLayout({ num1: sum.num1, num2: sum.num2, sign: '×', form: sum.form }, WORDS)).split(' ')[0];
+        seen.add(glyph);
+        const [top, bottom] = GLYPHS[glyph];
+        // ¼ is 25 hundredths: below a whole, and never finer than hundredths (⅛ = 0,125 is groep 8)
+        expect(answer(sum) * bottom).withContext(glyph).toBe(100 * top);
+        expect(answer(sum)).toBeLessThan(100);
+      });
+      expect(seen).toEqual(new Set(['½', '¼', '¾', '⅕', '⅖', '⅗', '⅘', '⅒']));
+    });
+
+    it('prices packs through the price of one in groep 7: whole euros, a different number of packs asked, fewer and more', () => {
+      const sums = made('verhoudingen', 800);
+      sums.forEach(sum => {
+        const packs = Number(sum.form!.split('-')[1]);
+        const at = `${packs} → ${packs * sum.num2}, ${sum.num1} → ?`;
+        expect(sum.num1).withContext(at).not.toBe(packs);
+        expect(sum.num1).withContext(at).toBeGreaterThanOrEqual(2);
+        // one pak costs a whole number of euros, 2 to 9: the step through 1 is a table sum
+        expect(sum.num2).withContext(at).toBeGreaterThanOrEqual(2);
+        expect(sum.num2).withContext(at).toBeLessThanOrEqual(9);
+      });
+      expect(sums.some(sum => sum.num1 < Number(sum.form!.split('-')[1]))).toBeTrue();
+      expect(sums.some(sum => sum.num1 > Number(sum.form!.split('-')[1]))).toBeTrue();
+    });
+
+    it('takes 10%, 20%, 25% or 50% off a price in groep 7, the discount and what is paid both whole euros', () => {
+      const sums = made('korting', 800);
+      sums.forEach(sum => {
+        const percent = Number(sum.form!.split('-')[1]);
+        const at = `${percent}% korting op €${sum.num1}`;
+        expect(100 * sum.num2).withContext(at).toBe(percent * sum.num1);
+        expect(sum.num1).withContext(at).toBeGreaterThanOrEqual(20);
+        expect(sum.num1).withContext(at).toBeLessThanOrEqual(200);
+      });
+      expect(new Set(sums.map(sum => Number(sum.form!.split('-')[1])))).toEqual(new Set([10, 20, 25, 50]));
+      // prices as a shop has them, €45 as well as €120: many, and not only round tens
+      expect(new Set(sums.map(sum => sum.num1)).size).toBeGreaterThan(40);
+      ['korting-20', 'korting-25', 'korting-50'].forEach(form =>
+        expect(sums.some(sum => sum.form === form && sum.num1 % 10 !== 0)).withContext(form).toBeTrue());
+    });
+
     it('brings fractions in at the middle of groep 6 and the area at its end', () => {
       const first: { [kind: string]: string } = {};
-      const kind = (form: string) => form.replace(/-\d$/, '');
-      for (const groep of [3, 4, 5, 6]) {
+      const kind = (form: string) => form.replace(/-\d+$/, '');
+      for (const groep of [3, 4, 5, 6, 7]) {
         for (const moment of ['B', 'M', 'E'] as Moment[]) {
           const random = seeded(groep * 7 + moment.charCodeAt(0));
           for (let i = 0; i < 400; i++) {
@@ -342,6 +697,13 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       expect(first['van']).toBe('6M');
       expect(first['gelijk']).toBe('6M');
       expect(first['oppervlakte']).toBe('6E');
+      expect(first['tienden']).toBe('6E');
+      expect(first['komma']).toBe('7M');
+      expect(first['komma-km-m']).toBe('7E');
+      expect(first['gelijknamig']).toBe('7M');
+      expect(first['breuk-komma']).toBe('7M');
+      expect(first['verhouding']).toBe('7E');
+      expect(first['korting']).toBe('7E');
     });
 
     it('asks the start of groep 3 only plain sums: the forms come once the sums under them are known', () => {

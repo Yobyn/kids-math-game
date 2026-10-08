@@ -54,9 +54,12 @@
            a fraction bar between them; for every other sum this wrapper
            takes no room of its own (display: contents). -->
       <span class="answer-group" [class.over]="layout.over">
+      <!-- A box that takes a decimal is a text box: a number box empties itself
+           on "0." halfway through typing 0.7, and cannot show 0,7 -->
       <input #answerInput
-             type="number"
-             [value]="userAnswer"
+             [type]="needsDecimalKey ? 'text' : 'number'"
+             [attr.inputmode]="needsDecimalKey ? 'decimal' : null"
+             [value]="shownAnswer"
              (input)="userAnswer = $any($event.target).value"
              [placeholder]="inputPlaceholder"
              (focus)="onInputFocus()"
@@ -76,6 +79,7 @@
     <app-keypad *ngIf="useKeypad && !isPicking"
                 [disabled]="showOkButton"
                 [decimal]="needsDecimalKey"
+                [comma]="inDecimals && decimalSign === ','"
                 (press)="onKeypadPress($event)"></app-keypad>
 
     <div class="feedback-container">
