@@ -1482,6 +1482,13 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**THE GRADE SCREEN'S WAYS OFF LINE UP SIDEWAYS — DONE (2026-10-07).** On a
+phone held sideways, "your character" and "for grown-ups" sit side by side
+(src/fit.css). They were lined up by baseline, and the character button's
+first item is its drawing, so "for grown-ups" hung 17px below the middle of
+the button next to it. Both are now centred on one line. Test: the grade
+screen's "lines up your character and for grown-ups on a phone held sideways".
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,

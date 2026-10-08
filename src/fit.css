@@ -237,10 +237,15 @@ html[data-fit='short'] .or-pick {
   font-size: 0.9rem;
 }
 
-/* The ways off the grade screen sit side by side instead of stacked */
+/* The ways off the grade screen sit side by side instead of stacked, centred
+   on one line: lined up by their baselines, the character button's has no
+   text to sit on (its first item is the drawing), so "for grown-ups" hung
+   half a line below it */
 html[data-fit='short'] .your-character,
 html[data-fit='short'] .grown-ups-link {
   display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
   margin: 0.4rem 0.3rem 0;
   width: auto;
 }
