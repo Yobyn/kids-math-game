@@ -1482,6 +1482,14 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**¼ VAN 20, READABLE ON A PHONE — DONE (2026-10-06).** Groep 5's "¼ van 20"
+drew the fraction as one glyph at the size of the numbers, which puts its own
+1 and 4 at about half their size: small enough on a phone that a child has to
+lean in to tell ¼ from ⅕. A fraction is now its own part (`kind: 'fraction'`
+in written-form.ts), drawn half as large again, so its digits sit close to the
+20's size. "⅕ van 50 =" still fits on one line at 320px in all three
+languages. Test: "draws ¼ large enough that its digits read beside the 20".
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,

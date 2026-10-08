@@ -57,6 +57,16 @@
   font-weight: bold;
 }
 
+/* ¼ in ¼ van 20. A fraction glyph draws its digits at about half the size
+   of the numbers beside it, too small to read at a glance on a phone, so
+   the glyph is drawn larger to bring them close to the numbers' size. */
+.fraction {
+  font-weight: bold;
+  color: var(--accent-blue-read);
+  font-size: 1.5em;
+  line-height: 1;
+}
+
 /* "Rond af op tientallen": a heading on a line of its own */
 .caption {
   flex-basis: 100%;

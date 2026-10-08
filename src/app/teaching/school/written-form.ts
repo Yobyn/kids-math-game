@@ -8,7 +8,7 @@ import { DecimalMeasureForm, MeasureForm, SumForm, denominatorOf, packsOf, perce
 
 /** One piece of a sum on the screen. `kind` is its CSS class on the question card. */
 export interface SumPart {
-  kind: 'number' | 'operation' | 'equals' | 'word' | 'caption';
+  kind: 'number' | 'fraction' | 'operation' | 'equals' | 'word' | 'caption';
   text: string;
 }
 
@@ -161,7 +161,7 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     case 'deel':
       return {
         // The fraction is what the sum is about: it is as big as the numbers, only "van" is a word
-        before: [{ kind: 'number', text: UNIT_FRACTIONS[sum.num2] }, { kind: 'word', text: words.of }, number(sum.num1), equals],
+        before: [{ kind: 'fraction', text: UNIT_FRACTIONS[sum.num2] }, { kind: 'word', text: words.of }, number(sum.num1), equals],
         after: []
       };
     // 23 : 4 = 5 rest ?, kept as 23 % 4: the box is what is left over
@@ -186,7 +186,7 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     case 'van-6':
     case 'van-8':
       return {
-        before: [{ kind: 'number', text: FRACTIONS[`${sum.num2}/${denominatorOf(sum.form)}`] }, { kind: 'word', text: words.of },
+        before: [{ kind: 'fraction', text: FRACTIONS[`${sum.num2}/${denominatorOf(sum.form)}`] }, { kind: 'word', text: words.of },
                  number(sum.num1 * denominatorOf(sum.form)), equals],
         after: []
       };
@@ -196,7 +196,7 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     case 'gelijk-4':
     case 'gelijk-5':
       return {
-        before: [{ kind: 'number', text: FRACTIONS[`${sum.num1}/${denominatorOf(sum.form)}`] }, equals],
+        before: [{ kind: 'fraction', text: FRACTIONS[`${sum.num1}/${denominatorOf(sum.form)}`] }, equals],
         after: [operation('/'), number(denominatorOf(sum.form) * sum.num2)]
       };
     // 0,3 + 0,4 = ?, kept as 3 + 4 in tenths

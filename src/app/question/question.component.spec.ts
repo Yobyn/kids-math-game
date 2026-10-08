@@ -1795,6 +1795,38 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()).toEqual(['7', '+', '5', '=', '[ ]']);
   });
 
+  it('draws ¼ large enough that its digits read beside the 20', () => {
+    build('nl');
+    ask({ num1: 20, num2: 4, operation: '/', form: 'deel' });
+    const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    const fraction = problem.querySelector('.fraction') as HTMLElement;
+    const amount = problem.querySelector('.number') as HTMLElement;
+    expect(fraction.textContent!.trim()).toBe('¼');
+    expect(amount.textContent!.trim()).toBe('20');
+    // The glyph's own digits are about half its size, so it is drawn larger
+    expect(parseFloat(getComputedStyle(fraction).fontSize))
+      .toBeGreaterThanOrEqual(1.4 * parseFloat(getComputedStyle(amount).fontSize));
+  });
+
+  it('draws ¾ and ⅖ as large as ¼, in ¾ van 20 and ¾ = ?/12', () => {
+    build('nl');
+    const sizes = () => {
+      const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+      const fraction = problem.querySelector('.fraction') as HTMLElement;
+      const number = problem.querySelector('.number') as HTMLElement;
+      return { glyph: fraction.textContent!.trim(), ratio: parseFloat(getComputedStyle(fraction).fontSize) / parseFloat(getComputedStyle(number).fontSize) };
+    };
+    ask({ num1: 5, num2: 3, operation: '*', form: 'van-4' });
+    expect(sizes().glyph).toBe('¾');
+    expect(sizes().ratio).toBeGreaterThanOrEqual(1.4);
+    ask({ num1: 7, num2: 2, operation: '*', form: 'van-5' });
+    expect(sizes().glyph).toBe('⅖');
+    expect(sizes().ratio).toBeGreaterThanOrEqual(1.4);
+    ask({ num1: 3, num2: 3, operation: '*', form: 'gelijk-4' });
+    expect(sizes().glyph).toBe('¾');
+    expect(sizes().ratio).toBeGreaterThanOrEqual(1.4);
+  });
+
   it('says dubbel and de helft van in the child’s language', () => {
     build('en');
     ask({ num1: 7, num2: 7, operation: '+', form: 'dubbel' });
