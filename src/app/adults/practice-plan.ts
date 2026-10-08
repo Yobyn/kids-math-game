@@ -1,5 +1,5 @@
-import { FRACTIONS, MEASURES, UNIT_FRACTIONS, formWorkedStep, roundTo } from '../teaching/school/written-form';
-import { denominatorOf } from '../question/sum-form';
+import { DECIMAL_MEASURES, FRACTIONS, MEASURES, UNIT_FRACTIONS, decimal, formWorkedStep, roundTo, tenths } from '../teaching/school/written-form';
+import { denominatorOf, packsOf, percentOf, placesOf } from '../question/sum-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
 import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
@@ -118,6 +118,51 @@ export function factText(fact: MissedFact): string {
       return `${FRACTIONS[`${fact.num1}/${denominatorOf(fact.form)}`]} = ?/${denominatorOf(fact.form) * fact.num2}`;
     case 'oppervlakte':
       return `${fact.num1} m × ${fact.num2} m = ? m²`;
+    // 25% van 60, kept as 60 : 4
+    case 'procent-50':
+    case 'procent-25':
+    case 'procent-10':
+      return `${percentOf(fact.form)}% × ${fact.num1}`;
+    // 3,45 × 100, 72 : 100, kept in hundredths and thousandths
+    case 'komma-2':
+    case 'komma-3':
+      return `${decimal(fact.num1, placesOf(fact.form))} ${operationSymbol(fact.operation)} ${fact.num2}`;
+    // 2,5 km = ? m
+    case 'komma-km-m':
+    case 'komma-kg-g':
+    case 'komma-l-dl':
+    case 'komma-m-cm': {
+      const measure = DECIMAL_MEASURES[fact.form];
+      return `${tenths(fact.num1)} ${measure.from} = ? ${measure.to}`;
+    }
+    // 2/8 + 3/8, kept as 2 + 3 eighths
+    case 'gelijknamig-4':
+    case 'gelijknamig-5':
+    case 'gelijknamig-6':
+    case 'gelijknamig-8': {
+      const under = denominatorOf(fact.form);
+      return `${fact.num1}/${under} ${operationSymbol(fact.operation)} ${fact.num2}/${under} = ?/${under}`;
+    }
+    // ¾ = 0,75, kept as 25 × 3 hundredths
+    case 'breuk-komma':
+      return `${FRACTIONS[`${fact.num2}/${100 / fact.num1}`]} = ?`;
+    // 3 → €6, 7 → €?, read in any language
+    case 'verhouding-2':
+    case 'verhouding-3':
+    case 'verhouding-4':
+    case 'verhouding-5': {
+      const packs = packsOf(fact.form);
+      return `${packs} → €${packs * fact.num2}, ${fact.num1} → €?`;
+    }
+    // €45 − 20%, kept as 45 − 9
+    case 'korting-10':
+    case 'korting-20':
+    case 'korting-25':
+    case 'korting-50':
+      return `€${fact.num1} − ${percentOf(fact.form)}%`;
+    // 0,3 + 0,4, kept as 3 + 4 tenths
+    case 'tienden':
+      return `${tenths(fact.num1)} ${operationSymbol(fact.operation)} ${tenths(fact.num2)}`;
     // 347 rounded to tens, read in any language as 347 ≈ ? (10)
     case 'afronden':
       return `${fact.num1} ≈ ? (${fact.num2})`;
@@ -260,12 +305,12 @@ function toItem(fact: MissedFact): PracticeItem {
 
   const item: PracticeItem = {
     question: factText(fact),
-    answer: String(answer),
+    answer: placesOf(fact.form) ? decimal(answer, placesOf(fact.form)) : String(answer),
     reviews,
     toGraduate
   };
 
-  const worked = formWorkedStep(fact.form, fact.num1, fact.num2) || workedStep(fact.num1, fact.num2, fact.operation);
+  const worked = formWorkedStep(fact.form, fact.num1, fact.num2, fact.operation) || workedStep(fact.num1, fact.num2, fact.operation);
   if (worked) {
     item.worked = worked;
   }
