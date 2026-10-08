@@ -240,11 +240,29 @@
   border-color: var(--accent-blue);
 }
 
+/* In a round, on a phone held upright: one row, the character and the
+   sound button. The language and sign-in buttons wrapped to a second row,
+   and measured at 360x740 that left Check Answer below the fold on every
+   question; at 320x568 the keys 7, 8 and 9 were too. They come back
+   between rounds. A phone on its side has its own compact header (fit.css). */
+@media (max-width: 600px) {
+  .app-header.in-round .header-content {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0;
+  }
 
+  .app-header.in-round app-language-selector,
+  .app-header.in-round .logout-btn {
+    display: none;
+  }
 
+  .app-header.in-round .header-actions {
+    width: auto;
+  }
 
-
-
-
-
-
+  .app-header.in-round .welcome-text {
+    text-align: left;
+  }
+}
