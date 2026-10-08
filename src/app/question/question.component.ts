@@ -17,8 +17,8 @@ import { MAX_PICKED, addPiece, pickMatches, removeAt } from '../teaching/coin-pi
 import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
 import { momentFor, schoolSum } from '../teaching/school/groep';
-import { SumLayout, formWorkedStep, roundTo, sumLayout } from '../teaching/school/written-form';
-import { SumForm } from './sum-form';
+import { SumLayout, decimal, formWorkedStep, grouped, roundTo, sumLayout, typedDecimal } from '../teaching/school/written-form';
+import { SumForm, placesOf } from './sum-form';
 import {
   QUESTIONS_IN_ROUND,
   RESUME_CHOICE_KEY,
@@ -511,7 +511,12 @@ export class QuestionComponent implements OnInit, OnDestroy {
         minutes: this.languageService.translate('unit-minutes'),
         toTens: this.languageService.translate('round-tens'),
         toHundreds: this.languageService.translate('round-hundreds'),
-        area: this.languageService.translate('sum-area')
+        toThousands: this.languageService.translate('round-thousands'),
+        area: this.languageService.translate('sum-area'),
+        point: this.decimalSign,
+        packs: this.languageService.translate('sum-packs'),
+        cost: this.languageService.translate('sum-cost'),
+        discount: this.languageService.translate('sum-discount')
       });
     }
     return this.layoutCache!;
@@ -561,7 +566,33 @@ export class QuestionComponent implements OnInit, OnDestroy {
 
   /** True where the band writes €3.40, which needs a point on the keypad. */
   get needsDecimalKey(): boolean {
-    return this.currentQuestion.money ? this.currentQuestion.money.unit === 'decimal' : false;
+    return this.currentQuestion.money ? this.currentQuestion.money.unit === 'decimal' : this.inDecimals;
+  }
+
+  /**
+   * How many figures after the comma the sum counts in: 1 for 0,3 + 0,4 and
+   * 2,5 km, 2 for 3,45 × 100, 3 for 72 : 100; 0 for whole numbers (sum-form.ts).
+   */
+  get decimalPlaces(): number {
+    return placesOf(this.currentQuestion.form);
+  }
+
+  /** A sum with a comma in it, written and typed with the decimal sign. */
+  get inDecimals(): boolean {
+    return this.decimalPlaces > 0;
+  }
+
+  /** The decimal sign as the child's school writes it: 0,7 in Dutch and Spanish, 0.7 in English. */
+  get decimalSign(): string {
+    return this.languageService.getLanguage() === 'en' ? '.' : ',';
+  }
+
+  /**
+   * The answer as the box shows it. A sum in tenths shows the child's own
+   * decimal sign; money keeps the point its card is written with (€3.40).
+   */
+  get shownAnswer(): string {
+    return this.inDecimals ? String(this.userAnswer).replace('.', this.decimalSign) : this.userAnswer;
   }
 
   generateQuestion() {
@@ -765,7 +796,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const answer = Number(this.userAnswer);
+    // A sum with a comma is marked in whole tenths or hundredths: "0,7" is 7, as 0,3 + 0,4 is kept as 3 + 4
+    const answer = this.inDecimals ? typedDecimal(this.userAnswer, this.decimalPlaces) : Number(this.userAnswer);
     let isCorrect = false;
 
     switch (this.currentQuestion.operation) {
@@ -796,7 +828,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
         break;
     }
 
-    this.correctAnswerText = String(this.correctAnswer);
+    this.correctAnswerText = this.inDecimals
+      ? decimal(this.correctAnswer, this.decimalPlaces, this.decimalSign) : grouped(this.correctAnswer);
 
     if (isCorrect) {
       this.handleCorrectAnswer();
@@ -870,7 +903,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
       // own line — a pile counted up, or change counted on from the price.
       this.workedLine = this.currentQuestion.money
         ? this.currentQuestion.money.worked
-        : formWorkedStep(this.currentQuestion.form, this.currentQuestion.num1, this.currentQuestion.num2)
+        : formWorkedStep(this.currentQuestion.form, this.currentQuestion.num1, this.currentQuestion.num2,
+                         this.currentQuestion.operation, this.decimalSign)
           || workedStep(this.currentQuestion.num1, this.currentQuestion.num2,
                         this.currentQuestion.operation) || '';
       this.showOkButton = true;
