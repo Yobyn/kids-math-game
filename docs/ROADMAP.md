@@ -1482,6 +1482,14 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**A GUTTER ROUND THE CARD ON "HOW FAR YOU HAVE COME", THE GROWN-UPS PAGE
+AND SIGN-UP — DONE (2026-10-06).** On a phone these three cards ran edge to
+edge (0px either side at 320, 360 and 390 wide), so their rounded corners
+and border went off the screen, while the grade, difficulty and question
+screens keep 12-16px. They now keep 16px. Tablets and landscape are
+unchanged. The dressing-up screen's card does the same and is left for the
+avatar work, which is changing that screen all the time.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
