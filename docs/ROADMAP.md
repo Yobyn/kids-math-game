@@ -1482,6 +1482,14 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**THE WORKED LINE WRAPS AT ITS ARROW — DONE (2026-10-06).** On a 320px phone
+the "one way to do it" line under a given-away answer broke inside a step:
+"47 + 30 = 77 → 77 + 8 =" on one line and a lone "85" on the next, which reads
+as a sum with no answer. The line is now a wrapping row of its steps
+(`workedSteps`), so it breaks only at the arrow: "47 + 30 = 77" over
+"→ 77 + 8 = 85". Wider phones still show it on one line. Test: the question
+screen's "wraps the worked line between its steps, never inside one".
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,

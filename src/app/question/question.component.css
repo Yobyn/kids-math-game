@@ -303,8 +303,12 @@ input.incorrect {
   color: var(--text-read-dim);
 }
 
+/* A flex row of its steps (workedSteps), so a narrow phone wraps the line
+   at an arrow and keeps each step's sum with its answer */
 .worked-line {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.3em;
   margin-top: 0.2rem;
   font-size: 1.15rem;
   font-weight: 700;

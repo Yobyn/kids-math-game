@@ -972,6 +972,28 @@ describe('QuestionComponent showing how', () => {
     expect(shown.textContent).toContain('One way to do it:');
   });
 
+  it('wraps the worked line between its steps, never inside one', () => {
+    ask(47, 38);
+
+    answer('1');
+    answer('2');
+    fixture.detectChanges();
+
+    const parts: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.worked-part'));
+    expect(parts.map(part => part.textContent)).toEqual(['47 + 30 = 77', '→ 77 + 8 = 85']);
+
+    // As narrow as the box gets on a 320px phone: the line has to wrap, and
+    // it may only do so at the arrow, so "77 + 8 =" never loses its 85
+    const box: HTMLElement = fixture.nativeElement.querySelector('.worked-step');
+    box.style.width = '190px';
+    box.style.boxSizing = 'border-box';
+    parts.forEach(part => {
+      const lineHeight = parseFloat(getComputedStyle(part).fontSize) * 1.6;
+      expect(part.getBoundingClientRect().height).toBeLessThan(lineHeight);
+    });
+    expect(parts[1].getBoundingClientRect().top).toBeGreaterThan(parts[0].getBoundingClientRect().top);
+  });
+
   it('never shows a method to a child who got it right', () => {
     ask(8, 7);
 
