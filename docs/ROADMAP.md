@@ -204,10 +204,87 @@ middle, hard the end), one groep per run.
   at once; two survivors (¾ van 4, a part of one; the end of the year
   dropping ½ = ?/8) each got a test, and one is equivalent (a fallback
   denominator for a form name without a number, which none is).
-  STILL TO DO for groep 6: decimals with the comma on the keypad
-  (0,3 + 0,4, 1,5 + 2,7).
-- **Next, in order:** groep 6's decimals, groep 7, 8; then
-  verhaaltjessommen.
+- **Groep 6, decimals: DONE (2026-10-07). Groep 6 is complete.** At the
+  end of the year, adding and taking away tenths: 0,3 + 0,4, 1,5 + 2,7,
+  2,4 − 0,8, below 10, never a whole number in the sum. Kept as whole
+  tenths (3 + 4), so nothing is a float on the way: a typed "0,7", "0.7"
+  or ".7" is read as 7 tenths and "0,75" as no number of tenths at all.
+  Written as the child's school writes it: 0,7 in Dutch and Spanish, 0.7
+  in English, on the card, in the box as it is typed, in the answer given
+  after two tries and in the worked line (15 + 27 = 42 → 1,5 + 2,7 = 4,2);
+  the keypad's decimal key shows a comma there. A box that takes a decimal
+  is now a text box: a number box empties itself on "0." halfway through
+  typing 0,7, which had been blanking the decimal money answers too (€3.40
+  typed as 3, point: an empty box). The card's box rules were written for
+  number boxes, so they now match its one input whatever its type (the
+  text box had fallen back to the browser's width and wrapped below the
+  sum). Mutation sweep: 31 mutants, 28 killed at once; two
+  survivors got tests (the keypad showing a comma in English; the
+  grown-ups' plan working 2,4 − 0,8 as an adding) and one was a guard that
+  decided nothing, so it went.
+  Money still writes €3.40 with a point in Dutch; a Dutch school writes
+  €3,40. A follow-up, with the money strand's own words.
+- **Groep 7, its whole numbers: DONE (2026-10-07).** Grade 5 is groep 7
+  now. The start of the year is groep 6's end. The middle: numbers to a
+  million rounded to thousands under "Rond af op duizendtallen"
+  (345 678 ≈ ?, never already a thousand, the answer within the keypad's
+  six figures), three figures times two in columns (124 × 36), a
+  staartdeling by two figures that comes out whole (864 : 24), and 50%,
+  25% and 10% of an amount (25% van 60, kept as 60 : 4, worked as
+  25% = ¼ → 60 : 4 = 15). Numbers from 10 000 up are printed as a workbook
+  prints them, the thousands set apart by a narrow space (345 678), on the
+  card, in the answer given after two tries and in the rounding line;
+  four figures stay together. Every card fits a 320px phone on one row in
+  nl/en/es. The end of the year practises the middle's new topics until
+  its own (ratios, the metric system, a decimal times a whole number,
+  discount) are built. Mutation sweep: 30 mutants, 29 killed; the survivor
+  caps a staartdeling's answer at 40 rather than 60, a choice of range no
+  curriculum fact decides.
+- **Groep 7, decimals: DONE (2026-10-07).** In the middle of the year, a
+  comma number times 10, 100 or 1000 (4,5 × 10, 3,45 × 100) and a whole or
+  comma number shared by them (72 : 100 = 0,72, 4,5 : 10 = 0,45, never more
+  than three figures after the comma). At the end, a comma number times a
+  whole one (2,5 × 4; 1,25 × 8 = 10, a quarter or three quarters times 4
+  or 8) and the metric system with a comma (2,5 km = ? m, 3,5 kg = ? g,
+  1,5 l = ? dl, 4,5 m = ? cm); the end now has its own new topics and keeps
+  practising the middle's. The tenths of groep 6 became a general rule: a
+  comma sum is kept as whole numbers counted in tenths, hundredths or
+  thousandths (forms komma-2, komma-3 and the comma measures; `placesOf`
+  says which), written by `decimal` (345 hundredths as 3,45, 34500 as 345)
+  and read back by `typedDecimal` ("0,72" or "0.72"; nothing finer than
+  the sum counts in). Worked lines count in the number's own unit
+  (25 × 4 = 100 → 2,5 × 4 = 10) or read a share back as the times it
+  undoes (0,72 × 100 = 72 → 72 : 100 = 0,72). Every card fits a 320px
+  phone on one row in nl/en/es; typed on the keypad the box shows "0,"
+  after 0 and the comma. Mutation sweep: 33 mutants, 28 killed at once;
+  the five survivors each got a test (only one figure after the comma in
+  3,45 × 100; two in a number shared by 100; ,50 and × 3 among the
+  quarters of 1,25 × 8; and the comma key offered only on tenths, which
+  would have left 72 : 100 untypeable).
+- **Groep 7, fractions, ratios and discount: DONE (2026-10-07). GROEP 7 IS
+  COMPLETE.** The middle of the year adds fractions with the same
+  denominator added and taken away (2/8 + 3/8 = ?/8, the box the new
+  numerator over the same denominator, kept as 2 + 3; the answer a part of
+  a whole, never nothing and never a whole) and a fraction written as a
+  decimal (¾ = ?, answered 0,75 with the comma key; halves, quarters,
+  fifths and a tenth, kept as 25 × 3 in hundredths). The end adds a ratio
+  worked through the price of one ("3 pakken kosten €6" as the heading,
+  7 pakken = €? under it, kept as 7 × 2, worked 6 : 3 = 2 → 7 × 2 = 14)
+  and a discount ("20% korting: wat betaal je?" over €45 → €?, 10/20/25/50%
+  of a whole-euro price from €20 to €200 that comes out whole, kept as
+  45 − 9, worked 45 : 5 = 9 → 45 − 9 = 36), and keeps practising the
+  middle's new topics. Words "packs/cost/off: what do you pay?" in nl, en
+  and es. Same-denominator fractions keep one figure under the line
+  (4, 5, 6, 8): with tenths or twelfths, 7/12 + 4/12 = ? / 12 wrapped onto
+  two lines of a 320px phone; they come when a fraction is drawn over its
+  line. A discount is worked in two steps so the line fits a phone. Every
+  card fits a 320px phone on one row in nl/en/es. Mutation sweep: 45
+  mutants, 43 killed at once; the two survivors each got a test (prices
+  that vary as a shop's do, not only €100 and €200; a fraction taken away
+  written with a minus for the grown-ups); six more on the code changed
+  after it, all killed.
+- **Next, in order:** Yobyn checks groep 7 against his children's school
+  work; groep 8; then verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 
