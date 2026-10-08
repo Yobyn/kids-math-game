@@ -148,9 +148,21 @@ its groep:
    (M), TE × TE and rounding to tens and hundreds, written
    "Rond af op tientallen: 347 ≈ ?" (E). Fractions and area DONE in the
    sixth: ¾ van 20 and ½ = ?/8 (M), the area of a rectangle, 6 m × 4 m =
-   ? m² (E). Not yet: decimals.
+   ? m² (E). Decimals DONE in the seventh: 0,3 + 0,4, 1,5 + 2,7,
+   2,4 − 0,8 with the comma on the card and the keypad (E). GROEP 6 IS
+   COMPLETE.
 5. **Groep 7**: big numbers, cijferend × and :, decimals × 10/100/1000,
    fractions, percentages, ratios, the metric system.
+   WHOLE NUMBERS DONE in the eighth school-levels PR: rounding to
+   thousands, 124 × 36, 864 : 24 and 50/25/10% van an amount (M).
+   DECIMALS DONE in the ninth: × and : 10/100/1000 (M), a decimal times a
+   whole number and the metric system with a comma (E). The rest DONE in
+   the tenth: fractions with the same denominator, 2/8 + 3/8 = ?/8, and a
+   fraction as a decimal, ¾ = 0,75 (M); ratios through the price of one,
+   "3 pakken kosten €6, 7 pakken = €?", and discount, "20% korting: wat
+   betaal je? €45 → €?" (E). GROEP 7 IS COMPLETE. Not yet: tenths and
+   twelfths in 7/12 + 4/12 (too wide for one line of a small phone until
+   a fraction is drawn over its line), mixed numbers.
 6. **Groep 8**: percentages, scale, the mean, area and volume, time spans,
    speed, negative numbers.
 7. **Verhaaltjessommen** (word problems) for every groep, in all three
