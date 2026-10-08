@@ -1482,6 +1482,8 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**THE END-OF-ROUND BUTTONS LINE UP — DONE (2026-10-06).** "How far you have come" and "Your character" were each as wide as their own words, so the two stacked buttons sat about 30px apart in width, and a different amount in every language. They now share one width (up to 15rem), so they read as a pair under Play Again.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,

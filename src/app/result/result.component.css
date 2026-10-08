@@ -322,6 +322,13 @@
   cursor: pointer;
 }
 
+/* The two ways on share a width, so they stack as a pair instead of two
+   buttons sized by however long their words are in this language. */
+.see-progress,
+.see-character {
+  min-width: min(100%, 15rem);
+}
+
 .see-character.earned {
   border-color: var(--accent-magenta);
   box-shadow: 0 0 0 4px rgba(214, 51, 235, 0.22);
