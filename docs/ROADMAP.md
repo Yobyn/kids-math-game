@@ -1482,6 +1482,12 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**THE COMMA KEY IS BIG ENOUGH TO FIND — DONE (2026-10-08).** Groep 7 types
+  ¾ = 0,75, and the keypad's comma was drawn at a digit's size: a few pixels
+  of ink at the bottom of a key, easy to miss on a phone. It is drawn at
+  2.8rem now (2rem on a phone held sideways, where fit.css sets the keys'
+  size), and the point on the English money keypad with it.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,

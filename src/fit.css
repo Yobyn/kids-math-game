@@ -146,6 +146,12 @@ html[data-fit='short'] .question-box .keypad .key {
   border-radius: 10px;
 }
 
+/* The comma keeps its larger size here too (keypad.component.css says why);
+   the rule above would otherwise bring it down to a digit's 1.2rem. */
+html[data-fit='short'] .question-box .keypad .key-mark {
+  font-size: 2rem;
+}
+
 html[data-fit='short'] .math-problem {
   margin: 0.2rem 0;
 }
