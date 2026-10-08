@@ -1179,11 +1179,21 @@ WHAT IS NEXT, in the order the runs should take them:
 3. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
-4. **Offline.** (Draft #78 from the other Routine does this: Yobyn's to
-   review, not to redo.) The dressing-up chunk is only cached once it has been
-   opened. A child who installs and goes offline before opening it gets no
-   dressing-up screen. Precache the lazy chunks in the service worker
-   (the still renderer's chunks too, so the pictures work offline).
+4. **Offline — DONE (nightly run, 2026-09-27).** It was worse than this
+   item said. The worker precached `index.html` and a few assets, and
+   cached bundles only when the page next asked for them. The first visit's
+   own bundles (main, runtime, polyfills, styles) were fetched before the
+   worker existed. So a child who opened the game once and then went
+   offline got a BLANK PAGE once the browser's HTTP cache let go of those
+   bundles. Now `scripts/stamp-service-worker.js` writes every built file
+   (all scripts and stylesheets, lazy chunks included, plus the manifest
+   and favicon) into the worker's precache list at build time, sorted so
+   the same build gives the same worker bytes. It fails the build if the
+   marker is missing. Checked in a real browser with the server switched
+   off, because Playwright's offline switch does not reach a service worker
+   and made the old worker look fine: before, blank; after, the grade
+   screen and the 3D dressing-up screen both work, on a screen never
+   opened while online. About 1.2 MB raw is fetched once at install.
 
 ## Art direction (Yobyn, 2026-09-23)
 
