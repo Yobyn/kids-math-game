@@ -1482,6 +1482,8 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**A PHONE NO LONGER CHANGES A CHILD'S NAME — DONE (2026-10-06).** Names are matched exactly at sign-in, and a phone keyboard capitalises and autocorrects a plain text box by itself: "sam" signed up on a laptop became "Sam" on the phone, and the sign-in failed. The name fields on the sign-in and sign-up screens now ask the keyboard for no capital, no correction and no spellcheck, and every field says what it is (name, current or new password, email), so a phone can fill in or offer to save a password.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
