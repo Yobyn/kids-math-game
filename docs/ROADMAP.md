@@ -1482,6 +1482,17 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**THE TITLE SCREEN'S LANGUAGES ON ONE ROW — DONE (2026-10-05).** On a
+phone held upright the three language buttons did not fit on one row, even
+at 390 wide, so Español sat alone under English and Nederlands: 112px of
+lopsided buttons at the top of the first screen a child sees. Each now takes
+a third of the row with its flag over its name (all three fit down to 320
+wide, the smallest 91px by 54), which brings "Play without an account" up
+42px. Header and landscape unchanged. Found on the way: the selector's
+"login screen" colours are keyed on `.login-container`, which the title
+screen redesign moved the selector out of, so they never apply. Left as is
+here; it is a colour choice for Yobyn, not a fit fix.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
