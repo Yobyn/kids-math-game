@@ -172,6 +172,56 @@ describe('the facts an adult is asked to practise', () => {
     expect(plan.facts[0].worked).toBe('20 : 4 = 5 → 3 × 5 = 15');
   });
 
+  it('gives the grown-ups a sum in tenths as it is written: 1,5 + 2,7 = 4,2', () => {
+    const plan = practicePlan([], [{ ...fact(15, 27, '+'), form: 'tienden' }]);
+
+    expect(plan.facts[0].question).toBe('1,5 + 2,7');
+    expect(plan.facts[0].answer).toBe('4,2');
+    expect(plan.facts[0].worked).toBe('15 + 27 = 42 → 1,5 + 2,7 = 4,2');
+    // and a taking away is worked as one
+    const away = practicePlan([], [{ ...fact(24, 8, '-'), form: 'tienden' }]);
+    expect(away.facts[0].answer).toBe('1,6');
+    expect(away.facts[0].worked).toBe('24 − 8 = 16 → 2,4 − 0,8 = 1,6');
+  });
+
+  it('gives the grown-ups 25% van 60 as a quarter of 60, with the way to it', () => {
+    const plan = practicePlan([], [{ ...fact(60, 4, '/'), form: 'procent-25' }]);
+
+    expect(plan.facts[0].question).toBe('25% × 60');
+    expect(plan.facts[0].answer).toBe('15');
+    expect(plan.facts[0].worked).toBe('25% = ¼ → 60 : 4 = 15');
+  });
+
+  it('gives the grown-ups 72 : 100 as it is written, 0,72, with the way to it', () => {
+    const plan = practicePlan([], [{ ...fact(72000, 100, '/'), form: 'komma-3' }]);
+
+    expect(plan.facts[0].question).toBe('72 ÷ 100');
+    expect(plan.facts[0].answer).toBe('0,72');
+    expect(plan.facts[0].worked).toBe('0,72 × 100 = 72 → 72 : 100 = 0,72');
+  });
+
+  it('gives the grown-ups the rest of groep 7 as it was asked, with the way to each', () => {
+    // a plan holds three facts, so the four come in two
+    const facts = [
+      { ...fact(2, 3, '+'), form: 'gelijknamig-8' },
+      { ...fact(25, 3, '*'), form: 'breuk-komma' },
+      { ...fact(7, 2, '*'), form: 'verhouding-3' },
+      { ...fact(45, 9, '-'), form: 'korting-20' }
+    ] as MissedFact[];
+    const items = [...practicePlan([], facts.slice(0, 2)).facts, ...practicePlan([], facts.slice(2)).facts];
+
+    expect(items.map(item => item.question)).toEqual(['2/8 + 3/8 = ?/8', '¾ = ?', '3 → €6, 7 → €?', '€45 − 20%']);
+    // ¾ answered with its comma, the ratio and the discount in whole euros
+    expect(items.map(item => item.answer)).toEqual(['5', '0,75', '14', '36']);
+    expect(items.map(item => item.worked)).toEqual([
+      '2 + 3 = 5 → 2/8 + 3/8 = 5/8', '¾ = 75/100 → 0,75', '6 : 3 = 2 → 7 × 2 = 14', '45 : 5 = 9 → 45 − 9 = 36'
+    ]);
+    // and a taking away is written as one
+    const away = practicePlan([], [{ ...fact(5, 4, '-'), form: 'gelijknamig-6' }]);
+    expect(away.facts[0].question).toBe('5/6 − 4/6 = ?/6');
+    expect(away.facts[0].answer).toBe('1');
+  });
+
   it('leaves the line off a fact that has no method worth showing', () => {
     const plan = practicePlan([], [fact(2, 3, '+')]);
 
