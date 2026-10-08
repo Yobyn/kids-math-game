@@ -16,6 +16,11 @@ export interface SumPart {
 export interface SumLayout {
   before: SumPart[];
   after: SumPart[];
+  /**
+   * The box is a numerator: drawn over what comes after it, with the
+   * fraction bar between, as ¾ = ?/12 is written in the workbook.
+   */
+  over?: boolean;
 }
 
 /** The sum as the child reads it. `sign` is the operation as written in class (× : ÷ −). */
@@ -197,7 +202,8 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     case 'gelijk-5':
       return {
         before: [{ kind: 'number', text: FRACTIONS[`${sum.num1}/${denominatorOf(sum.form)}`] }, equals],
-        after: [operation('/'), number(denominatorOf(sum.form) * sum.num2)]
+        after: [operation('/'), number(denominatorOf(sum.form) * sum.num2)],
+        over: true
       };
     // 0,3 + 0,4 = ?, kept as 3 + 4 in tenths
     case 'tienden':

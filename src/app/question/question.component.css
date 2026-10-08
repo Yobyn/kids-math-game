@@ -72,6 +72,37 @@
   white-space: nowrap;
 }
 
+/* Lays nothing out on its own, so the box and what follows it sit in the
+   sum's row as if the wrapper were not there. */
+.answer-group {
+  display: contents;
+}
+
+/* ¾ = ?/12: the box over the 12, as a fraction is written in the workbook,
+   rather than "? / 12" on one line, which reads as a division to a child. */
+.answer-group.over {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* The slash becomes the bar: still there for a screen reader, drawn as a line */
+.answer-group.over .operation {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.answer-group.over .number {
+  margin-top: 0.3rem;
+  padding-top: 0.15rem;
+  border-top: 4px solid var(--text-read);
+  text-align: center;
+  line-height: 1.1;
+}
+
 input {
   width: 120px;
   height: 60px;
