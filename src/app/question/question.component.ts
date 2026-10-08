@@ -68,6 +68,7 @@ interface PendingReplay {
 export class QuestionComponent implements OnInit, OnDestroy {
   @ViewChild('answerInput') answerInput!: ElementRef;
   @ViewChild('nextButton') nextButton!: ElementRef;
+  @ViewChild('verdict') verdict?: ElementRef;
   
   isReplay = false;
   private missed: PendingReplay[] = [];
@@ -524,6 +525,32 @@ export class QuestionComponent implements OnInit, OnDestroy {
   private layoutKey = '';
   private layoutCache?: SumLayout;
 
+  /**
+   * Puts focus on Next without the browser's own scroll, which centres it:
+   * on a short screen, such as a phone on its side, that pushed the verdict
+   * ("the answer is 85") off the top whenever the easier offer sat between
+   * them. The page moves only as far as Next needs, and never past the top
+   * of the verdict, which a child has to see more than the button.
+   */
+  private focusNext() {
+    if (!this.nextButton) {
+      return;
+    }
+    const next: HTMLElement = this.nextButton.nativeElement;
+    next.focus({ preventScroll: true });
+
+    const margin = 8;
+    const top = (this.verdict ? this.verdict.nativeElement as HTMLElement : next).getBoundingClientRect().top;
+    const bottom = next.getBoundingClientRect().bottom;
+    let by = Math.max(0, bottom - (window.innerHeight - margin));
+    if (top - by < margin) {
+      by = top - margin;
+    }
+    if (by) {
+      window.scrollBy(0, by);
+    }
+  }
+
   /** The sign as it is written in class: × for keer, : for delen (÷ in English). */
   get sign(): string {
     const operation = this.currentQuestion.operation;
@@ -835,11 +862,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     this.vibrate([0, 30, 40, 30]);
     this.playSuccessSound();
     // Set focus on the next button after it appears
-    setTimeout(() => {
-      if (this.nextButton) {
-        this.nextButton.nativeElement.focus();
-      }
-    }, 0);
+    setTimeout(() => this.focusNext(), 0);
   }
 
   private handleWrongAnswer() {
@@ -895,11 +918,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
         setTimeout(() => this.router.navigate(['/result']), 1500);
       }
       // Set focus on the next button after it appears
-      setTimeout(() => {
-        if (this.nextButton) {
-          this.nextButton.nativeElement.focus();
-        }
-      }, 0);
+      setTimeout(() => this.focusNext(), 0);
     }
     this.playErrorSound();
   }

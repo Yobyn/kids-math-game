@@ -77,7 +77,7 @@
                 [comma]="inDecimals && decimalSign === ','"
                 (press)="onKeypadPress($event)"></app-keypad>
 
-    <div class="feedback-container">
+    <div class="feedback-container" #verdict>
       <div class="feedback" [class.correct]="answerWasCorrect === true"
                            [class.incorrect]="answerWasCorrect === false"
                            role="status"

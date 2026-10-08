@@ -1482,6 +1482,15 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**THE ANSWER STAYS ON SCREEN WHEN NEXT GETS FOCUS — DONE (2026-10-06).** After
+a second miss the game focuses Next, and the browser centred it on the
+screen. On a phone held sideways (740x360), with the easier offer between
+them, that pushed "the answer is 85" off the top: the child saw the method
+and the offer, but not the answer. Next is now focused without that scroll,
+and the page moves only as far as Next needs, never past the top of the
+verdict. Upright phones keep the whole verdict, method, offer and Next on
+screen. Tests: the question screen's "bringing Next into view".
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
