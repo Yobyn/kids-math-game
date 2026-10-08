@@ -146,6 +146,29 @@ describe('the layout on a screen that is not a phone held upright', () => {
     });
   });
 
+  describe('a phone held upright', () => {
+    it('fits a two-line "try again" in the space held for it, so Check Answer does not move', () => {
+      // A media query on the window, and karma cannot resize its window: this
+      // only runs where the runner's window is phone-sized
+      if (!window.matchMedia('(max-width: 600px)').matches) {
+        pending('the window is wider than a phone');
+        return;
+      }
+      fit('stack');
+      fixture.nativeElement.style.display = 'block';
+      fixture.nativeElement.style.width = '320px';
+      const check = () => fixture.nativeElement.querySelector('.check-button').getBoundingClientRect().top;
+      const before = check();
+
+      // The longest of the three languages' "try again"
+      fixture.componentInstance.feedback = 'Niet helemaal goed, probeer nog een keer!';
+      fixture.componentInstance.answerWasCorrect = false;
+      fixture.detectChanges();
+
+      expect(check()).toBe(before);
+    });
+  });
+
   it('leaves no layout without a stylesheet answer', () => {
     ['stack', 'short', 'wide'].forEach(shape => {
       fit(shape);
