@@ -57,6 +57,21 @@ describe('GradeSelectComponent', () => {
     const card = fixture.nativeElement.querySelector('.grade-card');
     expect(card.getBoundingClientRect().height).toBeGreaterThanOrEqual(48);
   });
+
+  it('counts the 96px minimum from the edge a finger lands on, on a phone', () => {
+    // Measured from the content box, the minimum came on top of the padding
+    // and border: every card was 128px, and a 360x640 phone showed four of
+    // the ten groups
+    if (!window.matchMedia('(max-width: 560px)').matches) {
+      pending('the window is wider than a phone');
+      return;
+    }
+    const cards = Array.from(fixture.nativeElement.querySelectorAll('.grade-card')) as HTMLElement[];
+    cards.forEach(card => {
+      expect(getComputedStyle(card).boxSizing).toBe('border-box');
+      expect(card.getBoundingClientRect().height).toBeGreaterThanOrEqual(96);
+    });
+  });
 });
 
 describe('GradeSelectComponent naming the year as the school does', () => {

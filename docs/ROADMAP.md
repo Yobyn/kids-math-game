@@ -1482,6 +1482,8 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**MORE GROUPS ON A PHONE'S FIRST SCREEN — DONE (2026-10-06).** The group cards had the same content-box minimum as the climbs: each was 128px instead of 96px, and a 360x640 or 375x667 phone showed 4 of the 10 groups. On phones the minimum now counts from the card's edge and the gap above the title is gone, so the cards are 113px and those phones show 6. A 390x844 phone shows all 10.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
