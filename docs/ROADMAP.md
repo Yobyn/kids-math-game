@@ -1482,6 +1482,18 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**CHECK ANSWER ON SCREEN ON AN IPHONE SE — DONE (2026-10-05).** On a phone
+held upright and 700px tall or less (an iPhone SE is 667, many Androids 640),
+Check Answer ended at 758px, so a child scrolled to hand in every answer.
+`fit.css` now tightens the question screen at that height: less padding
+round the card, smaller gaps above and below the keypad, and keys of 52px
+instead of 56 (still above the 48px floor). The 60px held open for feedback
+stays, so the card does not jump. Measured with the same question: at
+375x667 Check Answer went from 758 to 662, on screen. At 360x640 and 320x568
+it is still below the fold (662 and 714) until the one-row round header
+(the draft before this one) lands as well. Phones on their side and tablets
+are untouched.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
