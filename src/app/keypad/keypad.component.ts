@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { KEYPAD_KEYS, KEYPAD_KEYS_DECIMAL, keyFace, keyLabel } from './answer-entry';
+import { DECIMAL_KEY, KEYPAD_KEYS, KEYPAD_KEYS_DECIMAL, keyFace, keyLabel } from './answer-entry';
 
 /**
  * The touch keypad, so the phone's own keyboard never covers the question.
@@ -31,6 +31,9 @@ export class KeypadComponent {
    */
   @Input() decimal = false;
 
+  /** True where the child writes 0,7: the decimal key shows a comma (it still types the point). */
+  @Input() comma = false;
+
   /** The key that was pressed. What it means is the answer box's business. */
   @Output() press = new EventEmitter<string>();
 
@@ -39,11 +42,11 @@ export class KeypadComponent {
   }
 
   face(key: string): string {
-    return keyFace(key);
+    return this.comma && key === DECIMAL_KEY ? ',' : keyFace(key);
   }
 
   label(key: string): string {
-    return keyLabel(key);
+    return this.comma && key === DECIMAL_KEY ? 'comma' : keyLabel(key);
   }
 
   onPress(key: string) {
