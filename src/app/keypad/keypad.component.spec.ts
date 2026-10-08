@@ -24,6 +24,22 @@ describe('KeypadComponent', () => {
     expect(keys().length).toBe(KEYPAD_KEYS.length);
   });
 
+  it('shows the decimal key as a comma where the child writes 0,7, and still types the point', () => {
+    component.decimal = true;
+    component.comma = true;
+    fixture.detectChanges();
+    const key = keys().find(button => button.textContent!.trim() === ',')!;
+    expect(key).toBeTruthy();
+    expect(key.getAttribute('aria-label')).toBe('comma');
+    spyOn(component.press, 'emit');
+    key.click();
+    expect(component.press.emit).toHaveBeenCalledWith('.');
+    // and a point where it writes 0.7
+    component.comma = false;
+    fixture.detectChanges();
+    expect(keys().map(button => button.textContent!.trim())).toContain('.');
+  });
+
   it('carries its own styles, which is the point of the move', () => {
     // Angular scopes a component's CSS to its own template, so rules left
     // behind in the question screen's stylesheet would simply not match
