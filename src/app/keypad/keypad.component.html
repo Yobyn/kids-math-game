@@ -3,6 +3,7 @@
           class="key"
           *ngFor="let key of keys"
           [class.key-action]="key === 'del' || key === '-' || key === '.'"
+          [class.key-mark]="key === '.'"
           [disabled]="disabled"
           [attr.aria-label]="label(key)"
           (click)="onPress(key)">

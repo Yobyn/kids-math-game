@@ -106,6 +106,16 @@ describe('the layout on a screen that is not a phone held upright', () => {
       });
     });
 
+    it('keeps the comma key larger than a digit, as it is upright', () => {
+      fixture.componentInstance.currentQuestion = { num1: 25, num2: 3, operation: '*', form: 'breuk-komma' };
+      fit('short');
+
+      const mark = fixture.nativeElement.querySelector('.keypad .key-mark') as HTMLElement;
+      expect(mark).toBeTruthy();
+      expect(parseFloat(getComputedStyle(mark).fontSize))
+        .toBeGreaterThanOrEqual(1.6 * parseFloat(getComputedStyle(keys()[0]).fontSize));
+    });
+
     it('keeps the answer surface light, whichever way the phone is held', () => {
       const luminance = (colour: string): number => {
         const parts = (colour.match(/\d+/g) || ['0', '0', '0']).slice(0, 3).map(Number);

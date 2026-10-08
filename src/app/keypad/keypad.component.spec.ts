@@ -40,6 +40,15 @@ describe('KeypadComponent', () => {
     expect(keys().map(button => button.textContent!.trim())).toContain('.');
   });
 
+  it('draws the comma large enough to find, since it is only a few pixels of ink', () => {
+    component.decimal = true;
+    component.comma = true;
+    fixture.detectChanges();
+    const size = (face: string) =>
+      parseFloat(getComputedStyle(keys().find(button => button.textContent!.trim() === face)!).fontSize);
+    expect(size(',')).toBeGreaterThanOrEqual(1.6 * size('7'));
+  });
+
   it('carries its own styles, which is the point of the move', () => {
     // Angular scopes a component's CSS to its own template, so rules left
     // behind in the question screen's stylesheet would simply not match

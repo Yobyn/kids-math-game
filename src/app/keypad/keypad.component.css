@@ -72,3 +72,11 @@
   background: var(--surface-read-action);
   border-color: rgba(214, 51, 235, 0.35);
 }
+
+/* The comma (or point) is the smallest mark there is: at a digit's size it
+   is a few pixels of ink at the bottom of the key, easy to miss on a phone
+   when 0,75 is what a child has to type. Drawn larger, it reads as a key. */
+.keypad .key-mark {
+  font-size: 2.8rem;
+  line-height: 1;
+}
