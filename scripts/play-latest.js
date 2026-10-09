@@ -53,6 +53,29 @@ function git(root, ...args) {
   return execFileSync('git', args, { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 }
 
+/** The tracked files that differ from the last commit, as git names them. */
+function changedFiles(root) {
+  return git(root, 'diff', '--name-only', 'HEAD').split('\n').filter(Boolean);
+}
+
+/**
+ * A change nobody made on purpose, which an update may undo: package-lock.json
+ * (npm install rewrites it; npm ci puts it back exactly), or a file that only
+ * differs in its line endings (Windows writing \r\n). Anything else is
+ * someone's work and is never touched.
+ */
+function isNoise(root, file) {
+  if (file === 'package-lock.json') {
+    return true;
+  }
+  try {
+    git(root, 'diff', '--quiet', '--ignore-cr-at-eol', '--', file);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Brings the checkout up to `origin/<branch>` if it can do so safely.
  * Returns what happened: 'updated' (with the files that changed), 'current',
@@ -63,8 +86,18 @@ function update(root = ROOT, branch = BRANCH) {
   if (on !== branch) {
     return { status: 'skipped', reason: `the checkout is on ${on}, not ${branch}` };
   }
-  if (git(root, 'status', '--porcelain', '--untracked-files=no')) {
-    return { status: 'skipped', reason: 'there are local changes; commit or undo them to get updates' };
+  const changed = changedFiles(root);
+  const work = changed.filter(file => !isNoise(root, file));
+  if (work.length) {
+    const named = work.slice(0, 5).join(', ') + (work.length > 5 ? ` and ${work.length - 5} more` : '');
+    return {
+      status: 'skipped',
+      reason: `these files were changed on this computer: ${named}. To get updates, keep a copy with \`git stash\` (or undo them with \`git restore <file>\`)`
+    };
+  }
+  if (changed.length) {
+    // Only noise: put it back as committed, so the update can go ahead
+    git(root, 'checkout', '--', ...changed);
   }
   git(root, 'fetch', '--quiet', 'origin', branch);
   const before = git(root, 'rev-parse', 'HEAD');
@@ -75,9 +108,9 @@ function update(root = ROOT, branch = BRANCH) {
   if (git(root, 'merge-base', before, latest) !== before) {
     return { status: 'skipped', reason: `local ${branch} has commits GitHub does not; leaving it alone` };
   }
-  const changed = git(root, 'diff', '--name-only', before, latest).split('\n').filter(Boolean);
+  const updated = git(root, 'diff', '--name-only', before, latest).split('\n').filter(Boolean);
   git(root, 'merge', '--ff-only', '--quiet', latest);
-  return { status: 'updated', changed, from: before.slice(0, 7), to: latest.slice(0, 7) };
+  return { status: 'updated', changed: updated, from: before.slice(0, 7), to: latest.slice(0, 7) };
 }
 
 function log(message) {
@@ -135,6 +168,9 @@ async function check() {
       log(`not updating: ${result.reason}`);
     } else if (result.status === 'updated') {
       log(`new code on ${BRANCH} (${result.from} → ${result.to}): restarting`);
+      if (result.changed.includes('scripts/play-latest.js')) {
+        log('this updater changed too: stop it with Ctrl+C and start it again to use the new version');
+      }
       await stop();
       if (needsInstall(result.changed)) {
         install();

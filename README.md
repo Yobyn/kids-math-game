@@ -28,7 +28,11 @@ runs `npm ci` if the packages changed, and restarts the game; an open browser
 tab reloads by itself. Leave it running in a terminal; Ctrl+C stops it. It
 works the same on Windows, macOS and Linux. It never overwrites work: with
 changes of your own, local commits, or a branch other than `main` checked
-out, it says so and leaves the code alone. `PLAY_CHECK_MINUTES`, `PLAY_PORT`
+out, it names the files and leaves the code alone (`git stash` keeps a copy
+of them and lets the updates through). Two kinds of change it does undo,
+because nobody makes them on purpose: a `package-lock.json` that
+`npm install` rewrote (the update runs `npm ci`, which puts it back), and
+files whose only change is Windows line endings. `PLAY_CHECK_MINUTES`, `PLAY_PORT`
 and `PLAY_BRANCH` change how often it looks, the port and the branch.
 
 To play on phones and tablets in the house as well, start it with

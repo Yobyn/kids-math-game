@@ -69,6 +69,50 @@ test('never overwrites changes made on the computer', () => {
   assert.strictEqual(fs.readFileSync(path.join(pc, 'game.js'), 'utf8'), 'my own edit');
 });
 
+test('names the files that hold it back, so the computer\'s owner knows what to keep or undo', () => {
+  const { pc } = repos();
+  fs.writeFileSync(path.join(pc, 'game.js'), 'my own edit');
+
+  assert.match(update(pc, 'main').reason, /game\.js/);
+});
+
+test('updates past a package-lock.json that npm install rewrote, since npm ci puts it back', () => {
+  const { author, pc } = repos();
+  commit(author, 'package-lock.json', '{ "lockfileVersion": 2 }\n');
+  git(author, 'push', '--quiet', 'origin', 'main');
+  git(pc, 'pull', '--quiet', 'origin', 'main');
+  fs.writeFileSync(path.join(pc, 'package-lock.json'), '{ "lockfileVersion": 3 }\n');
+  commit(author, 'groep.ts', 'groep 8');
+  git(author, 'push', '--quiet', 'origin', 'main');
+
+  const result = update(pc, 'main');
+
+  assert.strictEqual(result.status, 'updated');
+  assert.strictEqual(fs.readFileSync(path.join(pc, 'groep.ts'), 'utf8'), 'groep 8');
+  assert.strictEqual(fs.readFileSync(path.join(pc, 'package-lock.json'), 'utf8'), '{ "lockfileVersion": 2 }\n');
+});
+
+test('updates past files whose only change is Windows line endings, and nothing else', () => {
+  const { author, pc } = repos();
+  commit(author, 'lines.txt', 'one\ntwo\n');
+  git(author, 'push', '--quiet', 'origin', 'main');
+  git(pc, 'pull', '--quiet', 'origin', 'main');
+  fs.writeFileSync(path.join(pc, 'lines.txt'), 'one\r\ntwo\r\n');
+  commit(author, 'groep.ts', 'groep 8');
+  git(author, 'push', '--quiet', 'origin', 'main');
+
+  assert.strictEqual(update(pc, 'main').status, 'updated');
+
+  // a real edit next to the line endings still holds it back
+  fs.writeFileSync(path.join(pc, 'lines.txt'), 'one\r\nthree\r\n');
+  commit(author, 'groep.ts', 'groep 9');
+  git(author, 'push', '--quiet', 'origin', 'main');
+  const held = update(pc, 'main');
+  assert.strictEqual(held.status, 'skipped');
+  assert.match(held.reason, /lines\.txt/);
+  assert.strictEqual(fs.readFileSync(path.join(pc, 'lines.txt'), 'utf8'), 'one\r\nthree\r\n');
+});
+
 test('leaves a checkout alone that has commits of its own, or is on another branch', () => {
   const { author, pc } = repos();
   commit(author, 'game.js', 'v2');
