@@ -78,6 +78,8 @@ const TOTALS_KEY = 'totals';
 /** The one round still in play, if any. At most one per owner. */
 const ROUND_KEY = 'round';
 const RESULT_KEY = 'result';
+/** One bonus game, earned by finishing a round and spent by playing it. */
+const BONUS_KEY = 'bonus';
 const LEARNED_KEY = 'learned';
 /** Items won, with the day they were won. See scrapbook/earned.ts. */
 const KEEPSAKES_KEY = 'keepsakes';
@@ -386,6 +388,32 @@ export class ProgressService {
 
   clearResult(): void {
     this.remove(this.key(RESULT_KEY, this.currentOwner()));
+  }
+
+  /**
+   * A finished round earns ONE bonus game (bonus/). Kept until it is played,
+   * so a reload of the result screen still offers it; replaced, not added
+   * to, by the next round, so rounds never pile up games.
+   */
+  grantBonus(): void {
+    try {
+      localStorage.setItem(this.key(BONUS_KEY, this.currentOwner()), String(Date.now()));
+    } catch {
+      // No storage, no bonus game: the round itself is already counted
+    }
+  }
+
+  hasBonus(): boolean {
+    return this.item(this.key(BONUS_KEY, this.currentOwner())) !== null;
+  }
+
+  /** Spends it, as the game starts. True when there was one to spend. */
+  useBonus(): boolean {
+    if (!this.hasBonus()) {
+      return false;
+    }
+    this.remove(this.key(BONUS_KEY, this.currentOwner()));
+    return true;
   }
 
   /** True when a guest has anything an account would be worth keeping for. */

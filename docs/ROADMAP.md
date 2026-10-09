@@ -298,8 +298,19 @@ middle, hard the end), one groep per run.
   sparks from where the ball struck (FieldPulseService), the ball and
   paddle are drawn in the field's colours, the ball with a short tail.
   Under reduced motion the ball is slower and has no tail. Words in nl, en
-  and es. Next: B, offered once after a finished round, points as capped
-  XP; C, sounds and polish.
+  and es.
+- **Bonus game, step B: DONE (2026-10-09).** A finished round leaves one
+  ball game (`ProgressService.grantBonus`; a round left half way never
+  reaches the result, so it earns none, and two rounds in a row still
+  leave one). The result screen offers it as "🏓 Balspel" while it is
+  there; Start spends it, so leaving half way does not buy another go;
+  opening it without one goes back to the grade screen. As it ends it pays
+  one XP per bounce, at most `BONUS_XP_CAP` (5, in levels/level-curve.ts):
+  half the least any round pays, so the sums stay the way to climb.
+  Opening it lets the round's score go first, so coming back to the result
+  screen cannot bank the round twice. It is called "Balspel", not "bonus",
+  because the result screen keeps its rule against test words. Next: C,
+  sounds and polish.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

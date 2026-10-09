@@ -75,6 +75,11 @@
 
   </div>
 
+  <!-- The bonus game a finished round earns, once (bonus/) -->
+  <button type="button" class="play-again bonus-offer" *ngIf="bonusReady" (click)="openBonus()">
+    🏓 {{ languageService.translate('bonus-game') }}
+  </button>
+
   <button class="play-again" (click)="playAgain()">
     {{ languageService.translate('play-again') }}
   </button>

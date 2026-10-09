@@ -51,6 +51,18 @@ export function xpForRound(correctAnswers: number, total: number): number {
   return ROUND_COMPLETION_XP + correct * XP_PER_CORRECT;
 }
 
+/**
+ * The bonus game after a round (bonus/): one XP per bounce off the paddle,
+ * never more than this. The least a round pays is ROUND_COMPLETION_XP, so
+ * the bonus is always well under what the maths earned: the sums stay the
+ * way to climb, the game is a treat on top.
+ */
+export const BONUS_XP_CAP = 5;
+
+export function bonusXp(hits: number): number {
+  return Math.min(BONUS_XP_CAP, Math.max(0, Math.floor(Number(hits) || 0)));
+}
+
 /** What the jump from `level - 1` to `level` costs. */
 export function xpForLevelStep(level: number): number {
   if (level <= 1) {

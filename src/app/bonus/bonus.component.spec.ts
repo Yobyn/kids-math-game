@@ -1,9 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { BOARD_MARGIN, BonusComponent, END_PULSE, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { BALL_RADIUS } from './pong';
+import { ProgressService } from '../services/progress.service';
+import { BONUS_XP_CAP } from '../levels/level-curve';
 
 describe('BonusComponent, the bonus game after a round', () => {
   let fixture: ComponentFixture<BonusComponent>;
@@ -13,8 +16,10 @@ describe('BonusComponent, the bonus game after a round', () => {
   beforeEach(async () => {
     localStorage.clear();
     localStorage.setItem('language', 'nl');
+    // A finished round's bonus game, as the result screen leaves it
+    new ProgressService().grantBonus();
     await TestBed.configureTestingModule({
-      imports: [RouterTestingModule],
+      imports: [RouterTestingModule, HttpClientTestingModule],
       declarations: [BonusComponent]
     }).compileComponents();
     fixture = TestBed.createComponent(BonusComponent);
@@ -39,7 +44,7 @@ describe('BonusComponent, the bonus game after a round', () => {
 
   it('says how to play and waits for Start, with no ball moving yet', () => {
     const text = fixture.nativeElement.textContent;
-    expect(text).toContain('Bonusspel');
+    expect(text).toContain('Balspel');
     expect(text).toContain('plankje');
     expect(fixture.nativeElement.querySelector('.bonus-button').textContent).toContain('Start');
     const before = component.game.ball.y;
@@ -127,8 +132,69 @@ describe('BonusComponent, the bonus game after a round', () => {
     }
   });
 
+  it('spends the round\'s game as it starts, so leaving half way does not buy another', () => {
+    const progress = TestBed.inject(ProgressService);
+    spyOn(window, 'requestAnimationFrame').and.returnValue(0);
+    expect(progress.hasBonus()).toBeTrue();
+    component.start();
+    expect(component.started).toBeTrue();
+    expect(progress.hasBonus()).toBeFalse();
+  });
+
+  it('pays one XP per bounce as it ends, capped, and only once', () => {
+    const progress = TestBed.inject(ProgressService);
+    const before = progress.getXp();
+    component.started = true;
+    component.game = { ...component.game, hits: 9 };
+    playWithBall(10, component.game.height - 5, 0, 400);
+    component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
+    component.advance(0.05);
+    component.advance(0.05);
+    fixture.detectChanges();
+
+    expect(progress.getXp()).toBe(before + BONUS_XP_CAP);
+    expect(component.xpWon).toBe(BONUS_XP_CAP);
+    expect(fixture.nativeElement.querySelector('.bonus-xp').textContent).toContain(`+${BONUS_XP_CAP}`);
+  });
+
+  it('pays what a short game earned, not the cap', () => {
+    const progress = TestBed.inject(ProgressService);
+    const before = progress.getXp();
+    component.started = true;
+    component.game = { ...component.game, hits: 2 };
+    playWithBall(10, component.game.height - 5, 0, 400);
+    component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
+    component.advance(0.05);
+    expect(progress.getXp()).toBe(before + 2);
+  });
+
   it('goes on when the game is done', () => {
     component.done();
     expect(TestBed.inject(Router).navigate).toHaveBeenCalled();
   });
 });
+
+describe('BonusComponent without a finished round', () => {
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [BonusComponent]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('sends a child who opened it without a round back to choose one, and never starts', () => {
+    const fixture = TestBed.createComponent(BonusComponent);
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    fixture.detectChanges();
+    expect(router.navigate).toHaveBeenCalledWith(['/grade']);
+
+    fixture.componentInstance.start();
+    expect(fixture.componentInstance.started).toBeFalse();
+    fixture.componentInstance.ngOnDestroy();
+  });
+});
+

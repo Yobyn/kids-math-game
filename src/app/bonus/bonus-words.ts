@@ -13,7 +13,7 @@ export type BonusKey =
 
 export const BONUS_WORDS: Words<BonusKey> = {
   en: {
-    'bonus-title': 'Bonus game',
+    'bonus-title': 'Ball game',
     'bonus-how': 'Slide the paddle to keep the ball up. Every bounce is a point!',
     'bonus-start': 'Start',
     'bonus-seconds': 's',
@@ -23,7 +23,7 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'bonus-board': 'A ball bouncing above a paddle'
   },
   nl: {
-    'bonus-title': 'Bonusspel',
+    'bonus-title': 'Balspel',
     'bonus-how': 'Schuif het plankje en houd de bal hoog. Elke stuit is een punt!',
     'bonus-start': 'Start',
     'bonus-seconds': 's',
@@ -33,7 +33,7 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'bonus-board': 'Een bal die boven een plankje stuitert'
   },
   es: {
-    'bonus-title': 'Juego extra',
+    'bonus-title': 'Juego de pelota',
     'bonus-how': 'Mueve la paleta para mantener la pelota arriba. ¡Cada rebote es un punto!',
     'bonus-start': 'Empezar',
     'bonus-seconds': 's',

@@ -1087,3 +1087,66 @@ describe('ResultComponent: the end of a round is a reward, not a report', () => 
     }
   });
 });
+
+describe('ResultComponent offering the bonus game a round earns', () => {
+  let fixture: ComponentFixture<ResultComponent>;
+  let component: ResultComponent;
+  let progress: ProgressService;
+  let scoreService: ScoreService;
+  let router: Router;
+
+  function open(total: number) {
+    spyOn(scoreService, 'getFinalScore').and.returnValue({
+      score: total ? 14 : 0, total, correctAnswers: total ? 7 : 0, percentage: total ? 70 : NaN
+    });
+    fixture = TestBed.createComponent(ResultComponent);
+    component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigate');
+    fixture.detectChanges();
+  }
+
+  const offer = () => fixture.nativeElement.querySelector('.bonus-offer') as HTMLButtonElement | null;
+
+  beforeEach(async () => {
+    localStorage.clear();
+    TestBed.resetTestingModule();
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule, HttpClientTestingModule],
+      declarations: [ResultComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+    progress = TestBed.inject(ProgressService);
+    scoreService = TestBed.inject(ScoreService);
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('offers the ball game after a finished round, by its name and not as a "bonus"', () => {
+    open(10);
+    expect(progress.hasBonus()).toBeTrue();
+    expect(offer()).not.toBeNull();
+    expect(offer()!.textContent).toContain(component.languageService.translate('bonus-game'));
+  });
+
+  it('opens it with the round let go, so coming back to this screen cannot pay the round twice', () => {
+    open(10);
+    spyOn(scoreService, 'resetScore').and.callThrough();
+    offer()!.click();
+    expect(scoreService.resetScore).toHaveBeenCalled();
+    expect(router.navigate).toHaveBeenCalledWith(['/bonus']);
+  });
+
+  it('offers nothing once the game has been played', () => {
+    open(10);
+    progress.useBonus();
+    fixture.detectChanges();
+    expect(offer()).toBeNull();
+  });
+
+  it('never offers it without a finished round behind the screen', () => {
+    open(0);
+    expect(progress.hasBonus()).toBeFalse();
+    expect(offer()).toBeNull();
+  });
+});

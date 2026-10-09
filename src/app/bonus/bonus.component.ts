@@ -1,7 +1,11 @@
-import { AfterViewInit, Component, ElementRef, HostListener, NgZone, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, HostListener, NgZone, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { LanguageService } from '../services/language.service';
 import { FieldPulseService } from '../services/field-pulse.service';
+import { ProgressService } from '../services/progress.service';
+import { ProgressSyncService } from '../services/progress-sync.service';
+import { AvatarService } from '../services/avatar.service';
+import { bonusXp } from '../levels/level-curve';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { Pong, PongEvent, movePaddle, newPong, secondsLeft, step } from './pong';
@@ -35,7 +39,7 @@ export const END_PULSE = 0.8;
   templateUrl: './bonus.component.html',
   styleUrls: ['./bonus.component.css']
 })
-export class BonusComponent implements AfterViewInit, OnDestroy {
+export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('board') boardRef!: ElementRef<HTMLElement>;
 
@@ -45,6 +49,8 @@ export class BonusComponent implements AfterViewInit, OnDestroy {
   /** What the screen shows; copied from the game only when it changes. */
   hits = 0;
   clock = secondsLeft(this.game);
+  /** The XP the game paid, once it has ended: one per bounce, capped (level-curve.ts). */
+  xpWon = 0;
 
   readonly calm = prefersReducedMotion();
   private trail: Array<{ x: number; y: number }> = [];
@@ -58,9 +64,19 @@ export class BonusComponent implements AfterViewInit, OnDestroy {
     public languageService: LanguageService,
     private pulseService: FieldPulseService,
     private router: Router,
-    private zone: NgZone
+    private zone: NgZone,
+    private progressService: ProgressService,
+    private progressSync: ProgressSyncService,
+    private avatarService: AvatarService
   ) {
     languageService.extend(BONUS_WORDS);
+  }
+
+  /** Only a finished round opens the game: without one there is nothing to play for. */
+  ngOnInit() {
+    if (!this.progressService.hasBonus()) {
+      this.router.navigate(['/grade']);
+    }
   }
 
   ngAfterViewInit() {
@@ -109,6 +125,11 @@ export class BonusComponent implements AfterViewInit, OnDestroy {
     if (this.started) {
       return;
     }
+    // Spent as it starts: leaving half way does not buy another go
+    if (!this.progressService.useBonus()) {
+      this.router.navigate(['/grade']);
+      return;
+    }
     this.fit();
     this.started = true;
     this.zone.runOutsideAngular(() => {
@@ -143,10 +164,14 @@ export class BonusComponent implements AfterViewInit, OnDestroy {
     events.forEach(event => this.answer(event));
     const clock = secondsLeft(game);
     if (game.hits !== this.hits || clock !== this.clock || (game.ended && !this.ended)) {
+      const ending = game.ended !== null && !this.ended;
       this.zone.run(() => {
         this.hits = game.hits;
         this.clock = clock;
         this.ended = game.ended !== null;
+        if (ending) {
+          this.pay();
+        }
       });
     }
     this.draw();
@@ -185,6 +210,14 @@ export class BonusComponent implements AfterViewInit, OnDestroy {
     if ((event.key === 'ArrowLeft' && this.keyDirection < 0) || (event.key === 'ArrowRight' && this.keyDirection > 0)) {
       this.keyDirection = 0;
     }
+  }
+
+  /** The game's XP, paid once as it ends, and kept like a round's. */
+  private pay() {
+    this.xpWon = bonusXp(this.hits);
+    this.progressService.addXp(this.xpWon);
+    this.avatarService.refresh();
+    this.progressSync.push().subscribe();
   }
 
   /** Back to choosing what to play next. */

@@ -910,3 +910,39 @@ describe('ProgressService remembering what stuck', () => {
     expect(service.getLearned()).toEqual([]);
   });
 });
+
+describe('ProgressService and the bonus game a round earns', () => {
+  let service: ProgressService;
+
+  beforeEach(() => {
+    localStorage.clear();
+    service = new ProgressService();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('holds one game, spent once', () => {
+    expect(service.hasBonus()).toBeFalse();
+    expect(service.useBonus()).toBeFalse();
+    service.grantBonus();
+    expect(service.hasBonus()).toBeTrue();
+    expect(service.useBonus()).toBeTrue();
+    expect(service.hasBonus()).toBeFalse();
+    expect(service.useBonus()).toBeFalse();
+  });
+
+  it('never piles games up: two rounds in a row still leave one', () => {
+    service.grantBonus();
+    service.grantBonus();
+    expect(service.useBonus()).toBeTrue();
+    expect(service.useBonus()).toBeFalse();
+  });
+
+  it('keeps a child\'s game to that child', () => {
+    service.grantBonus();
+    localStorage.setItem('username', 'sam');
+    localStorage.setItem('token', 't');
+    expect(service.hasBonus()).toBeFalse();
+  });
+});
+
