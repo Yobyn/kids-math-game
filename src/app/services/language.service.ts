@@ -55,6 +55,7 @@ export type TranslationKeys =
   | 'bonus-points-won'
   | 'bonus-done'
   | 'bonus-board'
+  | 'bonus-game'
   | 'level'
   | 'easy-desc'
   | 'medium-desc'

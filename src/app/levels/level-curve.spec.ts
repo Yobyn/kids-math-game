@@ -1,5 +1,7 @@
 import {
+  BONUS_XP_CAP,
   LEVEL_STEP,
+  bonusXp,
   MAX_STEP_MULTIPLIER,
   ROUND_COMPLETION_XP,
   levelForXp,
@@ -129,3 +131,20 @@ describe('progress within a level', () => {
     expect(levelProgress(NaN).fraction).toBe(0);
   });
 });
+
+describe('the bonus game\'s XP (level-curve.ts)', () => {
+  it('pays one XP per bounce, up to its cap', () => {
+    expect(bonusXp(0)).toBe(0);
+    expect(bonusXp(3)).toBe(3);
+    expect(bonusXp(BONUS_XP_CAP)).toBe(BONUS_XP_CAP);
+    expect(bonusXp(40)).toBe(BONUS_XP_CAP);
+    expect(bonusXp(-2)).toBe(0);
+    expect(bonusXp(NaN)).toBe(0);
+  });
+
+  it('is always well under what the maths of any round earned: at most half the least a round pays', () => {
+    expect(BONUS_XP_CAP * 2).toBeLessThanOrEqual(xpForRound(0, 10));
+    expect(BONUS_XP_CAP * 2).toBeLessThanOrEqual(ROUND_COMPLETION_XP);
+  });
+});
+

@@ -33,6 +33,7 @@ export type PlayKey =
   | 'try-again'
   | 'streak'
   | 'bonus-points'
+  | 'bonus-game'
   | 'check'
   | 'next'
   | 'money-total'
@@ -90,6 +91,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'try-again': 'Not quite right, try one more time! ',
     'streak': 'Streak',
     'bonus-points': 'bonus points',
+    'bonus-game': 'Ball game',
     'check': 'Check Answer',
     'next': 'Next Question',
     'money-total': 'You buy a toy for {first} and a book for {second}. How much altogether?',
@@ -146,6 +148,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'try-again': 'Niet helemaal goed, probeer nog een keer! ',
     'streak': 'Streak',
     'bonus-points': 'bonus punten',
+    'bonus-game': 'Balspel',
     'check': 'Controleer antwoord',
     'next': 'Volgende vraag',
     'money-total': 'Je koopt speelgoed voor {first} en een boek voor {second}. Hoeveel is dat samen?',
@@ -202,6 +205,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'try-again': 'No es correcto, inténtalo de nuevo ',
     'streak': 'Racha',
     'bonus-points': 'puntos extra',
+    'bonus-game': 'Juego de pelota',
     'check': 'Comprobar',
     'next': 'Siguiente',
     'money-total': 'Compras un juguete por {first} y un libro por {second}. ¿Cuánto es en total?',

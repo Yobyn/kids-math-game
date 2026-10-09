@@ -134,6 +134,9 @@ export class ResultComponent implements OnInit, OnDestroy {
     });
     this.roundsPlayed = this.progressService.getRoundsPlayed();
     this.awardExperience();
+    // A finished round earns one bonus game (Yobyn, 2026-10-09); a round
+    // left half way never gets here, so it earns none
+    this.progressService.grantBonus();
     this.awardEventItem();
 
     this.showKeepOffer = this.shouldOfferToKeepProgress();
@@ -384,6 +387,21 @@ export class ResultComponent implements OnInit, OnDestroy {
 
   seeProgress() {
     this.router.navigate(['/progress']);
+  }
+
+  /** The bonus game this round earned, while it has not been played. */
+  get bonusReady(): boolean {
+    return this.progressService.hasBonus();
+  }
+
+  /**
+   * Off to the bonus game. The round's score is let go first: it has been
+   * banked, and a score still standing would be banked AGAIN by the next
+   * visit to this screen.
+   */
+  openBonus() {
+    this.scoreService.resetScore();
+    this.router.navigate(['/bonus']);
   }
 
   /** True when this round handed something over that can actually be worn. */

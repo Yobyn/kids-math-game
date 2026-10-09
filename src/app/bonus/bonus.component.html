@@ -24,6 +24,7 @@
     <div class="bonus-card" *ngIf="ended" role="status">
       <p class="bonus-well-played">{{ languageService.translate('bonus-well-played') }}</p>
       <p class="bonus-won"><span class="bonus-won-number">{{ hits }}</span> {{ languageService.translate('bonus-points-won') }}</p>
+      <p class="bonus-xp">+{{ xpWon }} {{ languageService.translate('xp') }}</p>
       <button type="button" class="bonus-button" (click)="done()">{{ languageService.translate('bonus-done') }}</button>
     </div>
   </div>
