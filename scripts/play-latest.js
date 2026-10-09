@@ -5,7 +5,8 @@
  * merged new work) it pulls it, reinstalls if the packages changed, and
  * restarts the game. An open browser tab reloads by itself once it is back.
  *
- *   npm run play                        http://localhost:4200/
+ *   npm run play                        http://localhost:4200/, this computer only
+ *   npm run play:network                also from phones and tablets on the same Wi-Fi
  *   PLAY_CHECK_MINUTES=2 npm run play   look more often
  *
  * Works on Windows, macOS and Linux: the game is started with node itself,
@@ -16,12 +17,32 @@
  */
 const { execFileSync, spawn, spawnSync } = require('child_process');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 const ROOT = path.resolve(__dirname, '..');
 const BRANCH = process.env.PLAY_BRANCH || 'main';
 const PORT = process.env.PLAY_PORT || '4200';
 const CHECK_MS = Math.max(1, Number(process.env.PLAY_CHECK_MINUTES) || 5) * 60 * 1000;
+const NETWORK = process.argv.includes('--network');
+
+/**
+ * The addresses another device on the same network can open the game at:
+ * every IPv4 address of this computer that is not its own loopback.
+ */
+function networkAddresses(interfaces = os.networkInterfaces()) {
+  return Object.values(interfaces).flat()
+    .filter(address => address && (address.family === 'IPv4' || address.family === 4) && !address.internal)
+    .map(address => address.address);
+}
+
+/**
+ * What ng serve is started with. On the network it listens on every address,
+ * and lets a phone in by this computer's name (mypc.local) as well as by number.
+ */
+function serveArgs(port, network) {
+  return ['serve', '--port', port, ...(network ? ['--host', '0.0.0.0', '--disable-host-check'] : [])];
+}
 
 /** Files whose change means `npm ci` before the game can start again. */
 function needsInstall(changedFiles) {
@@ -76,7 +97,13 @@ let game = null;
 function start() {
   const ng = path.join(ROOT, 'node_modules', '@angular', 'cli', 'bin', 'ng');
   log(`starting the game on http://localhost:${PORT}/`);
-  game = spawn(process.execPath, [ng, 'serve', '--port', PORT], {
+  if (NETWORK) {
+    const addresses = networkAddresses();
+    log(addresses.length
+      ? `on phones and tablets on the same Wi-Fi: ${addresses.map(address => `http://${address}:${PORT}/`).join('  ')}`
+      : 'no network found: only this computer can open the game');
+  }
+  game = spawn(process.execPath, [ng, ...serveArgs(PORT, NETWORK)], {
     cwd: ROOT,
     stdio: 'inherit',
     env: { ...process.env, NODE_OPTIONS: '--openssl-legacy-provider', NG_CLI_ANALYTICS: 'false' }
@@ -154,4 +181,4 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { needsInstall, update };
+module.exports = { needsInstall, networkAddresses, serveArgs, update };

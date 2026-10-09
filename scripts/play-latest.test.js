@@ -4,7 +4,7 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { needsInstall, update } = require('./play-latest.js');
+const { needsInstall, networkAddresses, serveArgs, update } = require('./play-latest.js');
 
 const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
 
@@ -80,4 +80,22 @@ test('leaves a checkout alone that has commits of its own, or is on another bran
 
   git(pc, 'checkout', '--quiet', '-b', 'trying-something');
   assert.match(update(pc, 'main').reason, /trying-something/);
+});
+
+test('stays on this computer unless asked to serve the network', () => {
+  assert.deepStrictEqual(serveArgs('4200', false), ['serve', '--port', '4200']);
+  const shared = serveArgs('4200', true);
+  // every address, so a phone on the Wi-Fi reaches it, and by the computer's name too
+  assert.strictEqual(shared[shared.indexOf('--host') + 1], '0.0.0.0');
+  assert.ok(shared.includes('--disable-host-check'));
+});
+
+test('tells a phone the addresses to open: this computer on the network, never its loopback', () => {
+  const addresses = networkAddresses({
+    lo: [{ address: '127.0.0.1', family: 'IPv4', internal: true }],
+    'Wi-Fi': [{ address: 'fe80::1', family: 'IPv6', internal: false }, { address: '192.168.1.23', family: 'IPv4', internal: false }],
+    Ethernet: [{ address: '10.0.0.5', family: 4, internal: false }]
+  });
+
+  assert.deepStrictEqual(addresses, ['192.168.1.23', '10.0.0.5']);
 });
