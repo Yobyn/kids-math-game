@@ -64,3 +64,31 @@ test('there is exactly one viewport meta tag to believe', () => {
 
   assert.strictEqual(all.length, 1);
 });
+
+/** The page's own background, the colour behind the particle field (src/styles.css). */
+function pageBackground() {
+  const css = fs.readFileSync(path.join(ROOT, 'src', 'styles.css'), 'utf8');
+  const match = css.match(/html,\s*body\s*\{[^}]*background:\s*(#[0-9a-fA-F]{6})/);
+  assert.ok(match, 'styles.css no longer sets one background on html, body');
+  return match[1].toLowerCase();
+}
+
+function manifest() {
+  return JSON.parse(fs.readFileSync(path.join(ROOT, 'src', 'manifest.webmanifest'), 'utf8'));
+}
+
+test('the phone paints its bar the colour of the game, not a bright blue over a night sky', () => {
+  // Android colours its status and address bar from theme-color: it was
+  // #0984e3, a light blue left from the game's old look, above a page that
+  // is now almost black
+  const meta = indexHtml().match(/<meta\s+name="theme-color"\s+content="([^"]*)"\s*\/?>/i);
+  assert.ok(meta, 'index.html has no theme-color meta tag');
+  assert.strictEqual(meta[1].toLowerCase(), pageBackground());
+  assert.strictEqual(manifest().theme_color.toLowerCase(), pageBackground());
+});
+
+test('the installed game opens on its own dark background, with no pale flash first', () => {
+  // The splash screen an installed web app shows while it starts is drawn in
+  // background_color; it was a pale cyan, then the dark game appeared over it
+  assert.strictEqual(manifest().background_color.toLowerCase(), pageBackground());
+});
