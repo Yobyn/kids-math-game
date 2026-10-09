@@ -45,6 +45,7 @@ export type TranslationKeys =
   | 'climb-easy'
   | 'climb-medium'
   | 'climb-hard'
+  | 'grade-coming-soon'
   | 'level'
   | 'easy-desc'
   | 'medium-desc'

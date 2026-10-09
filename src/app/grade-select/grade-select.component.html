@@ -43,10 +43,13 @@
          role="button"
          tabindex="0"
          [class.suggested]="grade.level === suggestedGrade"
+         [class.locked]="grade.locked"
+         [attr.aria-disabled]="grade.locked || null"
          [attr.aria-label]="grade.name
            + (grade.level === suggestedGrade
               ? ' — ' + languageService.translate('ready-to-try')
-              : '')"
+              : '')
+           + (grade.locked ? ' — ' + languageService.translate('grade-coming-soon') : '')"
          (click)="selectGrade(grade.level)"
          (keydown.enter)="selectGrade(grade.level)"
          (keydown.space)="selectGrade(grade.level)"
@@ -56,6 +59,8 @@
       <div class="grade-badge" aria-hidden="true">{{ grade.badge }}</div>
       <h2>{{ grade.name }}</h2>
       <p>{{ grade.description }}</p>
+      <!-- Not built yet: its sums would not be what school asks -->
+      <p class="coming-soon" *ngIf="grade.locked">🔒 {{ languageService.translate('grade-coming-soon') }}</p>
       <p class="suggestion" *ngIf="grade.level === suggestedGrade">
         {{ languageService.translate('ready-to-try') }}
       </p>

@@ -261,7 +261,8 @@ p {
     display: none;
   }
 
-  .grade-card .suggestion {
+  .grade-card .suggestion,
+  .grade-card .coming-soon {
     display: block;
   }
 }
@@ -282,4 +283,18 @@ p {
   font-size: 1.05rem;
   color: var(--text);
   cursor: pointer;
+}
+
+/* A year not built yet: there to see, not to choose */
+.grade-card.locked {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.grade-card.locked:hover {
+  transform: none;
+}
+
+.coming-soon {
+  font-weight: bold;
 }

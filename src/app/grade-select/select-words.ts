@@ -21,7 +21,8 @@ export type SelectKey =
   | 'hard-desc'
   | 'climb-easy'
   | 'climb-medium'
-  | 'climb-hard';
+  | 'climb-hard'
+  | 'grade-coming-soon';
 
 export const SELECT_WORDS: Words<SelectKey> = {
   en: {
@@ -40,7 +41,8 @@ export const SELECT_WORDS: Words<SelectKey> = {
     'hard-desc': 'Complex problems with multiple steps',
     'climb-easy': 'Warm-up',
     'climb-medium': 'A step further',
-    'climb-hard': 'Challenge'
+    'climb-hard': 'Challenge',
+    'grade-coming-soon': 'Coming soon'
   },
   nl: {
     'maths-for-grade': 'Wiskunde voor groep',
@@ -58,7 +60,8 @@ export const SELECT_WORDS: Words<SelectKey> = {
     'hard-desc': 'Complexe problemen met meerdere stappen',
     'climb-easy': 'Opwarmen',
     'climb-medium': 'Een stapje verder',
-    'climb-hard': 'Uitdaging'
+    'climb-hard': 'Uitdaging',
+    'grade-coming-soon': 'Komt eraan'
   },
   es: {
     'maths-for-grade': 'Matemáticas para el grado',
@@ -76,6 +79,7 @@ export const SELECT_WORDS: Words<SelectKey> = {
     'hard-desc': 'Problemas complejos con varios pasos',
     'climb-easy': 'Calentamiento',
     'climb-medium': 'Un paso más',
-    'climb-hard': 'Desafío'
+    'climb-hard': 'Desafío',
+    'grade-coming-soon': 'Próximamente'
   }
 };
