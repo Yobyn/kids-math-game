@@ -283,6 +283,13 @@ middle, hard the end), one groep per run.
   that vary as a shop's do, not only €100 and €200; a fraction taken away
   written with a minus for the grown-ups); six more on the code changed
   after it, all killed.
+- **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
+  Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
+  sums, so their cards on the grade screen are locked ("🔒 Komt eraan",
+  dimmed, not choosable, never offered to carry on in or suggested).
+  `levels/school-year.ts` `LAST_READY_GRADE` says which are open;
+  groep.spec.ts fails unless it matches exactly the grades whose sums are
+  built, so building a year means unlocking it in the same change.
 - **Next, in order:** Yobyn checks groep 7 against his children's school
   work; groep 8; then verhaaltjessommen.
 - Money is still its own strand and still comes up at every grade; in

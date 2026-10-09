@@ -1,6 +1,7 @@
 import { CURRICULUM, Moment, Random, SchoolSum, TABLES_FIRST, TABLES_GROEP_4, TOPICS, carries, momentFor, schoolSum } from './groep';
 import { placesOf } from '../../question/sum-form';
 import { decimal } from './written-form';
+import { isGradeReady } from '../../levels/school-year';
 
 /** A repeatable source of numbers, so a failure can be found again. */
 function seeded(seed: number): Random {
@@ -490,6 +491,13 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     it('builds every topic it names', () => {
       Object.keys(CURRICULUM).forEach(groep => (['B', 'M', 'E'] as Moment[]).forEach(moment =>
         Object.keys(CURRICULUM[+groep][moment]).forEach(topic => expect(TOPICS[topic]).withContext(topic).toBeDefined())));
+    });
+
+    it('unlocks on the grade screen exactly the years whose sums are built, so building one means unlocking it', () => {
+      for (let grade = 1; grade <= 10; grade++) {
+        const built = (['B', 'M', 'E'] as Moment[]).every(moment => schoolSum(grade + 2, moment) !== null);
+        expect(isGradeReady(grade)).withContext(`grade ${grade}`).toBe(built);
+      }
     });
 
     it('leaves a groep not built yet to the old questions', () => {

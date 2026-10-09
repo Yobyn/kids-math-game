@@ -15,7 +15,7 @@ import {
 } from '../question/round-state';
 import { SavedResult, isUnseen } from '../result/result-state';
 import { stepColour } from '../theme/palette';
-import { dutchYear } from '../levels/school-year';
+import { dutchYear, isGradeReady } from '../levels/school-year';
 import { SELECT_WORDS } from './select-words';
 
 interface GradeCard {
@@ -24,6 +24,8 @@ interface GradeCard {
   name: string;
   description: string;
   colour: string;
+  /** Not built yet: shown, but not chosen (school-year.ts isGradeReady). */
+  locked: boolean;
 }
 
 /** Ten year groups, the ring walked from one end to the other. */
@@ -48,7 +50,8 @@ export class GradeSelectComponent implements OnInit {
     return this.cards[language] || (this.cards[language] = Array.from({ length: GRADE_COUNT }, (_, i) => ({
       level: i + 1,
       ...this.yearOf(i + 1),
-      colour: stepColour(i + 1, GRADE_COUNT)
+      colour: stepColour(i + 1, GRADE_COUNT),
+      locked: !isGradeReady(i + 1)
     })));
   }
 
@@ -123,9 +126,11 @@ export class GradeSelectComponent implements OnInit {
   ngOnInit() {
     this.avatar = this.avatarService.get();
     const history = this.progressService.getHistory();
-    this.carryOnGrade = lastGrade(history);
+    // Never offered or suggested: a grade that is locked until its groep is built
+    const ready = (grade?: number) => grade && isGradeReady(grade) ? grade : undefined;
+    this.carryOnGrade = ready(lastGrade(history));
     if (this.carryOnGrade) {
-      this.suggestedGrade = suggestGrade(history, this.carryOnGrade);
+      this.suggestedGrade = ready(suggestGrade(history, this.carryOnGrade));
     }
 
     const saved = this.progressService.readRound();
@@ -197,6 +202,9 @@ export class GradeSelectComponent implements OnInit {
   }
 
   selectGrade(grade: number) {
+    if (!isGradeReady(grade)) {
+      return;
+    }
     // Picking a grade is choosing to start something new, so whatever was
     // half-finished is let go here rather than ambushing them at the next
     // screen with a round they have just decided against.

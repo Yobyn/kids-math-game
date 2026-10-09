@@ -4,6 +4,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { GradeSelectComponent } from './grade-select.component';
 import { AvatarComponent } from '../avatar/avatar.component';
 import { routes } from '../app-routing.module';
+import { LAST_READY_GRADE } from '../levels/school-year';
 
 describe('GradeSelectComponent', () => {
   let fixture: ComponentFixture<GradeSelectComponent>;
@@ -616,5 +617,79 @@ describe('GradeSelectComponent offering a result the child never saw', () => {
     const cards = Array.from(fixture.nativeElement.querySelectorAll('.resume-round, .see-result'));
     expect(cards.length).toBe(2);
     expect((cards[0] as HTMLElement).className).toContain('resume-round');
+  });
+});
+
+describe('GradeSelectComponent locking the years not built yet', () => {
+  let fixture: ComponentFixture<GradeSelectComponent>;
+  let component: GradeSelectComponent;
+  let router: Router;
+
+  function build(language = 'nl', history?: unknown[]) {
+    localStorage.clear();
+    localStorage.setItem('language', language);
+    if (history) {
+      localStorage.setItem('roundHistory:guest', JSON.stringify(history));
+    }
+    fixture = TestBed.createComponent(GradeSelectComponent);
+    component = fixture.componentInstance;
+    router = TestBed.inject(Router);
+    if (!jasmine.isSpy(router.navigate)) {
+      spyOn(router, 'navigate');
+    }
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [GradeSelectComponent, AvatarComponent]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  const cards = () => Array.from(fixture.nativeElement.querySelectorAll('.grade-card')) as HTMLElement[];
+
+  it('locks every year after the last one built, and only those: groep 3 to 7 open, groep 8 and klas 1 to 4 locked', () => {
+    build();
+    expect(cards().map(card => card.classList.contains('locked'))).toEqual(
+      Array.from({ length: 10 }, (_, i) => i + 1 > LAST_READY_GRADE));
+    expect(cards()[LAST_READY_GRADE].getAttribute('aria-disabled')).toBe('true');
+    expect(cards()[LAST_READY_GRADE - 1].getAttribute('aria-disabled')).toBeNull();
+  });
+
+  it('says a locked year is coming, on the card and to a screen reader', () => {
+    build();
+    const locked = cards()[9];
+    expect(locked.textContent).toContain('Komt eraan');
+    expect(locked.getAttribute('aria-label')).toContain('Komt eraan');
+    expect(cards()[0].textContent).not.toContain('Komt eraan');
+  });
+
+  it('does nothing when a locked year is tapped or chosen with the keyboard', () => {
+    build();
+    cards()[9].click();
+    cards()[9].dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    component.selectGrade(10);
+
+    expect(localStorage.getItem('grade')).toBeNull();
+    expect(router.navigate).not.toHaveBeenCalled();
+    // and an open one still goes on
+    cards()[0].click();
+    expect(router.navigate).toHaveBeenCalledWith(['/difficulty']);
+  });
+
+  it('never offers to carry on in a locked year, nor suggests one', () => {
+    const round = (grade: number) => ({
+      date: '2026-09-22T10:00:00.000Z', correctAnswers: 10, total: 10, percentage: 100, score: 100, grade, difficulty: 'hard'
+    });
+    build('nl', [round(10)]);
+    expect(component.carryOnGrade).toBeUndefined();
+    expect(fixture.nativeElement.querySelector('.carry-on')).toBeNull();
+
+    build('nl', Array.from({ length: 6 }, () => round(LAST_READY_GRADE)));
+    expect(component.carryOnGrade).toBe(LAST_READY_GRADE);
+    expect(component.suggestedGrade === undefined || component.suggestedGrade <= LAST_READY_GRADE).toBeTrue();
   });
 });
