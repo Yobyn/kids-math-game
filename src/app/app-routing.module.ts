@@ -68,6 +68,12 @@ export const routes: Routes = [
     data: PRELOAD,
     loadChildren: () => import('./play/result.module').then(m => m.ResultModule)
   },
+  // The bonus game after a round (Yobyn, 2026-10-09), fetched when opened
+  {
+    path: 'bonus',
+    canActivate: [AuthGuard],
+    loadChildren: () => import('./bonus/bonus.module').then(m => m.BonusModule)
+  },
   {
     path: 'avatar',
     canActivate: [AuthGuard],

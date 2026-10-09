@@ -19,6 +19,8 @@ import { LOGIN_WORDS } from './login/login-words';
 import { SELECT_WORDS } from './grade-select/select-words';
 import { PLAY_WORDS } from './question/play-words';
 import { ITEM_WORDS } from './avatar/item-words';
+import { BonusComponent } from './bonus/bonus.component';
+import { BONUS_WORDS } from './bonus/bonus-words';
 
 /**
  * Every screen fetched on its own brings the words it shows, and hands them
@@ -38,7 +40,8 @@ describe('a screen fetched on its own brings its own words', () => {
     ['result', ResultComponent, [PLAY_WORDS, ITEM_WORDS]],
     ['progress', ProgressComponent, [ITEM_WORDS]],
     ['scrapbook', ScrapbookComponent, [ITEM_WORDS]],
-    ['dressing up', AvatarChooserComponent, [ITEM_WORDS]]
+    ['dressing up', AvatarChooserComponent, [ITEM_WORDS]],
+    ['bonus game', BonusComponent, [BONUS_WORDS]]
   ];
 
   afterEach(() => localStorage.clear());

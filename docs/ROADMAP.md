@@ -283,6 +283,23 @@ middle, hard the end), one groep per run.
   that vary as a shop's do, not only €100 and €200; a fraction taken away
   written with a minus for the grown-ups); six more on the code changed
   after it, all killed.
+- **Bonus game, step A: DONE (2026-10-09).** Yobyn: "a side bouncing ball
+  game for bonus points once they have completed a round of questions",
+  Pong style, "keep the particles effect of the game". `/bonus` is its own
+  lazy screen (bonus/): a ball bounces off the walls and the top, the child
+  slides a paddle along the bottom with a finger or the arrow keys, every
+  bounce off the paddle is a point, and it ends on a miss or after 30
+  seconds with "Goed gespeeld!" and the points. The rules are in
+  bonus/pong.ts, free of the DOM (bounce angle by where the ball meets the
+  paddle, up to 60°; 6% faster per hit up to 2.2× the start; physics in
+  steps of at most 1/240 s, so a fast ball never passes through the
+  paddle). The board is see-through over the particle field and sized to
+  the height left on the screen; a hit swells the field and throws the tap
+  sparks from where the ball struck (FieldPulseService), the ball and
+  paddle are drawn in the field's colours, the ball with a short tail.
+  Under reduced motion the ball is slower and has no tail. Words in nl, en
+  and es. Next: B, offered once after a finished round, points as capped
+  XP; C, sounds and polish.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

@@ -1,0 +1,260 @@
+import { AfterViewInit, Component, ElementRef, HostListener, NgZone, OnDestroy, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
+import { LanguageService } from '../services/language.service';
+import { FieldPulseService } from '../services/field-pulse.service';
+import { fieldColour } from '../particles/particle-field';
+import { BONUS_WORDS } from './bonus-words';
+import { Pong, PongEvent, movePaddle, newPong, secondsLeft, step } from './pong';
+
+/** How far a held arrow key moves the paddle, in screen widths a second. */
+const KEY_SPEED = 1.1;
+/** Room kept under the board, and the shortest board still worth playing on. */
+export const BOARD_MARGIN = 16;
+export const MIN_BOARD = 280;
+/** The ball's glowing tail: this many of its last places. */
+const TRAIL = 8;
+/** How hard a paddle hit swells the field, and the end of the game. */
+export const HIT_PULSE = 0.35;
+export const END_PULSE = 0.8;
+
+/**
+ * The bonus game (Yobyn, 2026-10-09): Pong style, a ball kept up with a
+ * paddle slid along the bottom, every bounce a point. Its rules are in
+ * pong.ts; this screen draws them and feeds them the paddle.
+ *
+ * It keeps the game's particles (Yobyn: "keep the particles effect of the
+ * game"): the canvas is see-through, so the field behind every screen shows
+ * through it, and a hit is answered by the field itself through the
+ * FieldPulseService: the whole ring swells, and the same sparks as a tapped
+ * button fly from where the ball struck. Ball and paddle are drawn in the
+ * field's own colours. Under reduced motion the ball is slower and has no
+ * tail, and the field does what it already does there (stays still).
+ */
+@Component({
+  selector: 'app-bonus',
+  templateUrl: './bonus.component.html',
+  styleUrls: ['./bonus.component.css']
+})
+export class BonusComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('board') boardRef!: ElementRef<HTMLElement>;
+
+  game: Pong = newPong(320, 480);
+  started = false;
+  ended = false;
+  /** What the screen shows; copied from the game only when it changes. */
+  hits = 0;
+  clock = secondsLeft(this.game);
+
+  readonly calm = prefersReducedMotion();
+  private trail: Array<{ x: number; y: number }> = [];
+  private frame = 0;
+  private lastAt = 0;
+  private keyDirection = 0;
+  private context: CanvasRenderingContext2D | null = null;
+  private ratio = 1;
+
+  constructor(
+    public languageService: LanguageService,
+    private pulseService: FieldPulseService,
+    private router: Router,
+    private zone: NgZone
+  ) {
+    languageService.extend(BONUS_WORDS);
+  }
+
+  ngAfterViewInit() {
+    this.context = this.canvasRef.nativeElement.getContext('2d');
+    this.fit();
+    this.draw();
+  }
+
+  ngOnDestroy() {
+    cancelAnimationFrame(this.frame);
+  }
+
+  /**
+   * The board takes the screen's width and the height left below the score,
+   * so the paddle is always on screen without scrolling; never taller than a
+   * phone held upright, never too short to play.
+   */
+  fit() {
+    const canvas = this.canvasRef?.nativeElement;
+    const board = this.boardRef?.nativeElement;
+    if (!canvas || !board) {
+      return;
+    }
+    const width = Math.max(240, Math.round(board.clientWidth));
+    const left = window.innerHeight - board.getBoundingClientRect().top - BOARD_MARGIN;
+    const height = Math.round(Math.min(Math.max(left, MIN_BOARD), width * 1.6));
+    this.ratio = window.devicePixelRatio || 1;
+    canvas.width = Math.round(width * this.ratio);
+    canvas.height = Math.round(height * this.ratio);
+    canvas.style.height = `${height}px`;
+    if (!this.started) {
+      this.game = newPong(width, height, this.calm);
+      this.clock = secondsLeft(this.game);
+    }
+  }
+
+  @HostListener('window:resize')
+  onResize() {
+    if (!this.started) {
+      this.fit();
+      this.draw();
+    }
+  }
+
+  start() {
+    if (this.started) {
+      return;
+    }
+    this.fit();
+    this.started = true;
+    this.zone.runOutsideAngular(() => {
+      this.lastAt = performance.now();
+      this.frame = requestAnimationFrame(at => this.loop(at));
+    });
+  }
+
+  private loop(at: number) {
+    // A phone that went to sleep comes back where it was, not a second later
+    const seconds = Math.min(0.05, Math.max(0, (at - this.lastAt) / 1000));
+    this.lastAt = at;
+    this.advance(seconds);
+    if (!this.ended) {
+      this.frame = requestAnimationFrame(next => this.loop(next));
+    }
+  }
+
+  /** One frame: the keys move the paddle, the game moves on, the field answers. */
+  advance(seconds: number) {
+    if (!this.started || this.ended) {
+      return;
+    }
+    if (this.keyDirection) {
+      this.game = movePaddle(this.game, this.game.paddle.x + this.keyDirection * KEY_SPEED * this.game.width * seconds);
+    }
+    const { game, events } = step(this.game, seconds);
+    this.game = game;
+    if (!this.calm) {
+      this.trail = [...this.trail, { x: game.ball.x, y: game.ball.y }].slice(-TRAIL);
+    }
+    events.forEach(event => this.answer(event));
+    const clock = secondsLeft(game);
+    if (game.hits !== this.hits || clock !== this.clock || (game.ended && !this.ended)) {
+      this.zone.run(() => {
+        this.hits = game.hits;
+        this.clock = clock;
+        this.ended = game.ended !== null;
+      });
+    }
+    this.draw();
+  }
+
+  /** A hit swells the field and sparks where the ball struck; the end swells it more. */
+  answer(event: PongEvent) {
+    if (event.kind === 'hit') {
+      this.pulseService.pulse(HIT_PULSE);
+      const box = this.canvasRef?.nativeElement.getBoundingClientRect();
+      this.pulseService.tap((box ? box.left : 0) + event.x, (box ? box.top : 0) + event.y);
+    } else {
+      this.pulseService.pulse(END_PULSE);
+    }
+  }
+
+  /** A finger (or the mouse) anywhere on the board puts the paddle under it. */
+  steer(event: PointerEvent) {
+    const box = this.canvasRef.nativeElement.getBoundingClientRect();
+    this.game = movePaddle(this.game, event.clientX - box.left);
+    if (!this.started) {
+      this.draw();
+    }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+      this.keyDirection = event.key === 'ArrowLeft' ? -1 : 1;
+      event.preventDefault();
+    }
+  }
+
+  @HostListener('window:keyup', ['$event'])
+  onKeyUp(event: KeyboardEvent) {
+    if ((event.key === 'ArrowLeft' && this.keyDirection < 0) || (event.key === 'ArrowRight' && this.keyDirection > 0)) {
+      this.keyDirection = 0;
+    }
+  }
+
+  /** Back to choosing what to play next. */
+  done() {
+    this.router.navigate(['/grade']);
+  }
+
+  draw() {
+    const context = this.context;
+    if (!context) {
+      return;
+    }
+    const { width, height, ball, paddle } = this.game;
+    context.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
+    // Cleared, never filled: the field behind shows through
+    context.clearRect(0, 0, width, height);
+
+    // The ball's tail, fading out behind it
+    this.trail.forEach((point, i) => {
+      const { r, g, b } = fieldColour(point.x / width);
+      const alpha = ((i + 1) / (this.trail.length + 1)) * 0.35;
+      context.beginPath();
+      context.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(3)})`;
+      context.arc(point.x, point.y, ball.radius * (0.5 + 0.5 * (i + 1) / this.trail.length), 0, Math.PI * 2);
+      context.fill();
+    });
+
+    // The paddle: the ring's blue at its left end, its magenta at the right
+    const left = paddle.x - paddle.width / 2;
+    const gradient = context.createLinearGradient(left, 0, left + paddle.width, 0);
+    gradient.addColorStop(0, rgb(fieldColour(0)));
+    gradient.addColorStop(1, rgb(fieldColour(1)));
+    context.save();
+    context.shadowColor = rgb(fieldColour(0.5));
+    context.shadowBlur = 16;
+    context.fillStyle = gradient;
+    roundRect(context, left, paddle.y, paddle.width, paddle.height, paddle.height / 2);
+    context.fill();
+
+    // The ball, glowing in the colour of the ring where it is
+    const colour = fieldColour(ball.x / width);
+    context.shadowColor = rgb(colour);
+    context.shadowBlur = 18;
+    context.beginPath();
+    context.fillStyle = '#ffffff';
+    context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    context.fill();
+    context.beginPath();
+    context.fillStyle = `rgba(${colour.r}, ${colour.g}, ${colour.b}, 0.55)`;
+    context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    context.fill();
+    context.restore();
+  }
+}
+
+function rgb({ r, g, b }: { r: number; g: number; b: number }): string {
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function roundRect(context: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) {
+  context.beginPath();
+  context.moveTo(x + radius, y);
+  context.arcTo(x + width, y, x + width, y + height, radius);
+  context.arcTo(x + width, y + height, x, y + height, radius);
+  context.arcTo(x, y + height, x, y, radius);
+  context.arcTo(x, y, x + width, y, radius);
+  context.closePath();
+}
+
+function prefersReducedMotion(): boolean {
+  return typeof window !== 'undefined' && !!window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
