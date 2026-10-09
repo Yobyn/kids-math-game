@@ -31,6 +31,14 @@ changes of your own, local commits, or a branch other than `main` checked
 out, it says so and leaves the code alone. `PLAY_CHECK_MINUTES`, `PLAY_PORT`
 and `PLAY_BRANCH` change how often it looks, the port and the branch.
 
+To play on phones and tablets in the house as well, start it with
+`npm run play:network` instead. It prints the address to open on them, e.g.
+http://192.168.1.23:4200/ (the computer and the phone must be on the same
+Wi-Fi; Windows asks once whether to let Node through its firewall: allow it
+on private networks). It is a development server, meant for a home network,
+not the internet. Over plain http a phone plays the game fine but will not
+install it to the home screen or keep it offline; that needs https.
+
 `npm start` carries `NODE_OPTIONS=--openssl-legacy-provider`, and so do the
 build and test scripts. Angular 12 ships webpack 4, whose hashing calls an
 OpenSSL 3 routine that Node 17 removed; without the flag every one of these

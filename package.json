@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "NODE_OPTIONS=--openssl-legacy-provider ng serve",
     "play": "node scripts/play-latest.js",
+    "play:network": "node scripts/play-latest.js --network",
     "build": "NODE_OPTIONS=--openssl-legacy-provider ng build && node scripts/stamp-service-worker.js",
     "test:scripts": "node --test scripts/*.test.js",
     "watch": "NODE_OPTIONS=--openssl-legacy-provider ng build --watch --configuration development",
