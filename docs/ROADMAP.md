@@ -1482,6 +1482,13 @@ equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
 
+**THE PHONE'S OWN BAR IS THE GAME'S COLOUR — DONE (2026-10-09).** theme-color
+  and the manifest still carried the old look: a bright blue #0984e3 status
+  and address bar on Android above a page that is now night-dark, and a pale
+  cyan splash before the installed game appeared. Both are #0b0a18 now, the
+  page background in styles.css, and scripts/index-html.test.js holds the
+  three to one colour.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
