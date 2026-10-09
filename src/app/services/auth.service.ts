@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { ProgressService } from './progress.service';
 import { AvatarService } from './avatar.service';
+import { serverUrl } from './server-url';
 
 export interface AuthResponse {
   token: string;
@@ -24,7 +25,7 @@ function readGuestFlag(): boolean {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/auth';
+  private apiUrl = serverUrl('/api/auth');
   private tokenSubject = new BehaviorSubject<string | null>(localStorage.getItem('token'));
   private usernameSubject = new BehaviorSubject<string | null>(localStorage.getItem('username'));
   private guestSubject = new BehaviorSubject<boolean>(readGuestFlag());
