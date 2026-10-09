@@ -42,6 +42,11 @@ Wi-Fi; Windows asks once whether to let Node through its firewall: allow it
 on private networks). It is a development server, meant for a home network,
 not the internet. Over plain http a phone plays the game fine but will not
 install it to the home screen or keep it offline; that needs https.
+Playing as a guest needs nothing else. To sign in from a phone too, run the
+server on the same computer (`cd server`, `JWT_SECRET=... npm start`): the
+game looks for it on port 3000 of whatever address it was opened from, so
+the phone finds it at e.g. http://192.168.1.23:3000/ without any change to
+the code (let Node through the firewall for that port too).
 
 `npm start` carries `NODE_OPTIONS=--openssl-legacy-provider`, and so do the
 build and test scripts. Angular 12 ships webpack 4, whose hashing calls an

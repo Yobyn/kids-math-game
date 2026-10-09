@@ -6,6 +6,7 @@ import { AuthService } from './auth.service';
 import { AvatarService } from './avatar.service';
 import { ProgressService } from './progress.service';
 import { SyncedProgress, addsTo, mergeSynced, worthSyncing } from './synced-progress';
+import { serverUrl } from './server-url';
 
 interface PulledProgress {
   progress: SyncedProgress | null;
@@ -35,7 +36,7 @@ interface PulledProgress {
   providedIn: 'root'
 })
 export class ProgressSyncService {
-  private apiUrl = 'http://localhost:3000/api/progress';
+  private apiUrl = serverUrl('/api/progress');
   /** So signing in twice in one session does not pull twice. */
   private pulledFor: string | null = null;
 
