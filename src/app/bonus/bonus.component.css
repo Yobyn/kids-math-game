@@ -1,0 +1,85 @@
+/* Transparent all the way down, so the particle field shows through */
+.bonus {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0.5rem 1rem 1rem;
+  text-align: center;
+  background: transparent;
+  color: var(--text);
+}
+
+h1 {
+  margin: 0.25rem 0;
+  font-size: 1.6rem;
+}
+
+.bonus-bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.bonus-points {
+  font-size: 3rem;
+  font-weight: bold;
+  color: var(--accent-magenta-text);
+}
+
+.bonus-clock {
+  font-size: 1.2rem;
+  color: var(--text-dim);
+}
+
+.bonus-board {
+  position: relative;
+  width: 100%;
+  border: 1px solid var(--edge);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* A drag on the board steers the paddle; it must never scroll the page */
+.bonus-canvas {
+  display: block;
+  width: 100%;
+  touch-action: none;
+  background: transparent;
+}
+
+.bonus-card {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  padding: 1rem;
+  border-radius: 16px;
+  background: var(--surface-raised);
+  box-shadow: var(--glow);
+}
+
+.bonus-well-played {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin: 0 0 0.25rem;
+}
+
+.bonus-won-number {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--accent-magenta-text);
+}
+
+.bonus-button {
+  min-height: 48px;
+  min-width: 140px;
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 24px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: var(--text);
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-magenta));
+  cursor: pointer;
+}

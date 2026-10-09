@@ -1,0 +1,30 @@
+<div class="bonus">
+  <h1>{{ languageService.translate('bonus-title') }}</h1>
+
+  <!-- The points, big, and the clock, small -->
+  <div class="bonus-bar">
+    <span class="bonus-points" aria-live="polite">{{ hits }}</span>
+    <span class="bonus-clock">{{ clock }}{{ languageService.translate('bonus-seconds') }}</span>
+  </div>
+
+  <!-- See-through: the particle field behind every screen shows through the board -->
+  <div class="bonus-board" #board>
+    <canvas #canvas
+            class="bonus-canvas"
+            role="img"
+            [attr.aria-label]="languageService.translate('bonus-board')"
+            (pointerdown)="steer($event)"
+            (pointermove)="steer($event)"></canvas>
+
+    <div class="bonus-card" *ngIf="!started">
+      <p>{{ languageService.translate('bonus-how') }}</p>
+      <button type="button" class="bonus-button" (click)="start()">{{ languageService.translate('bonus-start') }}</button>
+    </div>
+
+    <div class="bonus-card" *ngIf="ended" role="status">
+      <p class="bonus-well-played">{{ languageService.translate('bonus-well-played') }}</p>
+      <p class="bonus-won"><span class="bonus-won-number">{{ hits }}</span> {{ languageService.translate('bonus-points-won') }}</p>
+      <button type="button" class="bonus-button" (click)="done()">{{ languageService.translate('bonus-done') }}</button>
+    </div>
+  </div>
+</div>

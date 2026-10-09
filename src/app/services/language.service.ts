@@ -8,6 +8,7 @@ import type { LoginKey } from '../login/login-words';
 import type { SelectKey } from '../grade-select/select-words';
 import type { PlayKey } from '../question/play-words';
 import type { ItemKey } from '../avatar/item-words';
+import type { BonusKey } from '../bonus/bonus-words';
 
 export type TranslationKeys = 
   | 'register'
@@ -46,6 +47,14 @@ export type TranslationKeys =
   | 'climb-medium'
   | 'climb-hard'
   | 'grade-coming-soon'
+  | 'bonus-title'
+  | 'bonus-how'
+  | 'bonus-start'
+  | 'bonus-seconds'
+  | 'bonus-well-played'
+  | 'bonus-points-won'
+  | 'bonus-done'
+  | 'bonus-board'
   | 'level'
   | 'easy-desc'
   | 'medium-desc'
@@ -244,7 +253,7 @@ export type Words<K extends string> = { [lang in Language]: { [key in K]: string
  * Words that only a lazy screen uses live with that screen (see its
  * `*-words.ts`), not here: everything in this file is in the first load.
  */
-type ScreenKey = AdultsKey | ScrapbookKey | ProgressKey | ChooserKey | LoginKey | SelectKey | PlayKey | ItemKey;
+type ScreenKey = AdultsKey | ScrapbookKey | ProgressKey | ChooserKey | LoginKey | SelectKey | PlayKey | ItemKey | BonusKey;
 
 type TranslationSet = {
   [key in Language]: {
