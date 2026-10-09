@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { BonusComponent, END_PULSE, HIT_PULSE } from './bonus.component';
+import { BOARD_MARGIN, BonusComponent, END_PULSE, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { BALL_RADIUS } from './pong';
 
@@ -116,6 +116,15 @@ describe('BonusComponent, the bonus game after a round', () => {
     expect(pixel(component.game.ball.x, component.game.ball.y)[3]).toBeGreaterThan(200);
     const paddle = component.game.paddle;
     expect(pixel(paddle.x, paddle.y + paddle.height / 2)[3]).toBeGreaterThan(200);
+  });
+
+  it('fits the board in the height left below the score, so the paddle never needs scrolling to', () => {
+    const board = fixture.nativeElement.querySelector('.bonus-board') as HTMLElement;
+    const room = window.innerHeight - board.getBoundingClientRect().top - BOARD_MARGIN;
+    expect(component.game.height).toBe(Math.round(Math.min(Math.max(room, MIN_BOARD), component.game.width * 1.6)));
+    if (room >= MIN_BOARD) {
+      expect(board.getBoundingClientRect().top + component.game.height).toBeLessThanOrEqual(window.innerHeight);
+    }
   });
 
   it('goes on when the game is done', () => {

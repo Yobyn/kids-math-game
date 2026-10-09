@@ -8,6 +8,9 @@ import { Pong, PongEvent, movePaddle, newPong, secondsLeft, step } from './pong'
 
 /** How far a held arrow key moves the paddle, in screen widths a second. */
 const KEY_SPEED = 1.1;
+/** Room kept under the board, and the shortest board still worth playing on. */
+export const BOARD_MARGIN = 16;
+export const MIN_BOARD = 280;
 /** The ball's glowing tail: this many of its last places. */
 const TRAIL = 8;
 /** How hard a paddle hit swells the field, and the end of the game. */
@@ -70,7 +73,11 @@ export class BonusComponent implements AfterViewInit, OnDestroy {
     cancelAnimationFrame(this.frame);
   }
 
-  /** The board takes the screen's width and most of its height, never more than a phone held upright. */
+  /**
+   * The board takes the screen's width and the height left below the score,
+   * so the paddle is always on screen without scrolling; never taller than a
+   * phone held upright, never too short to play.
+   */
   fit() {
     const canvas = this.canvasRef?.nativeElement;
     const board = this.boardRef?.nativeElement;
@@ -78,7 +85,8 @@ export class BonusComponent implements AfterViewInit, OnDestroy {
       return;
     }
     const width = Math.max(240, Math.round(board.clientWidth));
-    const height = Math.round(Math.min(Math.max(window.innerHeight * 0.62, 320), width * 1.6));
+    const left = window.innerHeight - board.getBoundingClientRect().top - BOARD_MARGIN;
+    const height = Math.round(Math.min(Math.max(left, MIN_BOARD), width * 1.6));
     this.ratio = window.devicePixelRatio || 1;
     canvas.width = Math.round(width * this.ratio);
     canvas.height = Math.round(height * this.ratio);
