@@ -16,6 +16,21 @@ npm ci
 npm start          # http://localhost:4200/
 ```
 
+### Keeping it on the latest code
+
+```bash
+npm run play       # http://localhost:4200/, and stays up to date
+```
+
+`npm run play` runs the game like `npm start` and then checks GitHub every
+five minutes. When `main` has moved (new work was merged), it pulls it,
+runs `npm ci` if the packages changed, and restarts the game; an open browser
+tab reloads by itself. Leave it running in a terminal; Ctrl+C stops it. It
+works the same on Windows, macOS and Linux. It never overwrites work: with
+changes of your own, local commits, or a branch other than `main` checked
+out, it says so and leaves the code alone. `PLAY_CHECK_MINUTES`, `PLAY_PORT`
+and `PLAY_BRANCH` change how often it looks, the port and the branch.
+
 `npm start` carries `NODE_OPTIONS=--openssl-legacy-provider`, and so do the
 build and test scripts. Angular 12 ships webpack 4, whose hashing calls an
 OpenSSL 3 routine that Node 17 removed; without the flag every one of these
