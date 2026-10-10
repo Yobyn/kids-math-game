@@ -366,8 +366,14 @@ middle, hard the end), one groep per run.
   (`procent-via-*`), what percentage (`welk-procent`), bigger fractions of
   amounts, scale (`schaal-*`) and the mean (`gemiddelde-3/4`, the list made
   from total and count by `meanList`). Every new card measured on one line
-  at 320 and 360px in nl, en and es. Groep 8 stays locked: its end (E) is
-  step E, which unlocks it. See docs/CURRICULUM-NL.md, build order 6.
+  at 320 and 360px in nl, en and es. See docs/CURRICULUM-NL.md, build
+  order 6.
+- **Groep 8, the end: DONE, GROEP 8 COMPLETE AND UNLOCKED (2026-10-10, night
+  run step E).** Volume (`inhoud-*`), litres (`m3-l`, `l-cm3`), time spans
+  (`tijdsduur`), speed (`snelheid`) and temperatures below nought
+  (`temperatuur-op/af`). `LAST_READY_GRADE` is 6: groep 3 to 8 are open,
+  klas 1–4 still locked. Next: step F (money only where it is taught: a
+  groep 8 round at the end of the year still asks coin questions).
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

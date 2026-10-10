@@ -37,6 +37,17 @@
  *   gemiddelde-3 Wat is het gemiddelde? 12, 17, 7 → ?
  *                                kept as 36 : 3: the total shared by the count; the list
  *                                itself is made from those two (written-form.ts meanList)
+ *   inhoud-10  10 × 5 × 4 = ? cm³ kept as 50 × 4: the bottom's area (10 × 5) times the
+ *                                height; the length, 10, is in the form's name
+ *   m3-l       2 m³ = ? l        kept as 2 × 1000, as the measures of groep 5
+ *   tijdsduur  Hoeveel minuten? 9:45 → 11:20 = ?
+ *                                kept as 680 − 585: both times in minutes from midnight
+ *   snelheid   60 km per uur, 2,5 uur = ? km
+ *                                kept as 5 × 30: the half hours times the km in one
+ *   temperatuur-op Hoeveel graden verschil? −3° → 5° = ?
+ *                                kept as 5 + 3: the degrees above nought and the degrees
+ *                                below it (−3° is 3 below); -op goes up from the cold
+ *                                one, -af down to it
  *
  * so marking, the worked line and a missed fact's identity all still work
  * from the sum. A remainder and a rounding are the sums with signs of their
@@ -49,7 +60,25 @@
  */
 export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | 'rest' | 'afronden' | 'oppervlakte' | 'tienden'
   | MeasureForm | FractionOfForm | EqualFractionForm | PercentForm | DecimalForm | DecimalMeasureForm
-  | FractionSumForm | 'breuk-komma' | RatioForm | DiscountForm | PercentStepForm | 'welk-procent' | ScaleForm | MeanForm;
+  | FractionSumForm | 'breuk-komma' | RatioForm | DiscountForm | PercentStepForm | 'welk-procent' | ScaleForm | MeanForm
+  | VolumeForm | VolumeMeasureForm | 'tijdsduur' | 'snelheid' | TemperatureForm;
+
+/** 10 × 5 × 4 = ? cm³: the volume of a box. The number is its length. */
+export type VolumeForm = 'inhoud-2' | 'inhoud-4' | 'inhoud-5' | 'inhoud-10';
+export const VOLUME_FORMS: VolumeForm[] = ['inhoud-2', 'inhoud-4', 'inhoud-5', 'inhoud-10'];
+
+/** The length a volume form carries in its name: 10 for inhoud-10. */
+export function lengthOf(form: VolumeForm): number {
+  return Number(form.split('-')[1]);
+}
+
+/** A volume in litres: 2 m³ = ? l, 3 l = ? cm³. See teaching/school/written-form.ts VOLUME_MEASURES. */
+export type VolumeMeasureForm = 'm3-l' | 'l-cm3';
+export const VOLUME_MEASURE_FORMS: VolumeMeasureForm[] = ['m3-l', 'l-cm3'];
+
+/** How many degrees between two temperatures, one below nought: going up (-op) or down (-af). */
+export type TemperatureForm = 'temperatuur-op' | 'temperatuur-af';
+export const TEMPERATURE_FORMS: TemperatureForm[] = ['temperatuur-op', 'temperatuur-af'];
 
 /**
  * 15% van 60, 30% van 70, 12% van 300: any percentage, worked through the
@@ -151,7 +180,7 @@ export const MEASURE_FORMS: MeasureForm[] = ['m-cm', 'km-m', 'kg-g', 'uur-min'];
 export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft', 'deel', 'rest', 'afronden', 'oppervlakte', 'tienden',
   ...MEASURE_FORMS, ...FRACTION_OF_FORMS, ...EQUAL_FRACTION_FORMS, ...PERCENT_FORMS, 'komma-2', 'komma-3', ...DECIMAL_MEASURE_FORMS,
   ...FRACTION_SUM_FORMS, 'breuk-komma', ...RATIO_FORMS, ...DISCOUNT_FORMS, ...PERCENT_STEP_FORMS, 'welk-procent',
-  ...SCALE_FORMS, ...MEAN_FORMS];
+  ...SCALE_FORMS, ...MEAN_FORMS, ...VOLUME_FORMS, ...VOLUME_MEASURE_FORMS, 'tijdsduur', 'snelheid', ...TEMPERATURE_FORMS];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */
 export function readForm(raw: unknown): SumForm | undefined {

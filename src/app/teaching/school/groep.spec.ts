@@ -346,8 +346,8 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       expect(sums.some(sum => sum.num2 === 10 && sum.num1 % 10 === 5)).toBeTrue();
     });
 
-    it('keeps practising at the end of the year everything that was new in its middle, in groep 6 and 7', () => {
-      [6, 7].forEach(groep => {
+    it('keeps practising at the end of the year everything that was new in its middle, in groep 6, 7 and 8', () => {
+      [6, 7, 8].forEach(groep => {
         const end = Object.keys(CURRICULUM[groep].E);
         Object.keys(CURRICULUM[groep].M).filter(topic => !Object.keys(CURRICULUM[groep].B).includes(topic))
           .forEach(topic => expect(end).withContext(`groep ${groep}: ${topic}`).toContain(topic));
@@ -360,13 +360,19 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     });
   });
 
-  describe('groep 8, the start and the middle (grade 6)', () => {
+  describe('groep 8 (grade 6)', () => {
     const figures = (n: number) => String(n).length;
 
     it('starts the year where groep 7 ended', () => {
       Object.keys(CURRICULUM[8].B).forEach(topic => expect(Object.keys(CURRICULUM[7].E)).withContext(topic).toContain(topic));
-      expect(schoolSum(8, 'B')).not.toBeNull();
-      expect(schoolSum(8, 'M')).not.toBeNull();
+      (['B', 'M', 'E'] as Moment[]).forEach(moment => expect(schoolSum(8, moment)).withContext(moment).not.toBeNull());
+    });
+
+    it('brings volume, litres, time spans, speed and temperatures below nought at the end of the year', () => {
+      const random = seeded(88);
+      const topics = new Set(Array.from({ length: 600 }, () => schoolSum(8, 'E', random)!.topic));
+      ['inhoud', 'liters', 'tijdsduur', 'snelheid', 'temperatuur'].forEach(topic => expect(topics.has(topic)).withContext(topic).toBeTrue());
+      Object.keys(CURRICULUM[8].M).forEach(topic => expect(['inhoud', 'liters', 'tijdsduur', 'snelheid', 'temperatuur']).not.toContain(topic));
     });
 
     it('brings percentages of any amount, what percentage, bigger fractions, the scale and the mean in its middle', () => {
@@ -379,14 +385,14 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     });
 
     it('asks nothing a child cannot type in the keypad\'s six figures, and never a times table alone', () => {
-      (['B', 'M'] as Moment[]).forEach(moment => Object.keys(CURRICULUM[8][moment]).forEach(topic =>
+      (['B', 'M', 'E'] as Moment[]).forEach(moment => Object.keys(CURRICULUM[8][moment]).forEach(topic =>
         made(topic).forEach(sum => {
           // counted in its own unit: 2,5 × 4 is 1000 hundredths, which is the figures of 10,00 at most
           expect(figures(answer(sum))).withContext(topic).toBeLessThanOrEqual(6);
           expect(Number.isInteger(answer(sum))).withContext(topic).toBeTrue();
         })));
-      Object.keys(CURRICULUM[8].M).forEach(topic =>
-        expect(['tafels-6-7-8-9', 'deeltafels-6-7-8-9', 'tafels-1-5-10', 'deeltafels-1-5-10']).not.toContain(topic));
+      (['M', 'E'] as Moment[]).forEach(moment => Object.keys(CURRICULUM[8][moment]).forEach(topic =>
+        expect(['tafels-6-7-8-9', 'deeltafels-6-7-8-9', 'tafels-1-5-10', 'deeltafels-1-5-10']).not.toContain(topic)));
     });
   });
 
@@ -530,8 +536,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       }
     });
 
-    it('leaves what is not built yet to the old questions: the end of groep 8, and klas 1 on', () => {
-      expect(schoolSum(8, 'E')).toBeNull();
+    it('leaves what is not built yet to the old questions: klas 1 on', () => {
       [9, 10].forEach(groep => expect(schoolSum(groep, 'M')).withContext(`groep ${groep}`).toBeNull());
     });
   });

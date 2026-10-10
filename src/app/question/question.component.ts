@@ -517,7 +517,11 @@ export class QuestionComponent implements OnInit, OnDestroy {
         cost: this.languageService.translate('sum-cost'),
         discount: this.languageService.translate('sum-discount'),
         scale: this.languageService.translate('sum-scale'),
-        mean: this.languageService.translate('sum-mean')
+        mean: this.languageService.translate('sum-mean'),
+        minutesBetween: this.languageService.translate('sum-minutes-between'),
+        degreesBetween: this.languageService.translate('sum-degrees-between'),
+        perHour: this.languageService.translate('sum-per-hour'),
+        volume: this.languageService.translate('sum-volume')
       });
     }
     return this.layoutCache!;
