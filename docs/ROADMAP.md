@@ -318,6 +318,15 @@ middle, hard the end), one groep per run.
   without one). The end swells the whole field (`pulse(1)`) and throws
   sparks from six places round the ball, with the correct-answer sound
   when the ball was kept up at least once.
+- **Each character levels on its own (2026-10-10).** Yobyn: "when you level
+  you only level that avatar, because if you switch now you can have all
+  unlocked". Experience is kept per family (levels/family-xp.ts, stored as
+  `familyXp:<owner>`): a round and the ball game pay the character being
+  played, and its stage, level and wardrobe come from its own experience.
+  A family never played starts at stage 1. The one shared number from before
+  goes, once, to the character the child had then, so nobody's character
+  shrinks; a synced copy from an older device is read the same way. Two
+  devices take the higher per family; a guest signing up adds per family.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

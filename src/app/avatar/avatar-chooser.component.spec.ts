@@ -363,8 +363,8 @@ describe('AvatarChooserComponent wardrobe', () => {
     });
 
     it('shows every stage, the ones still to come locked with the level they come at', () => {
+      service.save({ ...service.get(), family: 'creature' });
       openAtLevel(12);
-      component.pickFamily('creature');
       fixture.detectChanges();
       const stages = Array.from(stageRow()!.querySelectorAll('.swatch')) as HTMLButtonElement[];
       expect(stages.map(s => s.disabled)).toEqual([false, false, true]);
@@ -387,9 +387,24 @@ describe('AvatarChooserComponent wardrobe', () => {
       expect(component.avatar.hat).toBe(NO_ITEM);
     });
 
-    it('goes back to an earlier stage a child liked, and keeps it there until they pick the newest again', () => {
+    it('starts a family never played at its first stage, with its own level (Yobyn, 2026-10-10)', () => {
+      // "if you switch now you can have all unlocked"
       openAtLevel(16);
-      component.pickFamily('creature');
+      component.pickFamily('robot');
+      fixture.detectChanges();
+      const stages = Array.from(stageRow()!.querySelectorAll('.swatch')) as HTMLButtonElement[];
+      expect(stages.map(s => s.disabled)).toEqual([false, true, true]);
+      expect(component.avatar.stage).toBe(1);
+      expect(component.level).toBe(1);
+      // Back to the kid hero: everything it earned is still there
+      component.pickFamily('kid');
+      expect(component.avatar.stage).toBe(3);
+      expect(component.level).toBe(16);
+    });
+
+    it('goes back to an earlier stage a child liked, and keeps it there until they pick the newest again', () => {
+      service.save({ ...service.get(), family: 'creature' });
+      openAtLevel(16);
       fixture.detectChanges();
       const stages = () => Array.from(stageRow()!.querySelectorAll('.swatch')) as HTMLButtonElement[];
       stages()[0].click();
@@ -460,7 +475,7 @@ describe('AvatarChooserComponent wardrobe', () => {
         expect(sound).not.toHaveBeenCalled();
       });
 
-      it('does not celebrate a dragon the child comes back to, grown while they were a kid hero', () => {
+      it('does not grow or celebrate a dragon for what the child earned as a kid hero', () => {
         service.save({ ...service.get(), family: 'creature' });
         openAtLevel(1);
         component.pickFamily('kid');
@@ -468,9 +483,9 @@ describe('AvatarChooserComponent wardrobe', () => {
         reopen();
         // The kid hero they were grew, and said so
         expect(sound).toHaveBeenCalledTimes(1);
-        // Picked again: already seen as it is now, on the stage in front of them
+        // Picked again: the dragon is where it was left
         component.pickFamily('creature');
-        expect(component.avatar.stage).toBe(2);
+        expect(component.avatar.stage).toBe(1);
         reopen();
         expect(component.evolveFrom).toBeNull();
         expect(banner()).toBeNull();

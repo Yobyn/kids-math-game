@@ -1,10 +1,8 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Avatar, defaultAvatar, hatchlingFor, normaliseAvatar } from '../avatar/avatar-model';
+import { AVATAR_KEY, Avatar, Family, defaultAvatar, hatchlingFor, normaliseAvatar } from '../avatar/avatar-model';
 import { GUEST_OWNER, ProgressService, accountOwner } from './progress.service';
 import { levelForXp } from '../levels/level-curve';
-
-const AVATAR_KEY = 'avatar';
 
 /**
  * The child's character, filed per player exactly as their progress is: two
@@ -21,9 +19,17 @@ export class AvatarService {
     this.subject = new BehaviorSubject<Avatar>(this.read(this.currentOwner()));
   }
 
-  /** What the child has actually earned, which decides what they may wear. */
-  private level(): number {
-    return levelForXp(this.progressService.getXp());
+  /**
+   * What the child has earned with this kind of character, which decides
+   * the stage it is at and what it may wear: each family climbs on its own.
+   */
+  private level(family: Family): number {
+    return levelForXp(this.progressService.getXp(family));
+  }
+
+  /** Normalised at the level of the family it is, not the one it was. */
+  private clean(raw: any): Avatar {
+    return normaliseAvatar(raw, this.level(normaliseAvatar(raw).family), this.earned());
   }
 
   /** Events they were here for, which decide the rest of it. */
@@ -40,7 +46,7 @@ export class AvatarService {
   }
 
   save(avatar: Avatar): void {
-    const clean = normaliseAvatar(avatar, this.level(), this.earned());
+    const clean = this.clean(avatar);
     this.write(this.currentOwner(), clean);
     this.subject.next(clean);
   }
@@ -70,7 +76,7 @@ export class AvatarService {
     // An account that already has a character keeps it; the guest's is only
     // taken when there is nothing of their own to overwrite.
     if (this.stored(owner) === null) {
-      this.write(owner, normaliseAvatar(guest, this.level(), this.earned()));
+      this.write(owner, this.clean(guest));
     }
     this.remove(this.key(GUEST_OWNER));
     this.refresh();
@@ -94,7 +100,7 @@ export class AvatarService {
     if (avatar === null || avatar === undefined) {
       return;
     }
-    this.write(this.currentOwner(), normaliseAvatar(avatar, this.level(), this.earned()));
+    this.write(this.currentOwner(), this.clean(avatar));
     this.refresh();
   }
 
@@ -114,7 +120,7 @@ export class AvatarService {
   private read(owner: string): Avatar {
     const stored = this.stored(owner);
     // Never chosen is the default character, at the stage this level has earned
-    const avatar = normaliseAvatar(stored === null ? defaultAvatar() : stored, this.level(), this.earned());
+    const avatar = this.clean(stored === null ? defaultAvatar() : stored);
     // The pet their egg hatches into: picked for this child, and kept from the first save
     return avatar.hatchling ? avatar : { ...avatar, hatchling: hatchlingFor(owner) };
   }

@@ -463,6 +463,70 @@ describe('ProgressService experience', () => {
     localStorage.setItem('username', 'ada');
     expect(service.getXp()).toBe(75);
   });
+
+  describe('per kind of character (Yobyn, 2026-10-10)', () => {
+    const playAs = (family: string, owner = 'guest') =>
+      localStorage.setItem(`avatar:${owner}`, JSON.stringify({ family }));
+
+    it('pays the character being played, and only that one', () => {
+      playAs('robot');
+      service.addXp(40);
+      expect(service.getXp()).toBe(40);
+      expect(service.getXp('robot')).toBe(40);
+      expect(service.getXp('kid')).toBe(0);
+      playAs('kid');
+      expect(service.getXp()).toBe(0);
+      service.addXp(15);
+      expect([service.getXp('kid'), service.getXp('robot')]).toEqual([15, 40]);
+    });
+
+    it('pays the kid hero until a child has chosen anything', () => {
+      service.addXp(30);
+      expect(service.getXp('kid')).toBe(30);
+    });
+
+    it('pays a family named, whoever is on screen', () => {
+      service.addXp(25, 'pizza');
+      expect(service.getXp('pizza')).toBe(25);
+      expect(service.getXp()).toBe(0);
+    });
+
+    it('gives what was earned before, as one number, to the character the child had then', () => {
+      playAs('creature');
+      localStorage.setItem('xp:guest', '640');
+      expect(service.getXp('creature')).toBe(640);
+      expect(service.getXp('kid')).toBe(0);
+      // moved once, not again when they switch
+      expect(localStorage.getItem('xp:guest')).toBeNull();
+      playAs('space');
+      expect(service.getXp('creature')).toBe(640);
+      expect(service.getXp()).toBe(0);
+    });
+
+    it('carries each character\u2019s experience into the account, family by family', () => {
+      localStorage.setItem('username', 'ada');
+      service.addXp(100, 'kid');
+      service.addXp(10, 'robot');
+      localStorage.removeItem('username');
+      service.addXp(20, 'kid');
+      service.addXp(30, 'space');
+
+      service.adoptGuestProgress('ada');
+
+      localStorage.setItem('username', 'ada');
+      expect(['kid', 'robot', 'space'].map(family => service.getXp(family as any))).toEqual([120, 10, 30]);
+      localStorage.removeItem('username');
+      expect(service.getXp('space')).toBe(0);
+    });
+
+    it('sends and takes back every character\u2019s experience when syncing', () => {
+      localStorage.setItem('username', 'ada');
+      service.addXp(70, 'animal');
+      expect(service.exportSynced()!.familyXp).toEqual({ animal: 70 });
+      service.importSynced({ version: 1, familyXp: { animal: 90, kid: 5 } });
+      expect([service.getXp('animal'), service.getXp('kid')]).toEqual([90, 5]);
+    });
+  });
 });
 
 describe('ProgressService remembering events', () => {

@@ -184,7 +184,8 @@ describe('ProgressSyncService', () => {
 
     const pushed = http.expectOne(request => request.method === 'PUT');
     const body = pushed.request.body.progress;
-    expect(body.xp).toBe(240);
+    expect(body.familyXp).toEqual({ kid: 240 });
+    expect(body.xp).toBeUndefined();
     expect(body.missedFacts).toBeUndefined();
     expect(body.learned).toBeUndefined();
     expect(body.round).toBeUndefined();

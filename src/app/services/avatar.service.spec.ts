@@ -56,9 +56,41 @@ describe('AvatarService', () => {
   it('grows a character with the child, one never chosen too', () => {
     TestBed.inject(ProgressService).addXp(xpToReach(15));
     expect(fresh().get().stage).toBe(3);
-    service = fresh();
-    service.save({ ...service.get(), family: 'creature' });
-    expect(fresh().get().stage).toBe(3);
+  });
+
+  describe('each kind of character climbing on its own (Yobyn, 2026-10-10)', () => {
+    it('starts a family never played at its first stage, however far the last one climbed', () => {
+      TestBed.inject(ProgressService).addXp(xpToReach(15));
+      service = fresh();
+      service.save({ ...service.get(), family: 'creature' });
+      expect(service.get().stage).toBe(1);
+      expect(fresh().get().stage).toBe(1);
+      // and the kid hero is still as far as it got when the child goes back
+      service = fresh();
+      service.save({ ...service.get(), family: 'kid' });
+      expect(service.get().stage).toBe(3);
+    });
+
+    it('grows only the character that is played', () => {
+      service.save({ ...service.get(), family: 'robot' });
+      TestBed.inject(ProgressService).addXp(xpToReach(10));
+      expect(fresh().get().stage).toBe(2);
+      service = fresh();
+      service.save({ ...service.get(), family: 'kid' });
+      expect(service.get().stage).toBe(1);
+    });
+
+    it('lets a family wear only what it has earned itself', () => {
+      TestBed.inject(ProgressService).addXp(xpToReach(20), 'robot');
+      service.save({ ...service.get(), hat: 'crown' });
+      expect(fresh().get().hat).toBe(NO_ITEM);
+    });
+
+    it('keeps the stage of the character a child had before levels were per character', () => {
+      localStorage.setItem('avatar:guest', JSON.stringify({ ...defaultAvatar(), family: 'space' }));
+      localStorage.setItem('xp:guest', String(xpToReach(15)));
+      expect(fresh().get()).toEqual(jasmine.objectContaining({ family: 'space', stage: 3 }));
+    });
   });
 
   it('remembers a choice for the next visit', () => {

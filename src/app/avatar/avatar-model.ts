@@ -70,6 +70,13 @@ export interface Avatar {
   topColour: string;
 }
 
+/**
+ * Where a child's character is stored, under their name: `avatar:<owner>`.
+ * Here rather than in the service because experience reads it too, to know
+ * which character a round was played as (levels/family-xp.ts).
+ */
+export const AVATAR_KEY = 'avatar';
+
 export type ItemSlot = 'hat' | 'glasses' | 'top' | 'pet' | 'back' | 'shoes';
 
 /** Wearing nothing in a slot is always available and never locked. */
