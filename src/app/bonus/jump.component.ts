@@ -10,63 +10,51 @@ import { SoundService } from '../services/sound.service';
 import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
+import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { prefersReducedMotion, rgb, roundRect } from './drawing';
-import { Pong, PongEvent, movePaddle, newPong, step } from './pong';
+import { Jumper, JumperEvent, jump, newJumper, step } from './jumper';
 
-/** How far a held arrow key moves the paddle, in screen widths a second. */
-const KEY_SPEED = 1.1;
-/** The share of the paddle's middle drawn in the child's own colour. */
-export const CHILD_BAND = 0.36;
-/** Room kept under the board, and the shortest board still worth playing on. */
-export const BOARD_MARGIN = 16;
-export const MIN_BOARD = 280;
-/** The ball's glowing tail: this many of its last places. */
-const TRAIL = 8;
-/** How hard a paddle hit swells the field, and the end of the game. */
-export const HIT_PULSE = 0.35;
-export const END_PULSE = 1;
-/** The end of the game throws sparks from this many places round the ball: a bigger burst than a hit's. */
-export const END_SPARKS = 6;
-/** How far from the ball those sparks start, in pixels. */
-export const END_SPARK_RADIUS = 36;
+/** The board is about square: wide enough to see what is coming, short enough to fit under the score. */
+export const BOARD_SHAPE = 1.1;
+/** The ball's glowing tail: this many of its last heights. */
+const TRAIL = 6;
 
 /**
- * The bonus game (Yobyn, 2026-10-09): Pong style, a ball kept up with a
- * paddle slid along the bottom, every bounce a point. Its rules are in
- * pong.ts; this screen draws them and feeds them the paddle.
+ * The second bonus game (Yobyn, 2026-10-10): a ball rolling along the
+ * ground, bounced over what is on the ground and kept low under what is in
+ * the air. Its rules are in jumper.ts; this screen draws them and passes on
+ * the taps. A tap anywhere on the board bounces, as do Space and the up arrow.
+ * It ends at the finish flag, which comes at a random moment, or on a crash.
  *
- * It keeps the game's particles (Yobyn: "keep the particles effect of the
- * game"): the canvas is see-through, so the field behind every screen shows
- * through it, and a hit is answered by the field itself through the
- * FieldPulseService: the whole ring swells, and the same sparks as a tapped
- * button fly from where the ball struck. Ball and paddle are drawn in the
- * field's own colours. Under reduced motion the ball is slower and has no
- * tail, and the field does what it already does there (stays still).
+ * It looks and answers like the paddle game (bonus.component.ts): the canvas
+ * is see-through so the particle field shows, every obstacle passed swells
+ * the field and sparks at the ball, and the end is a bigger burst.
  */
 @Component({
-  selector: 'app-bonus',
-  templateUrl: './bonus.component.html',
+  selector: 'app-jump',
+  templateUrl: './jump.component.html',
   styleUrls: ['./bonus.component.css']
 })
-export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
+export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('board') boardRef!: ElementRef<HTMLElement>;
 
-  game: Pong = newPong(320, 480);
+  game: Jumper = newJumper(320, 320);
   started = false;
   ended = false;
   /** What the screen shows; copied from the game only when it changes. */
-  hits = 0;
-  /** The middle of the paddle in the child's own colour, when they have one (paddle-colour.ts). */
+  points = 0;
+  /** A stripe round the ball in the child's own colour, when they have one (paddle-colour.ts). */
   childColour: string | null = null;
-  /** The XP the game paid, once it has ended: one per bounce, capped (level-curve.ts). */
+  /** The XP the game paid, once it has ended (level-curve.ts). */
   xpWon = 0;
+  /** Ended at the finish flag rather than on an obstacle. */
+  finished = false;
 
   readonly calm = prefersReducedMotion();
-  private trail: Array<{ x: number; y: number }> = [];
+  private trail: number[] = [];
   private frame = 0;
   private lastAt = 0;
-  private keyDirection = 0;
   private context: CanvasRenderingContext2D | null = null;
   private ratio = 1;
 
@@ -101,11 +89,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     cancelAnimationFrame(this.frame);
   }
 
-  /**
-   * The board takes the screen's width and the height left below the score,
-   * so the paddle is always on screen without scrolling; never taller than a
-   * phone held upright, never too short to play.
-   */
+  /** The board takes the screen's width and the height left below the score, about square. */
   fit() {
     const canvas = this.canvasRef?.nativeElement;
     const board = this.boardRef?.nativeElement;
@@ -114,13 +98,13 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     const width = Math.max(240, Math.round(board.clientWidth));
     const left = window.innerHeight - board.getBoundingClientRect().top - BOARD_MARGIN;
-    const height = Math.round(Math.min(Math.max(left, MIN_BOARD), width * 1.6));
+    const height = Math.round(Math.min(Math.max(left, MIN_BOARD), width * BOARD_SHAPE));
     this.ratio = window.devicePixelRatio || 1;
     canvas.width = Math.round(width * this.ratio);
     canvas.height = Math.round(height * this.ratio);
     canvas.style.height = `${height}px`;
     if (!this.started) {
-      this.game = newPong(width, height, this.calm);
+      this.game = newJumper(width, height, this.calm);
     }
   }
 
@@ -159,25 +143,23 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /** One frame: the keys move the paddle, the game moves on, the field answers. */
+  /** One frame: the world moves on, the field answers. */
   advance(seconds: number) {
     if (!this.started || this.ended) {
       return;
     }
-    if (this.keyDirection) {
-      this.game = movePaddle(this.game, this.game.paddle.x + this.keyDirection * KEY_SPEED * this.game.width * seconds);
-    }
     const { game, events } = step(this.game, seconds);
     this.game = game;
     if (!this.calm) {
-      this.trail = [...this.trail, { x: game.ball.x, y: game.ball.y }].slice(-TRAIL);
+      this.trail = [...this.trail, game.ball.y].slice(-TRAIL);
     }
     events.forEach(event => this.answer(event));
-    if (game.hits !== this.hits || (game.ended && !this.ended)) {
+    if (game.points !== this.points || (game.ended && !this.ended)) {
       const ending = game.ended !== null && !this.ended;
       this.zone.run(() => {
-        this.hits = game.hits;
+        this.points = game.points;
         this.ended = game.ended !== null;
+        this.finished = game.ended === 'finished';
         if (ending) {
           this.pay();
         }
@@ -186,16 +168,32 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     this.draw();
   }
 
+  /** A tap anywhere on the board bounces the ball. */
+  tap(event?: Event) {
+    if (!this.started || this.ended) {
+      return;
+    }
+    event?.preventDefault();
+    this.game = jump(this.game);
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    // Only while playing: before, Space is the Start button's own
+    if (this.started && !this.ended && (event.key === ' ' || event.key === 'ArrowUp')) {
+      this.tap(event);
+    }
+  }
+
   /**
-   * A hit swells the field, sparks where the ball struck and blips softly
-   * (in the child's sound set, or not at all when sound is off). The end
-   * swells the whole field and throws sparks from all round the ball.
+   * An obstacle passed swells the field, sparks at the ball and blips
+   * softly; the end swells the whole field and throws sparks all round it.
    */
-  answer(event: PongEvent) {
+  answer(event: JumperEvent) {
     const box = this.canvasRef?.nativeElement.getBoundingClientRect();
     const left = box ? box.left : 0;
     const top = box ? box.top : 0;
-    if (event.kind === 'hit') {
+    if (event.kind === 'pass') {
       this.pulseService.pulse(HIT_PULSE);
       this.pulseService.tap(left + event.x, top + event.y);
       this.soundService.playTap();
@@ -208,38 +206,14 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
       const y = Math.min(this.game.height, Math.max(0, event.y + Math.sin(angle) * END_SPARK_RADIUS));
       this.pulseService.tap(left + x, top + y);
     }
-    if (this.game.hits > 0) {
+    if (this.game.points > 0) {
       this.soundService.playSuccess();
-    }
-  }
-
-  /** A finger (or the mouse) anywhere on the board puts the paddle under it. */
-  steer(event: PointerEvent) {
-    const box = this.canvasRef.nativeElement.getBoundingClientRect();
-    this.game = movePaddle(this.game, event.clientX - box.left);
-    if (!this.started) {
-      this.draw();
-    }
-  }
-
-  @HostListener('window:keydown', ['$event'])
-  onKeyDown(event: KeyboardEvent) {
-    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
-      this.keyDirection = event.key === 'ArrowLeft' ? -1 : 1;
-      event.preventDefault();
-    }
-  }
-
-  @HostListener('window:keyup', ['$event'])
-  onKeyUp(event: KeyboardEvent) {
-    if ((event.key === 'ArrowLeft' && this.keyDirection < 0) || (event.key === 'ArrowRight' && this.keyDirection > 0)) {
-      this.keyDirection = 0;
     }
   }
 
   /** The game's XP, paid once as it ends, and kept like a round's. */
   private pay() {
-    this.xpWon = bonusXp(this.hits);
+    this.xpWon = bonusXp(this.points);
     this.progressService.addXp(this.xpWon);
     this.avatarService.refresh();
     this.progressSync.push().subscribe();
@@ -255,42 +229,63 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!context) {
       return;
     }
-    const { width, height, ball, paddle } = this.game;
+    const { width, height, ground, ball, obstacles } = this.game;
     context.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
     // Cleared, never filled: the field behind shows through
     context.clearRect(0, 0, width, height);
+    context.save();
 
-    // The ball's tail, fading out behind it
-    this.trail.forEach((point, i) => {
-      const { r, g, b } = fieldColour(point.x / width);
-      const alpha = ((i + 1) / (this.trail.length + 1)) * 0.35;
-      context.beginPath();
-      context.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(3)})`;
-      context.arc(point.x, point.y, ball.radius * (0.5 + 0.5 * (i + 1) / this.trail.length), 0, Math.PI * 2);
+    // The ground: the ring's blue at the left, its magenta at the right
+    const line = context.createLinearGradient(0, 0, width, 0);
+    line.addColorStop(0, rgb(fieldColour(0)));
+    line.addColorStop(1, rgb(fieldColour(1)));
+    context.shadowColor = rgb(fieldColour(0.5));
+    context.shadowBlur = 12;
+    context.fillStyle = line;
+    context.fillRect(0, ground, width, 3);
+
+    // The obstacles, glowing in the colour of the ring where they are
+    obstacles.forEach(obstacle => {
+      const colour = fieldColour(Math.min(1, Math.max(0, (obstacle.x + obstacle.width / 2) / width)));
+      context.shadowColor = rgb(colour);
+      context.shadowBlur = 14;
+      context.fillStyle = `rgba(${colour.r}, ${colour.g}, ${colour.b}, 0.85)`;
+      roundRect(context, obstacle.x, obstacle.y, obstacle.width, obstacle.height, 8);
       context.fill();
     });
 
-    // The paddle: the ring's blue at its left end, its magenta at the right
-    const left = paddle.x - paddle.width / 2;
-    const gradient = context.createLinearGradient(left, 0, left + paddle.width, 0);
-    gradient.addColorStop(0, rgb(fieldColour(0)));
-    gradient.addColorStop(1, rgb(fieldColour(1)));
-    context.save();
-    context.shadowColor = rgb(fieldColour(0.5));
-    context.shadowBlur = 16;
-    context.fillStyle = gradient;
-    roundRect(context, left, paddle.y, paddle.width, paddle.height, paddle.height / 2);
-    context.fill();
-    // The child's own colour in the middle, when their character has one
-    if (this.childColour) {
-      context.shadowBlur = 0;
-      context.fillStyle = this.childColour;
-      const band = paddle.width * CHILD_BAND;
-      roundRect(context, paddle.x - band / 2, paddle.y + 2, band, paddle.height - 4, (paddle.height - 4) / 2);
+    // The finish flag: a pole from the ground with a flag in the ring's colours
+    if (this.game.flag !== null) {
+      const x = this.game.flag;
+      const top = ground * 0.45;
+      context.shadowColor = rgb(fieldColour(1));
+      context.shadowBlur = 14;
+      context.fillStyle = '#ffffff';
+      context.fillRect(x - 2, top, 4, ground - top);
+      const cloth = context.createLinearGradient(x, 0, x + 44, 0);
+      cloth.addColorStop(0, rgb(fieldColour(0)));
+      cloth.addColorStop(1, rgb(fieldColour(1)));
+      context.fillStyle = cloth;
+      context.beginPath();
+      context.moveTo(x + 2, top);
+      context.lineTo(x + 44, top + 15);
+      context.lineTo(x + 2, top + 30);
+      context.closePath();
       context.fill();
     }
 
-    // The ball, glowing in the colour of the ring where it is
+    // The ball's tail: where it was, a little behind it
+    this.trail.forEach((y, i) => {
+      const { r, g, b } = fieldColour(ball.x / width);
+      const alpha = ((i + 1) / (this.trail.length + 1)) * 0.3;
+      context.beginPath();
+      context.shadowBlur = 0;
+      context.fillStyle = `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(3)})`;
+      context.arc(ball.x - (this.trail.length - i) * 4, y, ball.radius * (0.5 + 0.5 * (i + 1) / this.trail.length), 0, Math.PI * 2);
+      context.fill();
+    });
+
+    // The ball, glowing, with a stripe that shows it rolling
     const colour = fieldColour(ball.x / width);
     context.shadowColor = rgb(colour);
     context.shadowBlur = 18;
@@ -302,6 +297,13 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     context.fillStyle = `rgba(${colour.r}, ${colour.g}, ${colour.b}, 0.55)`;
     context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     context.fill();
+    context.shadowBlur = 0;
+    context.strokeStyle = this.childColour || '#ffffff';
+    context.lineWidth = 3;
+    context.beginPath();
+    context.moveTo(ball.x - Math.cos(ball.turn) * ball.radius * 0.8, ball.y - Math.sin(ball.turn) * ball.radius * 0.8);
+    context.lineTo(ball.x + Math.cos(ball.turn) * ball.radius * 0.8, ball.y + Math.sin(ball.turn) * ball.radius * 0.8);
+    context.stroke();
     context.restore();
   }
 }

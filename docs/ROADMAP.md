@@ -342,6 +342,25 @@ middle, hard the end), one groep per run.
   heights a second, reached after about 3.5 minutes. The five minutes are a
   hidden backstop. Measured: a paddle following the ball a fifth of a second
   late missed at 56 s; one following instantly, at 208 s on the top speed.
+- **A second bonus game, Springbal (2026-10-10).** Yobyn: "another where the
+  two ball games will be randomly selected ... a ball that rolls horizontally
+  over the screen and the user needs to bounce the ball to avoid obstacles,
+  obstacles placed randomly on the ground, in the middle of the air and at
+  the top"; then "rather not increase the speed but have an end flag, after
+  random time between 20 secs and 2 min". A finished round now earns ONE of
+  the two games, picked at random and kept with it (bonus/bonus-games.ts;
+  a bonus stored before this reads as the paddle game). The result button
+  says which: 🏓 Balspel or 🏀 Springbal. Springbal (`/bonus/jump`, rules in
+  bonus/jumper.ts, free of the DOM): the ball rolls at one steady speed; a
+  tap, Space or the up arrow bounces it, always as high. Ground blocks must
+  be bounced over; blocks in the middle of the air and hanging from the top
+  are rolled under, and a bounce runs into them. Every block passed is a
+  point, paid like the paddle game's. There is always a whole bounce of
+  space between blocks, so a perfect player can always get through (a test
+  plays one to the latest flag). The finish flag comes in at a random moment
+  between 20 s and 2 minutes; reaching it ends the game with "Je hebt de
+  vlag gehaald!", a crash before it with "Goed gespeeld!". The paddle game
+  keeps its speed-up.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

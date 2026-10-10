@@ -75,9 +75,9 @@
 
   </div>
 
-  <!-- The bonus game a finished round earns, once (bonus/) -->
+  <!-- The bonus game a finished round earns, once: one of two, at random (bonus/) -->
   <button type="button" class="play-again bonus-offer" *ngIf="bonusReady" (click)="openBonus()">
-    🏓 {{ languageService.translate('bonus-game') }}
+    {{ bonusIcon }} {{ bonusName }}
   </button>
 
   <button class="play-again" (click)="playAgain()">

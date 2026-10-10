@@ -1002,6 +1002,26 @@ describe('ProgressService and the bonus game a round earns', () => {
     expect(service.useBonus()).toBeFalse();
   });
 
+  it('picks one of the two games at random, and keeps it with the bonus', () => {
+    const picked = new Set<string>();
+    for (let i = 0; i < 40; i++) {
+      service.grantBonus();
+      picked.add(service.bonusGame()!);
+    }
+    expect(Array.from(picked).sort()).toEqual(['jump', 'pong']);
+    service.grantBonus('jump');
+    expect(service.bonusGame()).toBe('jump');
+    expect(service.bonusGame()).toBe('jump');
+    service.useBonus();
+    expect(service.bonusGame()).toBeNull();
+  });
+
+  it('reads a bonus earned before there was a choice as the paddle game', () => {
+    localStorage.setItem('bonus:guest', String(Date.now()));
+    expect(service.hasBonus()).toBeTrue();
+    expect(service.bonusGame()).toBe('pong');
+  });
+
   it('keeps a child\'s game to that child', () => {
     service.grantBonus();
     localStorage.setItem('username', 'sam');
