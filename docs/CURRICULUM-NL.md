@@ -164,6 +164,23 @@ its groep:
    twelfths in 7/12 + 4/12 (too wide for one line of a small phone until
    a fraction is drawn over its line), mixed numbers.
 6. **Groep 8**: percentages, scale, the mean, area and volume, time spans,
-   speed, negative numbers.
+   speed, negative numbers. THE START AND THE MIDDLE ARE DONE (2026-10-10):
+   B is groep 7's end (2,5 × 4, 2,5 km = ? m, pakken, korting, with 25% van
+   60 and the staartdeling revisited). M: any percentage of an amount,
+   worked through 10%, 5% or 1% ("15% van 60 = ?", kept as 3 × 3: 5% of 60
+   is 3; "12% van 300" through 1%; never only the 10%, 25% or 50% of groep
+   7); what percentage ("18 van 72 = ? %", kept as 1800 : 72, a whole
+   percentage, never out of 100); bigger fractions of amounts ("⅔ van 45",
+   up to 200); scale ("Schaal 1 : 500 / 4 cm = ? m", at 1 : 100, 200, 500
+   and 1000, whole metres); the mean ("Wat is het gemiddelde? 11, 15, 10 →
+   ?", kept as 36 : 3, the list made from the total and the count by
+   `meanList`, always the same list for the same sum, all different and
+   above nothing; four numbers are small ones, as 4, 8, 6, 10, since four of
+   two figures and the box do not fit one line of a 320px phone). Each is
+   worked out after two tries ("5% van 60 = 3 → 3 × 3 = 9", "11 + 15 + 10 =
+   36 → 36 : 3 = 12"). Not yet: adding fractions with unlike denominators
+   (the answer is a fraction, which the keypad cannot type until a fraction
+   is drawn over its line). The end (E) is next; groep 8 stays locked until
+   it is built.
 7. **Verhaaltjessommen** (word problems) for every groep, in all three
    languages.

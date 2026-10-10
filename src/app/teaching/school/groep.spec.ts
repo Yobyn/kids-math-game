@@ -360,6 +360,36 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     });
   });
 
+  describe('groep 8, the start and the middle (grade 6)', () => {
+    const figures = (n: number) => String(n).length;
+
+    it('starts the year where groep 7 ended', () => {
+      Object.keys(CURRICULUM[8].B).forEach(topic => expect(Object.keys(CURRICULUM[7].E)).withContext(topic).toContain(topic));
+      expect(schoolSum(8, 'B')).not.toBeNull();
+      expect(schoolSum(8, 'M')).not.toBeNull();
+    });
+
+    it('brings percentages of any amount, what percentage, bigger fractions, the scale and the mean in its middle', () => {
+      const random = seeded(8);
+      const topics = new Set(Array.from({ length: 600 }, () => schoolSum(8, 'M', random)!.topic));
+      ['procent-van', 'welk-procent', 'breuk-van-groot', 'schaal', 'gemiddelde'].forEach(topic =>
+        expect(topics.has(topic)).withContext(topic).toBeTrue());
+      // and none of it before the middle
+      Object.keys(CURRICULUM[8].B).forEach(topic => expect(['procent-van', 'welk-procent', 'schaal', 'gemiddelde']).not.toContain(topic));
+    });
+
+    it('asks nothing a child cannot type in the keypad\'s six figures, and never a times table alone', () => {
+      (['B', 'M'] as Moment[]).forEach(moment => Object.keys(CURRICULUM[8][moment]).forEach(topic =>
+        made(topic).forEach(sum => {
+          // counted in its own unit: 2,5 × 4 is 1000 hundredths, which is the figures of 10,00 at most
+          expect(figures(answer(sum))).withContext(topic).toBeLessThanOrEqual(6);
+          expect(Number.isInteger(answer(sum))).withContext(topic).toBeTrue();
+        })));
+      Object.keys(CURRICULUM[8].M).forEach(topic =>
+        expect(['tafels-6-7-8-9', 'deeltafels-6-7-8-9', 'tafels-1-5-10', 'deeltafels-1-5-10']).not.toContain(topic));
+    });
+  });
+
   describe('groep 7', () => {
     const at = (sum: SchoolSum) => `${sum.num1} ${sum.operation} ${sum.num2}`;
     const figures = (n: number) => String(n).length;
@@ -500,8 +530,9 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       }
     });
 
-    it('leaves a groep not built yet to the old questions', () => {
-      [8, 9].forEach(groep => expect(schoolSum(groep, 'M')).withContext(`groep ${groep}`).toBeNull());
+    it('leaves what is not built yet to the old questions: the end of groep 8, and klas 1 on', () => {
+      expect(schoolSum(8, 'E')).toBeNull();
+      [9, 10].forEach(groep => expect(schoolSum(groep, 'M')).withContext(`groep ${groep}`).toBeNull());
     });
   });
 });

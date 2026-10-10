@@ -361,6 +361,13 @@ middle, hard the end), one groep per run.
   between 20 s and 2 minutes; reaching it ends the game with "Je hebt de
   vlag gehaald!", a crash before it with "Goed gespeeld!". The paddle game
   keeps its speed-up.
+- **Groep 8, the start and the middle: DONE (2026-10-10, night run step D).**
+  B = groep 7's end. M = any percentage of an amount through 10%, 5% or 1%
+  (`procent-via-*`), what percentage (`welk-procent`), bigger fractions of
+  amounts, scale (`schaal-*`) and the mean (`gemiddelde-3/4`, the list made
+  from total and count by `meanList`). Every new card measured on one line
+  at 320 and 360px in nl, en and es. Groep 8 stays locked: its end (E) is
+  step E, which unlocks it. See docs/CURRICULUM-NL.md, build order 6.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

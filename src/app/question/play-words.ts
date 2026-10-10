@@ -61,6 +61,8 @@ export type PlayKey =
   | 'sum-packs'
   | 'sum-cost'
   | 'sum-discount'
+  | 'sum-scale'
+  | 'sum-mean'
   | 'play-again';
 
 export const PLAY_WORDS: Words<PlayKey> = {
@@ -120,7 +122,9 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-area': 'Area of the rectangle',
     'sum-packs': 'packs',
     'sum-cost': 'cost',
-    'sum-discount': 'off: what do you pay?'
+    'sum-discount': 'off: what do you pay?',
+    'sum-scale': 'Scale',
+    'sum-mean': 'What is the mean?'
   },
   nl: {
     'praise-3': 'Knap gewerkt!',
@@ -178,7 +182,9 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-area': 'Oppervlakte van de rechthoek',
     'sum-packs': 'pakken',
     'sum-cost': 'kosten',
-    'sum-discount': 'korting: wat betaal je?'
+    'sum-discount': 'korting: wat betaal je?',
+    'sum-scale': 'Schaal',
+    'sum-mean': 'Wat is het gemiddelde?'
   },
   es: {
     'praise-3': '¡Un trabajo brillante!',
@@ -236,6 +242,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-area': 'Área del rectángulo',
     'sum-packs': 'paquetes',
     'sum-cost': 'cuestan',
-    'sum-discount': 'de descuento: ¿cuánto pagas?'
+    'sum-discount': 'de descuento: ¿cuánto pagas?',
+    'sum-scale': 'Escala',
+    'sum-mean': '¿Cuál es la media?'
   }
 };

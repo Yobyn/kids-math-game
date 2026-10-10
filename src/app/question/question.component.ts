@@ -515,7 +515,9 @@ export class QuestionComponent implements OnInit, OnDestroy {
         point: this.decimalSign,
         packs: this.languageService.translate('sum-packs'),
         cost: this.languageService.translate('sum-cost'),
-        discount: this.languageService.translate('sum-discount')
+        discount: this.languageService.translate('sum-discount'),
+        scale: this.languageService.translate('sum-scale'),
+        mean: this.languageService.translate('sum-mean')
       });
     }
     return this.layoutCache!;

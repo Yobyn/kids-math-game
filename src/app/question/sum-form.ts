@@ -29,6 +29,14 @@
  *                                kept as 7 × 2: the packs asked for times the
  *                                price of one (€6 : 3)
  *   korting-20 20% korting op €45 kept as 45 − 9: the price less 20% of it
+ *   procent-via-5 15% van 60 = ?  kept as 3 × 3: 5% of 60 is 3, and 15% is three of
+ *                                those (via 10%, 5% or 1%, whichever the amount shares by)
+ *   welk-procent 18 van 72 = ?%  kept as 1800 : 72: the part times a hundred, shared by the whole
+ *   schaal-500 Schaal 1 : 500, 4 cm = ? m
+ *                                kept as 4 × 5: the centimetres times the metres one stands for
+ *   gemiddelde-3 Wat is het gemiddelde? 12, 17, 7 → ?
+ *                                kept as 36 : 3: the total shared by the count; the list
+ *                                itself is made from those two (written-form.ts meanList)
  *
  * so marking, the worked line and a missed fact's identity all still work
  * from the sum. A remainder and a rounding are the sums with signs of their
@@ -41,7 +49,32 @@
  */
 export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | 'rest' | 'afronden' | 'oppervlakte' | 'tienden'
   | MeasureForm | FractionOfForm | EqualFractionForm | PercentForm | DecimalForm | DecimalMeasureForm
-  | FractionSumForm | 'breuk-komma' | RatioForm | DiscountForm;
+  | FractionSumForm | 'breuk-komma' | RatioForm | DiscountForm | PercentStepForm | 'welk-procent' | ScaleForm | MeanForm;
+
+/**
+ * 15% van 60, 30% van 70, 12% van 300: any percentage, worked through the
+ * 10%, 5% or 1% the amount shares out by. The number is that step.
+ */
+export type PercentStepForm = 'procent-via-10' | 'procent-via-5' | 'procent-via-1';
+export const PERCENT_STEP_FORMS: PercentStepForm[] = ['procent-via-10', 'procent-via-5', 'procent-via-1'];
+
+/** The percentage a step form works through: 5 for procent-via-5. */
+export function stepOf(form: PercentStepForm): number {
+  return Number(form.split('-')[2]);
+}
+
+/** Schaal 1 : 500, 4 cm = ? m. The number is the scale. */
+export type ScaleForm = 'schaal-100' | 'schaal-200' | 'schaal-500' | 'schaal-1000';
+export const SCALE_FORMS: ScaleForm[] = ['schaal-100', 'schaal-200', 'schaal-500', 'schaal-1000'];
+
+/** The scale a form carries in its name: 500 for schaal-500 (1 : 500). */
+export function scaleOf(form: ScaleForm): number {
+  return Number(form.split('-')[1]);
+}
+
+/** The mean of three or four numbers. The number is how many. */
+export type MeanForm = 'gemiddelde-3' | 'gemiddelde-4';
+export const MEAN_FORMS: MeanForm[] = ['gemiddelde-3', 'gemiddelde-4'];
 
 /**
  * 2/8 + 3/8 = ?/8: fractions with the same denominator added or taken away. The number is the denominator.
@@ -117,7 +150,8 @@ export const MEASURE_FORMS: MeasureForm[] = ['m-cm', 'km-m', 'kg-g', 'uur-min'];
 
 export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft', 'deel', 'rest', 'afronden', 'oppervlakte', 'tienden',
   ...MEASURE_FORMS, ...FRACTION_OF_FORMS, ...EQUAL_FRACTION_FORMS, ...PERCENT_FORMS, 'komma-2', 'komma-3', ...DECIMAL_MEASURE_FORMS,
-  ...FRACTION_SUM_FORMS, 'breuk-komma', ...RATIO_FORMS, ...DISCOUNT_FORMS];
+  ...FRACTION_SUM_FORMS, 'breuk-komma', ...RATIO_FORMS, ...DISCOUNT_FORMS, ...PERCENT_STEP_FORMS, 'welk-procent',
+  ...SCALE_FORMS, ...MEAN_FORMS];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */
 export function readForm(raw: unknown): SumForm | undefined {
