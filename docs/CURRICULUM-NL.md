@@ -180,7 +180,17 @@ its groep:
    worked out after two tries ("5% van 60 = 3 → 3 × 3 = 9", "11 + 15 + 10 =
    36 → 36 : 3 = 12"). Not yet: adding fractions with unlike denominators
    (the answer is a fraction, which the keypad cannot type until a fraction
-   is drawn over its line). The end (E) is next; groep 8 stays locked until
-   it is built.
+   is drawn over its line). THE END IS DONE TOO (2026-10-10), AND GROEP 8 IS
+   COMPLETE AND OPEN on the grade screen: the volume of a box ("Inhoud in
+   cm³ / 10 × 5 × 4 = ?", kept as 50 × 4, the unit in the heading so the
+   card fits a 320px phone); litres ("2 m³ = ? l", "3 l = ? cm³"); time
+   spans ("Hoeveel minuten? / 9:45 → 11:20 ?", kept as 680 − 585 minutes
+   from midnight, never on the hour, always past one, a school morning
+   starting before 10:00 so both times fit one line; no "=" for the same
+   reason); speed ("60 km per uur / 2,5 uur = ? km", kept as 5 half hours ×
+   30, worked as 2 × 60 = 120 → 120 + 30 = 150); temperatures below nought
+   ("Hoeveel graden verschil? / −3° → 5° = ?", up or down, kept as 5 + 3,
+   worked through nought). The middle's topics are practised again at the
+   end.
 7. **Verhaaltjessommen** (word problems) for every groep, in all three
    languages.

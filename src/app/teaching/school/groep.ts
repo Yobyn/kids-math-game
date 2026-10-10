@@ -12,14 +12,16 @@
  * area of a rectangle, 0,3 + 0,4); and groep 7's whole numbers (345 678 ≈ ? op
  * duizendtallen, 124 × 36, 864 : 24, 25% van 60) and its decimals (3,45 × 100,
  * 72 : 100, 2,5 × 4, 2,5 km = ? m) and the rest of groep 7 (2/8 + 3/8,
- * ¾ = 0,75, 3 pakken kosten €6, 20% korting); and groep 8's start and
- * middle (15% van 60, 18 van 72 = ?%, ⅔ van 45, schaal 1 : 500, the mean).
- * The rest follows the build order in the doc.
+ * ¾ = 0,75, 3 pakken kosten €6, 20% korting); and all of groep 8 (15% van
+ * 60, 18 van 72 = ?%, ⅔ van 45, schaal 1 : 500, the mean; 10 × 5 × 4 = ? cm³,
+ * 2 m³ = ? l, 9:45 → 11:20, 60 km per uur, −3° → 5°). The rest follows the
+ * build order in the doc.
  */
 
 import {
   DECIMAL_MEASURE_FORMS, DISCOUNT_FORMS, FRACTION_SUM_FORMS, MEAN_FORMS, MEASURE_FORMS, PERCENT_FORMS, PERCENT_STEP_FORMS,
-  RATIO_FORMS, SCALE_FORMS, SumForm, denominatorOf, packsOf, percentOf, scaleOf, stepOf
+  RATIO_FORMS, SCALE_FORMS, SumForm, TEMPERATURE_FORMS, VOLUME_FORMS, VOLUME_MEASURE_FORMS, denominatorOf, lengthOf, packsOf,
+  percentOf, scaleOf, stepOf
 } from '../../question/sum-form';
 import { DECIMAL_MEASURES, MEASURES, numeratorsOf } from './written-form';
 
@@ -516,6 +518,35 @@ Object.assign(TOPICS, {
   }
 } as { [id: string]: Maker });
 
+Object.assign(TOPICS, {
+  // Groep 8, the end: the volume of a box. 10 × 5 × 4 = ? cm³, kept as 50 × 4
+  'inhoud': random => {
+    const form = pick(random, VOLUME_FORMS);
+    return { num1: lengthOf(form) * between(random, 2, 9), num2: between(random, 2, 10), operation: '*', form };
+  },
+  // litres: 2 m³ = ? l, 3 l = ? cm³
+  'liters': random => ({ num1: between(random, 2, 9), num2: 1000, operation: '*', form: pick(random, VOLUME_MEASURE_FORMS) }),
+  // how long from one time to another, past at least one whole hour. 9:45 → 11:20 = ? minuten,
+  // kept as 680 − 585; never on the hour, which would be no question of time at all. A school
+  // morning, from before 10:00: two times of two figures each do not fit one line of a 320px phone
+  'tijdsduur': random => {
+    const start = 60 * between(random, 7, 9) + 5 * between(random, 1, 11);
+    const end = Math.ceil(start / 60) * 60 + 60 * between(random, 0, 2) + 5 * between(random, 1, 11);
+    return { num1: end, num2: start, operation: '-', form: 'tijdsduur' };
+  },
+  // speed, distance and time. 60 km per uur, 2,5 uur = ? km, kept as 5 × 30: the half hours times
+  // the km in each, so the answer is a whole number of km
+  'snelheid': random => {
+    const speed = pick(random, [40, 50, 60, 70, 80, 90, 100, 120]);
+    return { num1: between(random, 3, 9), num2: speed / 2, operation: '*', form: 'snelheid' };
+  },
+  // negative numbers, as a thermometer has them: from below nought to above it, or back.
+  // −3° → 5° = ? graden, kept as 5 + 3: the degrees above nought and the degrees below it
+  'temperatuur': random => ({
+    num1: between(random, 1, 15), num2: between(random, 1, 12), operation: '+', form: pick(random, TEMPERATURE_FORMS)
+  })
+} as { [id: string]: Maker });
+
 function gcd(a: number, b: number): number {
   return b ? gcd(b, a % b) : a;
 }
@@ -609,8 +640,10 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
       'procent-van': NEW, 'welk-procent': NEW, 'breuk-van-groot': NEW, 'schaal': NEW, 'gemiddelde': NEW,
       'korting': REVIEW, 'verhoudingen': REVIEW, 'metriek': REVIEW
     },
-    // Not built yet: nothing here asks the old questions, and groep 8 stays locked until it is (levels/school-year.ts)
-    E: {}
+    E: {
+      'inhoud': NEW, 'liters': NEW, 'tijdsduur': NEW, 'snelheid': NEW, 'temperatuur': NEW,
+      'procent-van': REVIEW, 'welk-procent': REVIEW, 'breuk-van-groot': REVIEW, 'schaal': REVIEW, 'gemiddelde': REVIEW
+    }
   }
 };
 

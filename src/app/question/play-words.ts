@@ -63,6 +63,10 @@ export type PlayKey =
   | 'sum-discount'
   | 'sum-scale'
   | 'sum-mean'
+  | 'sum-minutes-between'
+  | 'sum-degrees-between'
+  | 'sum-per-hour'
+  | 'sum-volume'
   | 'play-again';
 
 export const PLAY_WORDS: Words<PlayKey> = {
@@ -124,7 +128,11 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-cost': 'cost',
     'sum-discount': 'off: what do you pay?',
     'sum-scale': 'Scale',
-    'sum-mean': 'What is the mean?'
+    'sum-mean': 'What is the mean?',
+    'sum-minutes-between': 'How many minutes?',
+    'sum-degrees-between': 'How many degrees apart?',
+    'sum-per-hour': 'per hour',
+    'sum-volume': 'Volume in cm³'
   },
   nl: {
     'praise-3': 'Knap gewerkt!',
@@ -184,7 +192,11 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-cost': 'kosten',
     'sum-discount': 'korting: wat betaal je?',
     'sum-scale': 'Schaal',
-    'sum-mean': 'Wat is het gemiddelde?'
+    'sum-mean': 'Wat is het gemiddelde?',
+    'sum-minutes-between': 'Hoeveel minuten?',
+    'sum-degrees-between': 'Hoeveel graden verschil?',
+    'sum-per-hour': 'per uur',
+    'sum-volume': 'Inhoud in cm³'
   },
   es: {
     'praise-3': '¡Un trabajo brillante!',
@@ -244,6 +256,10 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-cost': 'cuestan',
     'sum-discount': 'de descuento: ¿cuánto pagas?',
     'sum-scale': 'Escala',
-    'sum-mean': '¿Cuál es la media?'
+    'sum-mean': '¿Cuál es la media?',
+    'sum-minutes-between': '¿Cuántos minutos?',
+    'sum-degrees-between': '¿Cuántos grados de diferencia?',
+    'sum-per-hour': 'por hora',
+    'sum-volume': 'Volumen en cm³'
   }
 };

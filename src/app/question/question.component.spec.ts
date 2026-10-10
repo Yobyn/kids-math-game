@@ -890,6 +890,15 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     expect(asked.some(sum => /^gemiddelde-/.test(sum.form || ''))).toBeTrue();
   });
 
+  it('asks grade 6 (groep 8) at the end of the year volume, time spans, speed and temperatures below nought', () => {
+    build('6', 'hard');
+    const asked = sums(400);
+    expect(asked.some(sum => /^inhoud-/.test(sum.form || ''))).toBeTrue();
+    expect(asked.some(sum => sum.form === 'tijdsduur')).toBeTrue();
+    expect(asked.some(sum => sum.form === 'snelheid')).toBeTrue();
+    expect(asked.some(sum => /^temperatuur-/.test(sum.form || ''))).toBeTrue();
+  });
+
   it('keeps the old questions for a groep not built yet: grade 7 (klas 1) is still asked as before', () => {
     build('7', 'medium');
     sums(80).forEach(({ operation, form }) => {

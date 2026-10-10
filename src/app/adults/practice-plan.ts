@@ -1,5 +1,7 @@
-import { DECIMAL_MEASURES, FRACTIONS, MEASURES, UNIT_FRACTIONS, decimal, formWorkedStep, meanList, roundTo, tenths } from '../teaching/school/written-form';
-import { denominatorOf, packsOf, percentOf, placesOf, scaleOf, stepOf } from '../question/sum-form';
+import {
+  DECIMAL_MEASURES, FRACTIONS, MEASURES, UNIT_FRACTIONS, VOLUME_MEASURES, clock, decimal, degrees, formWorkedStep, meanList, roundTo, tenths
+} from '../teaching/school/written-form';
+import { denominatorOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, stepOf } from '../question/sum-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
 import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
@@ -178,6 +180,28 @@ export function factText(fact: MissedFact): string {
     case 'gemiddelde-3':
     case 'gemiddelde-4':
       return `(${meanList(fact.num1, fact.num2).join(' + ')}) : ${fact.num2}`;
+    // 10 × 5 × 4 = ? cm³, kept as 50 × 4
+    case 'inhoud-2':
+    case 'inhoud-4':
+    case 'inhoud-5':
+    case 'inhoud-10':
+      return `${lengthOf(fact.form)} × ${fact.num1 / lengthOf(fact.form)} × ${fact.num2} = ? cm³`;
+    case 'm3-l':
+    case 'l-cm3': {
+      const measure = VOLUME_MEASURES[fact.form];
+      return `${fact.num1} ${measure.from} = ? ${measure.to}`;
+    }
+    // 9:45 → 11:20, kept as 680 − 585 minutes
+    case 'tijdsduur':
+      return `${clock(fact.num2)} → ${clock(fact.num1)} = ? min`;
+    // 60 km/h for 2,5 h, kept as 5 half hours × 30
+    case 'snelheid':
+      return `${fact.num2 * 2} km/h × ${tenths(fact.num1 * 5)} h`;
+    // −3° → 5°, kept as 5 + 3: the degrees above nought and below it
+    case 'temperatuur-op':
+      return `${degrees(-fact.num2)} → ${degrees(fact.num1)} = ?°`;
+    case 'temperatuur-af':
+      return `${degrees(fact.num1)} → ${degrees(-fact.num2)} = ?°`;
     // 0,3 + 0,4, kept as 3 + 4 tenths
     case 'tienden':
       return `${tenths(fact.num1)} ${operationSymbol(fact.operation)} ${tenths(fact.num2)}`;

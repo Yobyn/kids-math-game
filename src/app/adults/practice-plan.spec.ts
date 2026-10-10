@@ -238,6 +238,21 @@ describe('the facts an adult is asked to practise', () => {
     ]);
   });
 
+  it('gives the grown-ups the end of groep 8 as it was asked, with the way to each', () => {
+    const facts = [
+      { ...fact(50, 4, '*'), form: 'inhoud-10' },
+      { ...fact(680, 585, '-'), form: 'tijdsduur' },
+      { ...fact(5, 30, '*'), form: 'snelheid' },
+      { ...fact(5, 3, '+'), form: 'temperatuur-op' }
+    ] as MissedFact[];
+    const items = [...practicePlan([], facts.slice(0, 2)).facts, ...practicePlan([], facts.slice(2)).facts];
+
+    expect(items.map(item => item.question)).toEqual(['10 × 5 × 4 = ? cm³', '9:45 → 11:20 = ? min', '60 km/h × 2,5 h', '\u22123° → 5° = ?°']);
+    expect(items.map(item => item.answer)).toEqual(['200', '95', '150', '8']);
+    expect(items[1].worked).toBe('9:45 → 10:00 = 15 → 10:00 → 11:20 = 80 → 15 + 80 = 95');
+    expect(items[3].worked).toBe('\u22123° → 0° = 3 → 0° → 5° = 5 → 3 + 5 = 8');
+  });
+
   it('leaves the line off a fact that has no method worth showing', () => {
     const plan = practicePlan([], [fact(2, 3, '+')]);
 

@@ -1,5 +1,6 @@
 import {
-  DecimalMeasureForm, MeasureForm, SumForm, denominatorOf, packsOf, percentOf, placesOf, scaleOf, stepOf
+  DecimalMeasureForm, MeasureForm, SumForm, VolumeMeasureForm, denominatorOf, lengthOf, packsOf, percentOf, placesOf, scaleOf,
+  stepOf
 } from '../../question/sum-form';
 
 /**
@@ -56,6 +57,30 @@ export interface FormWords {
   scale: string;
   /** "Wat is het gemiddelde?", the heading over 12, 17, 7 → ? */
   mean: string;
+  /** "Hoeveel minuten?", the heading over 9:45 → 11:20 = ? */
+  minutesBetween: string;
+  /** "Hoeveel graden verschil?", the heading over −3° → 5° = ? */
+  degreesBetween: string;
+  /** "per uur" in 60 km per uur, the heading over 2,5 uur = ? km */
+  perHour: string;
+  /** "Inhoud in cm³", the heading over 10 × 5 × 4 = ? */
+  volume: string;
+}
+
+/** The volumes groep 8 changes into litres: a cubic metre holds 1000 litres, a litre 1000 cm³. */
+export const VOLUME_MEASURES: { [form in VolumeMeasureForm]: { from: string; to: string; factor: number } } = {
+  'm3-l': { from: 'm³', to: 'l', factor: 1000 },
+  'l-cm3': { from: 'l', to: 'cm³', factor: 1000 }
+};
+
+/** A time of day from the minutes since midnight, as a clock shows it: 585 is 9:45. */
+export function clock(minutes: number): string {
+  return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
+}
+
+/** A temperature as written, with a real minus below nought: −3°. */
+export function degrees(value: number): string {
+  return `${value < 0 ? '\u2212' : ''}${Math.abs(value)}°`;
 }
 
 /**
@@ -322,6 +347,50 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
         before: [{ kind: 'caption', text: words.mean }, { kind: 'number', text: meanList(sum.num1, sum.num2).join(', ') }, operation('→')],
         after: []
       };
+    // 10 × 5 × 4 = ? cm³, kept as 50 × 4: the length is in the form's name
+    case 'inhoud-2':
+    case 'inhoud-4':
+    case 'inhoud-5':
+    case 'inhoud-10': {
+      // the unit in the heading, as the area's: three numbers, two signs, the box and cm³ are too wide for a 320px phone
+      const length = lengthOf(sum.form);
+      return {
+        before: [{ kind: 'caption', text: words.volume }, number(length), operation('×'), number(sum.num1 / length), operation('×'),
+                 number(sum.num2), equals],
+        after: []
+      };
+    }
+    // 2 m³ = ? l, kept as 2 × 1000
+    case 'm3-l':
+    case 'l-cm3': {
+      const measure = VOLUME_MEASURES[sum.form];
+      return { before: [number(sum.num1), { kind: 'word', text: measure.from }, equals], after: [{ kind: 'word', text: measure.to }] };
+    }
+    // Hoeveel minuten? over 9:45 → 11:20 ?, kept as 680 − 585. No "=": the heading asks, and
+    // two times, an arrow, an = and the box are too wide for a 320px phone
+    case 'tijdsduur':
+      return {
+        before: [{ kind: 'caption', text: words.minutesBetween }, { kind: 'number', text: clock(sum.num2) }, operation('→'),
+                 { kind: 'number', text: clock(sum.num1) }],
+        after: []
+      };
+    // 60 km per uur over 2,5 uur = ? km, kept as 5 × 30: half hours times the km in each
+    case 'snelheid':
+      return {
+        before: [{ kind: 'caption', text: `${sum.num2 * 2} km ${words.perHour}` }, { kind: 'number', text: tenths(sum.num1 * 5, words.point) },
+                 { kind: 'word', text: words.hours }, equals],
+        after: [{ kind: 'word', text: 'km' }]
+      };
+    // Hoeveel graden verschil? over −3° → 5° = ?, kept as 5 + 3: num2 is the degrees below nought
+    case 'temperatuur-op':
+    case 'temperatuur-af': {
+      const [from, to] = sum.form === 'temperatuur-op' ? [-sum.num2, sum.num1] : [sum.num1, -sum.num2];
+      return {
+        before: [{ kind: 'caption', text: words.degreesBetween }, { kind: 'number', text: degrees(from) }, operation('→'),
+                 { kind: 'number', text: degrees(to) }, equals],
+        after: []
+      };
+    }
     // Oppervlakte: 6 m × 4 m = ? m², kept as 6 × 4
     case 'oppervlakte':
       return {
@@ -477,6 +546,41 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
     case 'gemiddelde-3':
     case 'gemiddelde-4':
       return `${meanList(num1, num2).join(' + ')} = ${num1} → ${num1} : ${num2} = ${num1 / num2}`;
+    // a box: the bottom first, length times width, then that many times the height
+    case 'inhoud-2':
+    case 'inhoud-4':
+    case 'inhoud-5':
+    case 'inhoud-10': {
+      const length = lengthOf(form);
+      return `${length} × ${num1 / length} = ${num1} → ${num1} × ${num2} = ${num1 * num2}`;
+    }
+    // 2 m³: a cubic metre holds 1000 litres
+    case 'm3-l':
+    case 'l-cm3': {
+      const measure = VOLUME_MEASURES[form];
+      return `1 ${measure.from} = ${measure.factor} ${measure.to} → ${num1} × ${measure.factor} = ${num1 * num2}`;
+    }
+    // 9:45 to 11:20: up to the whole hour, then on from it
+    case 'tijdsduur': {
+      const hour = Math.ceil(num2 / 60) * 60;
+      return `${clock(num2)} → ${clock(hour)} = ${hour - num2} → ${clock(hour)} → ${clock(num1)} = ${num1 - hour} → `
+        + `${hour - num2} + ${num1 - hour} = ${num1 - num2}`;
+    }
+    // 60 km per uur for 2,5 uur: two whole hours, 2 × 60, and half an hour more, half of 60
+    case 'snelheid': {
+      const [hours, speed] = [Math.floor(num1 / 2), num2 * 2];
+      if (num1 % 2 === 0) {
+        return `${hours} × ${speed} = ${num1 * num2}`;
+      }
+      return hours ? `${hours} × ${speed} = ${hours * speed} → ${hours * speed} + ${num2} = ${num1 * num2}` : `${speed} : 2 = ${num2}`;
+    }
+    // −3° to 5°: up to nought, then on from it
+    case 'temperatuur-op':
+    case 'temperatuur-af': {
+      const [from, to] = form === 'temperatuur-op' ? [-num2, num1] : [num1, -num2];
+      return `${degrees(from)} → 0° = ${Math.abs(from)} → 0° → ${degrees(to)} = ${Math.abs(to)} → `
+        + `${Math.abs(from)} + ${Math.abs(to)} = ${num1 + num2}`;
+    }
     // a rectangle's area is its length times its width
     case 'oppervlakte':
       return `${num1} × ${num2} = ${num1 * num2}`;

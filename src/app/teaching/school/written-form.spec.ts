@@ -1,11 +1,14 @@
 import { SUM_FORMS, SumForm, placesOf, readForm } from '../../question/sum-form';
 import { CURRICULUM, Moment, Random, SchoolSum, TOPICS, schoolSum } from './groep';
-import { FormWords, SumLayout, decimal, formWorkedStep, grouped, meanList, sumLayout, tenths, typedDecimal, typedTenths } from './written-form';
+import {
+  FormWords, SumLayout, clock, decimal, degrees, formWorkedStep, grouped, meanList, sumLayout, tenths, typedDecimal, typedTenths
+} from './written-form';
 
 const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van', remainder: 'rest', hours: 'uur', minutes: 'minuten',
   toTens: 'Rond af op tientallen', toHundreds: 'Rond af op honderdtallen', area: 'Oppervlakte van de rechthoek', point: ',',
   toThousands: 'Rond af op duizendtallen', packs: 'pakken', cost: 'kosten', discount: 'korting: wat betaal je?',
-  scale: 'Schaal', mean: 'Wat is het gemiddelde?' };
+  scale: 'Schaal', mean: 'Wat is het gemiddelde?', minutesBetween: 'Hoeveel minuten?',
+  degreesBetween: 'Hoeveel graden verschil?', perHour: 'per uur', volume: 'Inhoud in cm³' };
 
 /** A number as written in Dutch, 3,45 or 72, read in thousandths: 3450, 72000. NaN past three figures after the comma. */
 function thousandths(text: string): number {
@@ -76,9 +79,11 @@ function holds(written: string, filled: number | string): boolean {
     const [whole, parts, times, left] = rest.slice(1).map(Number);
     return whole === parts * times + left && left < parts;
   }
-  const measure = text.match(/^(\d+(?:,\d)?) (m|km|kg|l|uur|h) = (\d+) (cm|m|g|dl|minuten|min)$/);
+  const measure = text.match(/^(\d+(?:,\d)?) (m|km|kg|l|m³|uur|h) = (\d+) (cm|m|g|dl|l|cm³|minuten|min)$/);
   if (measure) {
-    const per: { [unit: string]: number } = { 'm cm': 100, 'km m': 1000, 'kg g': 1000, 'l dl': 10, 'uur minuten': 60, 'h min': 60 };
+    const per: { [unit: string]: number } = {
+      'm cm': 100, 'km m': 1000, 'kg g': 1000, 'l dl': 10, 'uur minuten': 60, 'h min': 60, 'm³ l': 1000, 'l cm³': 1000
+    };
     return per[`${measure[2]} ${measure[4]}`] * thousandths(measure[1]) === 1000 * +measure[3];
   }
   // Rond af op tientallen: 347 ≈ 350. A ten, and no ten nearer; halfway (345) goes up
@@ -135,6 +140,29 @@ function holds(written: string, filled: number | string): boolean {
   if (discount) {
     const [off, price, paid] = discount.slice(1).map(Number);
     return 100 * paid === price * (100 - off);
+  }
+  // 10 × 5 × 4 = 200 cm³: a box's volume
+  const volume = text.match(/^(?:Inhoud in cm³ )?(\d+) × (\d+) × (\d+) = (\d+)$/);
+  if (volume) {
+    return +volume[1] * +volume[2] * +volume[3] === +volume[4];
+  }
+  // Hoeveel minuten? 9:45 → 11:20 = 95: as a clock counts them
+  const span = text.match(/^Hoeveel minuten\? (\d+):(\d\d) → (\d+):(\d\d) (\d+)$/);
+  if (span) {
+    const [h1, m1, h2, m2, minutes] = span.slice(1).map(Number);
+    return m1 < 60 && m2 < 60 && (h2 * 60 + m2) - (h1 * 60 + m1) === minutes;
+  }
+  // 60 km per uur 2,5 uur = 150 km: that far every hour, for that many hours
+  const speed = text.match(/^(\d+) km per uur (\d+(?:,\d)?) uur = (\d+) km$/);
+  if (speed) {
+    return +speed[1] * thousandths(speed[2]) === 1000 * +speed[3];
+  }
+  // Hoeveel graden verschil? −3° → 5° = 8: the steps on a thermometer between them
+  const temperature = text.match(/^Hoeveel graden verschil\? (−?)(\d+)° → (−?)(\d+)° = (\d+)$/);
+  if (temperature) {
+    const from = (temperature[1] ? -1 : 1) * +temperature[2];
+    const to = (temperature[3] ? -1 : 1) * +temperature[4];
+    return Math.abs(to - from) === +temperature[5];
   }
   // 18 van 72 = 25 %: 18 is a quarter of 72
   const whichPercent = text.match(/^(\d+) van (\d+) = (\d+) %$/);
@@ -241,6 +269,13 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('schaal-500', 4, 5, '*')).toBe('Schaal 1 : 500 4 cm = ? m');
     expect(shown('schaal-1000', 7, 10, '*')).toBe('Schaal 1 : 1000 7 cm = ? m');
     expect(shown('gemiddelde-3', 36, 3, '/')).toBe('Wat is het gemiddelde? 11, 15, 10 → ?');
+    expect(shown('inhoud-10', 50, 4, '*')).toBe('Inhoud in cm³ 10 × 5 × 4 = ?');
+    expect(shown('m3-l', 2, 1000, '*')).toBe('2 m³ = ? l');
+    expect(shown('l-cm3', 3, 1000, '*')).toBe('3 l = ? cm³');
+    expect(shown('tijdsduur', 680, 585, '−')).toBe('Hoeveel minuten? 9:45 → 11:20 ?');
+    expect(shown('snelheid', 5, 30, '*')).toBe('60 km per uur 2,5 uur = ? km');
+    expect(shown('temperatuur-op', 5, 3, '+')).toBe('Hoeveel graden verschil? \u22123° → 5° = ?');
+    expect(shown('temperatuur-af', 5, 3, '+')).toBe('Hoeveel graden verschil? 5° → \u22123° = ?');
     // and a plain sum is still a plain sum, the box at the end
     expect(read(sumLayout({ num1: 7, num2: 5, sign: '+' }, WORDS))).toBe('7 + 5 = ?');
   });
@@ -294,11 +329,18 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('welk-procent', 1800, 72, '/')).toBe('18 × 100 = 1800 → 1800 : 72 = 25');
     expect(formWorkedStep('schaal-500', 4, 5, '*')).toBe('1 cm = 5 m → 4 × 5 = 20');
     expect(formWorkedStep('gemiddelde-4', 48, 4, '/')).toBe('13 + 10 + 11 + 14 = 48 → 48 : 4 = 12');
+    expect(formWorkedStep('inhoud-10', 50, 4, '*')).toBe('10 × 5 = 50 → 50 × 4 = 200');
+    expect(formWorkedStep('m3-l', 2, 1000, '*')).toBe('1 m³ = 1000 l → 2 × 1000 = 2000');
+    expect(formWorkedStep('tijdsduur', 680, 585, '-')).toBe('9:45 → 10:00 = 15 → 10:00 → 11:20 = 80 → 15 + 80 = 95');
+    expect(formWorkedStep('snelheid', 5, 30, '*')).toBe('2 × 60 = 120 → 120 + 30 = 150');
+    expect(formWorkedStep('snelheid', 6, 40, '*')).toBe('3 × 80 = 240');
+    expect(formWorkedStep('temperatuur-op', 5, 3, '+')).toBe('\u22123° → 0° = 3 → 0° → 5° = 5 → 3 + 5 = 8');
+    expect(formWorkedStep('temperatuur-af', 5, 3, '+')).toBe('5° → 0° = 5 → 0° → \u22123° = 3 → 5 + 3 = 8');
     expect(formWorkedStep(undefined, 7, 5)).toBeUndefined();
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
-      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|korting|gelijknamig|schaal|gemiddelde)/.test(sum.form!)) {
+      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur)/.test(sum.form!)) {
         return;  // read as rounding, as decimals, as percentages, as fractions, as scales and as means below
       }
       // Every step is true, and the answer is in it (last for most; a half is worked as 8 + 8 = 16)
@@ -413,6 +455,34 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       const values = meanList(sum.num1, sum.num2);
       if (added !== `${values.join(' + ')} = ${sum.num1}` || !holds(shared, 0) || !shared.endsWith(`= ${answer(sum)}`)) {
         misses.push(`${added} → ${shared}`);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('works a time span out through the whole hour: up to it, on from it, and the two added', () => {
+    const misses: string[] = [];
+    made('tijdsduur').forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      const [up, upBy, on, onBy, added] = line.split(' → ').map(part => part.trim());
+      const hour = Math.ceil(sum.num2 / 60) * 60;
+      if (up !== clock(sum.num2) || !upBy.startsWith(`${clock(hour)} = `) || on !== clock(hour) || !onBy.startsWith(`${clock(sum.num1)} = `)
+          || !holds(added, 0) || !added.endsWith(`= ${answer(sum)}`)) {
+        misses.push(line);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('works a temperature out through nought: down or up to it, on from it, and the two added', () => {
+    const misses: string[] = [];
+    made('temperatuur').forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      const parts = line.split(' → ');
+      const [from, to] = sum.form === 'temperatuur-op' ? [-sum.num2, sum.num1] : [sum.num1, -sum.num2];
+      if (parts.length !== 5 || parts[0] !== degrees(from) || parts[1] !== `0° = ${Math.abs(from)}` || parts[2] !== '0°'
+          || parts[3] !== `${degrees(to)} = ${Math.abs(to)}` || !holds(parts[4], 0) || !parts[4].endsWith(`= ${answer(sum)}`)) {
+        misses.push(line);
       }
     });
     expect(misses.slice(0, 5)).toEqual([]);
@@ -801,6 +871,53 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       expect(meanList(36, 3)).toEqual(meanList(36, 3));
     });
 
+    it('asks the volume of a box at the end of groep 8, three whole numbers of cm, and litres in m³ and cm³', () => {
+      made('inhoud', 600).forEach(sum => {
+        const length = Number(sum.form!.split('-')[1]);
+        expect(sum.num1 % length).toBe(0);
+        expect(answer(sum)).toBeLessThanOrEqual(1000);
+        expect(Math.min(length, sum.num1 / length, sum.num2)).toBeGreaterThanOrEqual(2);
+      });
+      expect(new Set(made('liters', 200).map(sum => sum.form))).toEqual(new Set(['m3-l', 'l-cm3']));
+    });
+
+    it('asks how long from one time to another in groep 8: never on the hour, always past one, at most four hours', () => {
+      const sums = made('tijdsduur', 800);
+      sums.forEach(sum => {
+        const at = `${clock(sum.num2)} → ${clock(sum.num1)}`;
+        expect(sum.num1 % 60).withContext(at).not.toBe(0);
+        expect(sum.num2 % 60).withContext(at).not.toBe(0);
+        expect(Math.floor(sum.num1 / 60)).withContext(at).toBeGreaterThan(Math.floor(sum.num2 / 60));
+        expect(answer(sum)).withContext(at).toBeLessThan(240);
+        expect(sum.num1 % 5 + sum.num2 % 5).withContext(at).toBe(0);
+        // a school morning, starting before 10:00, so both times fit one line of a 320px phone
+        expect(sum.num2).withContext(at).toBeLessThan(600);
+      });
+      expect(sums.some(sum => answer(sum) < 60)).toBeTrue();
+      expect(sums.some(sum => answer(sum) > 120)).toBeTrue();
+    });
+
+    it('asks how far at a speed in groep 8: whole and half hours, whole kilometres', () => {
+      const sums = made('snelheid', 600);
+      sums.forEach(sum => {
+        expect(sum.num1).toBeGreaterThanOrEqual(3);
+        expect(Number.isInteger(answer(sum))).toBeTrue();
+      });
+      expect(sums.some(sum => sum.num1 % 2 === 1)).toBeTrue();
+      expect(sums.some(sum => sum.num1 % 2 === 0)).toBeTrue();
+    });
+
+    it('asks how many degrees between a temperature below nought and one above it in groep 8, up and down', () => {
+      const sums = made('temperatuur', 600);
+      sums.forEach(sum => {
+        // num2 is how far below nought the cold one is: −3° is kept as 3
+        expect(sum.num2).toBeGreaterThan(0);
+        expect(sum.num1).toBeGreaterThan(0);
+        expect(sum.operation).toBe('+');
+      });
+      expect(new Set(sums.map(sum => sum.form))).toEqual(new Set(['temperatuur-op', 'temperatuur-af']));
+    });
+
     it('brings fractions in at the middle of groep 6 and the area at its end', () => {
       const first: { [kind: string]: string } = {};
       const kind = (form: string) => form.replace(/-\d+$/, '');
@@ -829,6 +946,11 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       expect(first['welk-procent']).toBe('8M');
       expect(first['schaal']).toBe('8M');
       expect(first['gemiddelde']).toBe('8M');
+      expect(first['inhoud']).toBe('8E');
+      expect(first['m3-l']).toBe('8E');
+      expect(first['tijdsduur']).toBe('8E');
+      expect(first['snelheid']).toBe('8E');
+      expect(first['temperatuur-op']).toBe('8E');
     });
 
     it('asks the start of groep 3 only plain sums: the forms come once the sums under them are known', () => {
