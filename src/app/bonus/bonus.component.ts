@@ -10,7 +10,7 @@ import { SoundService } from '../services/sound.service';
 import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
-import { Pong, PongEvent, movePaddle, newPong, secondsLeft, step } from './pong';
+import { Pong, PongEvent, movePaddle, newPong, step } from './pong';
 
 /** How far a held arrow key moves the paddle, in screen widths a second. */
 const KEY_SPEED = 1.1;
@@ -56,7 +56,6 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
   ended = false;
   /** What the screen shows; copied from the game only when it changes. */
   hits = 0;
-  clock = secondsLeft(this.game);
   /** The middle of the paddle in the child's own colour, when they have one (paddle-colour.ts). */
   childColour: string | null = null;
   /** The XP the game paid, once it has ended: one per bounce, capped (level-curve.ts). */
@@ -121,7 +120,6 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     canvas.style.height = `${height}px`;
     if (!this.started) {
       this.game = newPong(width, height, this.calm);
-      this.clock = secondsLeft(this.game);
     }
   }
 
@@ -174,12 +172,10 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
       this.trail = [...this.trail, { x: game.ball.x, y: game.ball.y }].slice(-TRAIL);
     }
     events.forEach(event => this.answer(event));
-    const clock = secondsLeft(game);
-    if (game.hits !== this.hits || clock !== this.clock || (game.ended && !this.ended)) {
+    if (game.hits !== this.hits || (game.ended && !this.ended)) {
       const ending = game.ended !== null && !this.ended;
       this.zone.run(() => {
         this.hits = game.hits;
-        this.clock = clock;
         this.ended = game.ended !== null;
         if (ending) {
           this.pay();

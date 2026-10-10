@@ -38,9 +38,14 @@ describe('BonusComponent, the bonus game after a round', () => {
   });
 
   /** Started by hand, with the ball put where the test wants it and no animation running. */
+  /**
+   * A ball put where a test wants it, two minutes into a game: the ball goes
+   * at the speed the moment has reached (pong.ts), quick by then, in the
+   * direction given.
+   */
   function playWithBall(x: number, y: number, vx: number, vy: number) {
     component.started = true;
-    component.game = { ...component.game, ball: { ...component.game.ball, x, y, vx, vy } };
+    component.game = { ...component.game, elapsed: 120, ball: { ...component.game.ball, x, y, vx, vy } };
   }
 
   it('says how to play and waits for Start, with no ball moving yet', () => {

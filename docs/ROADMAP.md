@@ -334,6 +334,14 @@ middle, hard the end), one groep per run.
   so nobody's level moves on the day. With good rounds (8 of 10): level 5 in
   5 rounds, stage 2 (level 10) in about 21, stage 3 (level 15) in about 41,
   roughly half as many as before.
+- **Ball game: the speed ends it, not a clock (2026-10-10).** Yobyn: "remove
+  the time keep it in the back for 5min don't show it and make it so that the
+  ball speed increases overtime". No clock on screen. The ball's speed comes
+  from the time played (`speedAt` in bonus/pong.ts): it doubles every 45 s
+  (60 s under reduced motion) up to 24 times the start, about 12 board
+  heights a second, reached after about 3.5 minutes. The five minutes are a
+  hidden backstop. Measured: a paddle following the ball a fifth of a second
+  late missed at 56 s; one following instantly, at 208 s on the top speed.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

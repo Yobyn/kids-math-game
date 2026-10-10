@@ -3,7 +3,12 @@
  * bonus points once they have completed a round of questions", Pong style).
  * A ball bounces off the walls and the top; the child keeps it up with a
  * paddle slid side to side along the bottom. Every bounce off the paddle is a
- * point. It ends when the ball is missed, or after DURATION seconds.
+ * point.
+ *
+ * The ball gets faster the longer it is kept up, until it is lightning fast
+ * (Yobyn, 2026-10-10: "the user should fail on the speed not the time"). It
+ * ends when the ball is missed. DURATION is only a backstop, never shown: by
+ * then the ball is long past what anyone can follow, so the game always ends.
  *
  * Free of the DOM, in CSS pixels, so it can be tested straight: the screen
  * (bonus.component.ts) only draws what this says and feeds it the paddle.
@@ -50,8 +55,8 @@ export interface PongEvent {
   y: number;
 }
 
-/** Long enough to be a game, short enough to stay a bonus. */
-export const DURATION = 30;
+/** The hidden backstop: five minutes, well after the ball has outrun everyone. */
+export const DURATION = 300;
 /** A ball a child's eye follows on a phone, and a paddle a thumb steers. */
 export const BALL_RADIUS = 9;
 export const PADDLE_HEIGHT = 14;
@@ -62,23 +67,34 @@ export const PADDLE_SHARE = 0.3;
 export const PADDLE_MIN = 72;
 /** Off the paddle's very edge the ball leaves at this angle from straight up. */
 export const MAX_BOUNCE = Math.PI / 3;
-/** The start speed is this many screen heights a second; each hit adds SPEED_UP. */
+/** The start speed, in screen heights a second: slow enough to find the paddle. */
 export const START_SPEED = 0.5;
-export const SPEED_UP = 1.06;
-/** Never faster than this times the start: quicker as it goes, never unfair. */
-export const TOP_SPEED = 2.2;
-/** Under reduced motion: two thirds the speed, and it speeds up only half as far. */
+/**
+ * The speed doubles every this many seconds kept up: twice as fast after
+ * 45 s, four times after a minute and a half, eight times after two and a
+ * quarter minutes, which is past what a hand can follow.
+ */
+export const DOUBLING_SECONDS = 45;
+/** Lightning: the most it ever gets, this many times the start (over three minutes in). */
+export const TOP_SPEED = 24;
+/** Under reduced motion: two thirds the start speed, and it doubles a third more slowly. */
 export const CALM_SPEED = 2 / 3;
-export const CALM_TOP_SPEED = 1.6;
-/** The longest single physics step: a fast ball can never pass through the paddle. */
-export const MAX_STEP = 1 / 240;
+export const CALM_DOUBLING_SECONDS = 60;
+/** The longest single physics step: the walls and the paddle stay exact at the top speed. */
+export const MAX_STEP = 1 / 600;
 
 export function startSpeed(height: number, calm: boolean): number {
   return height * START_SPEED * (calm ? CALM_SPEED : 1);
 }
 
 export function topSpeed(height: number, calm: boolean): number {
-  return startSpeed(height, calm) * (calm ? CALM_TOP_SPEED : TOP_SPEED);
+  return startSpeed(height, calm) * TOP_SPEED;
+}
+
+/** How fast the ball goes this many seconds in: it only ever gets faster. */
+export function speedAt(height: number, calm: boolean, elapsed: number): number {
+  const doubling = calm ? CALM_DOUBLING_SECONDS : DOUBLING_SECONDS;
+  return Math.min(topSpeed(height, calm), startSpeed(height, calm) * Math.pow(2, Math.max(0, elapsed) / doubling));
 }
 
 /**
@@ -149,7 +165,12 @@ export function step(game: Pong, seconds: number): { game: Pong; events: PongEve
 
 function tick(game: Pong, dt: number, events: PongEvent[]): Pong {
   const elapsed = game.elapsed + dt;
-  let { x, y, vx, vy } = game.ball;
+  // The same direction, at the speed this moment has reached
+  const speed = speedAt(game.height, game.calm, elapsed);
+  const scale = speed / (speedOf(game.ball) || speed);
+  let { x, y } = game.ball;
+  let vx = game.ball.vx * scale;
+  let vy = game.ball.vy * scale;
   const r = game.ball.radius;
   const before = y;
   x += vx * dt;
@@ -175,7 +196,6 @@ function tick(game: Pong, dt: number, events: PongEvent[]): Pong {
   const crossed = vy > 0 && before + r <= paddle.y && y + r >= paddle.y;
   const over = x >= paddle.x - paddle.width / 2 - r && x <= paddle.x + paddle.width / 2 + r;
   if (crossed && over) {
-    const speed = Math.min(speedOf(ball) * SPEED_UP, topSpeed(game.height, game.calm));
     ball = bounceOffPaddle(ball, paddle, speed);
     hits += 1;
     events.push({ kind: 'hit', x: ball.x, y: paddle.y });
@@ -190,9 +210,4 @@ function tick(game: Pong, dt: number, events: PongEvent[]): Pong {
     return { ...game, ball, hits, elapsed: DURATION, ended: 'time' };
   }
   return { ...game, ball, hits, elapsed };
-}
-
-/** Whole seconds left, for the clock on the screen. */
-export function secondsLeft(game: Pong): number {
-  return Math.max(0, Math.ceil(DURATION - game.elapsed));
 }
