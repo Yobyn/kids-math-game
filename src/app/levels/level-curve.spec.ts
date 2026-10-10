@@ -1,5 +1,6 @@
 import {
   BONUS_XP_CAP,
+  BONUS_XP_PER_HIT,
   LEVEL_STEP,
   bonusXp,
   MAX_STEP_MULTIPLIER,
@@ -82,6 +83,15 @@ describe('the level curve', () => {
     }
   });
 
+  it('grows a character quickly enough now each one climbs on its own (Yobyn, 2026-10-10)', () => {
+    // A good round, 8 of 10 right: a new stage in about twenty rounds, the last in about forty
+    const goodRound = xpForRound(8, 10);
+    const roundsTo = (level: number) => Math.ceil(xpToReach(level) / goodRound);
+    expect(roundsTo(5)).toBeLessThanOrEqual(5);
+    expect(roundsTo(10)).toBeLessThanOrEqual(22);
+    expect(roundsTo(15)).toBeLessThanOrEqual(41);
+  });
+
   it('never goes backwards as experience grows', () => {
     let previous = 1;
     for (let xp = 0; xp <= 3000; xp += 7) {
@@ -133,9 +143,9 @@ describe('progress within a level', () => {
 });
 
 describe('the bonus game\'s XP (level-curve.ts)', () => {
-  it('pays one XP per bounce, up to its cap', () => {
+  it('pays for every bounce, up to its cap', () => {
     expect(bonusXp(0)).toBe(0);
-    expect(bonusXp(3)).toBe(3);
+    expect(bonusXp(3)).toBe(3 * BONUS_XP_PER_HIT);
     expect(bonusXp(BONUS_XP_CAP)).toBe(BONUS_XP_CAP);
     expect(bonusXp(40)).toBe(BONUS_XP_CAP);
     expect(bonusXp(-2)).toBe(0);

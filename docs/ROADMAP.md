@@ -305,7 +305,7 @@ middle, hard the end), one groep per run.
   leave one). The result screen offers it as "🏓 Balspel" while it is
   there; Start spends it, so leaving half way does not buy another go;
   opening it without one goes back to the grade screen. As it ends it pays
-  one XP per bounce, at most `BONUS_XP_CAP` (5, in levels/level-curve.ts):
+  two XP per bounce, at most `BONUS_XP_CAP` (10 since 2026-10-10; was 5), in levels/level-curve.ts:
   half the least any round pays, so the sums stay the way to climb.
   Opening it lets the round's score go first, so coming back to the result
   screen cannot bank the round twice. It is called "Balspel", not "bonus",
@@ -327,6 +327,13 @@ middle, hard the end), one groep per run.
   goes, once, to the character the child had then, so nobody's character
   shrinks; a synced copy from an older device is read the same way. Two
   devices take the higher per family; a guest signing up adds per family.
+- **Quicker climbs (2026-10-10).** Yobyn: "can we increase the XP so it a bit
+  easier to lvl so users unlock things quicker?", now each character climbs
+  on its own. A round pays twice what it did (20 for finishing, 4 per right
+  answer) and the ball game 2 per bounce up to 10. The ladder is unchanged,
+  so nobody's level moves on the day. With good rounds (8 of 10): level 5 in
+  5 rounds, stage 2 (level 10) in about 21, stage 3 (level 15) in about 41,
+  roughly half as many as before.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",
