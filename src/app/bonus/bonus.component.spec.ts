@@ -7,7 +7,7 @@ import { FieldPulseService } from '../services/field-pulse.service';
 import { BALL_RADIUS } from './pong';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
-import { BONUS_XP_CAP } from '../levels/level-curve';
+import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
 
 describe('BonusComponent, the bonus game after a round', () => {
   let fixture: ComponentFixture<BonusComponent>;
@@ -142,7 +142,7 @@ describe('BonusComponent, the bonus game after a round', () => {
     expect(progress.hasBonus()).toBeFalse();
   });
 
-  it('pays one XP per bounce as it ends, capped, and only once', () => {
+  it('pays for the bounces as it ends, capped, and only once', () => {
     const progress = TestBed.inject(ProgressService);
     const before = progress.getXp();
     component.started = true;
@@ -166,7 +166,8 @@ describe('BonusComponent, the bonus game after a round', () => {
     playWithBall(10, component.game.height - 5, 0, 400);
     component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
     component.advance(0.05);
-    expect(progress.getXp()).toBe(before + 2);
+    expect(progress.getXp()).toBe(before + bonusXp(2));
+    expect(bonusXp(2)).toBeLessThan(BONUS_XP_CAP);
   });
 
   it('blips softly on a paddle hit, through the child\'s own sound set', () => {

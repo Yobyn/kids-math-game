@@ -14,12 +14,17 @@
  * "I can do this", with the cost rising afterwards. Hence a first level that
  * a single round reaches, a cost that grows by one round's worth each time,
  * and a cap so it never turns into a grind.
+ *
+ * What a round pays was doubled when every kind of character started to
+ * climb on its own (Yobyn, 2026-10-10: "a bit easier to lvl so users unlock
+ * things quicker"): a child now climbs each one, so each climb is half as
+ * long. The ladder itself is unchanged, so nobody's level moves on the day.
  */
 
 /** Paid for finishing a round, however it went. */
-export const ROUND_COMPLETION_XP = 10;
+export const ROUND_COMPLETION_XP = 20;
 /** Paid per correct answer — the smaller half of a round's worth. */
-export const XP_PER_CORRECT = 2;
+export const XP_PER_CORRECT = 4;
 
 /** One round's worth of experience, the unit the curve is built from. */
 export const LEVEL_STEP = 25;
@@ -42,7 +47,7 @@ export interface LevelProgress {
 }
 
 /**
- * What a finished round is worth. Ten for finishing, two per correct answer:
+ * What a finished round is worth. Twenty for finishing, four per correct answer:
  * a round is never worth nothing, and a perfect round is worth three times a
  * round where nothing went right.
  */
@@ -52,15 +57,17 @@ export function xpForRound(correctAnswers: number, total: number): number {
 }
 
 /**
- * The bonus game after a round (bonus/): one XP per bounce off the paddle,
- * never more than this. The least a round pays is ROUND_COMPLETION_XP, so
- * the bonus is always well under what the maths earned: the sums stay the
- * way to climb, the game is a treat on top.
+ * The bonus game after a round (bonus/): BONUS_XP_PER_HIT per bounce off the
+ * paddle, never more than this. The least a round pays is
+ * ROUND_COMPLETION_XP, so the bonus is always well under what the maths
+ * earned: the sums stay the way to climb, the game is a treat on top.
+ * Doubled with the rounds, so it keeps the same share.
  */
-export const BONUS_XP_CAP = 5;
+export const BONUS_XP_PER_HIT = 2;
+export const BONUS_XP_CAP = 10;
 
 export function bonusXp(hits: number): number {
-  return Math.min(BONUS_XP_CAP, Math.max(0, Math.floor(Number(hits) || 0)));
+  return Math.min(BONUS_XP_CAP, Math.max(0, Math.floor(Number(hits) || 0)) * BONUS_XP_PER_HIT);
 }
 
 /** What the jump from `level - 1` to `level` costs. */

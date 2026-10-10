@@ -446,8 +446,8 @@ describe('ResultComponent naming the reward', () => {
   afterEach(() => localStorage.clear());
 
   it('says what a level handed over, not just that one happened', () => {
-    // One round short of level 2, which wins the cap
-    finishRoundAt(xpToReach(2) - 5, 100);
+    // A first round, which reaches level 2 and wins the cap
+    finishRoundAt(0, 100);
 
     expect(component.leveledUp).toBe(true);
     expect(component.unlocked.map(i => i.id)).toEqual(['cap']);
@@ -531,8 +531,10 @@ describe('ResultComponent naming the reward', () => {
     // events first makes the premise true on all 365.
     SEASONAL_EVENTS.forEach(event => progress.earnEvent(event.id));
 
-    finishRoundAt(0, 50);
+    // From the start of level 3, a round that ends part way up it
+    finishRoundAt(xpToReach(3), 50);
 
+    expect(component.leveledUp).toBe(false);
     expect(component.justEarnedSomething).toBe(false);
     expect(fixture.nativeElement.querySelector('.see-character.earned')).toBeNull();
     expect(fixture.nativeElement.querySelector('.see-character').textContent)
