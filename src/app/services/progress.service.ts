@@ -18,6 +18,7 @@ import {
   readEarnedItems
 } from '../scrapbook/earned';
 import { AVATAR_KEY, Family } from '../avatar/avatar-model';
+import { BonusGame, pickBonusGame, readBonusGame } from '../bonus/bonus-games';
 import { FamilyXp, cleanFamilyXp, combineFamilyXp, familyOf, fromShared, totalXp } from '../levels/family-xp';
 
 export interface RoundResult {
@@ -409,18 +410,24 @@ export class ProgressService {
   /**
    * A finished round earns ONE bonus game (bonus/). Kept until it is played,
    * so a reload of the result screen still offers it; replaced, not added
-   * to, by the next round, so rounds never pile up games.
+   * to, by the next round, so rounds never pile up games. Which of the
+   * games it is is picked here, at random, and kept with it (bonus-games.ts).
    */
-  grantBonus(): void {
+  grantBonus(game: BonusGame = pickBonusGame()): void {
     try {
-      localStorage.setItem(this.key(BONUS_KEY, this.currentOwner()), String(Date.now()));
+      localStorage.setItem(this.key(BONUS_KEY, this.currentOwner()), game);
     } catch {
       // No storage, no bonus game: the round itself is already counted
     }
   }
 
   hasBonus(): boolean {
-    return this.item(this.key(BONUS_KEY, this.currentOwner())) !== null;
+    return this.bonusGame() !== null;
+  }
+
+  /** Which game the round earned, or null when there is none to play. */
+  bonusGame(): BonusGame | null {
+    return readBonusGame(this.item(this.key(BONUS_KEY, this.currentOwner())));
   }
 
   /** Spends it, as the game starts. True when there was one to spend. */

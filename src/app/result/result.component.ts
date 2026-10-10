@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { BONUS_ICONS, BONUS_ROUTES } from '../bonus/bonus-games';
 import { ScoreService } from '../services/score.service';
 import { LanguageService, TranslationKeys } from '../services/language.service';
 import { ProgressService } from '../services/progress.service';
@@ -394,6 +395,15 @@ export class ResultComponent implements OnInit, OnDestroy {
     return this.progressService.hasBonus();
   }
 
+  /** Which of the two games it is: picked at random as the round earned it (bonus-games.ts). */
+  get bonusIcon(): string {
+    return BONUS_ICONS[this.progressService.bonusGame() || 'pong'];
+  }
+
+  get bonusName(): string {
+    return this.languageService.translate(this.progressService.bonusGame() === 'jump' ? 'bonus-jump' : 'bonus-game');
+  }
+
   /**
    * Off to the bonus game. The round's score is let go first: it has been
    * banked, and a score still standing would be banked AGAIN by the next
@@ -401,7 +411,7 @@ export class ResultComponent implements OnInit, OnDestroy {
    */
   openBonus() {
     this.scoreService.resetScore();
-    this.router.navigate(['/bonus']);
+    this.router.navigate([BONUS_ROUTES[this.progressService.bonusGame() || 'pong']]);
   }
 
   /** True when this round handed something over that can actually be worn. */

@@ -1124,19 +1124,36 @@ describe('ResultComponent offering the bonus game a round earns', () => {
 
   afterEach(() => localStorage.clear());
 
-  it('offers the ball game after a finished round, by its name and not as a "bonus"', () => {
+  it('offers a ball game after a finished round, by its name and not as a "bonus"', () => {
     open(10);
     expect(progress.hasBonus()).toBeTrue();
     expect(offer()).not.toBeNull();
+    const names = ['bonus-game', 'bonus-jump'].map(key => component.languageService.translate(key as any));
+    expect(names.some(name => offer()!.textContent!.includes(name))).toBeTrue();
+  });
+
+  it('offers one of the two games at random, and the same one if the screen is opened again (Yobyn, 2026-10-10)', () => {
+    spyOn(Math, 'random').and.returnValue(0.9);
+    open(10);
+    expect(progress.bonusGame()).toBe('jump');
+    expect(offer()!.textContent).toContain('🏀');
+    expect(offer()!.textContent).toContain(component.languageService.translate('bonus-jump' as any));
+    progress.grantBonus('pong');
+    fixture.detectChanges();
+    expect(offer()!.textContent).toContain('🏓');
     expect(offer()!.textContent).toContain(component.languageService.translate('bonus-game'));
   });
 
   it('opens it with the round let go, so coming back to this screen cannot pay the round twice', () => {
     open(10);
     spyOn(scoreService, 'resetScore').and.callThrough();
+    progress.grantBonus('pong');
     offer()!.click();
     expect(scoreService.resetScore).toHaveBeenCalled();
     expect(router.navigate).toHaveBeenCalledWith(['/bonus']);
+    progress.grantBonus('jump');
+    offer()!.click();
+    expect(router.navigate).toHaveBeenCalledWith(['/bonus/jump']);
   });
 
   it('offers nothing once the game has been played', () => {

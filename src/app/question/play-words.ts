@@ -34,6 +34,7 @@ export type PlayKey =
   | 'streak'
   | 'bonus-points'
   | 'bonus-game'
+  | 'bonus-jump'
   | 'check'
   | 'next'
   | 'money-total'
@@ -92,6 +93,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'streak': 'Streak',
     'bonus-points': 'bonus points',
     'bonus-game': 'Ball game',
+    'bonus-jump': 'Bounce ball',
     'check': 'Check Answer',
     'next': 'Next Question',
     'money-total': 'You buy a toy for {first} and a book for {second}. How much altogether?',
@@ -149,6 +151,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'streak': 'Streak',
     'bonus-points': 'bonus punten',
     'bonus-game': 'Balspel',
+    'bonus-jump': 'Springbal',
     'check': 'Controleer antwoord',
     'next': 'Volgende vraag',
     'money-total': 'Je koopt speelgoed voor {first} en een boek voor {second}. Hoeveel is dat samen?',
@@ -206,6 +209,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'streak': 'Racha',
     'bonus-points': 'puntos extra',
     'bonus-game': 'Juego de pelota',
+    'bonus-jump': 'Pelota saltarina',
     'check': 'Comprobar',
     'next': 'Siguiente',
     'money-total': 'Compras un juguete por {first} y un libro por {second}. ¿Cuánto es en total?',
