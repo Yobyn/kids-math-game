@@ -50,7 +50,6 @@ export type TranslationKeys =
   | 'bonus-title'
   | 'bonus-how'
   | 'bonus-start'
-  | 'bonus-seconds'
   | 'bonus-well-played'
   | 'bonus-points-won'
   | 'bonus-done'

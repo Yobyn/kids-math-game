@@ -1,10 +1,9 @@
 <div class="bonus">
   <h1>{{ languageService.translate('bonus-title') }}</h1>
 
-  <!-- The points, big, and the clock, small -->
+  <!-- The points, big. No clock: the ball's speed ends the game (pong.ts) -->
   <div class="bonus-bar">
     <span class="bonus-points" aria-live="polite">{{ hits }}</span>
-    <span class="bonus-clock">{{ clock }}{{ languageService.translate('bonus-seconds') }}</span>
   </div>
 
   <!-- See-through: the particle field behind every screen shows through the board -->
