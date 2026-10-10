@@ -12,13 +12,14 @@
  * area of a rectangle, 0,3 + 0,4); and groep 7's whole numbers (345 678 ≈ ? op
  * duizendtallen, 124 × 36, 864 : 24, 25% van 60) and its decimals (3,45 × 100,
  * 72 : 100, 2,5 × 4, 2,5 km = ? m) and the rest of groep 7 (2/8 + 3/8,
- * ¾ = 0,75, 3 pakken kosten €6, 20% korting). The rest follows the
- * build order in the doc.
+ * ¾ = 0,75, 3 pakken kosten €6, 20% korting); and groep 8's start and
+ * middle (15% van 60, 18 van 72 = ?%, ⅔ van 45, schaal 1 : 500, the mean).
+ * The rest follows the build order in the doc.
  */
 
 import {
-  DECIMAL_MEASURE_FORMS, DISCOUNT_FORMS, FRACTION_SUM_FORMS, MEASURE_FORMS, PERCENT_FORMS, RATIO_FORMS, SumForm,
-  denominatorOf, packsOf, percentOf
+  DECIMAL_MEASURE_FORMS, DISCOUNT_FORMS, FRACTION_SUM_FORMS, MEAN_FORMS, MEASURE_FORMS, PERCENT_FORMS, PERCENT_STEP_FORMS,
+  RATIO_FORMS, SCALE_FORMS, SumForm, denominatorOf, packsOf, percentOf, scaleOf, stepOf
 } from '../../question/sum-form';
 import { DECIMAL_MEASURES, MEASURES, numeratorsOf } from './written-form';
 
@@ -464,6 +465,57 @@ Object.assign(TOPICS, {
   }
 } as { [id: string]: Maker });
 
+Object.assign(TOPICS, {
+  // Groep 8, the middle: any percentage of an amount, worked through 10%, 5% or 1%.
+  // 30% van 70, 15% van 60, 12% van 300: never 10%, 25% or 50% alone, which groep 7 knows
+  'procent-van': random => {
+    const form = pick(random, PERCENT_STEP_FORMS);
+    const step = stepOf(form);
+    if (step === 10) {
+      return { num1: between(random, 2, 50), num2: pick(random, [3, 4, 6, 7, 8, 9]), operation: '*', form };
+    }
+    if (step === 5) {
+      return { num1: between(random, 2, 20), num2: pick(random, [3, 7, 9, 11, 13, 15, 17, 19]), operation: '*', form };
+    }
+    let percent = between(random, 2, 99);
+    // a multiple of 5 goes through 5% or 10%: 1% is for the 12% and 36% of this world
+    if (percent % 5 === 0) {
+      percent += 1;
+    }
+    return { num1: between(random, 2, 9), num2: percent, operation: '*', form };
+  },
+  // what percentage one amount is of another. 18 van 72 = ?%, kept as 1800 : 72
+  'welk-procent': random => {
+    const percent = pick(random, [5, 10, 15, 20, 25, 30, 40, 60, 70, 75, 80, 90]);
+    // the whole a percentage of it comes out as a whole number: 25% of a four, 15% of a twenty
+    const step = 100 / gcd(percent, 100);
+    let whole = step * between(random, Math.ceil(8 / step), Math.floor(200 / step));
+    // 18 van 100 is no question: it says its own percentage
+    if (whole === 100) {
+      whole += step;
+    }
+    return { num1: whole * percent, num2: whole, operation: '/', form: 'welk-procent' };
+  },
+  // more than one part of a bigger amount. ⅔ van 45, ⅗ van 120, kept as 15 × 2
+  'breuk-van-groot': random => {
+    const parts = pick(random, [3, 4, 5, 6, 8]);
+    return { num1: between(random, 6, 25), num2: pick(random, numeratorsOf(parts, 2)), operation: '*', form: `van-${parts}` as SumForm };
+  },
+  // a map's scale. Schaal 1 : 500, 4 cm = ? m, kept as 4 × 5
+  'schaal': random => {
+    const form = pick(random, SCALE_FORMS);
+    return { num1: between(random, 2, 20), num2: scaleOf(form) / 100, operation: '*', form };
+  },
+  // the mean of three or four numbers. 11, 15 en 10: gemiddeld 12, kept as 36 : 3.
+  // Four numbers are small ones (9, 2, 3, 10), as the doc's 4, 8, 6, 10: four of two figures
+  // and the box do not fit one line of a 320px phone
+  'gemiddelde': random => {
+    const form = pick(random, MEAN_FORMS);
+    const count = Number(form.split('-')[1]);
+    return { num1: count * (count === 3 ? between(random, 8, 40) : between(random, 4, 9)), num2: count, operation: '/', form };
+  }
+} as { [id: string]: Maker });
+
 function gcd(a: number, b: number): number {
   return b ? gcd(b, a % b) : a;
 }
@@ -547,6 +599,18 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
       'afronden-duizendtallen': REVIEW, 'cijferend-keer': REVIEW, 'staartdeling': REVIEW, 'procenten': REVIEW, 'komma-maal-10': REVIEW,
       'gelijknamige-breuken': REVIEW, 'breuk-naar-komma': REVIEW
     }
+  },
+  8: {
+    B: {
+      'kommagetal-keer': NEW, 'metriek': NEW, 'verhoudingen': NEW, 'korting': NEW,
+      'procenten': REVIEW, 'staartdeling': REVIEW, 'breuk-naar-komma': REVIEW
+    },
+    M: {
+      'procent-van': NEW, 'welk-procent': NEW, 'breuk-van-groot': NEW, 'schaal': NEW, 'gemiddelde': NEW,
+      'korting': REVIEW, 'verhoudingen': REVIEW, 'metriek': REVIEW
+    },
+    // Not built yet: nothing here asks the old questions, and groep 8 stays locked until it is (levels/school-year.ts)
+    E: {}
   }
 };
 
@@ -556,13 +620,13 @@ export function momentFor(difficulty: string): Moment {
 }
 
 /**
- * A sum for this groep at this moment, or null for a groep not built yet
- * (the old questions stay for those). Each topic comes up as often as its
+ * A sum for this groep at this moment, or null for a groep or a moment not
+ * built yet (the old questions stay for those). Each topic comes up as often as its
  * weight says.
  */
 export function schoolSum(groep: number, moment: Moment, random: Random = Math.random): SchoolSum | null {
   const topics = CURRICULUM[groep] && CURRICULUM[groep][moment];
-  if (!topics) {
+  if (!topics || !Object.keys(topics).length) {
     return null;
   }
   const ids = Object.keys(topics);

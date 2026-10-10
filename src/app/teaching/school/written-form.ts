@@ -1,4 +1,6 @@
-import { DecimalMeasureForm, MeasureForm, SumForm, denominatorOf, packsOf, percentOf, placesOf } from '../../question/sum-form';
+import {
+  DecimalMeasureForm, MeasureForm, SumForm, denominatorOf, packsOf, percentOf, placesOf, scaleOf, stepOf
+} from '../../question/sum-form';
 
 /**
  * How a sum is laid out round its answer box, and how its written form is
@@ -50,6 +52,24 @@ export interface FormWords {
   cost: string;
   /** "korting: wat betaal je?" after the 20% in the heading over €45 → €? */
   discount: string;
+  /** "Schaal", the heading 1 : 500 follows, over 4 cm = ? m */
+  scale: string;
+  /** "Wat is het gemiddelde?", the heading over 12, 17, 7 → ? */
+  mean: string;
+}
+
+/**
+ * The numbers a mean is asked of, made from the total and how many there are
+ * (a sum keeps two numbers: gemiddelde-3 is kept as total : 3). Always the
+ * same list for the same sum, so a missed one comes back as it was; all
+ * different, all above nothing, and adding up to the total, so the mean is
+ * the whole number the sum says.
+ */
+export function meanList(total: number, count: number): number[] {
+  const mean = total / count;
+  const a = 1 + mean % 4;
+  const b = a + 1 + mean % 2;
+  return count === 3 ? [mean - a, mean + a + b, mean - b] : [mean + a, mean - b, mean - a, mean + b];
 }
 
 /**
@@ -269,6 +289,39 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
                  { kind: 'word', text: '€' }, number(sum.num1), operation('→'), { kind: 'word', text: '€' }],
         after: []
       };
+    // 15% van 60 = ?, kept as 3 × 3: 5% of 60 is 3
+    case 'procent-via-10':
+    case 'procent-via-5':
+    case 'procent-via-1': {
+      const step = stepOf(sum.form);
+      return {
+        before: [{ kind: 'number', text: `${step * sum.num2}%` }, { kind: 'word', text: words.of }, number(sum.num1 * 100 / step), equals],
+        after: []
+      };
+    }
+    // 18 van 72 = ?%, kept as 1800 : 72
+    case 'welk-procent':
+      return {
+        before: [number(sum.num1 / 100), { kind: 'word', text: words.of }, number(sum.num2), equals],
+        after: [{ kind: 'word', text: '%' }]
+      };
+    // Schaal 1 : 500 over 4 cm = ? m, kept as 4 × 5
+    case 'schaal-100':
+    case 'schaal-200':
+    case 'schaal-500':
+    case 'schaal-1000':
+      return {
+        before: [{ kind: 'caption', text: `${words.scale} 1 : ${grouped(scaleOf(sum.form))}` },
+                 number(sum.num1), { kind: 'word', text: 'cm' }, equals],
+        after: [{ kind: 'word', text: 'm' }]
+      };
+    // Wat is het gemiddelde? over 12, 17, 7 → ?, kept as 36 : 3
+    case 'gemiddelde-3':
+    case 'gemiddelde-4':
+      return {
+        before: [{ kind: 'caption', text: words.mean }, { kind: 'number', text: meanList(sum.num1, sum.num2).join(', ') }, operation('→')],
+        after: []
+      };
     // Oppervlakte: 6 m × 4 m = ? m², kept as 6 × 4
     case 'oppervlakte':
       return {
@@ -404,6 +457,26 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
       const parts = 100 / percentOf(form);
       return `${num1} : ${parts} = ${num2} → ${num1} − ${num2} = ${num1 - num2}`;
     }
+    // 15% van 60: 5% of it is 60 : 20 = 3, and 15% three of those
+    case 'procent-via-10':
+    case 'procent-via-5':
+    case 'procent-via-1': {
+      const step = stepOf(form);
+      return `${step}% van ${grouped(num1 * 100 / step)} = ${num1} → ${num2} × ${num1} = ${num1 * num2}`;
+    }
+    // 18 van 72: as hundredths of 72, 18 × 100 shared by 72
+    case 'welk-procent':
+      return `${num1 / 100} × 100 = ${num1} → ${num1} : ${num2} = ${num1 / num2}`;
+    // 1 : 500: one centimetre on the map is 500 cm, 5 m, in real life
+    case 'schaal-100':
+    case 'schaal-200':
+    case 'schaal-500':
+    case 'schaal-1000':
+      return `1 cm = ${num2} m → ${num1} × ${num2} = ${num1 * num2}`;
+    // the mean: add them all up, then share the total by how many there are
+    case 'gemiddelde-3':
+    case 'gemiddelde-4':
+      return `${meanList(num1, num2).join(' + ')} = ${num1} → ${num1} : ${num2} = ${num1 / num2}`;
     // a rectangle's area is its length times its width
     case 'oppervlakte':
       return `${num1} × ${num2} = ${num1 * num2}`;

@@ -1,5 +1,5 @@
-import { DECIMAL_MEASURES, FRACTIONS, MEASURES, UNIT_FRACTIONS, decimal, formWorkedStep, roundTo, tenths } from '../teaching/school/written-form';
-import { denominatorOf, packsOf, percentOf, placesOf } from '../question/sum-form';
+import { DECIMAL_MEASURES, FRACTIONS, MEASURES, UNIT_FRACTIONS, decimal, formWorkedStep, meanList, roundTo, tenths } from '../teaching/school/written-form';
+import { denominatorOf, packsOf, percentOf, placesOf, scaleOf, stepOf } from '../question/sum-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
 import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
@@ -160,6 +160,24 @@ export function factText(fact: MissedFact): string {
     case 'korting-25':
     case 'korting-50':
       return `€${fact.num1} − ${percentOf(fact.form)}%`;
+    // 15% van 60, kept as 3 × 3 through 5%
+    case 'procent-via-10':
+    case 'procent-via-5':
+    case 'procent-via-1':
+      return `${stepOf(fact.form) * fact.num2}% × ${fact.num1 * 100 / stepOf(fact.form)}`;
+    // 18 van 72 = ?%, kept as 1800 : 72
+    case 'welk-procent':
+      return `${fact.num1 / 100} / ${fact.num2} = ?%`;
+    // 1 : 500, 4 cm = ? m
+    case 'schaal-100':
+    case 'schaal-200':
+    case 'schaal-500':
+    case 'schaal-1000':
+      return `1 : ${scaleOf(fact.form)}, ${fact.num1} cm = ? m`;
+    // the mean of 12, 17 and 7, read in any language as the total shared by the count
+    case 'gemiddelde-3':
+    case 'gemiddelde-4':
+      return `(${meanList(fact.num1, fact.num2).join(' + ')}) : ${fact.num2}`;
     // 0,3 + 0,4, kept as 3 + 4 tenths
     case 'tienden':
       return `${tenths(fact.num1)} ${operationSymbol(fact.operation)} ${tenths(fact.num2)}`;

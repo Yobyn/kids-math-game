@@ -36,6 +36,8 @@ export type TranslationKeys =
   | 'sum-packs'
   | 'sum-cost'
   | 'sum-discount'
+  | 'sum-scale'
+  | 'sum-mean'
   | 'play-again'
   | 'logout'
   | 'need-account'
