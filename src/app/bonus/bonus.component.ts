@@ -6,12 +6,16 @@ import { ProgressService } from '../services/progress.service';
 import { ProgressSyncService } from '../services/progress-sync.service';
 import { AvatarService } from '../services/avatar.service';
 import { bonusXp } from '../levels/level-curve';
+import { SoundService } from '../services/sound.service';
+import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { Pong, PongEvent, movePaddle, newPong, secondsLeft, step } from './pong';
 
 /** How far a held arrow key moves the paddle, in screen widths a second. */
 const KEY_SPEED = 1.1;
+/** The share of the paddle's middle drawn in the child's own colour. */
+export const CHILD_BAND = 0.36;
 /** Room kept under the board, and the shortest board still worth playing on. */
 export const BOARD_MARGIN = 16;
 export const MIN_BOARD = 280;
@@ -19,7 +23,11 @@ export const MIN_BOARD = 280;
 const TRAIL = 8;
 /** How hard a paddle hit swells the field, and the end of the game. */
 export const HIT_PULSE = 0.35;
-export const END_PULSE = 0.8;
+export const END_PULSE = 1;
+/** The end of the game throws sparks from this many places round the ball: a bigger burst than a hit's. */
+export const END_SPARKS = 6;
+/** How far from the ball those sparks start, in pixels. */
+export const END_SPARK_RADIUS = 36;
 
 /**
  * The bonus game (Yobyn, 2026-10-09): Pong style, a ball kept up with a
@@ -49,6 +57,8 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
   /** What the screen shows; copied from the game only when it changes. */
   hits = 0;
   clock = secondsLeft(this.game);
+  /** The middle of the paddle in the child's own colour, when they have one (paddle-colour.ts). */
+  childColour: string | null = null;
   /** The XP the game paid, once it has ended: one per bounce, capped (level-curve.ts). */
   xpWon = 0;
 
@@ -67,9 +77,11 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     private zone: NgZone,
     private progressService: ProgressService,
     private progressSync: ProgressSyncService,
-    private avatarService: AvatarService
+    private avatarService: AvatarService,
+    private soundService: SoundService
   ) {
     languageService.extend(BONUS_WORDS);
+    this.childColour = paddleColour(avatarService.get());
   }
 
   /** Only a finished round opens the game: without one there is nothing to play for. */
@@ -177,14 +189,30 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     this.draw();
   }
 
-  /** A hit swells the field and sparks where the ball struck; the end swells it more. */
+  /**
+   * A hit swells the field, sparks where the ball struck and blips softly
+   * (in the child's sound set, or not at all when sound is off). The end
+   * swells the whole field and throws sparks from all round the ball.
+   */
   answer(event: PongEvent) {
+    const box = this.canvasRef?.nativeElement.getBoundingClientRect();
+    const left = box ? box.left : 0;
+    const top = box ? box.top : 0;
     if (event.kind === 'hit') {
       this.pulseService.pulse(HIT_PULSE);
-      const box = this.canvasRef?.nativeElement.getBoundingClientRect();
-      this.pulseService.tap((box ? box.left : 0) + event.x, (box ? box.top : 0) + event.y);
-    } else {
-      this.pulseService.pulse(END_PULSE);
+      this.pulseService.tap(left + event.x, top + event.y);
+      this.soundService.playTap();
+      return;
+    }
+    this.pulseService.pulse(END_PULSE);
+    for (let i = 0; i < END_SPARKS; i++) {
+      const angle = (i / END_SPARKS) * Math.PI * 2;
+      const x = Math.min(this.game.width, Math.max(0, event.x + Math.cos(angle) * END_SPARK_RADIUS));
+      const y = Math.min(this.game.height, Math.max(0, event.y + Math.sin(angle) * END_SPARK_RADIUS));
+      this.pulseService.tap(left + x, top + y);
+    }
+    if (this.game.hits > 0) {
+      this.soundService.playSuccess();
     }
   }
 
@@ -256,6 +284,14 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     context.fillStyle = gradient;
     roundRect(context, left, paddle.y, paddle.width, paddle.height, paddle.height / 2);
     context.fill();
+    // The child's own colour in the middle, when their character has one
+    if (this.childColour) {
+      context.shadowBlur = 0;
+      context.fillStyle = this.childColour;
+      const band = paddle.width * CHILD_BAND;
+      roundRect(context, paddle.x - band / 2, paddle.y + 2, band, paddle.height - 4, (paddle.height - 4) / 2);
+      context.fill();
+    }
 
     // The ball, glowing in the colour of the ring where it is
     const colour = fieldColour(ball.x / width);

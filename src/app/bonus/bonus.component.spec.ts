@@ -2,10 +2,11 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { BOARD_MARGIN, BonusComponent, END_PULSE, HIT_PULSE, MIN_BOARD } from './bonus.component';
+import { BOARD_MARGIN, BonusComponent, CHILD_BAND, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { BALL_RADIUS } from './pong';
 import { ProgressService } from '../services/progress.service';
+import { SoundService } from '../services/sound.service';
 import { BONUS_XP_CAP } from '../levels/level-curve';
 
 describe('BonusComponent, the bonus game after a round', () => {
@@ -166,6 +167,64 @@ describe('BonusComponent, the bonus game after a round', () => {
     component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
     component.advance(0.05);
     expect(progress.getXp()).toBe(before + 2);
+  });
+
+  it('blips softly on a paddle hit, through the child\'s own sound set', () => {
+    const sounds = TestBed.inject(SoundService);
+    spyOn(sounds, 'playTap');
+    const paddle = component.game.paddle;
+    playWithBall(paddle.x, paddle.y - BALL_RADIUS - 2, 0, 300);
+    component.advance(0.03);
+    expect(sounds.playTap).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays quiet when the child has turned sound off', () => {
+    const sounds = TestBed.inject(SoundService);
+    sounds.choose('off');
+    const loader = spyOn(sounds, 'loader').and.callThrough();
+    const paddle = component.game.paddle;
+    playWithBall(paddle.x, paddle.y - BALL_RADIUS - 2, 0, 300);
+    component.advance(0.03);
+    expect(component.hits).toBe(1);
+    expect(loader).not.toHaveBeenCalled();
+  });
+
+  it('ends with the whole field swelling and sparks from all round the ball, a bigger burst than a hit\'s', () => {
+    const sounds = TestBed.inject(SoundService);
+    spyOn(sounds, 'playSuccess');
+    component.started = true;
+    component.game = { ...component.game, hits: 3 };
+    playWithBall(component.game.width / 2, component.game.height - 5, 0, 400);
+    component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
+    (pulses.tap as jasmine.Spy).calls.reset();
+    component.advance(0.05);
+
+    expect(pulses.pulse).toHaveBeenCalledWith(END_PULSE);
+    expect(END_PULSE).toBe(1);
+    const taps = (pulses.tap as jasmine.Spy).calls.allArgs();
+    expect(taps.length).toBe(END_SPARKS);
+    expect(END_SPARKS).toBeGreaterThan(1);
+    // spread all round, not in one spot
+    const xs = taps.map(([x]) => x);
+    expect(Math.max(...xs) - Math.min(...xs)).toBeGreaterThan(END_SPARK_RADIUS);
+    expect(sounds.playSuccess).toHaveBeenCalled();
+  });
+
+  it('draws the middle of the paddle in the child\'s own colour', () => {
+    component.childColour = '#00c853';
+    component.draw();
+    const canvas = fixture.nativeElement.querySelector('canvas') as HTMLCanvasElement;
+    const ratio = canvas.width / component.game.width;
+    const paddle = component.game.paddle;
+    const [r, g, b] = canvas.getContext('2d')!.getImageData(
+      Math.round(paddle.x * ratio), Math.round((paddle.y + paddle.height / 2) * ratio), 1, 1).data;
+    expect(g).toBeGreaterThan(150);
+    expect(r).toBeLessThan(60);
+    expect(b).toBeLessThan(140);
+    // and only the middle: the ends keep the field's colours
+    const [, endG] = canvas.getContext('2d')!.getImageData(
+      Math.round((paddle.x - paddle.width * (CHILD_BAND / 2 + 0.25)) * ratio), Math.round((paddle.y + paddle.height / 2) * ratio), 1, 1).data;
+    expect(endG).toBeLessThan(150);
   });
 
   it('goes on when the game is done', () => {
