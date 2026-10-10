@@ -309,8 +309,15 @@ middle, hard the end), one groep per run.
   half the least any round pays, so the sums stay the way to climb.
   Opening it lets the round's score go first, so coming back to the result
   screen cannot bank the round twice. It is called "Balspel", not "bonus",
-  because the result screen keeps its rule against test words. Next: C,
-  sounds and polish.
+  because the result screen keeps its rule against test words.
+- **Bonus game, step C: DONE (2026-10-10). THE BALL GAME IS COMPLETE.** A
+  paddle hit blips softly through the child's own sound set (`playTap`;
+  nothing when sound is off). The middle of the paddle is drawn in the
+  colour of the top the child's character wears, the colour they picked
+  for it or its own (bonus/paddle-colour.ts; the field's colours end to end
+  without one). The end swells the whole field (`pulse(1)`) and throws
+  sparks from six places round the ball, with the correct-answer sound
+  when the ball was kept up at least once.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",
