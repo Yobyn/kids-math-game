@@ -20,6 +20,8 @@
  * a function of two objects.
  */
 
+import { FamilyXp, combineFamilyXp, cleanFamilyXp, fromShared, totalXp } from '../levels/family-xp';
+
 /** The version of the shape, so an older client's push is recognisable. */
 export const SYNCED_VERSION = 1;
 
@@ -52,6 +54,12 @@ export interface SyncedEarned {
 export interface SyncedProgress {
   version: number;
   roundHistory?: SyncedRound[];
+  /** Experience per kind of character (levels/family-xp.ts). */
+  familyXp?: FamilyXp;
+  /**
+   * One number for every character, as a copy saved before experience was
+   * kept per family has it. Read, never written: see familyXpOf.
+   */
   xp?: number;
   totals?: SyncedTotals;
   events?: SyncedEarned[];
@@ -120,6 +128,14 @@ export function mergeTotals(mine: any, theirs: any): SyncedTotals {
 }
 
 /**
+ * The experience in a copy, per family. A copy from before it was kept per
+ * family has one number, which belongs to the character saved with it.
+ */
+export function familyXpOf(progress: SyncedProgress): FamilyXp {
+  return progress.familyXp ? cleanFamilyXp(progress.familyXp) : fromShared(progress.xp, progress.avatar);
+}
+
+/**
  * Merges what the server had into what this device has.
  *
  * `mine` always wins where the two disagree about something that is a choice
@@ -135,7 +151,8 @@ export function mergeSynced(mine: SyncedProgress | null, theirs: SyncedProgress 
   const merged: SyncedProgress = {
     version: SYNCED_VERSION,
     roundHistory: mergeRounds(own.roundHistory, other.roundHistory),
-    xp: Math.max(whole(own.xp), whole(other.xp)),
+    // Two copies of one child: the higher, family by family
+    familyXp: combineFamilyXp(familyXpOf(own), familyXpOf(other), Math.max),
     totals: mergeTotals(own.totals, other.totals),
     events: mergeEarned(own.events, other.events),
     keepsakes: mergeEarned(own.keepsakes, other.keepsakes)
@@ -155,7 +172,7 @@ export function worthSyncing(progress: SyncedProgress | null): boolean {
   }
   return !!(
     (progress.roundHistory && progress.roundHistory.length) ||
-    progress.xp ||
+    totalXp(familyXpOf(progress)) ||
     (progress.totals && progress.totals.rounds) ||
     (progress.events && progress.events.length) ||
     (progress.keepsakes && progress.keepsakes.length) ||

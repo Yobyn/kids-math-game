@@ -97,9 +97,8 @@ export class AvatarChooserComponent implements OnInit, OnDestroy {
     // As the child is now: a level gained since it was last read can mean a new stage
     this.avatarService.refresh();
     this.avatar = { ...this.avatarService.get() };
-    this.level = levelForXp(this.progressService.getXp());
     this.earnedEvents = this.progressService.getEarnedEvents();
-    this.nextReward = nextUnlock(this.level);
+    this.climbed();
     // Grown since last time: once, now, about three seconds of it
     this.evolveFrom = evolvedFrom(this.avatar, stageForLevel(this.level));
     if (this.evolveFrom !== null) {
@@ -266,9 +265,23 @@ export class AvatarChooserComponent implements OnInit, OnDestroy {
     return FAMILY_ICONS[family];
   }
 
-  /** A family picked is seen as it is now: nothing to celebrate the next time. */
+  /**
+   * How far the character on show has climbed. Each family has its own
+   * level, so this is read again whenever the family changes.
+   */
+  private climbed() {
+    this.level = levelForXp(this.progressService.getXp(this.avatar.family));
+    this.nextReward = nextUnlock(this.level);
+  }
+
+  /**
+   * A family picked is seen as it is now, at its own level: one never played
+   * is at its first stage, however far the last one climbed. Nothing to
+   * celebrate the next time.
+   */
   pickFamily(family: Family) {
     this.choose('family', family);
+    this.climbed();
     evolvedFrom(this.avatar, stageForLevel(this.level));
   }
 
@@ -295,7 +308,7 @@ export class AvatarChooserComponent implements OnInit, OnDestroy {
   /** Saved on every tap: a child should never lose a choice to a missed button. */
   choose(part: keyof Avatar, value: string) {
     this.avatarService.save({ ...this.avatar, [part]: value } as Avatar);
-    // As saved: a new family starts at the stage the child has reached
+    // As saved: a new family is at the stage it has reached itself
     this.avatar = { ...this.avatarService.get() };
   }
 

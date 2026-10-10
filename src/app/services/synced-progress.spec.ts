@@ -2,6 +2,7 @@ import {
   SYNCED_VERSION,
   SyncedProgress,
   addsTo,
+  familyXpOf,
   mergeEarned,
   mergeRounds,
   mergeSynced,
@@ -61,14 +62,30 @@ describe('merging one child across two devices', () => {
   it('takes the higher experience rather than the sum, or syncing doubles it', () => {
     // This is the bug this rule exists to prevent: the same child's XP seen
     // twice is not twice as much XP
-    const merged = mergeSynced({ version: 1, xp: 240 }, { version: 1, xp: 240 });
+    const merged = mergeSynced({ version: 1, familyXp: { kid: 240 } }, { version: 1, familyXp: { kid: 240 } });
 
-    expect(merged.xp).toBe(240);
+    expect(merged.familyXp).toEqual({ kid: 240 });
   });
 
-  it('takes the higher experience when one device is ahead', () => {
-    expect(mergeSynced({ version: 1, xp: 240 }, { version: 1, xp: 600 }).xp).toBe(600);
-    expect(mergeSynced({ version: 1, xp: 600 }, { version: 1, xp: 240 }).xp).toBe(600);
+  it('takes the higher experience when one device is ahead, character by character', () => {
+    const mine: SyncedProgress = { version: 1, familyXp: { kid: 240, robot: 90 } };
+    const theirs: SyncedProgress = { version: 1, familyXp: { kid: 600, creature: 30 } };
+    expect(mergeSynced(mine, theirs).familyXp).toEqual({ kid: 600, creature: 30, robot: 90 });
+    expect(mergeSynced(theirs, mine).familyXp).toEqual({ kid: 600, creature: 30, robot: 90 });
+  });
+
+  it('reads a copy saved before experience was per character as the character saved with it', () => {
+    // A phone still on the old game pushed one number, with a robot
+    const old: SyncedProgress = { version: 1, xp: 600, avatar: { family: 'robot' } };
+    expect(familyXpOf(old)).toEqual({ robot: 600 });
+    expect(familyXpOf({ version: 1, xp: 600 })).toEqual({ kid: 600 });
+    expect(mergeSynced({ version: 1, familyXp: { robot: 200, kid: 50 } }, old).familyXp).toEqual({ kid: 50, robot: 600 });
+    // and the one number is never written again
+    expect(mergeSynced(old, null).xp).toBeUndefined();
+  });
+
+  it('keeps only characters there are, and amounts that can be counted', () => {
+    expect(familyXpOf({ version: 1, familyXp: { kid: 'lots', robot: -5, ghost: 900, space: 12.7 } as any })).toEqual({ space: 12 });
   });
 
   it('takes the higher of each total, field by field', () => {
@@ -116,7 +133,7 @@ describe('merging one child across two devices', () => {
     const mine: SyncedProgress = {
       version: 1,
       roundHistory: [round('2026-09-22T10:00:00.000Z')],
-      xp: 600,
+      familyXp: { kid: 600, space: 40 },
       totals: { rounds: 12, questions: 120, correct: 90 },
       events: [{ id: 'harvest' }],
       keepsakes: [{ id: 'acorn' }],
@@ -132,7 +149,7 @@ describe('merging one child across two devices', () => {
   it('survives a server that has nothing at all', () => {
     const merged = mergeSynced(null, null);
 
-    expect(merged.xp).toBe(0);
+    expect(merged.familyXp).toEqual({});
     expect(merged.roundHistory).toEqual([]);
     expect(worthSyncing(merged)).toBe(false);
   });
@@ -152,6 +169,7 @@ describe('merging one child across two devices', () => {
 
     expect(addsTo(mergeSynced(mine, mine), mine)).toBe(false);
     expect(addsTo(mergeSynced(mine, { version: 1, xp: 700 }), mine)).toBe(true);
+    expect(addsTo(mergeSynced(mine, { version: 1, familyXp: { robot: 5 } }), mine)).toBe(true);
     expect(addsTo(mergeSynced(mine, { version: 1 }), { version: 1 })).toBe(true);
   });
 
@@ -160,6 +178,8 @@ describe('merging one child across two devices', () => {
     expect(worthSyncing({ version: 1 })).toBe(false);
     expect(worthSyncing({ version: 1, totals: { rounds: 0, questions: 0, correct: 0 } })).toBe(false);
     expect(worthSyncing({ version: 1, xp: 5 })).toBe(true);
+    expect(worthSyncing({ version: 1, familyXp: { pizza: 5 } })).toBe(true);
+    expect(worthSyncing({ version: 1, familyXp: {} })).toBe(false);
     expect(worthSyncing({ version: 1, avatar: { hat: 'crown' } })).toBe(true);
   });
 });

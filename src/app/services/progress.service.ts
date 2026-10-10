@@ -17,6 +17,8 @@ import {
   readEarnedEvents,
   readEarnedItems
 } from '../scrapbook/earned';
+import { AVATAR_KEY, Family } from '../avatar/avatar-model';
+import { FamilyXp, cleanFamilyXp, combineFamilyXp, familyOf, fromShared, totalXp } from '../levels/family-xp';
 
 export interface RoundResult {
   date: string;
@@ -72,7 +74,10 @@ export interface MissedFact {
 
 const STORAGE_KEY = 'roundHistory';
 const MISSED_KEY = 'missedFacts';
+/** One number for every character: how experience was kept before it was per family. */
 const XP_KEY = 'xp';
+/** Experience per kind of character (levels/family-xp.ts). */
+const FAMILY_XP_KEY = 'familyXp';
 const EVENTS_KEY = 'events';
 const TOTALS_KEY = 'totals';
 /** The one round still in play, if any. At most one per owner. */
@@ -273,17 +278,28 @@ export class ProgressService {
    * Experience is stored rather than derived from history: history is capped
    * at twenty rounds, and a child must never watch levels fall off the end of
    * it because they kept playing.
+   *
+   * Kept per kind of character: the family asked for, or the one the child
+   * is playing as now. Switching to another family is starting it fresh,
+   * not wearing everything the last one earned.
    */
-  getXp(): number {
-    return this.readXp(this.currentOwner());
+  getXp(family: Family = this.playingAs()): number {
+    return this.readFamilyXp(this.currentOwner())[family] || 0;
   }
 
-  addXp(amount: number): void {
+  /** Pays the character being played, or the family named. */
+  addXp(amount: number, family: Family = this.playingAs()): void {
     if (!(amount > 0)) {
       return;
     }
     const owner = this.currentOwner();
-    this.writeXp(owner, this.readXp(owner) + Math.floor(amount));
+    const xp = this.readFamilyXp(owner);
+    this.writeFamilyXp(owner, { ...xp, [family]: (xp[family] || 0) + Math.floor(amount) });
+  }
+
+  /** The family of the character this child is playing as: the kid hero until they choose. */
+  private playingAs(): Family {
+    return familyOf(this.readJson(this.key(AVATAR_KEY, this.currentOwner())));
   }
 
   /**
@@ -432,18 +448,19 @@ export class ProgressService {
     const owner = accountOwner(username);
     const guestHistory = this.readHistory(GUEST_OWNER);
     const guestMissed = this.readMissed(GUEST_OWNER);
-    const guestXp = this.readXp(GUEST_OWNER);
+    const guestXp = this.readFamilyXp(GUEST_OWNER);
     const guestEvents = this.readEvents(GUEST_OWNER);
     const guestTotals = this.readTotals(GUEST_OWNER);
 
-    if (!guestHistory.length && !guestMissed.length && !guestXp
+    if (!guestHistory.length && !guestMissed.length && !totalXp(guestXp)
         && !guestEvents.length && !guestTotals.rounds) {
       return;
     }
 
     this.writeHistory(owner, mergeHistory(this.readHistory(owner), guestHistory));
     this.writeMissed(owner, mergeMissed(this.readMissed(owner), guestMissed));
-    this.writeXp(owner, this.readXp(owner) + guestXp);
+    // Two children's earnings combined: summed, family by family
+    this.writeFamilyXp(owner, combineFamilyXp(this.readFamilyXp(owner), guestXp, (a, b) => a + b));
     // Union: an event either child was here for stays earned, with whichever
     // date is known — the account's own first, since it is the one playing
     const merged = this.readEvents(owner);
@@ -465,7 +482,7 @@ export class ProgressService {
     this.remove(this.key(KEEPSAKES_KEY, GUEST_OWNER));
     this.remove(this.key(STORAGE_KEY, GUEST_OWNER));
     this.remove(this.key(MISSED_KEY, GUEST_OWNER));
-    this.remove(this.key(XP_KEY, GUEST_OWNER));
+    this.remove(this.key(FAMILY_XP_KEY, GUEST_OWNER));
     const ownTotals = this.readTotals(owner);
     this.writeTotals(owner, {
       rounds: ownTotals.rounds + guestTotals.rounds,
@@ -495,7 +512,7 @@ export class ProgressService {
     const progress: SyncedProgress = {
       version: SYNCED_VERSION,
       roundHistory: this.readHistory(owner) as SyncedRound[],
-      xp: this.readXp(owner),
+      familyXp: this.readFamilyXp(owner),
       totals: this.readTotals(owner),
       events: this.readEvents(owner),
       keepsakes: readEarnedItems(this.readList(KEEPSAKES_KEY, owner))
@@ -514,7 +531,7 @@ export class ProgressService {
       return;
     }
     this.writeHistory(owner, (progress.roundHistory || []) as RoundResult[]);
-    this.writeXp(owner, whole(progress.xp));
+    this.writeFamilyXp(owner, cleanFamilyXp(progress.familyXp));
     this.writeTotals(owner, progress.totals || { rounds: 0, questions: 0, correct: 0 });
     this.write(this.key(EVENTS_KEY, owner), progress.events || []);
     this.write(this.key(KEEPSAKES_KEY, owner), progress.keepsakes || []);
@@ -618,19 +635,26 @@ export class ProgressService {
     }
   }
 
-  private readXp(owner: string): number {
-    const raw = this.item(this.key(XP_KEY, owner));
-    const parsed = Number(raw);
-    // A corrupt or missing value reads as nothing earned, never as NaN
-    return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : 0;
+  /**
+   * Every family's experience. One number kept from before it was per
+   * family is moved, once, to the character the child was playing then: the
+   * one they earned it with keeps its stage and its wardrobe.
+   */
+  private readFamilyXp(owner: string): FamilyXp {
+    const shared = this.item(this.key(XP_KEY, owner));
+    if (shared !== null) {
+      // A corrupt or missing value reads as nothing earned, never as NaN
+      const own = this.readJson(this.key(FAMILY_XP_KEY, owner));
+      const moved = combineFamilyXp(own, fromShared(shared, this.readJson(this.key(AVATAR_KEY, owner))), (a, b) => a + b);
+      this.writeFamilyXp(owner, moved);
+      this.remove(this.key(XP_KEY, owner));
+      return moved;
+    }
+    return cleanFamilyXp(this.readJson(this.key(FAMILY_XP_KEY, owner)));
   }
 
-  private writeXp(owner: string, xp: number): void {
-    try {
-      localStorage.setItem(this.key(XP_KEY, owner), String(xp));
-    } catch {
-      // Storage being unavailable must never break a round
-    }
+  private writeFamilyXp(owner: string, xp: FamilyXp): void {
+    this.write(this.key(FAMILY_XP_KEY, owner), cleanFamilyXp(xp));
   }
 
   private writeHistory(owner: string, history: RoundResult[]): void {
@@ -641,7 +665,7 @@ export class ProgressService {
     this.write(this.key(MISSED_KEY, owner), facts);
   }
 
-  private write(key: string, value: any[]): void {
+  private write(key: string, value: any): void {
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch {
