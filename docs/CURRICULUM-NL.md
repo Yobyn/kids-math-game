@@ -123,6 +123,76 @@ the setting of a sum, not the sum: "20% korting op €45", "3 pakken kosten
 | E | Speed, distance, time | 60 km per uur, 2,5 uur = ? km |
 | E | Negative numbers (temperature) | van −3 naar 5 = ? graden |
 
+## Klas 1–4 (age 12–16): the plan (2026-10-11, waiting for Yobyn)
+
+Secondary school, onderbouw and the start of the bovenbouw: the kerndoelen
+onderbouw (domein Getallen, Verbanden, Meten en meetkunde) and referentie-
+niveau 2F/3F, in the order the common methods teach it (Getal & Ruimte,
+Moderne Wiskunde). **Assumed stream: HAVO/VWO**, as Yobyn has not named
+another; VMBO would move several topics a year later and leave out the
+klas 4 algebra. Not a copy of any one method: each klas below lists what
+every HAVO/VWO class meets that year, by moment.
+
+What the keypad can take shapes how each is asked, as for the groepen: a
+whole number, a decimal, or a negative number (the keypad has a minus
+key). A fraction is answered as its numerator over a given denominator
+(1/2 + 1/3 = ?/6), an equation as the value of x, a quadratic as one named
+solution ("de grootste oplossing"). Nothing that needs a graph, a drawing
+or words to answer. Klas 1 starts where groep 8 ended, and from klas 1 on
+no round asks a times table or a division inside the tables on its own.
+
+### Klas 1 (grade 7)
+
+| Moment | What is asked | Example |
+| --- | --- | --- |
+| B | Groep 8's end, revisited | 15% van 60, 9:45 → 11:20, −3° → 5° |
+| B | Negative numbers: + and − | −3 + 8 = ?, 4 − 9 = ?, −5 − 3 = ? |
+| M | Negative numbers: × and : | −4 × 6 = ?, −24 : −3 = ? |
+| M | Bewerkingsvolgorde (order of operations) | 3 + 4 × 5 = ?, (3 + 4) × 5 = ?, 20 − 12 : 4 = ? |
+| M | Fractions, unlike denominators: + and − | 1/2 + 1/3 = ?/6, 3/4 − 1/6 = ?/12 |
+| E | Fractions × a whole number, and of an amount | ⅔ × 12 = ?, ⅗ × 25 = ? |
+| E | Formulas: a value filled in | a = 3 × b + 4, b = 5 → a = ? |
+| E | Rounding and estimating with decimals | 3,47 op 1 decimaal = ?, 12,8 × 4,9 ≈ ? |
+
+### Klas 2 (grade 8)
+
+| Moment | What is asked | Example |
+| --- | --- | --- |
+| B | Klas 1's end, revisited | ⅔ × 12, a = 3b + 4 met b = 5 |
+| M | Powers and square roots | 3² = ?, 2⁵ = ?, √144 = ? |
+| M | Linear equations, one step and two | x + 7 = 15, 3x + 5 = 20 → x = ? |
+| M | Brackets: worked out, then filled in | 3(x + 4) met x = 2 = ? |
+| E | Percentage increase and decrease | €80 + 15% = ?, 250 − 20% = ? |
+| E | Pythagoras with whole answers | 6 en 8 → schuine zijde = ? |
+| E | Area of a triangle; volume of a prism | ½ × 10 × 6 = ?, 4 × 5 × 7 = ? cm³ |
+
+### Klas 3 (grade 9)
+
+| Moment | What is asked | Example |
+| --- | --- | --- |
+| B | Klas 2's end, revisited | €80 + 15%, Pythagoras |
+| M | Equations with brackets, and with x on both sides | 2(x + 3) = 14, 5x − 4 = 3x + 8 → x = ? |
+| M | Powers of negative numbers | (−2)³ = ?, −3² = ? |
+| M | Scientific notation read as a number | 3,2 · 10³ = ?, 4 · 10⁻² = ? |
+| E | Growth factors, one step | 200 × 1,05 = ?, 50 → 60: groeifactor = ? |
+| E | x² = a number | x² = 49 → de positieve x = ? |
+| E | Pythagoras with one decimal | 5 en 7 → ? (op 1 decimaal) |
+
+### Klas 4 (grade 10, HAVO/VWO bovenbouw)
+
+| Moment | What is asked | Example |
+| --- | --- | --- |
+| B | Klas 3's end, revisited | 200 × 1,05, x² = 49 |
+| M | Quadratic equations by factorising | x² − 5x + 6 = 0 → de grootste x = ? |
+| M | Exponential growth over more steps | 100 × 1,1² = ?, verdubbelt elke 3 jaar: na 9 jaar ×? |
+| M | Working with roots | √50 = ?√2, √12 × √3 = ? |
+| E | Trigonometry with nice answers | sin 30° × 10 = ?, tan 45° × 7 = ? |
+| E | Formulas rearranged | A = l × b, A = 36, l = 9 → b = ? |
+| E | Percentages over more steps | +10% en dan −10%: ×? |
+
+Klas 1 is step G, klas 2 step H, klas 3 and 4 step I; each opens on the
+grade screen once all three of its moments are built.
+
 ## Build order
 
 One run each, in this order. Each one replaces the old generic questions for
@@ -198,5 +268,7 @@ its groep:
    ("Hoeveel graden verschil? / −3° → 5° = ?", up or down, kept as 5 + 3,
    worked through nought). The middle's topics are practised again at the
    end.
-7. **Verhaaltjessommen** (word problems) for every groep, in all three
+7. **Klas 1–4**: the plan above. Built klas by klas, each unlocking its
+   year: klas 1 (step G), klas 2 (H), klas 3 and 4 (I).
+8. **Verhaaltjessommen** (word problems) for every groep, in all three
    languages.

@@ -380,6 +380,10 @@ middle, hard the end), one groep per run.
   money is the setting of korting and pakken sums. Measured in the browser:
   a groep 8 round, 0 money questions in 200; groep 6, 46 in 200. Next: G,
   klas 1, starting with the klas 1–4 plan for Yobyn.
+- **Klas 1–4 plan written (2026-10-11, night run step G, part 1).** In
+  docs/CURRICULUM-NL.md, by moment, for HAVO/VWO (assumed: Yobyn has not
+  named another stream). Sent to Yobyn before building on it; the next run
+  builds klas 1 from it unless he changes it.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",
