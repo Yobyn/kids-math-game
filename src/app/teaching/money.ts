@@ -93,6 +93,21 @@ const BANDS: { upTo: number; band: MoneyBand }[] = [
   { upTo: 10, band: { shapes: ['count', 'make', 'pick', 'total', 'change'], pieces: [5, 10, 20, 50, 100, 200, 500, 1000], kinds: 3, maxCents: 2000, decimal: true } }
 ];
 
+/**
+ * The last grade money is a strand of its own: groep 3 to 6, where Dutch
+ * schools teach it (docs/CURRICULUM-NL.md: coins and amounts from groep 3,
+ * amounts with a comma at the end of groep 6). From groep 7 on, money is the
+ * setting of a sum rather than the sum itself: 20% korting op €45, 3 pakken
+ * kosten €6 (teaching/school/groep.ts). Counting coins for a child in groep 8
+ * or klas 4 was asking them what they learnt at seven.
+ */
+export const LAST_MONEY_GRADE = 4;
+
+/** Whether a grade is asked money questions of its own: groep 3 to 6. */
+export function teachesMoney(grade: number): boolean {
+  return grade >= 1 && grade <= LAST_MONEY_GRADE;
+}
+
 /** The band a grade plays at. Every grade from 1 has money now. */
 export function bandFor(grade: number): MoneyBand {
   const found = BANDS.find(entry => grade <= entry.upTo);

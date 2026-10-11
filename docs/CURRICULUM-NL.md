@@ -31,6 +31,12 @@ where their school is ahead or behind.**
   asked so that the answer is a number ("23 : 4 = 5 rest ?", "¾ van 20 = ?",
   "25% van 60 = ?", "2 m = ? cm").
 
+**Money (geld)** is a strand of its own in groep 3 to 6 only (coins and
+amounts from groep 3, amounts with a comma by the end of groep 6;
+teaching/money.ts `teachesMoney`, done 2026-10-10). From groep 7 on money is
+the setting of a sum, not the sum: "20% korting op €45", "3 pakken kosten
+€6". Groep 7 and 8 and klas 1–4 are never asked to count coins.
+
 ## Groep 3 (age 6–7)
 
 | Moment | What is asked | Example |

@@ -10,6 +10,7 @@ import {
   MoneyQuestion,
   moneyAnswerMatches,
   moneyQuestion,
+  teachesMoney,
   unitPrefix,
   unitSuffix
 } from '../teaching/money';
@@ -453,10 +454,12 @@ export class QuestionComponent implements OnInit, OnDestroy {
    * of question a child meets, which pieces are on the table, and whether
    * amounts are written €3 and 40c or €3.40, all follow the band for their
    * grade. See teaching/money.ts, which holds the progression and the reason
-   * for it. Every grade from 1 gets money; it used to start at 2.
+   * for it. Every grade from 1 gets money; it used to start at 2. And it
+   * stops after groep 6 (teachesMoney): from groep 7 on money is the setting
+   * of a sum, korting and pakken, not coins to count.
    */
   private shouldAskAboutMoney(): boolean {
-    return this.grade >= 1 && Math.random() < 0.25;
+    return teachesMoney(this.grade) && Math.random() < 0.25;
   }
 
   private generateMoneyQuestion(): boolean {

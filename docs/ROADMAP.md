@@ -374,6 +374,12 @@ middle, hard the end), one groep per run.
   (`temperatuur-op/af`). `LAST_READY_GRADE` is 6: groep 3 to 8 are open,
   klas 1–4 still locked. Next: step F (money only where it is taught: a
   groep 8 round at the end of the year still asks coin questions).
+- **Money only where it is taught: DONE (2026-10-11, night run step F).**
+  The money strand (coins, totals, change) is asked in groep 3 to 6 only
+  (`teachesMoney`, `LAST_MONEY_GRADE` 4 in teaching/money.ts). From groep 7
+  money is the setting of korting and pakken sums. Measured in the browser:
+  a groep 8 round, 0 money questions in 200; groep 6, 46 in 200. Next: G,
+  klas 1, starting with the klas 1–4 plan for Yobyn.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",
