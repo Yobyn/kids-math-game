@@ -899,6 +899,20 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     expect(asked.some(sum => /^temperatuur-/.test(sum.form || ''))).toBeTrue();
   });
 
+  it('asks money questions in groep 3 to 6, and none from groep 7 on, where money is the setting of a sum', () => {
+    const asksMoney = (grade: string) => {
+      build(grade, 'medium');
+      let money = 0;
+      for (let i = 0; i < 300; i++) {
+        component.generateQuestion();
+        money += component.currentQuestion.money ? 1 : 0;
+      }
+      return money;
+    };
+    ['1', '4'].forEach(grade => expect(asksMoney(grade)).withContext(`grade ${grade}`).toBeGreaterThan(20));
+    ['5', '6', '7', '10'].forEach(grade => expect(asksMoney(grade)).withContext(`grade ${grade}`).toBe(0));
+  });
+
   it('keeps the old questions for a groep not built yet: grade 7 (klas 1) is still asked as before', () => {
     build('7', 'medium');
     sums(80).forEach(({ operation, form }) => {

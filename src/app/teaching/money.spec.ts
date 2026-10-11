@@ -7,6 +7,7 @@ import {
   moneyAnswerMatches,
   moneyQuestion,
   pieceKind,
+  teachesMoney,
   typedValue,
   unitFor,
   unitPrefix,
@@ -58,6 +59,14 @@ function centsOf(text: string): number {
   const cents = text.match(/^-?(\d+)c$/);
   return cents ? Number(cents[1]) : NaN;
 }
+
+describe('money: which years it is taught in (docs/CURRICULUM-NL.md)', () => {
+  it('is a strand of its own in groep 3 to 6, and not from groep 7 on, where money is the setting of a sum', () => {
+    [1, 2, 3, 4].forEach(grade => expect(teachesMoney(grade)).withContext(`grade ${grade}`).toBeTrue());
+    [5, 6, 7, 8, 9, 10].forEach(grade => expect(teachesMoney(grade)).withContext(`grade ${grade}`).toBeFalse());
+    expect(teachesMoney(0)).toBeFalse();
+  });
+});
 
 describe('money: how an amount is written', () => {
   it('writes an amount under a euro in cents alone', () => {
