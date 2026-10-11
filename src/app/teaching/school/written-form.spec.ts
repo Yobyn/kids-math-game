@@ -1,14 +1,15 @@
-import { SUM_FORMS, SumForm, placesOf, readForm } from '../../question/sum-form';
+import { SUM_FORMS, SumForm, UnlikeFractionForm, denominatorsOf, placesOf, readForm } from '../../question/sum-form';
 import { CURRICULUM, Moment, Random, SchoolSum, TOPICS, schoolSum } from './groep';
 import {
-  FormWords, SumLayout, clock, decimal, degrees, formWorkedStep, grouped, meanList, sumLayout, tenths, typedDecimal, typedTenths
+  FormWords, SumLayout, clock, decimal, degrees, formWorkedStep, grouped, meanList, signed, sumLayout, tenths, typedDecimal, typedTenths
 } from './written-form';
 
 const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van', remainder: 'rest', hours: 'uur', minutes: 'minuten',
   toTens: 'Rond af op tientallen', toHundreds: 'Rond af op honderdtallen', area: 'Oppervlakte van de rechthoek', point: ',',
   toThousands: 'Rond af op duizendtallen', packs: 'pakken', cost: 'kosten', discount: 'korting: wat betaal je?',
   scale: 'Schaal', mean: 'Wat is het gemiddelde?', minutesBetween: 'Hoeveel minuten?',
-  degreesBetween: 'Hoeveel graden verschil?', perHour: 'per uur', volume: 'Inhoud in cm³' };
+  degreesBetween: 'Hoeveel graden verschil?', perHour: 'per uur', volume: 'Inhoud in cm³',
+  toOneDecimal: 'Rond af op 1 decimaal' };
 
 /** A number as written in Dutch, 3,45 or 72, read in thousandths: 3450, 72000. NaN past three figures after the comma. */
 function thousandths(text: string): number {
@@ -140,6 +141,42 @@ function holds(written: string, filled: number | string): boolean {
   if (discount) {
     const [off, price, paid] = discount.slice(1).map(Number);
     return 100 * paid === price * (100 - off);
+  }
+  // −3 + 8 = 5, −24 : −3 = 8: numbers below nought, with a real minus or a typed one
+  const negative = text.match(/^([−-]?\d+) ([+−×:]) ([−-]?\d+) = ([−-]?\d+)$/);
+  if (negative && /[−-]\d/.test(text)) {
+    const [a, b, c] = [negative[1], negative[3], negative[4]].map(n => Number(n.replace('−', '-')));
+    const sign = negative[2];
+    return (sign === '+' ? a + b : sign === '−' ? a - b : sign === '×' ? a * b : a / b) === c;
+  }
+  // 3 + 4 × 5 = 23: times first
+  const precedence = text.match(/^(\d+) ([+−]) (\d+) × (\d+) = (\d+)$/);
+  if (precedence) {
+    const [a, b, c, d] = [1, 3, 4, 5].map(i => +precedence[i]);
+    return (precedence[2] === '+' ? a + b * c : a - b * c) === d;
+  }
+  // ( 3 + 4 ) × 5 = 35: the brackets first
+  const brackets = text.match(/^\( (\d+) \+ (\d+) \) × (\d+) = (\d+)$/);
+  if (brackets) {
+    return (+brackets[1] + +brackets[2]) * +brackets[3] === +brackets[4];
+  }
+  // ⅔ × 12 = 8
+  const timesFraction = text.match(new RegExp(`^${GLYPH} × (\\d+) = (\\d+)$`));
+  if (timesFraction) {
+    const [top, bottom] = GLYPHS[timesFraction[1]];
+    return +timesFraction[2] * top === +timesFraction[3] * bottom;
+  }
+  // a = 3 × b + 4 b = 5 → a = 19
+  const formula = text.match(/^a = (\d+) × b \+ (\d+) b = (\d+) → a = (\d+)$/);
+  if (formula) {
+    return +formula[1] * +formula[3] + +formula[2] === +formula[4];
+  }
+  // Rond af op 1 decimaal 3,47 ≈ 3,5: a tenth, and no tenth nearer; halfway goes up
+  const oneDecimal = text.match(/^Rond af op 1 decimaal ([\d,]+) ≈ ([\d,]+)$/);
+  if (oneDecimal) {
+    const [n, filled] = [thousandths(oneDecimal[1]), thousandths(oneDecimal[2])];
+    const distance = Math.abs(n - filled);
+    return filled % 100 === 0 && (distance < 50 || (distance === 50 && filled > n));
   }
   // 10 × 5 × 4 = 200 cm³: a box's volume
   const volume = text.match(/^(?:Inhoud in cm³ )?(\d+) × (\d+) × (\d+) = (\d+)$/);
@@ -276,6 +313,15 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('snelheid', 5, 30, '*')).toBe('60 km per uur 2,5 uur = ? km');
     expect(shown('temperatuur-op', 5, 3, '+')).toBe('Hoeveel graden verschil? \u22123° → 5° = ?');
     expect(shown('temperatuur-af', 5, 3, '+')).toBe('Hoeveel graden verschil? 5° → \u22123° = ?');
+    expect(shown('negatief', -3, 8, '+')).toBe('\u22123 + 8 = ?');
+    expect(shown('negatief', -24, -3, ':')).toBe('\u221224 : \u22123 = ?');
+    expect(shown('voorrang-5', 3, 20, '+')).toBe('3 + 4 × 5 = ?');
+    expect(shown('haakjes-3', 7, 5, '*')).toBe('( 3 + 4 ) × 5 = ?');
+    expect(shown('ongelijk-2-3', 3, 2, '+')).toBe('1/2 + 1/3 = ? / 6');
+    expect(shown('ongelijk-4-8', 6, 3, '−')).toBe('3/4 − 3/8 = ? / 8');
+    expect(shown('keer-3', 4, 2, '*')).toBe('⅔ × 12 = ?');
+    expect(shown('formule-3', 15, 4, '+')).toBe('a = 3 × b + 4 b = 5 → a = ?');
+    expect(shown('afronden-decimaal', 347, 10, '≈')).toBe('Rond af op 1 decimaal 3,47 ≈ ?');
     // and a plain sum is still a plain sum, the box at the end
     expect(read(sumLayout({ num1: 7, num2: 5, sign: '+' }, WORDS))).toBe('7 + 5 = ?');
   });
@@ -336,11 +382,23 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('snelheid', 6, 40, '*')).toBe('3 × 80 = 240');
     expect(formWorkedStep('temperatuur-op', 5, 3, '+')).toBe('\u22123° → 0° = 3 → 0° → 5° = 5 → 3 + 5 = 8');
     expect(formWorkedStep('temperatuur-af', 5, 3, '+')).toBe('5° → 0° = 5 → 0° → \u22123° = 3 → 5 + 3 = 8');
+    expect(formWorkedStep('negatief', -3, 8, '+')).toBe('8 \u2212 3 = 5 → 5');
+    expect(formWorkedStep('negatief', 4, 9, '-')).toBe('4 \u2212 9 = 4 + \u22129 → 9 \u2212 4 = 5 → \u22125');
+    expect(formWorkedStep('negatief', -24, -3, '/')).toBe('24 : 3 = 8 → \u2212 : \u2212 = + → 8');
+    expect(formWorkedStep('negatief', -4, 6, '*')).toBe('4 × 6 = 24 → \u2212 × + = \u2212 → \u221224');
+    expect(formWorkedStep('negatief', 5, -6, '-')).toBe('5 \u2212 \u22126 = 5 + 6 → 5 + 6 = 11');
+    expect(formWorkedStep('voorrang-5', 3, 20, '+')).toBe('4 × 5 = 20 → 3 + 20 = 23');
+    expect(formWorkedStep('haakjes-3', 7, 5, '*')).toBe('3 + 4 = 7 → 7 × 5 = 35');
+    expect(formWorkedStep('ongelijk-2-3', 3, 2, '+')).toBe('1/2 = 3/6 → 1/3 = 2/6 → 3 + 2 = 5');
+    expect(formWorkedStep('keer-3', 4, 2, '*')).toBe('12 : 3 = 4 → 2 × 4 = 8');
+    expect(formWorkedStep('formule-3', 15, 4, '+')).toBe('3 × 5 = 15 → 15 + 4 = 19');
+    expect(formWorkedStep('afronden-decimaal', 347, 10, '≈')).toBe('3,47: 7 ≥ 5 → 3,5');
+    expect(formWorkedStep('afronden-decimaal', 342, 10, '≈')).toBe('3,42: 2 < 5 → 3,4');
     expect(formWorkedStep(undefined, 7, 5)).toBeUndefined();
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
-      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur)/.test(sum.form!)) {
+      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur|negatief|ongelijk)/.test(sum.form!)) {
         return;  // read as rounding, as decimals, as percentages, as fractions, as scales and as means below
       }
       // Every step is true, and the answer is in it (last for most; a half is worked as 8 + 8 = 16)
@@ -482,6 +540,48 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       const [from, to] = sum.form === 'temperatuur-op' ? [-sum.num2, sum.num1] : [sum.num1, -sum.num2];
       if (parts.length !== 5 || parts[0] !== degrees(from) || parts[1] !== `0° = ${Math.abs(from)}` || parts[2] !== '0°'
           || parts[3] !== `${degrees(to)} = ${Math.abs(to)}` || !holds(parts[4], 0) || !parts[4].endsWith(`= ${answer(sum)}`)) {
+        misses.push(line);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('works numbers below nought out without their signs first, then the sign, ending on the answer', () => {
+    const misses: string[] = [];
+    made('negatief-plus-min').concat(made('negatief-keer-deel')).forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      const steps = line.split(' → ');
+      // the sums without signs are true, and the last step is the answer, with a real minus
+      const plain = steps.filter(step => /^\d+ [×:−+] \d+ = \d+$/.test(step.replace(/\u2212/g, '−')));
+      const last = steps[steps.length - 1];
+      if (!plain.length || !plain.every(step => holds(step.replace(/\u2212/g, '−'), 0))
+          || (last !== signed(answer(sum)) && !last.endsWith(`= ${signed(answer(sum))}`))) {
+        misses.push(`${sum.num1} ${sum.operation} ${sum.num2}: ${line} [${plain.join(' | ')}]`);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('works fractions with different denominators out by writing both over the common one, then adding', () => {
+    const misses: string[] = [];
+    made('ongelijknamige-breuken').forEach(sum => {
+      const [first, second, last] = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!.split(' → ');
+      const same = (step: string) => {
+        const [a, b, c, d] = step.split(/ = |\//).map(Number);
+        return a * d === b * c;
+      };
+      if (!same(first) || !same(second) || !holds(last, 0) || !last.endsWith(`= ${answer(sum)}`)) {
+        misses.push(`${first} → ${second} → ${last}`);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('rounds to one decimal by the figure after it, a 5 or more going up, and says so', () => {
+    const misses: string[] = [];
+    made('afronden-decimaal').forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      if (!line.startsWith(`${decimal(sum.num1, 2)}: ${sum.num1 % 10} `) || !line.endsWith(`→ ${decimal(answer(sum), 2)}`)) {
         misses.push(line);
       }
     });
@@ -918,10 +1018,61 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       expect(new Set(sums.map(sum => sum.form))).toEqual(new Set(['temperatuur-op', 'temperatuur-af']));
     });
 
+    it('keeps something below nought in every klas 1 negative-number sum, never an answer of nought', () => {
+      made('negatief-plus-min', 800).forEach(sum => {
+        expect(sum.num1 < 0 || sum.num2 < 0 || answer(sum) < 0).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeTrue();
+        expect(answer(sum)).not.toBe(0);
+      });
+      const timesAndShare = made('negatief-keer-deel', 800);
+      timesAndShare.forEach(sum => {
+        expect(sum.num1 < 0 || sum.num2 < 0).toBeTrue();
+        expect(Number.isInteger(answer(sum))).toBeTrue();
+      });
+      expect(new Set(timesAndShare.map(sum => sum.operation))).toEqual(new Set(['*', '/']));
+      expect(timesAndShare.some(sum => answer(sum) > 0)).withContext('− × − = +').toBeTrue();
+    });
+
+    it('asks the order of operations so that reading left to right gives a different answer', () => {
+      made('voorrang', 600).forEach(sum => {
+        const by = Number(sum.form!.split('-')[1]);
+        const leftToRight = sum.operation === '+' ? (sum.num1 + sum.num2 / by) * by : (sum.num1 - sum.num2 / by) * by;
+        expect(answer(sum)).toBeGreaterThan(0);
+        expect(leftToRight).not.toBe(answer(sum));
+      });
+      made('haakjes', 600).forEach(sum => {
+        const first = Number(sum.form!.split('-')[1]);
+        // without the brackets: first + second × num2
+        expect(first + (sum.num1 - first) * sum.num2).not.toBe(answer(sum));
+      });
+    });
+
+    it('adds and takes away fractions with different denominators in klas 1, the answer a part of a whole', () => {
+      const sums = made('ongelijknamige-breuken', 800);
+      sums.forEach(sum => {
+        const common = denominatorsOf(sum.form as UnlikeFractionForm)[2];
+        expect(answer(sum)).toBeGreaterThan(0);
+        expect(answer(sum)).toBeLessThan(common);
+      });
+      expect(new Set(sums.map(sum => sum.operation))).toEqual(new Set(['+', '-']));
+      // each fraction in its simplest form, as it is written: 1/3, never 2/6
+      sums.forEach(sum => {
+        const [first, second, common] = denominatorsOf(sum.form as UnlikeFractionForm);
+        const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
+        expect(gcd(sum.num1 * first / common, first)).toBe(1);
+        expect(gcd(sum.num2 * second / common, second)).toBe(1);
+      });
+      // the common denominator one figure, so the sum fits one line of a 320px phone
+      sums.forEach(sum => expect(denominatorsOf(sum.form as UnlikeFractionForm)[2]).toBeLessThan(10));
+    });
+
+    it('never asks to round a number that is already a tenth', () => {
+      made('afronden-decimaal', 800).forEach(sum => expect(sum.num1 % 10).not.toBe(0));
+    });
+
     it('brings fractions in at the middle of groep 6 and the area at its end', () => {
       const first: { [kind: string]: string } = {};
       const kind = (form: string) => form.replace(/-\d+$/, '');
-      for (const groep of [3, 4, 5, 6, 7, 8]) {
+      for (const groep of [3, 4, 5, 6, 7, 8, 9]) {
         for (const moment of ['B', 'M', 'E'] as Moment[]) {
           const random = seeded(groep * 7 + moment.charCodeAt(0));
           for (let i = 0; i < 400 && schoolSum(groep, moment); i++) {
@@ -951,6 +1102,13 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       expect(first['tijdsduur']).toBe('8E');
       expect(first['snelheid']).toBe('8E');
       expect(first['temperatuur-op']).toBe('8E');
+      expect(first['negatief']).toBe('9B');
+      expect(first['voorrang']).toBe('9M');
+      expect(first['haakjes']).toBe('9M');
+      expect(first['ongelijk-2']).toBe('9M');
+      expect(first['keer']).toBe('9E');
+      expect(first['formule']).toBe('9E');
+      expect(first['afronden-decimaal']).toBe('9E');
     });
 
     it('asks the start of groep 3 only plain sums: the forms come once the sums under them are known', () => {

@@ -48,6 +48,17 @@
  *                                kept as 5 + 3: the degrees above nought and the degrees
  *                                below it (−3° is 3 below); -op goes up from the cold
  *                                one, -af down to it
+ *   negatief   −3 + 8 = ?, −24 : −3 = ?  the one sum whose numbers may be below
+ *                                nought (klas 1): kept as they are, −3 + 8
+ *   voorrang-5 3 + 4 × 5 = ?     kept as 3 + 20: × before +; the 5 is in the name
+ *   haakjes-3  (3 + 4) × 5 = ?   kept as 7 × 5: the brackets first; the 3 is in the name
+ *   ongelijk-2-3 1/2 + 1/3 = ?/6 kept as 3 + 2, counted in sixths: both denominators
+ *                                are in the name, the common one is their lcm
+ *   keer-3     ⅔ × 12 = ?        kept as 4 × 2, as van-3 is: one third of 12, twice
+ *   formule-3  a = 3 × b + 4, b = 5 → a = ?
+ *                                kept as 15 + 4: 3 × 5 worked out, the 4 added; the 3 is in the name
+ *   afronden-decimaal 3,47 ≈ ? op 1 decimaal
+ *                                kept as 347 ≈ 10 in hundredths: 350, shown and typed as 3,5
  *
  * so marking, the worked line and a missed fact's identity all still work
  * from the sum. A remainder and a rounding are the sums with signs of their
@@ -61,7 +72,46 @@
 export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | 'rest' | 'afronden' | 'oppervlakte' | 'tienden'
   | MeasureForm | FractionOfForm | EqualFractionForm | PercentForm | DecimalForm | DecimalMeasureForm
   | FractionSumForm | 'breuk-komma' | RatioForm | DiscountForm | PercentStepForm | 'welk-procent' | ScaleForm | MeanForm
-  | VolumeForm | VolumeMeasureForm | 'tijdsduur' | 'snelheid' | TemperatureForm;
+  | VolumeForm | VolumeMeasureForm | 'tijdsduur' | 'snelheid' | TemperatureForm
+  | 'negatief' | PrecedenceForm | BracketForm | UnlikeFractionForm | TimesFractionForm | FormulaForm | 'afronden-decimaal';
+
+type TwoToNine = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+const TWO_TO_NINE: TwoToNine[] = [2, 3, 4, 5, 6, 7, 8, 9];
+
+/** 3 + 4 × 5: times before plus. The number is what is multiplied by (the 5). */
+export type PrecedenceForm = `voorrang-${TwoToNine}`;
+export const PRECEDENCE_FORMS: PrecedenceForm[] = TWO_TO_NINE.map(n => `voorrang-${n}` as PrecedenceForm);
+
+/** (3 + 4) × 5: the brackets first. The number is the first in the brackets (the 3). */
+export type BracketForm = `haakjes-${TwoToNine}`;
+export const BRACKET_FORMS: BracketForm[] = TWO_TO_NINE.map(n => `haakjes-${n}` as BracketForm);
+
+/**
+ * 1/2 + 1/3 = ?/6: fractions with different denominators. Both denominators are in the name. The
+ * common one is a single figure (4, 6, 8): 2/3 − 1/4 = ? / 12 is too wide for one line of a 320px phone.
+ */
+export type UnlikeFractionForm = 'ongelijk-2-3' | 'ongelijk-2-4' | 'ongelijk-2-6' | 'ongelijk-3-6' | 'ongelijk-2-8' | 'ongelijk-4-8';
+export const UNLIKE_FRACTION_FORMS: UnlikeFractionForm[] = ['ongelijk-2-3', 'ongelijk-2-4', 'ongelijk-2-6', 'ongelijk-3-6', 'ongelijk-2-8', 'ongelijk-4-8'];
+
+/** The two denominators of an unlike-fractions form, and the common one they are counted in: [2, 3, 6]. */
+export function denominatorsOf(form: UnlikeFractionForm): [number, number, number] {
+  const [first, second] = form.split('-').slice(1).map(Number);
+  const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
+  return [first, second, first * second / gcd(first, second)];
+}
+
+/** ⅔ × 12: a fraction times a whole number, as van-3 is ⅔ van 12. The number is the denominator. */
+export type TimesFractionForm = 'keer-3' | 'keer-4' | 'keer-5' | 'keer-6' | 'keer-8';
+export const TIMES_FRACTION_FORMS: TimesFractionForm[] = ['keer-3', 'keer-4', 'keer-5', 'keer-6', 'keer-8'];
+
+/** a = 3 × b + 4, b = 5 → a = ?: a value filled in. The number is what b is multiplied by. */
+export type FormulaForm = `formule-${TwoToNine}`;
+export const FORMULA_FORMS: FormulaForm[] = TWO_TO_NINE.map(n => `formule-${n}` as FormulaForm);
+
+/** The number at the end of a form's name: the 5 in voorrang-5, haakjes-5 and formule-5. */
+export function lastNumberOf(form: string): number {
+  return Number(form.split('-').pop());
+}
 
 /** 10 × 5 × 4 = ? cm³: the volume of a box. The number is its length. */
 export type VolumeForm = 'inhoud-2' | 'inhoud-4' | 'inhoud-5' | 'inhoud-10';
@@ -147,7 +197,7 @@ export function placesOf(form: SumForm | undefined): number {
   if (form === 'tienden' || DECIMAL_MEASURE_FORMS.includes(form as DecimalMeasureForm)) {
     return 1;
   }
-  return form === 'komma-2' || form === 'breuk-komma' ? 2 : form === 'komma-3' ? 3 : 0;
+  return form === 'komma-2' || form === 'breuk-komma' || form === 'afronden-decimaal' ? 2 : form === 'komma-3' ? 3 : 0;
 }
 
 /** 50%, 25% and 10% of an amount: the ones groep 7 learns first. The number is the percentage. */
@@ -180,7 +230,9 @@ export const MEASURE_FORMS: MeasureForm[] = ['m-cm', 'km-m', 'kg-g', 'uur-min'];
 export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft', 'deel', 'rest', 'afronden', 'oppervlakte', 'tienden',
   ...MEASURE_FORMS, ...FRACTION_OF_FORMS, ...EQUAL_FRACTION_FORMS, ...PERCENT_FORMS, 'komma-2', 'komma-3', ...DECIMAL_MEASURE_FORMS,
   ...FRACTION_SUM_FORMS, 'breuk-komma', ...RATIO_FORMS, ...DISCOUNT_FORMS, ...PERCENT_STEP_FORMS, 'welk-procent',
-  ...SCALE_FORMS, ...MEAN_FORMS, ...VOLUME_FORMS, ...VOLUME_MEASURE_FORMS, 'tijdsduur', 'snelheid', ...TEMPERATURE_FORMS];
+  ...SCALE_FORMS, ...MEAN_FORMS, ...VOLUME_FORMS, ...VOLUME_MEASURE_FORMS, 'tijdsduur', 'snelheid', ...TEMPERATURE_FORMS,
+  'negatief', ...PRECEDENCE_FORMS, ...BRACKET_FORMS, ...UNLIKE_FRACTION_FORMS, ...TIMES_FRACTION_FORMS, ...FORMULA_FORMS,
+  'afronden-decimaal'];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */
 export function readForm(raw: unknown): SumForm | undefined {

@@ -42,6 +42,7 @@ export type TranslationKeys =
   | 'sum-degrees-between'
   | 'sum-per-hour'
   | 'sum-volume'
+  | 'round-one-decimal'
   | 'play-again'
   | 'logout'
   | 'need-account'

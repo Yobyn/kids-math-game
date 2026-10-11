@@ -18,7 +18,7 @@ export function dutchYear(grade: number): { word: 'Groep' | 'Klas'; number: numb
  * which asked klas 4 for 12 : 4. Raise this in the same change that builds
  * the next one; groep.spec.ts holds the two together.
  */
-export const LAST_READY_GRADE = 6;
+export const LAST_READY_GRADE = 7;
 
 export function isGradeReady(grade: number): boolean {
   return grade >= 1 && grade <= LAST_READY_GRADE;

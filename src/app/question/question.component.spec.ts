@@ -913,8 +913,30 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     ['5', '6', '7', '10'].forEach(grade => expect(asksMoney(grade)).withContext(`grade ${grade}`).toBe(0));
   });
 
-  it('keeps the old questions for a groep not built yet: grade 7 (klas 1) is still asked as before', () => {
+  it('asks grade 7 (klas 1) numbers below nought, the order of operations and unlike fractions, and takes a typed minus', () => {
     build('7', 'medium');
+    const asked = sums(400);
+    expect(asked.some(sum => sum.form === 'negatief')).toBeTrue();
+    expect(asked.some(sum => /^voorrang-/.test(sum.form || ''))).toBeTrue();
+    expect(asked.some(sum => /^ongelijk-/.test(sum.form || ''))).toBeTrue();
+    // a negative answer typed with the keypad's minus key is marked right, and shown with a real minus
+    component.currentQuestion = { num1: 4, num2: 9, operation: '-', form: 'negatief' };
+    component.userAnswer = '-5';
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+    expect(component.correctAnswerText).toBe('\u22125');
+  });
+
+  it('asks grade 7 (klas 1) at the end of the year formulas, a fraction times a number and rounding to one decimal', () => {
+    build('7', 'hard');
+    const asked = sums(400);
+    expect(asked.some(sum => /^formule-/.test(sum.form || ''))).toBeTrue();
+    expect(asked.some(sum => /^keer-/.test(sum.form || ''))).toBeTrue();
+    expect(asked.some(sum => sum.form === 'afronden-decimaal')).toBeTrue();
+  });
+
+  it('keeps the old questions for a groep not built yet: grade 8 (klas 2) is still asked as before', () => {
+    build('8', 'medium');
     sums(80).forEach(({ operation, form }) => {
       expect(['+', '-', '*', '/']).toContain(operation);
       expect(form).toBeUndefined();

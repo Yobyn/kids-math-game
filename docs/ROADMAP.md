@@ -384,6 +384,12 @@ middle, hard the end), one groep per run.
   docs/CURRICULUM-NL.md, by moment, for HAVO/VWO (assumed: Yobyn has not
   named another stream). Sent to Yobyn before building on it; the next run
   builds klas 1 from it unless he changes it.
+- **Klas 1: DONE AND UNLOCKED (2026-10-12, night run step G).** Numbers below
+  nought (`negatief`), the order of operations (`voorrang-*`, `haakjes-*`),
+  unlike fractions (`ongelijk-*`), a fraction times a number (`keer-*`),
+  formulas (`formule-*`) and rounding to one decimal (`afronden-decimaal`).
+  `LAST_READY_GRADE` is 7: groep 3 to 8 and klas 1 are open. A wrong answer
+  below nought is shown with a real minus (−5). Next: step H, klas 2.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

@@ -54,7 +54,10 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     const misses: string[] = [];
     Object.keys(TOPICS).forEach(topic => made(topic).forEach(sum => {
       const result = answer(sum);
-      if (!isWhole(sum.num1) || !isWhole(sum.num2) || !isWhole(result) || result < 0 || sum.num1 <= 0 || sum.num2 <= 0) {
+      // klas 1's negative numbers are the one kind kept below nought (sum-form.ts, negatief): typed with the minus key
+      const below = sum.form === 'negatief';
+      if (!isWhole(sum.num1) || !isWhole(sum.num2) || !isWhole(result) || (!below && (result < 0 || sum.num1 <= 0 || sum.num2 <= 0))
+          || (below && (sum.num1 === 0 || sum.num2 === 0))) {
         misses.push(`${topic}: ${sum.num1} ${sum.operation} ${sum.num2}`);
       }
     }));
@@ -360,6 +363,39 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     });
   });
 
+  describe('klas 1 (grade 7, kept as groep 9)', () => {
+    it('starts the year where groep 8 ended, with numbers below nought new', () => {
+      Object.keys(CURRICULUM[9].B).filter(topic => topic !== 'negatief-plus-min')
+        .forEach(topic => expect(Object.keys(CURRICULUM[8].E)).withContext(topic).toContain(topic));
+      (['B', 'M', 'E'] as Moment[]).forEach(moment => expect(schoolSum(9, moment)).withContext(moment).not.toBeNull());
+    });
+
+    it('brings × and : below nought, the order of operations and unlike fractions in the middle; formulas, fraction × number and rounding at the end', () => {
+      const topicsAt = (moment: Moment, seed: number) => {
+        const random = seeded(seed);
+        return new Set(Array.from({ length: 600 }, () => schoolSum(9, moment, random)!.topic));
+      };
+      const middle = topicsAt('M', 91);
+      ['negatief-keer-deel', 'voorrang', 'haakjes', 'ongelijknamige-breuken'].forEach(topic => expect(middle.has(topic)).withContext(topic).toBeTrue());
+      const end = topicsAt('E', 92);
+      ['breuk-keer-getal', 'formule', 'afronden-decimaal'].forEach(topic => expect(end.has(topic)).withContext(topic).toBeTrue());
+    });
+
+    it('never asks a times table or a division inside the tables on its own, at any moment', () => {
+      (['B', 'M', 'E'] as Moment[]).forEach(moment => Object.keys(CURRICULUM[9][moment]).forEach(topic => {
+        expect(topic).withContext(moment).not.toMatch(/^(deel)?tafels-/);
+        made(topic).filter(sum => !sum.form).forEach(sum =>
+          expect(sum.operation === '*' && sum.num1 <= 10 && sum.num2 <= 10).withContext(`${topic} ${sum.num1} × ${sum.num2}`).toBeFalse());
+      }));
+    });
+
+    it('keeps practising at the end of klas 1 everything that was new in its middle', () => {
+      const end = Object.keys(CURRICULUM[9].E);
+      Object.keys(CURRICULUM[9].M).filter(topic => !Object.keys(CURRICULUM[9].B).includes(topic))
+        .forEach(topic => expect(end).withContext(topic).toContain(topic));
+    });
+  });
+
   describe('groep 8 (grade 6)', () => {
     const figures = (n: number) => String(n).length;
 
@@ -536,8 +572,8 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       }
     });
 
-    it('leaves what is not built yet to the old questions: klas 1 on', () => {
-      [9, 10].forEach(groep => expect(schoolSum(groep, 'M')).withContext(`groep ${groep}`).toBeNull());
+    it('leaves what is not built yet to the old questions: klas 2 on', () => {
+      [10, 11, 12].forEach(groep => expect(schoolSum(groep, 'M')).withContext(`groep ${groep}`).toBeNull());
     });
   });
 });

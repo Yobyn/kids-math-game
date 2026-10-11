@@ -18,7 +18,7 @@ import { MAX_PICKED, addPiece, pickMatches, removeAt } from '../teaching/coin-pi
 import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
 import { momentFor, schoolSum } from '../teaching/school/groep';
-import { SumLayout, decimal, formWorkedStep, grouped, roundTo, sumLayout, typedDecimal } from '../teaching/school/written-form';
+import { SumLayout, decimal, formWorkedStep, grouped, roundTo, signed, sumLayout, typedDecimal } from '../teaching/school/written-form';
 import { SumForm, placesOf } from './sum-form';
 import {
   QUESTIONS_IN_ROUND,
@@ -524,7 +524,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
         minutesBetween: this.languageService.translate('sum-minutes-between'),
         degreesBetween: this.languageService.translate('sum-degrees-between'),
         perHour: this.languageService.translate('sum-per-hour'),
-        volume: this.languageService.translate('sum-volume')
+        volume: this.languageService.translate('sum-volume'),
+        toOneDecimal: this.languageService.translate('round-one-decimal')
       });
     }
     return this.layoutCache!;
@@ -811,7 +812,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     }
 
     this.correctAnswerText = this.inDecimals
-      ? decimal(this.correctAnswer, this.decimalPlaces, this.decimalSign) : grouped(this.correctAnswer);
+      ? decimal(this.correctAnswer, this.decimalPlaces, this.decimalSign) : signed(this.correctAnswer);
 
     if (isCorrect) {
       this.handleCorrectAnswer();

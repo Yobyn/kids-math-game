@@ -14,14 +14,17 @@
  * 72 : 100, 2,5 × 4, 2,5 km = ? m) and the rest of groep 7 (2/8 + 3/8,
  * ¾ = 0,75, 3 pakken kosten €6, 20% korting); and all of groep 8 (15% van
  * 60, 18 van 72 = ?%, ⅔ van 45, schaal 1 : 500, the mean; 10 × 5 × 4 = ? cm³,
- * 2 m³ = ? l, 9:45 → 11:20, 60 km per uur, −3° → 5°). The rest follows the
- * build order in the doc.
+ * 2 m³ = ? l, 9:45 → 11:20, 60 km per uur, −3° → 5°); and klas 1, kept here
+ * as "groep 9" (−3 + 8, −24 : −3, 3 + 4 × 5, (3 + 4) × 5, 1/2 + 1/3 = ?/6,
+ * ⅔ × 12, a = 3 × b + 4, 3,47 op 1 decimaal). The rest follows the build
+ * order in the doc.
  */
 
 import {
   DECIMAL_MEASURE_FORMS, DISCOUNT_FORMS, FRACTION_SUM_FORMS, MEAN_FORMS, MEASURE_FORMS, PERCENT_FORMS, PERCENT_STEP_FORMS,
   RATIO_FORMS, SCALE_FORMS, SumForm, TEMPERATURE_FORMS, VOLUME_FORMS, VOLUME_MEASURE_FORMS, denominatorOf, lengthOf, packsOf,
-  percentOf, scaleOf, stepOf
+  percentOf, scaleOf, stepOf, BRACKET_FORMS, FORMULA_FORMS, PRECEDENCE_FORMS, TIMES_FRACTION_FORMS, UNLIKE_FRACTION_FORMS,
+  denominatorsOf, lastNumberOf
 } from '../../question/sum-form';
 import { DECIMAL_MEASURES, MEASURES, numeratorsOf } from './written-form';
 
@@ -547,6 +550,83 @@ Object.assign(TOPICS, {
   })
 } as { [id: string]: Maker });
 
+/** A whole number from lo to hi, never nought, below nought as often as above: ±lo to ±hi. */
+function eitherSide(random: Random, lo: number, hi: number): number {
+  return between(random, lo, hi) * (random() < 0.5 ? -1 : 1);
+}
+
+Object.assign(TOPICS, {
+  // Klas 1, the start: adding and taking away below nought. −3 + 8, 4 − 9, −5 − 3, −5 − −3;
+  // something in it is always below nought, or it would be groep 4's sum
+  'negatief-plus-min': random => {
+    for (;;) {
+      const operation = random() < 0.5 ? '+' : '-';
+      const num1 = eitherSide(random, 1, 15);
+      const num2 = random() < 0.7 ? between(random, 1, 15) : -between(random, 1, 15);
+      const answer = operation === '+' ? num1 + num2 : num1 - num2;
+      if ((num1 < 0 || num2 < 0 || answer < 0) && answer !== 0) {
+        return { num1, num2, operation, form: 'negatief' };
+      }
+    }
+  },
+  // Klas 1, the middle: times and sharing below nought. −4 × 6, −24 : −3; one of them at least below nought
+  'negatief-keer-deel': random => {
+    const a = eitherSide(random, 2, 12);
+    const b = a > 0 ? -between(random, 2, 12) : eitherSide(random, 2, 12);
+    return random() < 0.5 ? { num1: a, num2: b, operation: '*', form: 'negatief' } : { num1: a * b, num2: b, operation: '/', form: 'negatief' };
+  },
+  // bewerkingsvolgorde: × before + and −. 3 + 4 × 5, 50 − 6 × 7, kept as 3 + 20
+  'voorrang': random => {
+    const form = pick(random, PRECEDENCE_FORMS);
+    const product = lastNumberOf(form) * between(random, 2, 9);
+    if (random() < 0.5) {
+      return { num1: between(random, 2, 30), num2: product, operation: '+', form };
+    }
+    return { num1: product + between(random, 1, 30), num2: product, operation: '-', form };
+  },
+  // and the brackets first. (3 + 4) × 5, kept as 7 × 5
+  'haakjes': random => {
+    const form = pick(random, BRACKET_FORMS);
+    return { num1: lastNumberOf(form) + between(random, 2, 9), num2: between(random, 2, 9), operation: '*', form };
+  },
+  // fractions with different denominators, the answer over the common one. 1/2 + 1/3 = ?/6,
+  // kept as 3 + 2 sixths; the answer is a part of a whole, never nothing and never all of it
+  'ongelijknamige-breuken': random => {
+    for (;;) {
+      const form = pick(random, UNLIKE_FRACTION_FORMS);
+      const [first, second, common] = denominatorsOf(form);
+      // each fraction as it is written, in its simplest form: 1/3, never 2/6
+      const num1 = pick(random, numeratorsOf(first)) * common / first;
+      const num2 = pick(random, numeratorsOf(second)) * common / second;
+      const operation = random() < 0.5 ? '+' : '-';
+      const answer = operation === '+' ? num1 + num2 : num1 - num2;
+      if (answer > 0 && answer < common) {
+        return { num1, num2, operation, form };
+      }
+    }
+  },
+  // Klas 1, the end: a fraction times a whole number. ⅔ × 12, kept as 4 × 2
+  'breuk-keer-getal': random => {
+    const form = pick(random, TIMES_FRACTION_FORMS);
+    const parts = lastNumberOf(form);
+    return { num1: between(random, 2, 12), num2: pick(random, numeratorsOf(parts, 2)), operation: '*', form };
+  },
+  // a formula with a value filled in. a = 3 × b + 4, b = 5 → a = ?, kept as 15 + 4
+  'formule': random => {
+    const form = pick(random, FORMULA_FORMS);
+    return { num1: lastNumberOf(form) * between(random, 2, 12), num2: between(random, 1, 20), operation: '+', form };
+  },
+  // rounding to one decimal. 3,47 ≈ ? op 1 decimaal, kept as 347 ≈ 10 in hundredths;
+  // never one that is already a tenth (3,40), which would be no question
+  'afronden-decimaal': random => {
+    let num1 = between(random, 101, 2999);
+    if (num1 % 10 === 0) {
+      num1 += between(random, 1, 9);
+    }
+    return { num1, num2: 10, operation: '≈', form: 'afronden-decimaal' };
+  }
+} as { [id: string]: Maker });
+
 function gcd(a: number, b: number): number {
   return b ? gcd(b, a % b) : a;
 }
@@ -643,6 +723,21 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     E: {
       'inhoud': NEW, 'liters': NEW, 'tijdsduur': NEW, 'snelheid': NEW, 'temperatuur': NEW,
       'procent-van': REVIEW, 'welk-procent': REVIEW, 'breuk-van-groot': REVIEW, 'schaal': REVIEW, 'gemiddelde': REVIEW
+    }
+  },
+  // Klas 1 (grade 7), HAVO/VWO (docs/CURRICULUM-NL.md, "Klas 1–4")
+  9: {
+    B: {
+      'negatief-plus-min': NEW,
+      'procent-van': REVIEW, 'tijdsduur': REVIEW, 'temperatuur': REVIEW, 'inhoud': REVIEW, 'snelheid': REVIEW
+    },
+    M: {
+      'negatief-keer-deel': NEW, 'voorrang': NEW, 'haakjes': NEW, 'ongelijknamige-breuken': NEW,
+      'negatief-plus-min': REVIEW, 'procent-van': REVIEW
+    },
+    E: {
+      'breuk-keer-getal': NEW, 'formule': NEW, 'afronden-decimaal': NEW,
+      'negatief-keer-deel': REVIEW, 'voorrang': REVIEW, 'haakjes': REVIEW, 'ongelijknamige-breuken': REVIEW
     }
   }
 };
