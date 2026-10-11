@@ -123,7 +123,7 @@ the setting of a sum, not the sum: "20% korting op €45", "3 pakken kosten
 | E | Speed, distance, time | 60 km per uur, 2,5 uur = ? km |
 | E | Negative numbers (temperature) | van −3 naar 5 = ? graden |
 
-## Klas 1–4 (age 12–16): the plan (2026-10-11, waiting for Yobyn)
+## Klas 1–4 (age 12–16): the plan (2026-10-11; klas 1 built 2026-10-12)
 
 Secondary school, onderbouw and the start of the bovenbouw: the kerndoelen
 onderbouw (domein Getallen, Verbanden, Meten en meetkunde) and referentie-
@@ -149,7 +149,7 @@ no round asks a times table or a division inside the tables on its own.
 | B | Negative numbers: + and − | −3 + 8 = ?, 4 − 9 = ?, −5 − 3 = ? |
 | M | Negative numbers: × and : | −4 × 6 = ?, −24 : −3 = ? |
 | M | Bewerkingsvolgorde (order of operations) | 3 + 4 × 5 = ?, (3 + 4) × 5 = ?, 20 − 12 : 4 = ? |
-| M | Fractions, unlike denominators: + and − | 1/2 + 1/3 = ?/6, 3/4 − 1/6 = ?/12 |
+| M | Fractions, unlike denominators: + and − | 1/2 + 1/3 = ?/6, 3/4 − 3/8 = ?/8 |
 | E | Fractions × a whole number, and of an amount | ⅔ × 12 = ?, ⅗ × 25 = ? |
 | E | Formulas: a value filled in | a = 3 × b + 4, b = 5 → a = ? |
 | E | Rounding and estimating with decimals | 3,47 op 1 decimaal = ?, 12,8 × 4,9 ≈ ? |
@@ -269,6 +269,18 @@ its groep:
    worked through nought). The middle's topics are practised again at the
    end.
 7. **Klas 1–4**: the plan above. Built klas by klas, each unlocking its
-   year: klas 1 (step G), klas 2 (H), klas 3 and 4 (I).
+   year: klas 1 (step G), klas 2 (H), klas 3 and 4 (I). KLAS 1 IS DONE AND
+   OPEN (2026-10-12), kept in groep.ts as "groep 9": B is groep 8's end with
+   + and − below nought ("−3 + 8 = ?", "4 − 9 = ?", typed with the keypad's
+   minus key, the one form, `negatief`, whose numbers are kept below
+   nought); M brings × and : below nought ("−24 : −3"), the order of
+   operations ("3 + 4 × 5", "(3 + 4) × 5", always a sum that reading left to
+   right gets wrong) and unlike fractions ("1/2 + 1/3 = ?/6", each fraction
+   in its simplest form, the common denominator one figure so the card fits
+   a 320px phone: 4, 6 or 8, not the plan's 12); E brings a fraction times
+   a number ("⅔ × 24"), a formula with a value filled in ("a = 3 × b + 4,
+   b = 5 → a = ?") and rounding to one decimal ("3,47 ≈ ?"). Each with its
+   worked line ("4 − 9 = 4 + −9 → 9 − 4 = 5 → −5", "4 × 5 = 20 → 3 + 20 =
+   23"). Not yet: estimating (schatten), whose answer is not one number.
 8. **Verhaaltjessommen** (word problems) for every groep, in all three
    languages.

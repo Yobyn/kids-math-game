@@ -1,7 +1,10 @@
 import {
-  DECIMAL_MEASURES, FRACTIONS, MEASURES, UNIT_FRACTIONS, VOLUME_MEASURES, clock, decimal, degrees, formWorkedStep, meanList, roundTo, tenths
+  DECIMAL_MEASURES, FRACTIONS, MEASURES, UNIT_FRACTIONS, VOLUME_MEASURES, clock, decimal, degrees, formWorkedStep, meanList, roundTo, signed,
+  tenths
 } from '../teaching/school/written-form';
-import { denominatorOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, stepOf } from '../question/sum-form';
+import {
+  UnlikeFractionForm, denominatorOf, denominatorsOf, lastNumberOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, stepOf
+} from '../question/sum-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
 import { REVIEWS_TO_GRADUATE, reviewsOf, waitingFacts } from '../teaching/review-schedule';
@@ -98,7 +101,40 @@ export function operationSymbol(operation: string): string {
  * plainly enough to a grown-up as 7 + 7 and 16 : 2; a part of an amount
  * as ¼ × 20.
  */
+/** Klas 1's sums as asked, in signs that read the same in any language; undefined for any other form. */
+function klasFactText(fact: MissedFact): string | undefined {
+  const form = fact.form!;
+  const sign = operationSymbol(fact.operation);
+  if (form === 'negatief') {
+    return `${signed(fact.num1)} ${sign} ${signed(fact.num2)}`;
+  }
+  if (form.startsWith('voorrang-')) {
+    return `${fact.num1} ${sign} ${fact.num2 / lastNumberOf(form)} × ${lastNumberOf(form)}`;
+  }
+  if (form.startsWith('haakjes-')) {
+    return `(${lastNumberOf(form)} + ${fact.num1 - lastNumberOf(form)}) × ${fact.num2}`;
+  }
+  if (form.startsWith('ongelijk-')) {
+    const [first, second, common] = denominatorsOf(form as UnlikeFractionForm);
+    return `${fact.num1 * first / common}/${first} ${sign} ${fact.num2 * second / common}/${second} = ?/${common}`;
+  }
+  if (form.startsWith('keer-')) {
+    return `${FRACTIONS[`${fact.num2}/${lastNumberOf(form)}`]} × ${fact.num1 * lastNumberOf(form)}`;
+  }
+  if (form.startsWith('formule-')) {
+    return `a = ${lastNumberOf(form)} × b + ${fact.num2}, b = ${fact.num1 / lastNumberOf(form)} → a = ?`;
+  }
+  if (form === 'afronden-decimaal') {
+    return `${decimal(fact.num1, 2)} ≈ ? (0,1)`;
+  }
+  return undefined;
+}
+
 export function factText(fact: MissedFact): string {
+  const klas = fact.form ? klasFactText(fact) : undefined;
+  if (klas) {
+    return klas;
+  }
   switch (fact.form) {
     case 'aanvullen':
       return `${fact.num2} + ? = ${fact.num1}`;
@@ -347,7 +383,7 @@ function toItem(fact: MissedFact): PracticeItem {
 
   const item: PracticeItem = {
     question: factText(fact),
-    answer: placesOf(fact.form) ? decimal(answer, placesOf(fact.form)) : String(answer),
+    answer: placesOf(fact.form) ? decimal(answer, placesOf(fact.form)) : fact.form === 'negatief' ? signed(answer) : String(answer),
     reviews,
     toGraduate
   };

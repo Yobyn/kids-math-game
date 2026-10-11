@@ -1,6 +1,6 @@
 import {
-  DecimalMeasureForm, MeasureForm, SumForm, VolumeMeasureForm, denominatorOf, lengthOf, packsOf, percentOf, placesOf, scaleOf,
-  stepOf
+  DecimalMeasureForm, MeasureForm, SumForm, UnlikeFractionForm, VolumeMeasureForm, denominatorOf, denominatorsOf, lastNumberOf,
+  lengthOf, packsOf, percentOf, placesOf, scaleOf, stepOf
 } from '../../question/sum-form';
 
 /**
@@ -65,6 +65,13 @@ export interface FormWords {
   perHour: string;
   /** "Inhoud in cm³", the heading over 10 × 5 × 4 = ? */
   volume: string;
+  /** "Rond af op 1 decimaal", the heading over 3,47 ≈ ? */
+  toOneDecimal: string;
+}
+
+/** A whole number as klas 1 writes it, with a real minus below nought: −3. */
+export function signed(value: number): string {
+  return value < 0 ? `\u2212${grouped(-value)}` : grouped(value);
 }
 
 /** The volumes groep 8 changes into litres: a cubic metre holds 1000 litres, a litre 1000 cm³. */
@@ -189,6 +196,10 @@ const operation = (text: string): SumPart => ({ kind: 'operation', text });
 const equals: SumPart = { kind: 'equals', text: '=' };
 
 export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
+  const klas = klasLayout(sum, words);
+  if (klas) {
+    return klas;
+  }
   switch (sum.form) {
     // 7 + ? = 10, kept as 10 - 7
     case 'aanvullen':
@@ -415,6 +426,124 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
   }
 }
 
+/** Klas 1's sums (sum-form.ts), whose forms carry a number in their name; undefined for any other. */
+function klasLayout(sum: SumToShow, words: FormWords): SumLayout | undefined {
+  const form = sum.form || '';
+  const sign = (text: string): SumPart => ({ kind: 'operation', text });
+  // −3 + 8 = ?, −24 : −3 = ?
+  if (form === 'negatief') {
+    return { before: [{ kind: 'number', text: signed(sum.num1) }, sign(sum.sign), { kind: 'number', text: signed(sum.num2) }, equals], after: [] };
+  }
+  // 3 + 4 × 5 = ?, kept as 3 + 20
+  if (form.startsWith('voorrang-')) {
+    const by = lastNumberOf(form);
+    return { before: [number(sum.num1), sign(sum.sign), number(sum.num2 / by), sign('×'), number(by), equals], after: [] };
+  }
+  // (3 + 4) × 5 = ?, kept as 7 × 5
+  if (form.startsWith('haakjes-')) {
+    const first = lastNumberOf(form);
+    return {
+      before: [sign('('), number(first), sign('+'), number(sum.num1 - first), sign(')'), sign('×'), number(sum.num2), equals],
+      after: []
+    };
+  }
+  // 1/2 + 1/3 = ?/6, kept as 3 + 2 sixths
+  if (form.startsWith('ongelijk-')) {
+    const [first, second, common] = denominatorsOf(form as UnlikeFractionForm);
+    return {
+      before: [{ kind: 'number', text: `${sum.num1 * first / common}/${first}` }, sign(sum.sign),
+               { kind: 'number', text: `${sum.num2 * second / common}/${second}` }, equals],
+      after: [sign('/'), number(common)]
+    };
+  }
+  // ⅔ × 12 = ?, kept as 4 × 2
+  if (form.startsWith('keer-')) {
+    const parts = lastNumberOf(form);
+    return { before: [{ kind: 'number', text: FRACTIONS[`${sum.num2}/${parts}`] }, sign('×'), number(sum.num1 * parts), equals], after: [] };
+  }
+  // a = 3 × b + 4 over b = 5 → a = ?, kept as 15 + 4
+  if (form.startsWith('formule-')) {
+    const times = lastNumberOf(form);
+    return {
+      before: [{ kind: 'caption', text: `a = ${times} × b + ${sum.num2}` }, { kind: 'word', text: 'b =' }, number(sum.num1 / times),
+               sign('→'), { kind: 'word', text: 'a =' }],
+      after: []
+    };
+  }
+  // Rond af op 1 decimaal over 3,47 ≈ ?, kept as 347 ≈ 10 in hundredths
+  if (form === 'afronden-decimaal') {
+    return { before: [{ kind: 'caption', text: words.toOneDecimal }, { kind: 'number', text: decimal(sum.num1, 2, words.point) }, sign('≈')], after: [] };
+  }
+  return undefined;
+}
+
+/**
+ * −3 + 8, 4 − 9, −4 × 6: the sum without its signs first, then the sign.
+ * Plus with one below nought is the difference, with the sign of the bigger;
+ * minus is plus the opposite; times and sharing follow − × − = +.
+ */
+function signedWorked(num1: number, num2: number, operation: string): string {
+  const answer = operation === '+' ? num1 + num2 : operation === '-' ? num1 - num2 : operation === '*' ? num1 * num2 : num1 / num2;
+  if (operation === '*' || operation === '/') {
+    const by = operation === '*' ? '×' : ':';
+    const signOf = (n: number) => (n < 0 ? '\u2212' : '+');
+    return `${Math.abs(num1)} ${by} ${Math.abs(num2)} = ${Math.abs(answer)} → ${signOf(num1)} ${by} ${signOf(num2)} = ${signOf(answer)} → ${signed(answer)}`;
+  }
+  if (operation === '-') {
+    return `${signed(num1)} \u2212 ${signed(num2)} = ${signed(num1)} + ${signed(-num2)} → ${signedWorked(num1, -num2, '+')}`;
+  }
+  if (num1 >= 0 && num2 >= 0) {
+    return `${num1} + ${num2} = ${answer}`;
+  }
+  if (num1 < 0 && num2 < 0) {
+    return `${Math.abs(num1)} + ${Math.abs(num2)} = ${Math.abs(answer)} → ${signed(answer)}`;
+  }
+  const [big, small] = Math.abs(num1) >= Math.abs(num2) ? [num1, num2] : [num2, num1];
+  return `${Math.abs(big)} \u2212 ${Math.abs(small)} = ${Math.abs(answer)} → ${signed(answer)}`;
+}
+
+/** The worked line of klas 1's sums; undefined for any other form. */
+function klasWorkedStep(form: string, num1: number, num2: number, operation: string, point: string): string | undefined {
+  const sign = operation === '-' ? '\u2212' : '+';
+  if (form === 'negatief') {
+    return signedWorked(num1, num2, operation);
+  }
+  // × before +: 4 × 5 first, then 3 + 20
+  if (form.startsWith('voorrang-')) {
+    const by = lastNumberOf(form);
+    const answer = operation === '-' ? num1 - num2 : num1 + num2;
+    return `${num2 / by} × ${by} = ${num2} → ${num1} ${sign} ${num2} = ${answer}`;
+  }
+  // the brackets first: 3 + 4, then times 5
+  if (form.startsWith('haakjes-')) {
+    const first = lastNumberOf(form);
+    return `${first} + ${num1 - first} = ${num1} → ${num1} × ${num2} = ${num1 * num2}`;
+  }
+  // both in sixths, then added: 1/2 = 3/6, 1/3 = 2/6, 3 + 2 = 5
+  if (form.startsWith('ongelijk-')) {
+    const [first, second, common] = denominatorsOf(form as UnlikeFractionForm);
+    const answer = operation === '-' ? num1 - num2 : num1 + num2;
+    return `${num1 * first / common}/${first} = ${num1}/${common} → ${num2 * second / common}/${second} = ${num2}/${common} → `
+      + `${num1} ${sign} ${num2} = ${answer}`;
+  }
+  // ⅔ × 12: a third of 12 is 4, two thirds 2 × 4
+  if (form.startsWith('keer-')) {
+    const parts = lastNumberOf(form);
+    return `${num1 * parts} : ${parts} = ${num1} → ${num2} × ${num1} = ${num1 * num2}`;
+  }
+  // a = 3 × b + 4 with b = 5: 3 × 5 first, then + 4
+  if (form.startsWith('formule-')) {
+    const times = lastNumberOf(form);
+    return `${times} × ${num1 / times} = ${num1} → ${num1} + ${num2} = ${num1 + num2}`;
+  }
+  // 3,47 op 1 decimaal: the figure after the first decimal, 7; 5 or more goes up
+  if (form === 'afronden-decimaal') {
+    const figure = num1 % 10;
+    return `${decimal(num1, 2, point)}: ${figure} ${figure >= 5 ? '≥' : '<'} 5 → ${decimal(roundTo(num1, num2), 2, point)}`;
+  }
+  return undefined;
+}
+
 /**
  * One way to the answer of a written form, shown with the answer after two
  * tries (worked-step.ts says why only then). Each is the fact the form is
@@ -425,6 +554,10 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
  */
 export function formWorkedStep(form: SumForm | undefined, num1: number, num2: number,
                                operation = '+', point = ','): string | undefined {
+  const klas = form ? klasWorkedStep(form, num1, num2, operation, point) : undefined;
+  if (klas) {
+    return klas;
+  }
   switch (form) {
     case 'aanvullen':
     case 'splitsen':

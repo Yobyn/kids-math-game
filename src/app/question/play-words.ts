@@ -67,6 +67,7 @@ export type PlayKey =
   | 'sum-degrees-between'
   | 'sum-per-hour'
   | 'sum-volume'
+  | 'round-one-decimal'
   | 'play-again';
 
 export const PLAY_WORDS: Words<PlayKey> = {
@@ -132,7 +133,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-minutes-between': 'How many minutes?',
     'sum-degrees-between': 'How many degrees apart?',
     'sum-per-hour': 'per hour',
-    'sum-volume': 'Volume in cm³'
+    'sum-volume': 'Volume in cm³',
+    'round-one-decimal': 'Round to 1 decimal place'
   },
   nl: {
     'praise-3': 'Knap gewerkt!',
@@ -196,7 +198,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-minutes-between': 'Hoeveel minuten?',
     'sum-degrees-between': 'Hoeveel graden verschil?',
     'sum-per-hour': 'per uur',
-    'sum-volume': 'Inhoud in cm³'
+    'sum-volume': 'Inhoud in cm³',
+    'round-one-decimal': 'Rond af op 1 decimaal'
   },
   es: {
     'praise-3': '¡Un trabajo brillante!',
@@ -260,6 +263,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-minutes-between': '¿Cuántos minutos?',
     'sum-degrees-between': '¿Cuántos grados de diferencia?',
     'sum-per-hour': 'por hora',
-    'sum-volume': 'Volumen en cm³'
+    'sum-volume': 'Volumen en cm³',
+    'round-one-decimal': 'Redondea a 1 decimal'
   }
 };
