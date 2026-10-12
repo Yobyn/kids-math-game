@@ -1156,6 +1156,42 @@ describe('ResultComponent offering the bonus game a round earns', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/bonus/jump']);
   });
 
+  it('keeps a thumb\'s room between the ball game and Play Again on a phone', () => {
+    // The two pills touched (0px apart) at 320, 360 and 390 wide in every
+    // language, each as wide as its own words: a thumb on the seam could
+    // start a new round instead of the game it had just earned
+    open(10);
+    fixture.nativeElement.style.display = 'block';
+    fixture.nativeElement.style.width = '320px';
+    const again = fixture.nativeElement.querySelector('.play-again:not(.bonus-offer)') as HTMLElement;
+    const game = offer()!.getBoundingClientRect();
+    const play = again.getBoundingClientRect();
+    expect(play.top - game.bottom).toBeGreaterThanOrEqual(12);
+    expect(play.width).toBe(game.width);
+  });
+
+  it('keeps them one width when the game\'s name is longer than Play Again', () => {
+    // "🏀 Pelota saltarina" was within a pixel of the width; a wider font,
+    // or a longer name, must not set the two buttons apart again
+    open(10);
+    spyOnProperty(component, 'bonusName', 'get').and.returnValue('Pelota saltarina saltarina');
+    fixture.detectChanges();
+    fixture.nativeElement.style.display = 'block';
+    fixture.nativeElement.style.width = '320px';
+    const again = fixture.nativeElement.querySelector('.play-again:not(.bonus-offer)') as HTMLElement;
+    expect(again.getBoundingClientRect().width).toBe(offer()!.getBoundingClientRect().width);
+    expect(offer()!.getBoundingClientRect().right).toBeLessThanOrEqual(fixture.nativeElement.getBoundingClientRect().right);
+  });
+
+  it('keeps the two apart on a wide screen too, one over the other', () => {
+    // On a tablet they sat side by side with nothing between them
+    open(10);
+    fixture.nativeElement.style.display = 'block';
+    fixture.nativeElement.style.width = '768px';
+    const again = fixture.nativeElement.querySelector('.play-again:not(.bonus-offer)') as HTMLElement;
+    expect(again.getBoundingClientRect().top - offer()!.getBoundingClientRect().bottom).toBeGreaterThanOrEqual(12);
+  });
+
   it('offers nothing once the game has been played', () => {
     open(10);
     progress.useBonus();
