@@ -157,6 +157,19 @@
   filter: brightness(1.1);
 }
 
+/* The ball game a round earned sits over Play Again as a pair of one width,
+   with a thumb's room between: they touched, so a tap on the seam could
+   start a new round instead of the game. */
+.bonus-offer {
+  display: block;
+  margin: 0 auto 1rem;
+}
+
+.bonus-offer,
+.bonus-offer + .play-again {
+  min-width: min(100%, 16rem);
+}
+
 /* The offer to keep progress. Deliberately quiet: it sits under Play Again,
    uses the dim text colour rather than an accent, and carries no badge or
    animation — a child finishing a round should meet their score, not a pitch. */

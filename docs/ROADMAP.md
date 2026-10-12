@@ -406,6 +406,16 @@ middle, hard the end), one groep per run.
   removed: Yobyn's "Klas 4 Uitdaging is asking me 12 / 4" can no longer
   happen, and a test says so. Next: the routine's last part, one small
   phone improvement at a time.
+- **Phone improvement 1: the ball game and Play Again apart (2026-10-13).**
+  The game walked through as a child at 320, 360 and 390 wide in nl, en and
+  es; most of what showed up is already in an open PR (the header in a
+  round #88, Check Answer on a short phone #89, the progress gutter #93,
+  the climbs #102). Not covered by any: at the end of a round the ball-game
+  button and Play Again touched, 0px apart at every phone width and in
+  every language, each as wide as its own words (on a tablet, side by side
+  with nothing between). A thumb on the seam started a new round instead
+  of the game just earned. They now share a width (16rem) with 16px
+  between them, one over the other on every screen.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",
