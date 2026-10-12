@@ -167,7 +167,9 @@
 
 .bonus-offer,
 .bonus-offer + .play-again {
-  min-width: min(100%, 16rem);
+  width: min(100%, 16rem);
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 
 /* The offer to keep progress. Deliberately quiet: it sits under Play Again,
