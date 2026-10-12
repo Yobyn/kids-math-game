@@ -525,7 +525,9 @@ export class QuestionComponent implements OnInit, OnDestroy {
         degreesBetween: this.languageService.translate('sum-degrees-between'),
         perHour: this.languageService.translate('sum-per-hour'),
         volume: this.languageService.translate('sum-volume'),
-        toOneDecimal: this.languageService.translate('round-one-decimal')
+        toOneDecimal: this.languageService.translate('round-one-decimal'),
+        hypotenuse: this.languageService.translate('sum-hypotenuse'),
+        triangleArea: this.languageService.translate('sum-triangle')
       });
     }
     return this.layoutCache!;

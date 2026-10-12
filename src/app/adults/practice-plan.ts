@@ -1,9 +1,10 @@
 import {
-  DECIMAL_MEASURES, FRACTIONS, MEASURES, UNIT_FRACTIONS, VOLUME_MEASURES, clock, decimal, degrees, formWorkedStep, meanList, roundTo, signed,
-  tenths
+  DECIMAL_MEASURES, FRACTIONS, MEASURES, SUPERSCRIPTS, UNIT_FRACTIONS, VOLUME_MEASURES, clock, decimal, degrees, formWorkedStep, meanList,
+  roundTo, signed, tenths
 } from '../teaching/school/written-form';
 import {
-  UnlikeFractionForm, denominatorOf, denominatorsOf, lastNumberOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, stepOf
+  PythagorasForm, UnlikeFractionForm, denominatorOf, denominatorsOf, lastNumberOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, sidesOf,
+  stepOf
 } from '../question/sum-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
 import { workedStep } from '../teaching/worked-step';
@@ -126,6 +127,28 @@ function klasFactText(fact: MissedFact): string | undefined {
   }
   if (form === 'afronden-decimaal') {
     return `${decimal(fact.num1, 2)} ≈ ? (0,1)`;
+  }
+  if (form.startsWith('macht-')) {
+    return `${fact.num2}${SUPERSCRIPTS[lastNumberOf(form)]}`;
+  }
+  if (form === 'wortel') {
+    return `√${fact.num1}`;
+  }
+  if (form.startsWith('vergelijking-')) {
+    return `${fact.num2 === 1 ? '' : fact.num2}x + ${lastNumberOf(form)} = ${fact.num1 + lastNumberOf(form)}, x = ?`;
+  }
+  if (form.startsWith('invullen-')) {
+    return `${fact.num1}(x + ${fact.num2 - lastNumberOf(form)}), x = ${lastNumberOf(form)}`;
+  }
+  if (form.startsWith('toename-') || form.startsWith('afname-')) {
+    return `€${fact.num1} ${form.startsWith('toename-') ? '+' : '−'} ${lastNumberOf(form)}%`;
+  }
+  if (form.startsWith('pythagoras-')) {
+    const [a, b] = sidesOf(form as PythagorasForm, fact.num2);
+    return `${a}² + ${b}² = c², c = ?`;
+  }
+  if (form === 'driehoek') {
+    return `½ × ${fact.num1 * 2} × ${fact.num2}`;
   }
   return undefined;
 }

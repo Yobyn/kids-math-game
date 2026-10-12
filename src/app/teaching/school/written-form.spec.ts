@@ -9,7 +9,8 @@ const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van', re
   toThousands: 'Rond af op duizendtallen', packs: 'pakken', cost: 'kosten', discount: 'korting: wat betaal je?',
   scale: 'Schaal', mean: 'Wat is het gemiddelde?', minutesBetween: 'Hoeveel minuten?',
   degreesBetween: 'Hoeveel graden verschil?', perHour: 'per uur', volume: 'Inhoud in cm³',
-  toOneDecimal: 'Rond af op 1 decimaal' };
+  toOneDecimal: 'Rond af op 1 decimaal', hypotenuse: 'Rechthoekige driehoek: de schuine zijde?',
+  triangleArea: 'Oppervlakte van de driehoek' };
 
 /** A number as written in Dutch, 3,45 or 72, read in thousandths: 3450, 72000. NaN past three figures after the comma. */
 function thousandths(text: string): number {
@@ -178,6 +179,42 @@ function holds(written: string, filled: number | string): boolean {
     const distance = Math.abs(n - filled);
     return filled % 100 === 0 && (distance < 50 || (distance === 50 && filled > n));
   }
+  // 2³ = 8: the number that many times
+  const power = text.match(/^(\d+)([²³⁴⁵]) = (\d+)$/);
+  if (power) {
+    return (+power[1]) ** ('²³⁴⁵'.indexOf(power[2]) + 2) === +power[3];
+  }
+  // √144 = 12: the number that times itself is 144
+  const root = text.match(/^√(\d+) = (\d+)$/);
+  if (root) {
+    return +root[2] * +root[2] === +root[1];
+  }
+  // 3x + 5 = 20 → x = 5: put back in, it is true
+  const equation = text.match(/^(\d*)x \+ (\d+) = (\d+) x = (\d+)$/);
+  if (equation) {
+    return (+(equation[1] || 1)) * +equation[4] + +equation[2] === +equation[3];
+  }
+  // x = 2 3 ( x + 4 ) = 18
+  const fillIn = text.match(/^x = (\d+) (\d+) \( x \+ (\d+) \) = (\d+)$/);
+  if (fillIn) {
+    return +fillIn[2] * (+fillIn[1] + +fillIn[3]) === +fillIn[4];
+  }
+  // € 80 + 15% = € 92
+  const change = text.match(/^€ (\d+) ([+−]) (\d+)% = € (\d+)$/);
+  if (change) {
+    const [price, percent, paid] = [+change[1], +change[3], +change[4]];
+    return 100 * paid === price * (change[2] === '+' ? 100 + percent : 100 - percent);
+  }
+  // Rechthoekige driehoek: de schuine zijde? a = 6 b = 8 → c = 10
+  const pythagoras = text.match(/^Rechthoekige driehoek: de schuine zijde\? a = (\d+) b = (\d+) → (\d+)$/);
+  if (pythagoras) {
+    return (+pythagoras[1]) ** 2 + (+pythagoras[2]) ** 2 === (+pythagoras[3]) ** 2;
+  }
+  // Oppervlakte van de driehoek ½ × 10 × 6 = 30
+  const triangle = text.match(/^Oppervlakte van de driehoek ½ × (\d+) × (\d+) = (\d+)$/);
+  if (triangle) {
+    return +triangle[1] * +triangle[2] === 2 * +triangle[3];
+  }
   // 10 × 5 × 4 = 200 cm³: a box's volume
   const volume = text.match(/^(?:Inhoud in cm³ )?(\d+) × (\d+) × (\d+) = (\d+)$/);
   if (volume) {
@@ -322,6 +359,15 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('keer-3', 4, 2, '*')).toBe('⅔ × 12 = ?');
     expect(shown('formule-3', 15, 4, '+')).toBe('a = 3 × b + 4 b = 5 → a = ?');
     expect(shown('afronden-decimaal', 347, 10, '≈')).toBe('Rond af op 1 decimaal 3,47 ≈ ?');
+    expect(shown('macht-3', 4, 2, '*')).toBe('2³ = ?');
+    expect(shown('wortel', 144, 12, '/')).toBe('√144 = ?');
+    expect(shown('vergelijking-5', 15, 3, '/')).toBe('3x + 5 = 20 x = ?');
+    expect(shown('vergelijking-7', 8, 1, '/')).toBe('x + 7 = 15 x = ?');
+    expect(shown('invullen-2', 3, 6, '*')).toBe('x = 2 3 ( x + 4 ) = ?');
+    expect(shown('toename-15', 80, 12, '+')).toBe('€ 80 + 15% = € ?');
+    expect(shown('afname-20', 80, 16, '−')).toBe('€ 80 \u2212 20% = € ?'.replace('\u2212', '−'));
+    expect(shown('pythagoras-1', 100, 10, '/')).toBe('Rechthoekige driehoek: de schuine zijde? a = 6 b = 8 → ?');
+    expect(shown('driehoek', 5, 6, '*')).toBe('Oppervlakte van de driehoek ½ × 10 × 6 = ?');
     // and a plain sum is still a plain sum, the box at the end
     expect(read(sumLayout({ num1: 7, num2: 5, sign: '+' }, WORDS))).toBe('7 + 5 = ?');
   });
@@ -394,11 +440,19 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('formule-3', 15, 4, '+')).toBe('3 × 5 = 15 → 15 + 4 = 19');
     expect(formWorkedStep('afronden-decimaal', 347, 10, '≈')).toBe('3,47: 7 ≥ 5 → 3,5');
     expect(formWorkedStep('afronden-decimaal', 342, 10, '≈')).toBe('3,42: 2 < 5 → 3,4');
+    expect(formWorkedStep('macht-5', 16, 2, '*')).toBe('2 × 2 × 2 × 2 × 2 = 32');
+    expect(formWorkedStep('wortel', 144, 12, '/')).toBe('12 × 12 = 144');
+    expect(formWorkedStep('vergelijking-5', 15, 3, '/')).toBe('20 \u2212 5 = 15 → 15 : 3 = 5');
+    expect(formWorkedStep('invullen-2', 3, 6, '*')).toBe('2 + 4 = 6 → 3 × 6 = 18');
+    expect(formWorkedStep('toename-15', 80, 12, '+')).toBe('15% van 80 = 12 → 80 + 12 = 92');
+    expect(formWorkedStep('afname-20', 80, 16, '-')).toBe('20% van 80 = 16 → 80 \u2212 16 = 64');
+    expect(formWorkedStep('pythagoras-1', 100, 10, '/')).toBe('6² + 8² = 36 + 64 = 100 → √100 = 10');
+    expect(formWorkedStep('driehoek', 5, 6, '*')).toBe('10 : 2 = 5 → 5 × 6 = 30');
     expect(formWorkedStep(undefined, 7, 5)).toBeUndefined();
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
-      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur|negatief|ongelijk)/.test(sum.form!)) {
+      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur|negatief|ongelijk|macht|pythagoras)/.test(sum.form!)) {
         return;  // read as rounding, as decimals, as percentages, as fractions, as scales and as means below
       }
       // Every step is true, and the answer is in it (last for most; a half is worked as 8 + 8 = 16)
@@ -582,6 +636,26 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     made('afronden-decimaal').forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
       if (!line.startsWith(`${decimal(sum.num1, 2)}: ${sum.num1 % 10} `) || !line.endsWith(`→ ${decimal(answer(sum), 2)}`)) {
+        misses.push(line);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('works a power out as the number that many times, and Pythagoras as a² + b² then the root', () => {
+    const misses: string[] = [];
+    made('machten').forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      const factors = line.split(' = ')[0].split(' × ').map(Number);
+      if (factors.length !== Number(sum.form!.split('-')[1]) || factors.some(f => f !== sum.num2) || !line.endsWith(`= ${answer(sum)}`)) {
+        misses.push(line);
+      }
+    });
+    made('pythagoras').forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      const [squares, root] = line.split(' → ');
+      const [a, b] = squares.match(/^(\d+)² \+ (\d+)²/)!.slice(1).map(Number);
+      if (a * a + b * b !== sum.num1 || root !== `√${sum.num1} = ${answer(sum)}`) {
         misses.push(line);
       }
     });
@@ -1065,6 +1139,30 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       sums.forEach(sum => expect(denominatorsOf(sum.form as UnlikeFractionForm)[2]).toBeLessThan(10));
     });
 
+    it('asks powers a head can work out, roots of the squares to 15², and equations with a whole x above nought', () => {
+      made('machten', 600).forEach(sum => expect(answer(sum)).toBeLessThanOrEqual(256));
+      made('wortels', 600).forEach(sum => expect(Number.isInteger(answer(sum))).toBeTrue());
+      const equations = made('vergelijkingen', 600);
+      equations.forEach(sum => {
+        expect(Number.isInteger(answer(sum))).toBeTrue();
+        expect(answer(sum)).toBeGreaterThan(0);
+      });
+      expect(equations.some(sum => sum.num2 === 1)).withContext('x + 7 = 15, one step').toBeTrue();
+      expect(equations.some(sum => sum.num2 > 1)).withContext('3x + 5 = 20, two steps').toBeTrue();
+    });
+
+    it('puts a percentage on a price or takes it off in whole euros, and Pythagoras always has a whole long side', () => {
+      const changes = made('procent-erbij-eraf', 800);
+      changes.forEach(sum => {
+        const percent = Number(sum.form!.split('-')[1]);
+        expect(100 * sum.num2).toBe(percent * sum.num1);
+        // under €100, so the card fits one line of a 320px phone
+        expect(sum.num1).toBeLessThan(100);
+      });
+      expect(new Set(changes.map(sum => sum.operation))).toEqual(new Set(['+', '-']));
+      made('pythagoras', 600).forEach(sum => expect(answer(sum) * answer(sum)).toBe(sum.num1));
+    });
+
     it('never asks to round a number that is already a tenth', () => {
       made('afronden-decimaal', 800).forEach(sum => expect(sum.num1 % 10).not.toBe(0));
     });
@@ -1072,7 +1170,7 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     it('brings fractions in at the middle of groep 6 and the area at its end', () => {
       const first: { [kind: string]: string } = {};
       const kind = (form: string) => form.replace(/-\d+$/, '');
-      for (const groep of [3, 4, 5, 6, 7, 8, 9]) {
+      for (const groep of [3, 4, 5, 6, 7, 8, 9, 10]) {
         for (const moment of ['B', 'M', 'E'] as Moment[]) {
           const random = seeded(groep * 7 + moment.charCodeAt(0));
           for (let i = 0; i < 400 && schoolSum(groep, moment); i++) {
@@ -1109,6 +1207,13 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       expect(first['keer']).toBe('9E');
       expect(first['formule']).toBe('9E');
       expect(first['afronden-decimaal']).toBe('9E');
+      expect(first['macht']).toBe('10M');
+      expect(first['wortel']).toBe('10M');
+      expect(first['vergelijking']).toBe('10M');
+      expect(first['invullen']).toBe('10M');
+      expect(first['toename']).toBe('10E');
+      expect(first['pythagoras']).toBe('10E');
+      expect(first['driehoek']).toBe('10E');
     });
 
     it('asks the start of groep 3 only plain sums: the forms come once the sums under them are known', () => {

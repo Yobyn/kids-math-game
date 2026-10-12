@@ -43,6 +43,8 @@ export type TranslationKeys =
   | 'sum-per-hour'
   | 'sum-volume'
   | 'round-one-decimal'
+  | 'sum-hypotenuse'
+  | 'sum-triangle'
   | 'play-again'
   | 'logout'
   | 'need-account'

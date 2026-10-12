@@ -1,6 +1,6 @@
 import {
-  DecimalMeasureForm, MeasureForm, SumForm, UnlikeFractionForm, VolumeMeasureForm, denominatorOf, denominatorsOf, lastNumberOf,
-  lengthOf, packsOf, percentOf, placesOf, scaleOf, stepOf
+  DecimalMeasureForm, MeasureForm, PythagorasForm, SumForm, UnlikeFractionForm, VolumeMeasureForm, denominatorOf, denominatorsOf,
+  lastNumberOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, sidesOf, stepOf
 } from '../../question/sum-form';
 
 /**
@@ -67,7 +67,14 @@ export interface FormWords {
   volume: string;
   /** "Rond af op 1 decimaal", the heading over 3,47 ≈ ? */
   toOneDecimal: string;
+  /** "Schuine zijde?", the heading over a = 6, b = 8 → c = ? */
+  hypotenuse: string;
+  /** "Oppervlakte driehoek", the heading over ½ × 10 × 6 = ? */
+  triangleArea: string;
 }
+
+/** The small raised figures a power is written with: 2³. */
+export const SUPERSCRIPTS: { [power: number]: string } = { 2: '²', 3: '³', 4: '⁴', 5: '⁵' };
 
 /** A whole number as klas 1 writes it, with a real minus below nought: −3. */
 export function signed(value: number): string {
@@ -474,6 +481,100 @@ function klasLayout(sum: SumToShow, words: FormWords): SumLayout | undefined {
   if (form === 'afronden-decimaal') {
     return { before: [{ kind: 'caption', text: words.toOneDecimal }, { kind: 'number', text: decimal(sum.num1, 2, words.point) }, sign('≈')], after: [] };
   }
+  return klas2Layout(sum, words);
+}
+
+/** Klas 2's sums (sum-form.ts); undefined for any other. */
+function klas2Layout(sum: SumToShow, words: FormWords): SumLayout | undefined {
+  const form = sum.form || '';
+  const sign = (text: string): SumPart => ({ kind: 'operation', text });
+  const word = (text: string): SumPart => ({ kind: 'word', text });
+  // 2³ = ?, kept as 4 × 2
+  if (form.startsWith('macht-')) {
+    return { before: [{ kind: 'number', text: `${sum.num2}${SUPERSCRIPTS[lastNumberOf(form)]}` }, equals], after: [] };
+  }
+  // √144 = ?, kept as 144 : 12
+  if (form === 'wortel') {
+    return { before: [{ kind: 'number', text: `√${sum.num1}` }, equals], after: [] };
+  }
+  // 3x + 5 = 20 over x = ?, kept as 15 : 3: the equation a line of its own, as it is written out on
+  // paper before it is solved; with "x =" and the box beside it, it is too wide for a 320px phone
+  if (form.startsWith('vergelijking-')) {
+    const added = lastNumberOf(form);
+    return {
+      before: [{ kind: 'caption', text: `${sum.num2 === 1 ? '' : sum.num2}x + ${added} = ${sum.num1 + added}` }, word('x'), equals],
+      after: []
+    };
+  }
+  // x = 2 over 3(x + 4) = ?, kept as 3 × 6
+  if (form.startsWith('invullen-')) {
+    const x = lastNumberOf(form);
+    return {
+      before: [{ kind: 'caption', text: `x = ${x}` }, number(sum.num1), sign('('), word('x'), sign('+'), number(sum.num2 - x), sign(')'), equals],
+      after: []
+    };
+  }
+  // €80 + 15% = €?, kept as 80 + 12
+  if (form.startsWith('toename-') || form.startsWith('afname-')) {
+    return {
+      before: [word('€'), number(sum.num1), sign(form.startsWith('toename-') ? '+' : '\u2212'), { kind: 'number', text: `${lastNumberOf(form)}%` },
+               equals, word('€')],
+      after: []
+    };
+  }
+  // Schuine zijde? over a = 6 b = 8 → ?, kept as 100 : 10
+  if (form.startsWith('pythagoras-')) {
+    const [a, b] = sidesOf(form as PythagorasForm, sum.num2);
+    return {
+      before: [{ kind: 'caption', text: words.hypotenuse }, word('a ='), number(a), word('b ='), number(b), sign('→')],
+      after: []
+    };
+  }
+  // Oppervlakte driehoek over ½ × 10 × 6 = ?, kept as 5 × 6
+  if (form === 'driehoek') {
+    return {
+      before: [{ kind: 'caption', text: words.triangleArea }, { kind: 'number', text: '½' }, sign('×'), number(sum.num1 * 2), sign('×'),
+               number(sum.num2), equals],
+      after: []
+    };
+  }
+  return undefined;
+}
+
+/** The worked line of klas 2's sums; undefined for any other form. */
+function klas2WorkedStep(form: string, num1: number, num2: number): string | undefined {
+  // 2⁵: five twos multiplied
+  if (form.startsWith('macht-')) {
+    return `${Array.from({ length: lastNumberOf(form) }, () => num2).join(' × ')} = ${num1 * num2}`;
+  }
+  // √144: the number that times itself makes 144
+  if (form === 'wortel') {
+    return `${num2} × ${num2} = ${num1}`;
+  }
+  // 3x + 5 = 20: take the 5 off both sides, then share by 3
+  if (form.startsWith('vergelijking-')) {
+    const added = lastNumberOf(form);
+    return `${num1 + added} \u2212 ${added} = ${num1} → ${num1} : ${num2} = ${num1 / num2}`;
+  }
+  // 3(x + 4) with x = 2: the brackets first, 2 + 4, then times 3
+  if (form.startsWith('invullen-')) {
+    const x = lastNumberOf(form);
+    return `${x} + ${num2 - x} = ${num2} → ${num1} × ${num2} = ${num1 * num2}`;
+  }
+  // €80 + 15%: 15% of 80 is 12, then 80 + 12
+  if (form.startsWith('toename-') || form.startsWith('afname-')) {
+    const up = form.startsWith('toename-');
+    return `${lastNumberOf(form)}% van ${num1} = ${num2} → ${num1} ${up ? '+' : '\u2212'} ${num2} = ${up ? num1 + num2 : num1 - num2}`;
+  }
+  // a² + b² = c², then the root
+  if (form.startsWith('pythagoras-')) {
+    const [a, b] = sidesOf(form as PythagorasForm, num2);
+    return `${a}² + ${b}² = ${a * a} + ${b * b} = ${num1} → √${num1} = ${num2}`;
+  }
+  // a triangle is half a rectangle: half the base, times the height
+  if (form === 'driehoek') {
+    return `${num1 * 2} : 2 = ${num1} → ${num1} × ${num2} = ${num1 * num2}`;
+  }
   return undefined;
 }
 
@@ -541,7 +642,7 @@ function klasWorkedStep(form: string, num1: number, num2: number, operation: str
     const figure = num1 % 10;
     return `${decimal(num1, 2, point)}: ${figure} ${figure >= 5 ? '≥' : '<'} 5 → ${decimal(roundTo(num1, num2), 2, point)}`;
   }
-  return undefined;
+  return klas2WorkedStep(form, num1, num2);
 }
 
 /**

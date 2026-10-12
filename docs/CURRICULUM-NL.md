@@ -123,7 +123,7 @@ the setting of a sum, not the sum: "20% korting op €45", "3 pakken kosten
 | E | Speed, distance, time | 60 km per uur, 2,5 uur = ? km |
 | E | Negative numbers (temperature) | van −3 naar 5 = ? graden |
 
-## Klas 1–4 (age 12–16): the plan (2026-10-11; klas 1 built 2026-10-12)
+## Klas 1–4 (age 12–16): the plan (2026-10-11; klas 1 and 2 built 2026-10-12)
 
 Secondary school, onderbouw and the start of the bovenbouw: the kerndoelen
 onderbouw (domein Getallen, Verbanden, Meten en meetkunde) and referentie-
@@ -282,5 +282,16 @@ its groep:
    b = 5 → a = ?") and rounding to one decimal ("3,47 ≈ ?"). Each with its
    worked line ("4 − 9 = 4 + −9 → 9 − 4 = 5 → −5", "4 × 5 = 20 → 3 + 20 =
    23"). Not yet: estimating (schatten), whose answer is not one number.
+   KLAS 2 IS DONE AND OPEN (2026-10-12), "groep 10": B is klas 1's end; M
+   brings powers ("2³ = ?", to 15², 6³, 4⁴, 3⁵), square roots ("√144 = ?"),
+   linear equations ("3x + 5 = 20" written as a line of its own over "x =
+   ?", as on paper: beside the box it is too wide for a 320px phone; x
+   whole and above nought, one step and two) and brackets with a value
+   filled in ("x = 2 / 3(x + 4) = ?"); E brings a percentage on or off a
+   price ("€80 + 15% = €?", under €100 so the card fits a 320px phone),
+   Pythagoras with whole sides (multiples of 3-4-5, and 5-12-13, 8-15-17,
+   7-24-25) and the area of a triangle ("½ × 10 × 6 = ?"), with the box
+   (inhoud) and M revisited. Worked lines: "2 × 2 × 2 × 2 × 2 = 32", "20 −
+   5 = 15 → 15 : 3 = 5", "6² + 8² = 36 + 64 = 100 → √100 = 10".
 8. **Verhaaltjessommen** (word problems) for every groep, in all three
    languages.

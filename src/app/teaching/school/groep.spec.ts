@@ -363,6 +363,34 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     });
   });
 
+  describe('klas 2 (grade 8, kept as groep 10)', () => {
+    it('starts the year where klas 1 ended', () => {
+      Object.keys(CURRICULUM[10].B).forEach(topic => expect(Object.keys(CURRICULUM[9].E)).withContext(topic).toContain(topic));
+      (['B', 'M', 'E'] as Moment[]).forEach(moment => expect(schoolSum(10, moment)).withContext(moment).not.toBeNull());
+    });
+
+    it('brings powers, roots, equations and brackets in the middle; percentages on and off, Pythagoras and triangles at the end', () => {
+      const topicsAt = (moment: Moment, seed: number) => {
+        const random = seeded(seed);
+        return new Set(Array.from({ length: 600 }, () => schoolSum(10, moment, random)!.topic));
+      };
+      const middle = topicsAt('M', 101);
+      ['machten', 'wortels', 'vergelijkingen', 'haakjes-invullen'].forEach(topic => expect(middle.has(topic)).withContext(topic).toBeTrue());
+      const end = topicsAt('E', 102);
+      ['procent-erbij-eraf', 'pythagoras', 'driehoek'].forEach(topic => expect(end.has(topic)).withContext(topic).toBeTrue());
+    });
+
+    it('never asks a times table on its own, and practises at the end everything new in the middle', () => {
+      (['B', 'M', 'E'] as Moment[]).forEach(moment => Object.keys(CURRICULUM[10][moment]).forEach(topic =>
+        made(topic).filter(sum => !sum.form).forEach(sum =>
+          expect(sum.operation === '*' && sum.num1 <= 10 && sum.num2 <= 10).withContext(topic).toBeFalse())));
+      // what is new in the middle (weighted as new, not a review) comes back at the end
+      const end = Object.keys(CURRICULUM[10].E);
+      Object.keys(CURRICULUM[10].M).filter(topic => CURRICULUM[10].M[topic] > 1)
+        .forEach(topic => expect(end).withContext(topic).toContain(topic));
+    });
+  });
+
   describe('klas 1 (grade 7, kept as groep 9)', () => {
     it('starts the year where groep 8 ended, with numbers below nought new', () => {
       Object.keys(CURRICULUM[9].B).filter(topic => topic !== 'negatief-plus-min')
@@ -572,8 +600,8 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       }
     });
 
-    it('leaves what is not built yet to the old questions: klas 2 on', () => {
-      [10, 11, 12].forEach(groep => expect(schoolSum(groep, 'M')).withContext(`groep ${groep}`).toBeNull());
+    it('leaves what is not built yet to the old questions: klas 3 on', () => {
+      [11, 12].forEach(groep => expect(schoolSum(groep, 'M')).withContext(`groep ${groep}`).toBeNull());
     });
   });
 });

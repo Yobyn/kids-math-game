@@ -16,15 +16,16 @@
  * 60, 18 van 72 = ?%, ⅔ van 45, schaal 1 : 500, the mean; 10 × 5 × 4 = ? cm³,
  * 2 m³ = ? l, 9:45 → 11:20, 60 km per uur, −3° → 5°); and klas 1, kept here
  * as "groep 9" (−3 + 8, −24 : −3, 3 + 4 × 5, (3 + 4) × 5, 1/2 + 1/3 = ?/6,
- * ⅔ × 12, a = 3 × b + 4, 3,47 op 1 decimaal). The rest follows the build
- * order in the doc.
+ * ⅔ × 12, a = 3 × b + 4, 3,47 op 1 decimaal); and klas 2, "groep 10" (2³, √144,
+ * 3x + 5 = 20, 3(x + 4) met x = 2, €80 + 15%, Pythagoras, ½ × 10 × 6). The
+ * rest follows the build order in the doc.
  */
 
 import {
   DECIMAL_MEASURE_FORMS, DISCOUNT_FORMS, FRACTION_SUM_FORMS, MEAN_FORMS, MEASURE_FORMS, PERCENT_FORMS, PERCENT_STEP_FORMS,
   RATIO_FORMS, SCALE_FORMS, SumForm, TEMPERATURE_FORMS, VOLUME_FORMS, VOLUME_MEASURE_FORMS, denominatorOf, lengthOf, packsOf,
   percentOf, scaleOf, stepOf, BRACKET_FORMS, FORMULA_FORMS, PRECEDENCE_FORMS, TIMES_FRACTION_FORMS, UNLIKE_FRACTION_FORMS,
-  denominatorsOf, lastNumberOf
+  denominatorsOf, lastNumberOf, EQUATION_FORMS, FILL_IN_FORMS, PERCENT_CHANGE_FORMS, POWER_FORMS, PYTHAGORAS_FORMS, TRIANGLES
 } from '../../question/sum-form';
 import { DECIMAL_MEASURES, MEASURES, numeratorsOf } from './written-form';
 
@@ -627,6 +628,53 @@ Object.assign(TOPICS, {
   }
 } as { [id: string]: Maker });
 
+/** The largest number that taken to this power stays a sum for the head: 15², 6³, 4⁴, 3⁵. */
+const POWER_BASES: { [power: number]: number } = { 2: 15, 3: 6, 4: 4, 5: 3 };
+
+Object.assign(TOPICS, {
+  // Klas 2, the middle: powers. 2³ = ?, 7² = ?, kept as 4 × 2: the power one lower, times once more
+  'machten': random => {
+    const form = pick(random, POWER_FORMS);
+    const power = lastNumberOf(form);
+    const base = between(random, 2, POWER_BASES[power]);
+    return { num1: base ** (power - 1), num2: base, operation: '*', form };
+  },
+  // and square roots of the squares to 15². √144 = ?, kept as 144 : 12
+  'wortels': random => {
+    const root = between(random, 2, 15);
+    return { num1: root * root, num2: root, operation: '/', form: 'wortel' };
+  },
+  // linear equations, one step and two. x + 7 = 15, 3x + 5 = 20 → x = ?, kept as 15 : 3; x whole and above nought
+  'vergelijkingen': random => {
+    const form = pick(random, EQUATION_FORMS);
+    const times = random() < 0.25 ? 1 : between(random, 2, 9);
+    return { num1: times * between(random, 2, 12), num2: times, operation: '/', form };
+  },
+  // brackets with a value filled in. x = 2: 3(x + 4) = ?, kept as 3 × 6
+  'haakjes-invullen': random => {
+    const form = pick(random, FILL_IN_FORMS);
+    return { num1: between(random, 2, 9), num2: lastNumberOf(form) + between(random, 1, 9), operation: '*', form };
+  },
+  // Klas 2, the end: a percentage on top or off. €80 + 15% = €?, €80 − 20% = €?, kept as 80 + 12;
+  // a price the percentage is a whole number of euros of, under €100: three figures, the sign, the
+  // percentage and the box are too wide for one line of a 320px phone
+  'procent-erbij-eraf': random => {
+    const form = pick(random, PERCENT_CHANGE_FORMS);
+    const percent = lastNumberOf(form);
+    const step = 100 / gcd(percent, 100);
+    const price = step * between(random, Math.ceil(20 / step), Math.floor(99 / step));
+    return { num1: price, num2: price * percent / 100, operation: form.startsWith('toename-') ? '+' : '-', form };
+  },
+  // Pythagoras with a whole answer: a multiple of 3-4-5, 5-12-13, 8-15-17 or 7-24-25. a = 6, b = 8 → c = ?, kept as 100 : 10
+  'pythagoras': random => {
+    const form = pick(random, PYTHAGORAS_FORMS);
+    const long = TRIANGLES[form][2] * (form === 'pythagoras-1' ? between(random, 1, 5) : 1);
+    return { num1: long * long, num2: long, operation: '/', form };
+  },
+  // the area of a triangle: half the base times the height. ½ × 10 × 6 = ?, kept as 5 × 6
+  'driehoek': random => ({ num1: between(random, 2, 12), num2: between(random, 2, 15), operation: '*', form: 'driehoek' })
+} as { [id: string]: Maker });
+
 function gcd(a: number, b: number): number {
   return b ? gcd(b, a % b) : a;
 }
@@ -738,6 +786,20 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     E: {
       'breuk-keer-getal': NEW, 'formule': NEW, 'afronden-decimaal': NEW,
       'negatief-keer-deel': REVIEW, 'voorrang': REVIEW, 'haakjes': REVIEW, 'ongelijknamige-breuken': REVIEW
+    }
+  },
+  // Klas 2 (grade 8), HAVO/VWO
+  10: {
+    B: {
+      'breuk-keer-getal': REVIEW, 'formule': REVIEW, 'afronden-decimaal': REVIEW, 'negatief-keer-deel': REVIEW, 'voorrang': REVIEW
+    },
+    M: {
+      'machten': NEW, 'wortels': NEW, 'vergelijkingen': NEW, 'haakjes-invullen': NEW,
+      'formule': REVIEW, 'negatief-plus-min': REVIEW
+    },
+    E: {
+      'procent-erbij-eraf': NEW, 'pythagoras': NEW, 'driehoek': NEW, 'inhoud': REVIEW,
+      'machten': REVIEW, 'wortels': REVIEW, 'vergelijkingen': REVIEW, 'haakjes-invullen': REVIEW
     }
   }
 };
