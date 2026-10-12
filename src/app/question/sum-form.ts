@@ -69,6 +69,21 @@
  *   pythagoras-1 a = 6, b = 8 → c = ?
  *                                kept as 100 : 10: c² shared by c; the triangle (3-4-5) is in the name
  *   driehoek   ½ × 10 × 6 = ?    kept as 5 × 6: half the base times the height
+ *   haakvgl-3  3(x + 4) = 21 → x = ?   kept as 7 − 4: 21 : 3 first, then the 4 taken off
+ *   beide-5    5x = 3x + 12 → x = ?    kept as 12 : 2: the x's on one side (5 − 3); the 5 is in the name
+ *   negmacht-3 (−2)³ = ?         kept as 4 × −2, as macht is, the number below nought
+ *   minkwadraat −3² = ?          kept as 3 × −3: the square first, then the minus
+ *   wetenschap 3,2 · 10³ = ?     kept as 32 × 1000 in tenths (3200)
+ *   wetenschap-min 4 · 10⁻² = ?  kept as 4000 : 100 in thousandths (0,04)
+ *   groeifactor 200 × 1,05 = ?   kept as 105 × 200 in hundredths (210)
+ *   kwadraat-vgl x² = 49 (x > 0) kept as 49 : 7
+ *   kwadratisch x² − 5x + 6 = 0, de grootste x = ?
+ *                                kept as 5 − 2: the two solutions add up to 5, the smaller is 2
+ *   groei-2    100 × 1,1² = ?    kept as 121 × 100 in hundredths: 1,1² is 1,21
+ *   wortel-vereenvoudig √50 = ?√2 kept as 10 : 2: 5√2 is √(25 × 2)
+ *   sin-30     sin 30° × 10 = ?  kept as 50 × 10 in hundredths: sin 30° is 0,5 (also cos-60, tan-45)
+ *   herleiden  A = l × b, A = 36, l = 9 → b = ?  kept as 36 : 9
+ *   procent-stappen +10% → −10% → × ?   kept as 110 × 90 in ten-thousandths (0,99)
  *
  * so marking, the worked line and a missed fact's identity all still work
  * from the sum. A remainder and a rounding are the sums with signs of their
@@ -84,7 +99,9 @@ export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | '
   | FractionSumForm | 'breuk-komma' | RatioForm | DiscountForm | PercentStepForm | 'welk-procent' | ScaleForm | MeanForm
   | VolumeForm | VolumeMeasureForm | 'tijdsduur' | 'snelheid' | TemperatureForm
   | 'negatief' | PrecedenceForm | BracketForm | UnlikeFractionForm | TimesFractionForm | FormulaForm | 'afronden-decimaal'
-  | PowerForm | 'wortel' | EquationForm | FillInForm | PercentChangeForm | PythagorasForm | 'driehoek';
+  | PowerForm | 'wortel' | EquationForm | FillInForm | PercentChangeForm | PythagorasForm | 'driehoek'
+  | BracketEquationForm | BothSidesForm | NegativePowerForm | 'minkwadraat' | 'wetenschap' | 'wetenschap-min' | 'groeifactor'
+  | 'kwadraat-vgl' | 'kwadratisch' | 'groei-2' | 'wortel-vereenvoudig' | TrigForm | 'herleiden' | 'procent-stappen';
 
 type TwoToNine = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 const TWO_TO_NINE: TwoToNine[] = [2, 3, 4, 5, 6, 7, 8, 9];
@@ -160,6 +177,24 @@ export function sidesOf(form: PythagorasForm, c: number): [number, number] {
   const [a, b, long] = TRIANGLES[form];
   return [a * c / long, b * c / long];
 }
+
+/** 3(x + 4) = 21 → x = ?: an equation with brackets. The number is in front of the brackets (the 3). */
+export type BracketEquationForm = `haakvgl-${TwoToNine}`;
+export const BRACKET_EQUATION_FORMS: BracketEquationForm[] = TWO_TO_NINE.map(n => `haakvgl-${n}` as BracketEquationForm);
+
+/** 5x = 3x + 12 → x = ?: x on both sides. The number is the x's on the left (the 5). */
+export type BothSidesForm = `beide-${3 | 4 | 5 | 6 | 7 | 8 | 9}`;
+export const BOTH_SIDES_FORMS: BothSidesForm[] = [3, 4, 5, 6, 7, 8, 9].map(n => `beide-${n}` as BothSidesForm);
+
+/** (−2)³ = ?: a power of a number below nought. The number is the exponent. */
+export type NegativePowerForm = 'negmacht-2' | 'negmacht-3' | 'negmacht-4';
+export const NEGATIVE_POWER_FORMS: NegativePowerForm[] = ['negmacht-2', 'negmacht-3', 'negmacht-4'];
+
+/** sin 30° × 10 = ?: the sides of a right-angled triangle where the ratio is a nice number. */
+export type TrigForm = 'sin-30' | 'cos-60' | 'tan-45';
+export const TRIG_FORMS: TrigForm[] = ['sin-30', 'cos-60', 'tan-45'];
+/** The ratio each stands for, in hundredths: sin 30° and cos 60° are 0,5, tan 45° is 1. */
+export const TRIG_VALUES: { [form in TrigForm]: number } = { 'sin-30': 50, 'cos-60': 50, 'tan-45': 100 };
 
 /** 10 × 5 × 4 = ? cm³: the volume of a box. The number is its length. */
 export type VolumeForm = 'inhoud-2' | 'inhoud-4' | 'inhoud-5' | 'inhoud-10';
@@ -245,7 +280,17 @@ export function placesOf(form: SumForm | undefined): number {
   if (form === 'tienden' || DECIMAL_MEASURE_FORMS.includes(form as DecimalMeasureForm)) {
     return 1;
   }
-  return form === 'komma-2' || form === 'breuk-komma' || form === 'afronden-decimaal' ? 2 : form === 'komma-3' ? 3 : 0;
+  if (form === 'wetenschap') {
+    return 1;
+  }
+  if (form === 'komma-2' || form === 'breuk-komma' || form === 'afronden-decimaal' || form === 'groeifactor' || form === 'groei-2'
+      || TRIG_FORMS.includes(form as TrigForm)) {
+    return 2;
+  }
+  if (form === 'komma-3' || form === 'wetenschap-min') {
+    return 3;
+  }
+  return form === 'procent-stappen' ? 4 : 0;
 }
 
 /** 50%, 25% and 10% of an amount: the ones groep 7 learns first. The number is the percentage. */
@@ -281,7 +326,8 @@ export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft',
   ...SCALE_FORMS, ...MEAN_FORMS, ...VOLUME_FORMS, ...VOLUME_MEASURE_FORMS, 'tijdsduur', 'snelheid', ...TEMPERATURE_FORMS,
   'negatief', ...PRECEDENCE_FORMS, ...BRACKET_FORMS, ...UNLIKE_FRACTION_FORMS, ...TIMES_FRACTION_FORMS, ...FORMULA_FORMS,
   'afronden-decimaal', ...POWER_FORMS, 'wortel', ...EQUATION_FORMS, ...FILL_IN_FORMS, ...PERCENT_CHANGE_FORMS, ...PYTHAGORAS_FORMS,
-  'driehoek'];
+  'driehoek', ...BRACKET_EQUATION_FORMS, ...BOTH_SIDES_FORMS, ...NEGATIVE_POWER_FORMS, 'minkwadraat', 'wetenschap', 'wetenschap-min',
+  'groeifactor', 'kwadraat-vgl', 'kwadratisch', 'groei-2', 'wortel-vereenvoudig', ...TRIG_FORMS, 'herleiden', 'procent-stappen'];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */
 export function readForm(raw: unknown): SumForm | undefined {

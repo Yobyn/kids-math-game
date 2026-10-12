@@ -17,15 +17,18 @@
  * 2 m³ = ? l, 9:45 → 11:20, 60 km per uur, −3° → 5°); and klas 1, kept here
  * as "groep 9" (−3 + 8, −24 : −3, 3 + 4 × 5, (3 + 4) × 5, 1/2 + 1/3 = ?/6,
  * ⅔ × 12, a = 3 × b + 4, 3,47 op 1 decimaal); and klas 2, "groep 10" (2³, √144,
- * 3x + 5 = 20, 3(x + 4) met x = 2, €80 + 15%, Pythagoras, ½ × 10 × 6). The
- * rest follows the build order in the doc.
+ * 3x + 5 = 20, 3(x + 4) met x = 2, €80 + 15%, Pythagoras, ½ × 10 × 6); and
+ * klas 3 and 4, "groep 11 and 12" (3(x + 4) = 21, 5x = 3x + 12, (−2)³,
+ * 3,2 · 10³, 200 × 1,05, x² = 49; x² − 5x + 6 = 0, 100 × 1,1², √50 = ?√2,
+ * sin 30° × 10, A = l × b, +10% → −10%). Every grade follows the curriculum.
  */
 
 import {
   DECIMAL_MEASURE_FORMS, DISCOUNT_FORMS, FRACTION_SUM_FORMS, MEAN_FORMS, MEASURE_FORMS, PERCENT_FORMS, PERCENT_STEP_FORMS,
   RATIO_FORMS, SCALE_FORMS, SumForm, TEMPERATURE_FORMS, VOLUME_FORMS, VOLUME_MEASURE_FORMS, denominatorOf, lengthOf, packsOf,
   percentOf, scaleOf, stepOf, BRACKET_FORMS, FORMULA_FORMS, PRECEDENCE_FORMS, TIMES_FRACTION_FORMS, UNLIKE_FRACTION_FORMS,
-  denominatorsOf, lastNumberOf, EQUATION_FORMS, FILL_IN_FORMS, PERCENT_CHANGE_FORMS, POWER_FORMS, PYTHAGORAS_FORMS, TRIANGLES
+  denominatorsOf, lastNumberOf, EQUATION_FORMS, FILL_IN_FORMS, PERCENT_CHANGE_FORMS, POWER_FORMS, PYTHAGORAS_FORMS, TRIANGLES,
+  BOTH_SIDES_FORMS, BRACKET_EQUATION_FORMS, NEGATIVE_POWER_FORMS, TRIG_FORMS, TRIG_VALUES
 } from '../../question/sum-form';
 import { DECIMAL_MEASURES, MEASURES, numeratorsOf } from './written-form';
 
@@ -675,6 +678,80 @@ Object.assign(TOPICS, {
   'driehoek': random => ({ num1: between(random, 2, 12), num2: between(random, 2, 15), operation: '*', form: 'driehoek' })
 } as { [id: string]: Maker });
 
+/** The largest number below nought that, taken to this power, stays a sum for the head: (−9)², (−5)³, (−3)⁴. */
+const NEGATIVE_BASES: { [power: number]: number } = { 2: 9, 3: 5, 4: 3 };
+
+Object.assign(TOPICS, {
+  // Klas 3, the middle: equations with brackets. 3(x + 4) = 21 → x = ?, kept as 7 − 4; x whole, above nought
+  'haakjes-vergelijking': random => {
+    const form = pick(random, BRACKET_EQUATION_FORMS);
+    const added = between(random, 1, 9);
+    return { num1: between(random, 1, 9) + added, num2: added, operation: '-', form };
+  },
+  // x on both sides. 5x = 3x + 12 → x = ?, kept as 12 : 2
+  'x-beide-kanten': random => {
+    const form = pick(random, BOTH_SIDES_FORMS);
+    const more = between(random, 1, lastNumberOf(form) - 1);
+    return { num1: more * between(random, 2, 9), num2: more, operation: '/', form };
+  },
+  // powers of numbers below nought, and the square that is not one: (−2)³ = ?, −3² = ?
+  'negatieve-machten': random => {
+    if (random() < 0.3) {
+      const base = between(random, 2, 9);
+      return { num1: base, num2: -base, operation: '*', form: 'minkwadraat' };
+    }
+    const form = pick(random, NEGATIVE_POWER_FORMS);
+    const power = lastNumberOf(form);
+    const base = -between(random, 2, NEGATIVE_BASES[power]);
+    return { num1: base ** (power - 1), num2: base, operation: '*', form };
+  },
+  // scientific notation read as a number. 3,2 · 10³ = ?, 4 · 10⁻² = ?
+  'wetenschappelijk': random => {
+    if (random() < 0.5) {
+      return { num1: notRound(random, 11, 99), num2: 10 ** between(random, 2, 5), operation: '*', form: 'wetenschap' };
+    }
+    return { num1: 1000 * between(random, 1, 9), num2: 10 ** between(random, 1, 3), operation: '/', form: 'wetenschap-min' };
+  },
+  // Klas 3, the end: a growth factor, one step. 200 × 1,05 = ?, kept as 105 × 200 in hundredths; a whole answer
+  'groeifactor': random => ({
+    num1: pick(random, [102, 103, 104, 105, 110, 115, 120, 125, 95, 90, 80]), num2: 100 * between(random, 1, 10), operation: '*', form: 'groeifactor'
+  }),
+  // x² = a number, the x above nought. x² = 49 → x = ?, kept as 49 : 7
+  'kwadraat-vergelijking': random => {
+    const root = between(random, 2, 15);
+    return { num1: root * root, num2: root, operation: '/', form: 'kwadraat-vgl' };
+  },
+  // Klas 4, the middle: a quadratic equation by factorising. x² − 5x + 6 = 0 → de grootste x = ?, kept as 5 − 2
+  'ontbinden': random => {
+    const smaller = between(random, 1, 8);
+    return { num1: smaller + between(random, smaller + 1, 9), num2: smaller, operation: '-', form: 'kwadratisch' };
+  },
+  // exponential growth over two steps. 100 × 1,1² = ?, kept as 121 × 100 in hundredths
+  'groei-twee-stappen': random => ({
+    num1: pick(random, [121, 144, 225, 81, 64]), num2: 100 * between(random, 1, 9), operation: '*', form: 'groei-2'
+  }),
+  // roots made simpler. √50 = ?√2, kept as 10 : 2
+  'wortels-vereenvoudigen': random => {
+    const under = pick(random, [2, 3, 5]);
+    return { num1: between(random, 2, 6) * under, num2: under, operation: '/', form: 'wortel-vereenvoudig' };
+  },
+  // Klas 4, the end: trigonometry with the ratios that are nice numbers. sin 30° × 10 = ?, a whole answer
+  'goniometrie': random => {
+    const form = pick(random, TRIG_FORMS);
+    const side = TRIG_VALUES[form] === 50 ? 2 * between(random, 1, 10) : between(random, 2, 20);
+    return { num1: TRIG_VALUES[form], num2: side, operation: '*', form };
+  },
+  // a formula rearranged. A = l × b, A = 36, l = 9 → b = ?, kept as 36 : 9
+  'formule-herleiden': random => {
+    const length = between(random, 2, 12);
+    return { num1: length * between(random, 2, 12), num2: length, operation: '/', form: 'herleiden' };
+  },
+  // percentages over two steps, as one growth factor. +10% → −10% → × ?, kept as 110 × 90
+  'procent-stappen': random => ({
+    num1: pick(random, [110, 120, 125, 150]), num2: pick(random, [90, 80, 75, 50]), operation: '*', form: 'procent-stappen'
+  })
+} as { [id: string]: Maker });
+
 function gcd(a: number, b: number): number {
   return b ? gcd(b, a % b) : a;
 }
@@ -800,6 +877,27 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     E: {
       'procent-erbij-eraf': NEW, 'pythagoras': NEW, 'driehoek': NEW, 'inhoud': REVIEW,
       'machten': REVIEW, 'wortels': REVIEW, 'vergelijkingen': REVIEW, 'haakjes-invullen': REVIEW
+    }
+  },
+  // Klas 3 (grade 9), HAVO/VWO
+  11: {
+    B: { 'procent-erbij-eraf': REVIEW, 'pythagoras': REVIEW, 'driehoek': REVIEW, 'vergelijkingen': REVIEW, 'machten': REVIEW },
+    M: {
+      'haakjes-vergelijking': NEW, 'x-beide-kanten': NEW, 'negatieve-machten': NEW, 'wetenschappelijk': NEW,
+      'vergelijkingen': REVIEW
+    },
+    E: {
+      'groeifactor': NEW, 'kwadraat-vergelijking': NEW,
+      'haakjes-vergelijking': REVIEW, 'x-beide-kanten': REVIEW, 'negatieve-machten': REVIEW, 'wetenschappelijk': REVIEW, 'pythagoras': REVIEW
+    }
+  },
+  // Klas 4 (grade 10), HAVO/VWO
+  12: {
+    B: { 'groeifactor': REVIEW, 'kwadraat-vergelijking': REVIEW, 'haakjes-vergelijking': REVIEW, 'x-beide-kanten': REVIEW },
+    M: { 'ontbinden': NEW, 'groei-twee-stappen': NEW, 'wortels-vereenvoudigen': NEW, 'groeifactor': REVIEW },
+    E: {
+      'goniometrie': NEW, 'formule-herleiden': NEW, 'procent-stappen': NEW,
+      'ontbinden': REVIEW, 'groei-twee-stappen': REVIEW, 'wortels-vereenvoudigen': REVIEW
     }
   }
 };

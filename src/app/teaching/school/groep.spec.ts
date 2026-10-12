@@ -55,7 +55,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     Object.keys(TOPICS).forEach(topic => made(topic).forEach(sum => {
       const result = answer(sum);
       // klas 1's negative numbers are the one kind kept below nought (sum-form.ts, negatief): typed with the minus key
-      const below = sum.form === 'negatief';
+      const below = /^(negatief|negmacht|minkwadraat)/.test(sum.form || '');
       if (!isWhole(sum.num1) || !isWhole(sum.num2) || !isWhole(result) || (!below && (result < 0 || sum.num1 <= 0 || sum.num2 <= 0))
           || (below && (sum.num1 === 0 || sum.num2 === 0))) {
         misses.push(`${topic}: ${sum.num1} ${sum.operation} ${sum.num2}`);
@@ -363,6 +363,48 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     });
   });
 
+  describe('klas 3 and 4 (grades 9 and 10, kept as groep 11 and 12)', () => {
+    it('starts each year where the last one ended', () => {
+      Object.keys(CURRICULUM[11].B).forEach(topic => expect(Object.keys(CURRICULUM[10].E)).withContext(topic).toContain(topic));
+      Object.keys(CURRICULUM[12].B).forEach(topic => expect(Object.keys(CURRICULUM[11].E)).withContext(topic).toContain(topic));
+    });
+
+    it('brings what the plan says at each moment', () => {
+      const topicsAt = (groep: number, moment: Moment, seed: number) => {
+        const random = seeded(seed);
+        return new Set(Array.from({ length: 600 }, () => schoolSum(groep, moment, random)!.topic));
+      };
+      const expected: [number, Moment, string[]][] = [
+        [11, 'M', ['haakjes-vergelijking', 'x-beide-kanten', 'negatieve-machten', 'wetenschappelijk']],
+        [11, 'E', ['groeifactor', 'kwadraat-vergelijking']],
+        [12, 'M', ['ontbinden', 'groei-twee-stappen', 'wortels-vereenvoudigen']],
+        [12, 'E', ['goniometrie', 'formule-herleiden', 'procent-stappen']]
+      ];
+      expected.forEach(([groep, moment, topics], i) => {
+        const seen = topicsAt(groep, moment, 110 + i);
+        topics.forEach(topic => expect(seen.has(topic)).withContext(`${groep}${moment} ${topic}`).toBeTrue());
+      });
+    });
+
+    it('never asks klas 4 a times table or a division inside the tables, at any moment (Yobyn: "Klas 4 Uitdaging is asking me 12 / 4")', () => {
+      (['B', 'M', 'E'] as Moment[]).forEach(moment => {
+        const random = seeded(4);
+        for (let i = 0; i < 400; i++) {
+          const sum = schoolSum(12, moment, random)!;
+          const table = !sum.form && ((sum.operation === '*' && sum.num1 <= 10 && sum.num2 <= 10)
+            || (sum.operation === '/' && sum.num2 <= 10 && sum.num1 / sum.num2 <= 10));
+          expect(table).withContext(`${moment}: ${sum.num1} ${sum.operation} ${sum.num2}`).toBeFalse();
+          expect(sum.form).withContext(`${moment}: a plain sum`).toBeDefined();
+        }
+      });
+    });
+
+    it('practises at the end everything new in the middle', () => {
+      [11, 12].forEach(groep => Object.keys(CURRICULUM[groep].M).filter(topic => CURRICULUM[groep].M[topic] > 1)
+        .forEach(topic => expect(Object.keys(CURRICULUM[groep].E)).withContext(`${groep} ${topic}`).toContain(topic)));
+    });
+  });
+
   describe('klas 2 (grade 8, kept as groep 10)', () => {
     it('starts the year where klas 1 ended', () => {
       Object.keys(CURRICULUM[10].B).forEach(topic => expect(Object.keys(CURRICULUM[9].E)).withContext(topic).toContain(topic));
@@ -600,8 +642,11 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       }
     });
 
-    it('leaves what is not built yet to the old questions: klas 3 on', () => {
-      [11, 12].forEach(groep => expect(schoolSum(groep, 'M')).withContext(`groep ${groep}`).toBeNull());
+    it('builds every year from groep 3 to klas 4 for the start, the middle and the end, and nothing past them', () => {
+      for (let groep = 3; groep <= 12; groep++) {
+        (['B', 'M', 'E'] as Moment[]).forEach(moment => expect(schoolSum(groep, moment)).withContext(`${groep} ${moment}`).not.toBeNull());
+      }
+      expect(schoolSum(13, 'M')).toBeNull();
     });
   });
 });

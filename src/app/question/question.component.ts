@@ -422,18 +422,6 @@ export class QuestionComponent implements OnInit, OnDestroy {
     }
   }
 
-  private getAvailableOperations(): string[] {
-    if (this.grade <= 2) {
-      return ['+'];
-    } else if (this.grade <= 4) {
-      return ['+', '-'];
-    } else if (this.grade <= 6) {
-      return ['+', '-', '*'];
-    } else {
-      return ['+', '-', '*', '/'];
-    }
-  }
-
   /**
    * Facts missed in an earlier round come back near the start of this one —
    * but never as the very first question, which would open on a failure.
@@ -527,7 +515,9 @@ export class QuestionComponent implements OnInit, OnDestroy {
         volume: this.languageService.translate('sum-volume'),
         toOneDecimal: this.languageService.translate('round-one-decimal'),
         hypotenuse: this.languageService.translate('sum-hypotenuse'),
-        triangleArea: this.languageService.translate('sum-triangle')
+        triangleArea: this.languageService.translate('sum-triangle'),
+        largestX: this.languageService.translate('sum-largest-x'),
+        totalFactor: this.languageService.translate('sum-total-factor')
       });
     }
     return this.layoutCache!;
@@ -614,99 +604,21 @@ export class QuestionComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // What a Dutch school sets this groep at this moment of its year (teaching/school/groep.ts);
-    // the old generic sums only for a groep not built yet
-    const school = schoolSum(this.grade + 2, momentFor(this.difficulty));
-    if (school) {
-      this.currentQuestion = { num1: school.num1, num2: school.num2, operation: school.operation };
-      if (school.form) {
-        this.currentQuestion.form = school.form;
-      }
-      this.userAnswer = '';
-      this.picked = [];
-      this.feedback = '';
-      this.workedLine = '';
-      this.inputPlaceholder = '?';
-      this.showOkButton = false;
-      return;
+    // What a Dutch school sets this groep or klas at this moment of its year (teaching/school/groep.ts).
+    // Every grade, groep 3 to klas 4, has its own now: the old generic sums are gone. A grade from
+    // outside them (a hand-edited store) gets the nearest year there is.
+    const grade = Math.min(10, Math.max(1, Math.round(this.grade) || 1));
+    const school = schoolSum(grade + 2, momentFor(this.difficulty)) || schoolSum(3, 'B')!;
+    this.currentQuestion = { num1: school.num1, num2: school.num2, operation: school.operation };
+    if (school.form) {
+      this.currentQuestion.form = school.form;
     }
-
-    this.currentQuestion = { num1: 0, num2: 0, operation: '+' };
-    const availableOperations = this.getAvailableOperations();
-    this.currentQuestion.operation = availableOperations[Math.floor(Math.random() * availableOperations.length)];
-    
-    // Generate appropriate numbers based on operation and difficulty
-    const range = this.getNumberRange();
-    
-    switch (this.currentQuestion.operation) {
-      case '+':
-      case '-':
-        this.currentQuestion.num1 = Math.floor(Math.random() * range) + 1;
-        this.currentQuestion.num2 = Math.floor(Math.random() * range) + 1;
-        // Ensure num1 is larger for subtraction
-        if (this.currentQuestion.operation === '-' && this.currentQuestion.num1 < this.currentQuestion.num2) {
-          [this.currentQuestion.num1, this.currentQuestion.num2] = 
-          [this.currentQuestion.num2, this.currentQuestion.num1];
-        }
-        // For grade 1-2, keep the sum inside the range. Draw the first number
-        // with room to spare, then a second that fits in what is left: re-rolling
-        // only num2 could never converge once num1 had taken the whole range,
-        // which froze the tab mid-round for the youngest players.
-        if (this.grade <= 2 && this.currentQuestion.operation === '+') {
-          this.currentQuestion.num1 = Math.floor(Math.random() * (range - 1)) + 1;
-          this.currentQuestion.num2 =
-            Math.floor(Math.random() * (range - this.currentQuestion.num1)) + 1;
-        }
-        break;
-      case '*':
-        const multiplyRange = Math.min(this.getNumberRange(), 10); // Keep multiplication tables manageable
-        this.currentQuestion.num1 = Math.floor(Math.random() * multiplyRange) + 1;
-        this.currentQuestion.num2 = Math.floor(Math.random() * multiplyRange) + 1;
-        break;
-      case '/':
-        const divisionRange = Math.min(this.getNumberRange(), 10); // Keep division manageable
-        this.currentQuestion.num2 = Math.floor(Math.random() * (divisionRange - 1)) + 1; // 1-range
-        const result = Math.floor(Math.random() * divisionRange) + 1; // 1-range
-        this.currentQuestion.num1 = this.currentQuestion.num2 * result; // ensures clean division
-        break;
-    }
-
     this.userAnswer = '';
     this.picked = [];
     this.feedback = '';
     this.workedLine = '';
     this.inputPlaceholder = '?';
     this.showOkButton = false;
-  }
-
-  private getNumberRange(): number {
-    // Base ranges for each grade
-    let baseRange: number;
-    if (this.grade <= 2) {
-      baseRange = 10;
-    } else if (this.grade === 3) {
-      baseRange = 20;
-    } else if (this.grade <= 4) {
-      baseRange = 50;
-    } else if (this.grade <= 6) {
-      baseRange = 100;
-    } else if (this.grade <= 8) {
-      baseRange = 500;
-    } else {
-      baseRange = 1000;
-    }
-    
-    // Adjust range based on difficulty
-    switch (this.difficulty) {
-      case 'easy':
-        return Math.floor(baseRange * 0.5);
-      case 'medium':
-        return baseRange;
-      case 'hard':
-        return Math.min(baseRange * 1.5, this.grade <= 2 ? 10 : (this.grade === 3 ? 20 : baseRange * 1.5));
-      default:
-        return baseRange;
-    }
   }
 
   /** True when this question wants coins put down rather than a number typed. */

@@ -620,12 +620,13 @@ describe('GradeSelectComponent offering a result the child never saw', () => {
   });
 });
 
-describe('GradeSelectComponent locking the years not built yet', () => {
+describe('GradeSelectComponent locking a year not built yet', () => {
   let fixture: ComponentFixture<GradeSelectComponent>;
   let component: GradeSelectComponent;
   let router: Router;
 
-  function build(language = 'nl', history?: unknown[]) {
+  /** Every year is built now; `readyUpTo` sets the lock lower, as when groep 8 and the klassen were not yet. */
+  function build(language = 'nl', history?: unknown[], readyUpTo = 5) {
     localStorage.clear();
     localStorage.setItem('language', language);
     if (history) {
@@ -633,6 +634,7 @@ describe('GradeSelectComponent locking the years not built yet', () => {
     }
     fixture = TestBed.createComponent(GradeSelectComponent);
     component = fixture.componentInstance;
+    component.readyUpTo = readyUpTo;
     router = TestBed.inject(Router);
     if (!jasmine.isSpy(router.navigate)) {
       spyOn(router, 'navigate');
@@ -651,12 +653,20 @@ describe('GradeSelectComponent locking the years not built yet', () => {
 
   const cards = () => Array.from(fixture.nativeElement.querySelectorAll('.grade-card')) as HTMLElement[];
 
-  it('locks every year after the last one built, and only those: groep 3 to 7 open, groep 8 and klas 1 to 4 locked', () => {
+  it('opens every year now that all of them are built: groep 3 to klas 4 (LAST_READY_GRADE 10)', () => {
+    expect(LAST_READY_GRADE).toBe(10);
+    build('nl', undefined, LAST_READY_GRADE);
+    expect(cards().length).toBe(10);
+    expect(cards().some(card => card.classList.contains('locked'))).toBeFalse();
+    expect(fixture.nativeElement.textContent).not.toContain('Komt eraan');
+  });
+
+  it('locks every year after the last one built, and only those', () => {
     build();
     expect(cards().map(card => card.classList.contains('locked'))).toEqual(
-      Array.from({ length: 10 }, (_, i) => i + 1 > LAST_READY_GRADE));
-    expect(cards()[LAST_READY_GRADE].getAttribute('aria-disabled')).toBe('true');
-    expect(cards()[LAST_READY_GRADE - 1].getAttribute('aria-disabled')).toBeNull();
+      Array.from({ length: 10 }, (_, i) => i + 1 > 5));
+    expect(cards()[5].getAttribute('aria-disabled')).toBe('true');
+    expect(cards()[4].getAttribute('aria-disabled')).toBeNull();
   });
 
   it('says a locked year is coming, on the card and to a screen reader', () => {
@@ -688,8 +698,8 @@ describe('GradeSelectComponent locking the years not built yet', () => {
     expect(component.carryOnGrade).toBeUndefined();
     expect(fixture.nativeElement.querySelector('.carry-on')).toBeNull();
 
-    build('nl', Array.from({ length: 6 }, () => round(LAST_READY_GRADE)));
-    expect(component.carryOnGrade).toBe(LAST_READY_GRADE);
-    expect(component.suggestedGrade === undefined || component.suggestedGrade <= LAST_READY_GRADE).toBeTrue();
+    build('nl', Array.from({ length: 6 }, () => round(5)));
+    expect(component.carryOnGrade).toBe(5);
+    expect(component.suggestedGrade === undefined || component.suggestedGrade <= 5).toBeTrue();
   });
 });

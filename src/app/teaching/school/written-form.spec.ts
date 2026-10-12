@@ -10,7 +10,7 @@ const WORDS: FormWords = { double: 'dubbel', half: 'de helft van', of: 'van', re
   scale: 'Schaal', mean: 'Wat is het gemiddelde?', minutesBetween: 'Hoeveel minuten?',
   degreesBetween: 'Hoeveel graden verschil?', perHour: 'per uur', volume: 'Inhoud in cm³',
   toOneDecimal: 'Rond af op 1 decimaal', hypotenuse: 'Rechthoekige driehoek: de schuine zijde?',
-  triangleArea: 'Oppervlakte van de driehoek' };
+  triangleArea: 'Oppervlakte van de driehoek', largestX: 'grootste x =', totalFactor: 'De groeifactor in totaal?' };
 
 /** A number as written in Dutch, 3,45 or 72, read in thousandths: 3450, 72000. NaN past three figures after the comma. */
 function thousandths(text: string): number {
@@ -68,6 +68,11 @@ function fill(written: string, value: number | string): string {
  */
 function holds(written: string, filled: number | string): boolean {
   const text = written.includes('?') ? fill(written, filled) : written;  // a worked step comes filled in
+  // Klas 3 and 4, read as their own sums before anything more general
+  const klas = klasHolds(text);
+  if (klas !== undefined) {
+    return klas;
+  }
   const double = text.match(/^dubbel (\d+) = (\d+)$/);
   if (double) {
     return 2 * +double[1] === +double[2];
@@ -281,6 +286,58 @@ function holds(written: string, filled: number | string): boolean {
   return value(sides[0]) === value(sides[1]);
 }
 
+/** A number as written, with a comma and a real or typed minus: −8, 0,04, 210. */
+function value(text: string): number {
+  return Number(text.replace('\u2212', '-').replace(',', '.'));
+}
+
+/** Klas 3 and 4's sums, checked as a teacher would; undefined for anything else. */
+function klasHolds(text: string): boolean | undefined {
+  let m: RegExpMatchArray | null;
+  if ((m = text.match(/^(\d+)\(x \+ (\d+)\) = (\d+) x = (\d+)$/))) {
+    return +m[1] * (+m[4] + +m[2]) === +m[3];
+  }
+  if ((m = text.match(/^(\d+)x = (\d*)x \+ (\d+) x = (\d+)$/))) {
+    return +m[1] * +m[4] === +(m[2] || 1) * +m[4] + +m[3];
+  }
+  if ((m = text.match(/^x² = (\d+) {2}\(x > 0\) x = (\d+)$/))) {
+    return +m[2] * +m[2] === +m[1];
+  }
+  if ((m = text.match(/^x² − (\d+)x \+ (\d+) = 0 grootste x = (\d+)$/))) {
+    const [b, c, x] = [+m[1], +m[2], +m[3]];
+    // a solution, and the larger of the two: the other is b − x, and it must be smaller
+    return x * x - b * x + c === 0 && b - x < x;
+  }
+  if ((m = text.match(/^\(−(\d+)\)([²³⁴]) = ([−-]?\d+)$/))) {
+    return (-m[1]) ** ('²³⁴'.indexOf(m[2]) + 2) === value(m[3]);
+  }
+  if ((m = text.match(/^−(\d+)² = ([−-]?\d+)$/))) {
+    return -(+m[1] * +m[1]) === value(m[2]);
+  }
+  if ((m = text.match(/^([\d,]+) · 10(⁻?)([¹²³⁴⁵⁶]) = ([\d,]+)$/))) {
+    const power = '¹²³⁴⁵⁶'.indexOf(m[3]) + 1;
+    const exact = m[2] ? thousandths(m[1]) / 10 ** power : thousandths(m[1]) * 10 ** power;
+    return exact === thousandths(m[4]);
+  }
+  if ((m = text.match(/^(\d+) × (\d+,\d+)(²?) = ([\d,]+)$/))) {
+    const factor = thousandths(m[2]) / 1000;
+    return Math.abs(+m[1] * factor ** (m[3] ? 2 : 1) - value(m[4])) < 1e-9;
+  }
+  if ((m = text.match(/^√(\d+) = (\d+) √(\d+)$/))) {
+    return +m[2] * +m[2] * +m[3] === +m[1];
+  }
+  if ((m = text.match(/^(sin 30°|cos 60°|tan 45°) × (\d+) = ([\d,]+)$/))) {
+    return Math.abs((m[1] === 'tan 45°' ? 1 : 0.5) * +m[2] - value(m[3])) < 1e-9;
+  }
+  if ((m = text.match(/^A = l × b, A = (\d+) l = (\d+) → b = (\d+)$/))) {
+    return +m[2] * +m[3] === +m[1];
+  }
+  if ((m = text.match(/^De groeifactor in totaal\? \+(\d+)% → −(\d+)% × ([\d,]+)$/))) {
+    return Math.abs((100 + +m[1]) * (100 - +m[2]) / 10000 - value(m[3])) < 1e-9;
+  }
+  return undefined;
+}
+
 /** Every sum of a topic, many times over. */
 function made(topic: string, count = 300): SchoolSum[] {
   const random = seeded(topic.length * 31);
@@ -368,6 +425,20 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('afname-20', 80, 16, '−')).toBe('€ 80 \u2212 20% = € ?'.replace('\u2212', '−'));
     expect(shown('pythagoras-1', 100, 10, '/')).toBe('Rechthoekige driehoek: de schuine zijde? a = 6 b = 8 → ?');
     expect(shown('driehoek', 5, 6, '*')).toBe('Oppervlakte van de driehoek ½ × 10 × 6 = ?');
+    expect(shown('haakvgl-3', 7, 4, '−')).toBe('3(x + 4) = 21 x = ?');
+    expect(shown('beide-5', 12, 2, ':')).toBe('5x = 3x + 12 x = ?');
+    expect(shown('negmacht-3', 4, -2, '×')).toBe('(\u22122)³ = ?');
+    expect(shown('minkwadraat', 3, -3, '×')).toBe('\u22123² = ?');
+    expect(shown('wetenschap', 32, 1000, '×')).toBe('3,2 · 10³ = ?');
+    expect(shown('wetenschap-min', 4000, 100, ':')).toBe('4 · 10⁻² = ?');
+    expect(shown('groeifactor', 105, 200, '×')).toBe('200 × 1,05 = ?');
+    expect(shown('kwadraat-vgl', 49, 7, ':')).toBe('x² = 49  (x > 0) x = ?');
+    expect(shown('kwadratisch', 5, 2, '−')).toBe('x² \u2212 5x + 6 = 0 grootste x = ?');
+    expect(shown('groei-2', 121, 100, '×')).toBe('100 × 1,1² = ?');
+    expect(shown('wortel-vereenvoudig', 10, 2, ':')).toBe('√50 = ? √2');
+    expect(shown('sin-30', 50, 10, '×')).toBe('sin 30° × 10 = ?');
+    expect(shown('herleiden', 36, 9, ':')).toBe('A = l × b, A = 36 l = 9 → b = ?');
+    expect(shown('procent-stappen', 110, 90, '×')).toBe('De groeifactor in totaal? +10% → \u221210% × ?');
     // and a plain sum is still a plain sum, the box at the end
     expect(read(sumLayout({ num1: 7, num2: 5, sign: '+' }, WORDS))).toBe('7 + 5 = ?');
   });
@@ -448,11 +519,24 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('afname-20', 80, 16, '-')).toBe('20% van 80 = 16 → 80 \u2212 16 = 64');
     expect(formWorkedStep('pythagoras-1', 100, 10, '/')).toBe('6² + 8² = 36 + 64 = 100 → √100 = 10');
     expect(formWorkedStep('driehoek', 5, 6, '*')).toBe('10 : 2 = 5 → 5 × 6 = 30');
+    expect(formWorkedStep('haakvgl-3', 7, 4, '-')).toBe('21 : 3 = 7 → 7 \u2212 4 = 3');
+    expect(formWorkedStep('beide-5', 12, 2, '/')).toBe('5x \u2212 3x = 2x → 12 : 2 = 6');
+    expect(formWorkedStep('negmacht-3', 4, -2, '*')).toBe('(\u22122) × (\u22122) × (\u22122) = \u22128');
+    expect(formWorkedStep('minkwadraat', 3, -3, '*')).toBe('3² = 9 → \u22129');
+    expect(formWorkedStep('wetenschap', 32, 1000, '*')).toBe('3,2 × 1000 = 3200');
+    expect(formWorkedStep('wetenschap-min', 4000, 100, '/')).toBe('4 : 100 = 0,04');
+    expect(formWorkedStep('groeifactor', 105, 200, '*')).toBe('1% van 200 = 2 → 105 × 2 = 210');
+    expect(formWorkedStep('kwadratisch', 5, 2, '-')).toBe('2 × 3 = 6, 2 + 3 = 5 → x = 2 of x = 3');
+    expect(formWorkedStep('groei-2', 121, 100, '*')).toBe('1,1 × 1,1 = 1,21 → 100 × 1,21 = 121');
+    expect(formWorkedStep('wortel-vereenvoudig', 10, 2, '/')).toBe('50 = 25 × 2 → √25 = 5');
+    expect(formWorkedStep('sin-30', 50, 10, '*')).toBe('sin 30° = 0,5 → 0,5 × 10 = 5');
+    expect(formWorkedStep('herleiden', 36, 9, '/')).toBe('b = A : l → 36 : 9 = 4');
+    expect(formWorkedStep('procent-stappen', 110, 90, '*')).toBe('1,1 × 0,9 = 0,99');
     expect(formWorkedStep(undefined, 7, 5)).toBeUndefined();
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
-      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur|negatief|ongelijk|macht|pythagoras)/.test(sum.form!)) {
+      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur|negatief|ongelijk|macht|pythagoras|beide|kwadratisch|kwadraat-vgl|negmacht|minkwadraat|wortel-vereenvoudig|herleiden)/.test(sum.form!)) {
         return;  // read as rounding, as decimals, as percentages, as fractions, as scales and as means below
       }
       // Every step is true, and the answer is in it (last for most; a half is worked as 8 + 8 = 16)
@@ -659,6 +743,21 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
         misses.push(line);
       }
     });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('works klas 3 and 4 out so that each line ends on the answer, as the child types it', () => {
+    const topics = ['haakjes-vergelijking', 'x-beide-kanten', 'negatieve-machten', 'wetenschappelijk', 'groeifactor', 'kwadraat-vergelijking',
+      'ontbinden', 'groei-twee-stappen', 'wortels-vereenvoudigen', 'goniometrie', 'formule-herleiden', 'procent-stappen'];
+    const misses: string[] = [];
+    topics.forEach(topic => made(topic).forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      const places = placesOf(sum.form);
+      const shown = places ? decimal(answer(sum), places) : signed(answer(sum));
+      if (!line || !line.endsWith(shown)) {
+        misses.push(`${topic}: ${line} (wanted ${shown})`);
+      }
+    }));
     expect(misses.slice(0, 5)).toEqual([]);
   });
 
@@ -1163,6 +1262,17 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       made('pythagoras', 600).forEach(sum => expect(answer(sum) * answer(sum)).toBe(sum.num1));
     });
 
+    it('keeps every klas 3 and 4 answer whole where it must be: x above nought, the largest solution, a whole side', () => {
+      made('haakjes-vergelijking', 600).forEach(sum => expect(answer(sum)).toBeGreaterThan(0));
+      made('x-beide-kanten', 600).forEach(sum => expect(Number.isInteger(answer(sum)) && answer(sum) > 0).toBeTrue());
+      made('ontbinden', 600).forEach(sum => expect(answer(sum)).toBeGreaterThan(sum.num2));
+      made('goniometrie', 600).forEach(sum => expect((sum.num1 * sum.num2) % 100).toBe(0));
+      made('groeifactor', 600).forEach(sum => expect((sum.num1 * sum.num2) % 100).toBe(0));
+      const powers = made('negatieve-machten', 600);
+      expect(powers.some(sum => sum.form === 'minkwadraat')).toBeTrue();
+      expect(powers.some(sum => answer(sum) > 0) && powers.some(sum => answer(sum) < 0)).toBeTrue();
+    });
+
     it('never asks to round a number that is already a tenth', () => {
       made('afronden-decimaal', 800).forEach(sum => expect(sum.num1 % 10).not.toBe(0));
     });
@@ -1170,7 +1280,7 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     it('brings fractions in at the middle of groep 6 and the area at its end', () => {
       const first: { [kind: string]: string } = {};
       const kind = (form: string) => form.replace(/-\d+$/, '');
-      for (const groep of [3, 4, 5, 6, 7, 8, 9, 10]) {
+      for (const groep of [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]) {
         for (const moment of ['B', 'M', 'E'] as Moment[]) {
           const random = seeded(groep * 7 + moment.charCodeAt(0));
           for (let i = 0; i < 400 && schoolSum(groep, moment); i++) {
@@ -1214,6 +1324,16 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       expect(first['toename']).toBe('10E');
       expect(first['pythagoras']).toBe('10E');
       expect(first['driehoek']).toBe('10E');
+      expect(first['haakvgl']).toBe('11M');
+      expect(first['beide']).toBe('11M');
+      expect(first['wetenschap']).toBe('11M');
+      expect(first['groeifactor']).toBe('11E');
+      expect(first['kwadraat-vgl']).toBe('11E');
+      expect(first['kwadratisch']).toBe('12M');
+      expect(first['groei']).toBe('12M');
+      expect(first['sin']).toBe('12E');
+      expect(first['herleiden']).toBe('12E');
+      expect(first['procent-stappen']).toBe('12E');
     });
 
     it('asks the start of groep 3 only plain sums: the forms come once the sums under them are known', () => {

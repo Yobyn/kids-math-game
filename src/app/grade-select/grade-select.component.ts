@@ -15,7 +15,7 @@ import {
 } from '../question/round-state';
 import { SavedResult, isUnseen } from '../result/result-state';
 import { stepColour } from '../theme/palette';
-import { dutchYear, isGradeReady } from '../levels/school-year';
+import { LAST_READY_GRADE, dutchYear } from '../levels/school-year';
 import { SELECT_WORDS } from './select-words';
 
 interface GradeCard {
@@ -51,8 +51,19 @@ export class GradeSelectComponent implements OnInit {
       level: i + 1,
       ...this.yearOf(i + 1),
       colour: stepColour(i + 1, GRADE_COUNT),
-      locked: !isGradeReady(i + 1)
+      locked: !this.isReady(i + 1)
     })));
+  }
+
+  /**
+   * The last grade that can be chosen (school-year.ts). Every year is built
+   * now, so nothing is locked; the lock stays for a year that is taken back
+   * to be rebuilt, and tests set this lower to see it work.
+   */
+  readyUpTo = LAST_READY_GRADE;
+
+  private isReady(grade: number): boolean {
+    return grade >= 1 && grade <= this.readyUpTo;
   }
 
   /** The cards in each language the child has had on screen: a switch renames them, from "Groep 3" to "Grade 1". */
@@ -127,7 +138,7 @@ export class GradeSelectComponent implements OnInit {
     this.avatar = this.avatarService.get();
     const history = this.progressService.getHistory();
     // Never offered or suggested: a grade that is locked until its groep is built
-    const ready = (grade?: number) => grade && isGradeReady(grade) ? grade : undefined;
+    const ready = (grade?: number) => grade && this.isReady(grade) ? grade : undefined;
     this.carryOnGrade = ready(lastGrade(history));
     if (this.carryOnGrade) {
       this.suggestedGrade = ready(suggestGrade(history, this.carryOnGrade));
@@ -202,7 +213,7 @@ export class GradeSelectComponent implements OnInit {
   }
 
   selectGrade(grade: number) {
-    if (!isGradeReady(grade)) {
+    if (!this.isReady(grade)) {
       return;
     }
     // Picking a grade is choosing to start something new, so whatever was

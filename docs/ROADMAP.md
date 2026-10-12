@@ -396,6 +396,16 @@ middle, hard the end), one groep per run.
   `afname-*`), Pythagoras (`pythagoras-*`) and triangles (`driehoek`).
   `LAST_READY_GRADE` is 8: groep 3 to 8 and klas 1 and 2 are open. Next:
   step I, klas 3 and 4.
+- **Klas 3 and 4: DONE, EVERY YEAR OPEN (2026-10-13, night run step I).**
+  Klas 3: equations with brackets and on both sides, powers below nought,
+  scientific notation, a growth factor, x² = 49. Klas 4: quadratics by
+  factorising, growth over two steps, roots made simpler, sin/cos/tan with
+  nice ratios, formulas rearranged, percentages over two steps.
+  `LAST_READY_GRADE` is 10: nothing is locked. The grade screen's lock stays
+  (`readyUpTo`), tested with a lower value. The old generic generator is
+  removed: Yobyn's "Klas 4 Uitdaging is asking me 12 / 4" can no longer
+  happen, and a test says so. Next: the routine's last part, one small
+  phone improvement at a time.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",
