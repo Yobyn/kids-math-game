@@ -948,12 +948,19 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     expect(end.some(sum => sum.form === 'driehoek')).toBeTrue();
   });
 
-  it('keeps the old questions for a groep not built yet: grade 9 (klas 3) is still asked as before', () => {
+  it('asks grade 9 and 10 (klas 3 and 4) what the plan says, and klas 4 hard never a sum from the tables (Yobyn: 12 / 4)', () => {
     build('9', 'medium');
-    sums(80).forEach(({ operation, form }) => {
-      expect(['+', '-', '*', '/']).toContain(operation);
-      expect(form).toBeUndefined();
-    });
+    expect(sums(400).some(sum => /^(haakvgl|beide)-/.test(sum.form || ''))).toBeTrue();
+    build('10', 'hard');
+    const hard = sums(400);
+    expect(hard.some(sum => /^(sin|cos|tan)-/.test(sum.form || ''))).toBeTrue();
+    hard.forEach(sum => expect(sum.form).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeDefined());
+    expect(hard.some(sum => sum.operation === '/' && sum.num1 === 12 && sum.num2 === 4 && !sum.form)).toBeFalse();
+  });
+
+  it('gives a grade from outside groep 3 to klas 4 the nearest year there is, never the old generic sums', () => {
+    build('15', 'medium');
+    sums(60).forEach(sum => expect(sum.form).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeDefined());
   });
 
   it('writes the sign as it is written in class: \u00d7 and : in Dutch, \u00f7 in English, a real minus', () => {

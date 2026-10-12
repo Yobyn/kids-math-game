@@ -285,6 +285,23 @@ describe('the facts an adult is asked to practise', () => {
     expect(items.map(item => item.answer)).toEqual(['8', '12', '5', '92', '10', '30']);
   });
 
+  it('gives the grown-ups klas 3 and 4 as it was asked', () => {
+    const facts = [
+      { ...fact(7, 4, '-'), form: 'haakvgl-3' },
+      { ...fact(4, -2, '*'), form: 'negmacht-3' },
+      { ...fact(105, 200, '*'), form: 'groeifactor' },
+      { ...fact(5, 2, '-'), form: 'kwadratisch' },
+      { ...fact(50, 10, '*'), form: 'sin-30' },
+      { ...fact(110, 90, '*'), form: 'procent-stappen' }
+    ] as MissedFact[];
+    const items = [0, 3].map(at => practicePlan([], facts.slice(at, at + 3)).facts).reduce((all, list) => all.concat(list), []);
+
+    expect(items.map(item => item.question)).toEqual([
+      '3(x + 4) = 21, x = ?', '(\u22122)³', '200 × 1,05', 'x² − 5x + 6 = 0, x = ? (max)', 'sin 30° × 10', '+10% → −10% → × ?'
+    ]);
+    expect(items.map(item => item.answer)).toEqual(['3', '\u22128', '210', '3', '5', '0,99']);
+  });
+
   it('leaves the line off a fact that has no method worth showing', () => {
     const plan = practicePlan([], [fact(2, 3, '+')]);
 

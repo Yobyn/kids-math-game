@@ -1,9 +1,9 @@
 import {
-  DECIMAL_MEASURES, FRACTIONS, MEASURES, SUPERSCRIPTS, UNIT_FRACTIONS, VOLUME_MEASURES, clock, decimal, degrees, formWorkedStep, meanList,
-  roundTo, signed, tenths
+  DECIMAL_MEASURES, FRACTIONS, MEASURES, SUPERSCRIPTS, TRIG_NAMES, UNIT_FRACTIONS, VOLUME_MEASURES, clock, decimal, degrees, formWorkedStep,
+  meanList, roundTo, signed, tenths
 } from '../teaching/school/written-form';
 import {
-  PythagorasForm, UnlikeFractionForm, denominatorOf, denominatorsOf, lastNumberOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, sidesOf,
+  PythagorasForm, TrigForm, UnlikeFractionForm, denominatorOf, denominatorsOf, lastNumberOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, sidesOf,
   stepOf
 } from '../question/sum-form';
 import { MissedFact, RoundResult } from '../services/progress.service';
@@ -150,7 +150,40 @@ function klasFactText(fact: MissedFact): string | undefined {
   if (form === 'driehoek') {
     return `½ × ${fact.num1 * 2} × ${fact.num2}`;
   }
-  return undefined;
+  return klas34FactText(fact);
+}
+
+/** Klas 3 and 4's sums as asked, in signs that read the same in any language; undefined for any other form. */
+function klas34FactText(fact: MissedFact): string | undefined {
+  const form = fact.form!;
+  const { num1, num2 } = fact;
+  const power = (value: number) => SUPERSCRIPTS[Math.round(Math.log10(value))];
+  if (form.startsWith('haakvgl-')) {
+    return `${lastNumberOf(form)}(x + ${num2}) = ${lastNumberOf(form) * num1}, x = ?`;
+  }
+  if (form.startsWith('beide-')) {
+    const right = lastNumberOf(form) - num2;
+    return `${lastNumberOf(form)}x = ${right === 1 ? '' : right}x + ${num1}, x = ?`;
+  }
+  if (form.startsWith('negmacht-')) {
+    return `(${signed(num2)})${SUPERSCRIPTS[lastNumberOf(form)]}`;
+  }
+  const texts: { [form: string]: () => string } = {
+    'minkwadraat': () => `${signed(-num1)}²`,
+    'wetenschap': () => `${tenths(num1)} · 10${power(num2)}`,
+    'wetenschap-min': () => `${num1 / 1000} · 10⁻${power(num2)}`,
+    'groeifactor': () => `${num2} × ${decimal(num1, 2)}`,
+    'kwadraat-vgl': () => `x² = ${num1}, x > 0`,
+    'kwadratisch': () => `x² − ${num1}x + ${num2 * (num1 - num2)} = 0, x = ? (max)`,
+    'groei-2': () => `${num2} × ${tenths(Math.sqrt(num1))}²`,
+    'wortel-vereenvoudig': () => `√${(num1 / num2) ** 2 * num2} = ?√${num2}`,
+    'herleiden': () => `A = l × b, A = ${num1}, l = ${num2} → b = ?`,
+    'procent-stappen': () => `+${num1 - 100}% → −${100 - num2}% → × ?`
+  };
+  if (texts[form]) {
+    return texts[form]();
+  }
+  return form in TRIG_NAMES ? `${TRIG_NAMES[form as TrigForm]} × ${num2}` : undefined;
 }
 
 export function factText(fact: MissedFact): string {
@@ -406,7 +439,7 @@ function toItem(fact: MissedFact): PracticeItem {
 
   const item: PracticeItem = {
     question: factText(fact),
-    answer: placesOf(fact.form) ? decimal(answer, placesOf(fact.form)) : fact.form === 'negatief' ? signed(answer) : String(answer),
+    answer: placesOf(fact.form) ? decimal(answer, placesOf(fact.form)) : /^(negatief|negmacht|minkwadraat)/.test(fact.form || '') ? signed(answer) : String(answer),
     reviews,
     toGraduate
   };

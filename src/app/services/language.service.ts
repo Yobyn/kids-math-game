@@ -45,6 +45,8 @@ export type TranslationKeys =
   | 'round-one-decimal'
   | 'sum-hypotenuse'
   | 'sum-triangle'
+  | 'sum-largest-x'
+  | 'sum-total-factor'
   | 'play-again'
   | 'logout'
   | 'need-account'

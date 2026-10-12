@@ -1,6 +1,6 @@
 import {
-  DecimalMeasureForm, MeasureForm, PythagorasForm, SumForm, UnlikeFractionForm, VolumeMeasureForm, denominatorOf, denominatorsOf,
-  lastNumberOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, sidesOf, stepOf
+  DecimalMeasureForm, MeasureForm, PythagorasForm, SumForm, TRIG_VALUES, TrigForm, UnlikeFractionForm, VolumeMeasureForm, denominatorOf,
+  denominatorsOf, lastNumberOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, sidesOf, stepOf
 } from '../../question/sum-form';
 
 /**
@@ -71,10 +71,22 @@ export interface FormWords {
   hypotenuse: string;
   /** "Oppervlakte driehoek", the heading over ½ × 10 × 6 = ? */
   triangleArea: string;
+  /** "grootste x =" before the box under x² − 5x + 6 = 0 */
+  largestX: string;
+  /** "Groeifactor in totaal?", the heading over +10% → −10% → × ? */
+  totalFactor: string;
 }
 
 /** The small raised figures a power is written with: 2³. */
-export const SUPERSCRIPTS: { [power: number]: string } = { 2: '²', 3: '³', 4: '⁴', 5: '⁵' };
+export const SUPERSCRIPTS: { [power: number]: string } = { 1: '¹', 2: '²', 3: '³', 4: '⁴', 5: '⁵', 6: '⁶' };
+
+/** The power of ten a number is: 3 for 1000. */
+function tensIn(value: number): number {
+  return Math.round(Math.log10(value));
+}
+
+/** The names of the three nice ratios, as they are written: sin 30°. */
+export const TRIG_NAMES: { [form in TrigForm]: string } = { 'sin-30': 'sin 30°', 'cos-60': 'cos 60°', 'tan-45': 'tan 45°' };
 
 /** A whole number as klas 1 writes it, with a real minus below nought: −3. */
 export function signed(value: number): string {
@@ -530,6 +542,10 @@ function klas2Layout(sum: SumToShow, words: FormWords): SumLayout | undefined {
       after: []
     };
   }
+  const klas34 = klas34Layout(sum, words);
+  if (klas34) {
+    return klas34;
+  }
   // Oppervlakte driehoek over ½ × 10 × 6 = ?, kept as 5 × 6
   if (form === 'driehoek') {
     return {
@@ -537,6 +553,144 @@ function klas2Layout(sum: SumToShow, words: FormWords): SumLayout | undefined {
                number(sum.num2), equals],
       after: []
     };
+  }
+  return undefined;
+}
+
+/** Klas 3 and 4's sums (sum-form.ts); undefined for any other. */
+function klas34Layout(sum: SumToShow, words: FormWords): SumLayout | undefined {
+  const form = sum.form || '';
+  const sign = (text: string): SumPart => ({ kind: 'operation', text });
+  const word = (text: string): SumPart => ({ kind: 'word', text });
+  const text = (value: string): SumPart => ({ kind: 'number', text: value });
+  const caption = (value: string): SumPart => ({ kind: 'caption', text: value });
+  const solveX = (heading: string): SumLayout => ({ before: [caption(heading), word('x'), equals], after: [] });
+  // 3(x + 4) = 21 over x = ?, kept as 7 − 4
+  if (form.startsWith('haakvgl-')) {
+    const times = lastNumberOf(form);
+    return solveX(`${times}(x + ${sum.num2}) = ${times * sum.num1}`);
+  }
+  // 5x = 3x + 12 over x = ?, kept as 12 : 2
+  if (form.startsWith('beide-')) {
+    const left = lastNumberOf(form);
+    const right = left - sum.num2;
+    return solveX(`${left}x = ${right === 1 ? '' : right}x + ${sum.num1}`);
+  }
+  // x² = 49 (x > 0) over x = ?, kept as 49 : 7
+  if (form === 'kwadraat-vgl') {
+    return solveX(`x² = ${sum.num1}  (x > 0)`);
+  }
+  // x² − 5x + 6 = 0 over grootste x = ?, kept as 5 − 2
+  if (form === 'kwadratisch') {
+    const larger = sum.num1 - sum.num2;
+    return { before: [caption(`x² \u2212 ${sum.num1}x + ${sum.num2 * larger} = 0`), word(words.largestX)], after: [] };
+  }
+  // (−2)³ = ?, kept as 4 × −2
+  if (form.startsWith('negmacht-')) {
+    return { before: [text(`(\u2212${-sum.num2})${SUPERSCRIPTS[lastNumberOf(form)]}`), equals], after: [] };
+  }
+  // −3² = ?, kept as 3 × −3
+  if (form === 'minkwadraat') {
+    return { before: [text(`\u2212${sum.num1}²`), equals], after: [] };
+  }
+  // 3,2 · 10³ = ?, kept as 32 × 1000 in tenths
+  if (form === 'wetenschap') {
+    return { before: [text(`${tenths(sum.num1, words.point)} · 10${SUPERSCRIPTS[tensIn(sum.num2)]}`), equals], after: [] };
+  }
+  // 4 · 10⁻² = ?, kept as 4000 : 100 in thousandths
+  if (form === 'wetenschap-min') {
+    return { before: [text(`${sum.num1 / 1000} · 10⁻${SUPERSCRIPTS[tensIn(sum.num2)]}`), equals], after: [] };
+  }
+  // 200 × 1,05 = ?, kept as 105 × 200 in hundredths
+  if (form === 'groeifactor') {
+    return { before: [number(sum.num2), sign('×'), text(decimal(sum.num1, 2, words.point)), equals], after: [] };
+  }
+  // 100 × 1,1² = ?, kept as 121 × 100 in hundredths
+  if (form === 'groei-2') {
+    return { before: [number(sum.num2), sign('×'), text(`${tenths(Math.sqrt(sum.num1), words.point)}²`), equals], after: [] };
+  }
+  // √50 = ?√2, kept as 10 : 2
+  if (form === 'wortel-vereenvoudig') {
+    const root = sum.num1 / sum.num2;
+    return { before: [text(`√${root * root * sum.num2}`), equals], after: [text(`√${sum.num2}`)] };
+  }
+  // sin 30° × 10 = ?, kept as 50 × 10 in hundredths
+  if (form === 'sin-30' || form === 'cos-60' || form === 'tan-45') {
+    return { before: [text(TRIG_NAMES[form]), sign('×'), number(sum.num2), equals], after: [] };
+  }
+  // A = l × b, A = 36 over l = 9 → b = ?, kept as 36 : 9
+  if (form === 'herleiden') {
+    return { before: [caption(`A = l × b, A = ${sum.num1}`), word('l ='), number(sum.num2), sign('→'), word('b =')], after: [] };
+  }
+  // De groeifactor in totaal? +10% → −10% over × ?, kept as 110 × 90 in ten-thousandths. The steps
+  // in the heading: beside the box they are too wide for one line of a phone
+  if (form === 'procent-stappen') {
+    const percent = (factor: number) => factor > 100 ? `+${factor - 100}%` : `\u2212${100 - factor}%`;
+    return { before: [caption(`${words.totalFactor} ${percent(sum.num1)} → ${percent(sum.num2)}`), word('×')], after: [] };
+  }
+  return undefined;
+}
+
+/** The worked line of klas 3 and 4's sums; undefined for any other form. */
+function klas34WorkedStep(form: string, num1: number, num2: number, point: string): string | undefined {
+  // 3(x + 4) = 21: share both sides by 3, then take off the 4
+  if (form.startsWith('haakvgl-')) {
+    const times = lastNumberOf(form);
+    return `${times * num1} : ${times} = ${num1} → ${num1} \u2212 ${num2} = ${num1 - num2}`;
+  }
+  // 5x = 3x + 12: take the 3x off both sides, 2x = 12, then share by 2
+  if (form.startsWith('beide-')) {
+    const left = lastNumberOf(form);
+    const right = left - num2;
+    return `${left}x \u2212 ${right === 1 ? '' : right}x = ${num2 === 1 ? '' : num2}x → ${num1} : ${num2} = ${num1 / num2}`;
+  }
+  if (form === 'kwadraat-vgl') {
+    return `${num2} × ${num2} = ${num1} → x = ${num2}`;
+  }
+  // x² − 5x + 6 = 0: two numbers that times make 6 and add to 5, 2 and 3
+  if (form === 'kwadratisch') {
+    const larger = num1 - num2;
+    return `${num2} × ${larger} = ${num2 * larger}, ${num2} + ${larger} = ${num1} → x = ${num2} of x = ${larger}`;
+  }
+  // (−2)³: three −2's multiplied
+  if (form.startsWith('negmacht-')) {
+    const power = lastNumberOf(form);
+    return `${Array.from({ length: power }, () => `(${signed(num2)})`).join(' × ')} = ${signed(num1 * num2)}`;
+  }
+  // −3²: the square first, then the minus
+  if (form === 'minkwadraat') {
+    return `${num1}² = ${num1 * num1} → ${signed(-num1 * num1)}`;
+  }
+  if (form === 'wetenschap') {
+    return `${tenths(num1, point)} × ${num2} = ${tenths(num1 * num2, point)}`;
+  }
+  if (form === 'wetenschap-min') {
+    return `${num1 / 1000} : ${num2} = ${decimal(num1 / num2, 3, point)}`;
+  }
+  // 200 × 1,05: 1% of 200 is 2, and 105% is 105 of those
+  if (form === 'groeifactor') {
+    return `1% van ${num2} = ${num2 / 100} → ${num1} × ${num2 / 100} = ${decimal(num1 * num2, 2, point)}`;
+  }
+  // 100 × 1,1²: 1,1 × 1,1 = 1,21 first
+  if (form === 'groei-2') {
+    const factor = tenths(Math.sqrt(num1), point);
+    return `${factor} × ${factor} = ${decimal(num1, 2, point)} → ${num2} × ${decimal(num1, 2, point)} = ${decimal(num1 * num2, 2, point)}`;
+  }
+  // √50: 50 is 25 × 2, and √25 = 5
+  if (form === 'wortel-vereenvoudig') {
+    const root = num1 / num2;
+    return `${root * root * num2} = ${root * root} × ${num2} → √${root * root} = ${root}`;
+  }
+  if (form === 'sin-30' || form === 'cos-60' || form === 'tan-45') {
+    const ratio = decimal(TRIG_VALUES[form], 2, point);
+    return `${TRIG_NAMES[form]} = ${ratio} → ${ratio} × ${num2} = ${decimal(num1 * num2, 2, point)}`;
+  }
+  if (form === 'herleiden') {
+    return `b = A : l → ${num1} : ${num2} = ${num1 / num2}`;
+  }
+  // +10% is × 1,1 and −10% is × 0,9: the factors multiply
+  if (form === 'procent-stappen') {
+    return `${decimal(num1, 2, point)} × ${decimal(num2, 2, point)} = ${decimal(num1 * num2, 4, point)}`;
   }
   return undefined;
 }
@@ -642,7 +796,7 @@ function klasWorkedStep(form: string, num1: number, num2: number, operation: str
     const figure = num1 % 10;
     return `${decimal(num1, 2, point)}: ${figure} ${figure >= 5 ? '≥' : '<'} 5 → ${decimal(roundTo(num1, num2), 2, point)}`;
   }
-  return klas2WorkedStep(form, num1, num2);
+  return klas2WorkedStep(form, num1, num2) || klas34WorkedStep(form, num1, num2, point);
 }
 
 /**

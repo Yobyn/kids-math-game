@@ -70,6 +70,8 @@ export type PlayKey =
   | 'round-one-decimal'
   | 'sum-hypotenuse'
   | 'sum-triangle'
+  | 'sum-largest-x'
+  | 'sum-total-factor'
   | 'play-again';
 
 export const PLAY_WORDS: Words<PlayKey> = {
@@ -138,7 +140,9 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-volume': 'Volume in cm³',
     'round-one-decimal': 'Round to 1 decimal place',
     'sum-hypotenuse': 'Right-angled triangle: the long side?',
-    'sum-triangle': 'Area of the triangle'
+    'sum-triangle': 'Area of the triangle',
+    'sum-largest-x': 'largest x =',
+    'sum-total-factor': 'The growth factor in all?'
   },
   nl: {
     'praise-3': 'Knap gewerkt!',
@@ -205,7 +209,9 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-volume': 'Inhoud in cm³',
     'round-one-decimal': 'Rond af op 1 decimaal',
     'sum-hypotenuse': 'Rechthoekige driehoek: de schuine zijde?',
-    'sum-triangle': 'Oppervlakte van de driehoek'
+    'sum-triangle': 'Oppervlakte van de driehoek',
+    'sum-largest-x': 'grootste x =',
+    'sum-total-factor': 'De groeifactor in totaal?'
   },
   es: {
     'praise-3': '¡Un trabajo brillante!',
@@ -272,6 +278,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-volume': 'Volumen en cm³',
     'round-one-decimal': 'Redondea a 1 decimal',
     'sum-hypotenuse': 'Triángulo rectángulo: ¿la hipotenusa?',
-    'sum-triangle': 'Área del triángulo'
+    'sum-triangle': 'Área del triángulo',
+    'sum-largest-x': 'x mayor =',
+    'sum-total-factor': '¿El factor de crecimiento total?'
   }
 };

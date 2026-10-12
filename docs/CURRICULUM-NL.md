@@ -123,7 +123,7 @@ the setting of a sum, not the sum: "20% korting op €45", "3 pakken kosten
 | E | Speed, distance, time | 60 km per uur, 2,5 uur = ? km |
 | E | Negative numbers (temperature) | van −3 naar 5 = ? graden |
 
-## Klas 1–4 (age 12–16): the plan (2026-10-11; klas 1 and 2 built 2026-10-12)
+## Klas 1–4 (age 12–16): the plan (2026-10-11; all four built by 2026-10-13)
 
 Secondary school, onderbouw and the start of the bovenbouw: the kerndoelen
 onderbouw (domein Getallen, Verbanden, Meten en meetkunde) and referentie-
@@ -293,5 +293,22 @@ its groep:
    7-24-25) and the area of a triangle ("½ × 10 × 6 = ?"), with the box
    (inhoud) and M revisited. Worked lines: "2 × 2 × 2 × 2 × 2 = 32", "20 −
    5 = 15 → 15 : 3 = 5", "6² + 8² = 36 + 64 = 100 → √100 = 10".
+   KLAS 3 AND 4 ARE DONE AND OPEN (2026-10-13), "groep 11 and 12". Klas 3:
+   B is klas 2's end; M brings equations with brackets ("3(x + 4) = 21") and
+   with x on both sides ("5x = 3x + 12", the constant on one side), powers
+   below nought ("(−2)³", and "−3²", the square first) and scientific
+   notation ("3,2 · 10³", "4 · 10⁻²"); E brings a growth factor ("200 ×
+   1,05") and "x² = 49 (x > 0)". Klas 4: B is klas 3's end; M brings a
+   quadratic by factorising ("x² − 5x + 6 = 0, grootste x"), growth over two
+   steps ("100 × 1,1²") and roots made simpler ("√50 = ?√2"); E brings
+   trigonometry with the nice ratios ("sin 30° × 10", cos 60°, tan 45°), a
+   formula rearranged ("A = l × b, A = 36, l = 9 → b") and percentages over
+   two steps as one factor ("+10% → −10% → × 0,99"). Klas 4 never asks a
+   plain sum, so never a times table or a division inside the tables. Not
+   built from the plan: Pythagoras to one decimal (klas 3), and doubling
+   times (klas 4); √12 × √3 is left for when roots get a sum of their own.
+   EVERY YEAR, GROEP 3 TO KLAS 4, NOW FOLLOWS THE CURRICULUM, and the old
+   generic sums (getNumberRange, getAvailableOperations) are gone: a grade
+   from outside them gets the nearest year there is.
 8. **Verhaaltjessommen** (word problems) for every groep, in all three
    languages.
