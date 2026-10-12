@@ -935,8 +935,21 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     expect(asked.some(sum => sum.form === 'afronden-decimaal')).toBeTrue();
   });
 
-  it('keeps the old questions for a groep not built yet: grade 8 (klas 2) is still asked as before', () => {
+  it('asks grade 8 (klas 2) powers, roots and equations in the middle; percentages, Pythagoras and triangles at the end', () => {
     build('8', 'medium');
+    const middle = sums(400);
+    expect(middle.some(sum => /^macht-/.test(sum.form || ''))).toBeTrue();
+    expect(middle.some(sum => sum.form === 'wortel')).toBeTrue();
+    expect(middle.some(sum => /^vergelijking-/.test(sum.form || ''))).toBeTrue();
+    build('8', 'hard');
+    const end = sums(400);
+    expect(end.some(sum => /^(toename|afname)-/.test(sum.form || ''))).toBeTrue();
+    expect(end.some(sum => /^pythagoras-/.test(sum.form || ''))).toBeTrue();
+    expect(end.some(sum => sum.form === 'driehoek')).toBeTrue();
+  });
+
+  it('keeps the old questions for a groep not built yet: grade 9 (klas 3) is still asked as before', () => {
+    build('9', 'medium');
     sums(80).forEach(({ operation, form }) => {
       expect(['+', '-', '*', '/']).toContain(operation);
       expect(form).toBeUndefined();

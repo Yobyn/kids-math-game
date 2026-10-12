@@ -390,6 +390,12 @@ middle, hard the end), one groep per run.
   formulas (`formule-*`) and rounding to one decimal (`afronden-decimaal`).
   `LAST_READY_GRADE` is 7: groep 3 to 8 and klas 1 are open. A wrong answer
   below nought is shown with a real minus (−5). Next: step H, klas 2.
+- **Klas 2: DONE AND UNLOCKED (2026-10-12, night run step H).** Powers
+  (`macht-*`), roots (`wortel`), equations (`vergelijking-*`), brackets
+  filled in (`invullen-*`), a percentage on or off (`toename-*`,
+  `afname-*`), Pythagoras (`pythagoras-*`) and triangles (`driehoek`).
+  `LAST_READY_GRADE` is 8: groep 3 to 8 and klas 1 and 2 are open. Next:
+  step I, klas 3 and 4.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

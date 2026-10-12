@@ -59,6 +59,16 @@
  *                                kept as 15 + 4: 3 × 5 worked out, the 4 added; the 3 is in the name
  *   afronden-decimaal 3,47 ≈ ? op 1 decimaal
  *                                kept as 347 ≈ 10 in hundredths: 350, shown and typed as 3,5
+ *   macht-3    2³ = ?            kept as 4 × 2: the power one lower, times the number once more
+ *   wortel     √144 = ?          kept as 144 : 12, the answer being the number that squares to it
+ *   vergelijking-5 3x + 5 = 20 → x = ?
+ *                                kept as 15 : 3: what is left once the 5 is taken off, shared by 3
+ *   invullen-2 x = 2: 3(x + 4) = ?
+ *                                kept as 3 × 6: the brackets with 2 filled in, times 3
+ *   toename-15 €80 + 15% = €?    kept as 80 + 12; afname-20 €80 − 20% kept as 80 − 16
+ *   pythagoras-1 a = 6, b = 8 → c = ?
+ *                                kept as 100 : 10: c² shared by c; the triangle (3-4-5) is in the name
+ *   driehoek   ½ × 10 × 6 = ?    kept as 5 × 6: half the base times the height
  *
  * so marking, the worked line and a missed fact's identity all still work
  * from the sum. A remainder and a rounding are the sums with signs of their
@@ -73,7 +83,8 @@ export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | '
   | MeasureForm | FractionOfForm | EqualFractionForm | PercentForm | DecimalForm | DecimalMeasureForm
   | FractionSumForm | 'breuk-komma' | RatioForm | DiscountForm | PercentStepForm | 'welk-procent' | ScaleForm | MeanForm
   | VolumeForm | VolumeMeasureForm | 'tijdsduur' | 'snelheid' | TemperatureForm
-  | 'negatief' | PrecedenceForm | BracketForm | UnlikeFractionForm | TimesFractionForm | FormulaForm | 'afronden-decimaal';
+  | 'negatief' | PrecedenceForm | BracketForm | UnlikeFractionForm | TimesFractionForm | FormulaForm | 'afronden-decimaal'
+  | PowerForm | 'wortel' | EquationForm | FillInForm | PercentChangeForm | PythagorasForm | 'driehoek';
 
 type TwoToNine = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 const TWO_TO_NINE: TwoToNine[] = [2, 3, 4, 5, 6, 7, 8, 9];
@@ -111,6 +122,43 @@ export const FORMULA_FORMS: FormulaForm[] = TWO_TO_NINE.map(n => `formule-${n}` 
 /** The number at the end of a form's name: the 5 in voorrang-5, haakjes-5 and formule-5. */
 export function lastNumberOf(form: string): number {
   return Number(form.split('-').pop());
+}
+
+/** 2³ = ?: a power. The number is the exponent. */
+export type PowerForm = 'macht-2' | 'macht-3' | 'macht-4' | 'macht-5';
+export const POWER_FORMS: PowerForm[] = ['macht-2', 'macht-3', 'macht-4', 'macht-5'];
+
+/** 3x + 5 = 20 → x = ?: the number is what is added to the x's (the 5). */
+type OneToTwelve = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+export type EquationForm = `vergelijking-${OneToTwelve}`;
+export const EQUATION_FORMS: EquationForm[] = Array.from({ length: 12 }, (_, i) => `vergelijking-${i + 1}` as EquationForm);
+
+/** x = 2: 3(x + 4) = ?: a value filled in in brackets. The number is the x. */
+export type FillInForm = `invullen-${TwoToNine}`;
+export const FILL_IN_FORMS: FillInForm[] = TWO_TO_NINE.map(n => `invullen-${n}` as FillInForm);
+
+/** €80 + 15% = €?, €80 − 20% = €?: a percentage on top, or off. The number is the percentage. */
+type ChangePercent = 5 | 10 | 15 | 20 | 25 | 30;
+export type PercentChangeForm = `toename-${ChangePercent}` | `afname-${ChangePercent}`;
+const CHANGE_PERCENTS: ChangePercent[] = [5, 10, 15, 20, 25, 30];
+export const PERCENT_CHANGE_FORMS: PercentChangeForm[] = [
+  ...CHANGE_PERCENTS.map(p => `toename-${p}` as PercentChangeForm), ...CHANGE_PERCENTS.map(p => `afname-${p}` as PercentChangeForm)
+];
+
+/**
+ * a = 6, b = 8 → c = ?: the long side of a right-angled triangle, a whole number. The number says
+ * which whole triangle it is a multiple of: 1 is 3-4-5, 2 is 5-12-13, 3 is 8-15-17, 4 is 7-24-25.
+ */
+export type PythagorasForm = 'pythagoras-1' | 'pythagoras-2' | 'pythagoras-3' | 'pythagoras-4';
+export const PYTHAGORAS_FORMS: PythagorasForm[] = ['pythagoras-1', 'pythagoras-2', 'pythagoras-3', 'pythagoras-4'];
+export const TRIANGLES: { [form in PythagorasForm]: [number, number, number] } = {
+  'pythagoras-1': [3, 4, 5], 'pythagoras-2': [5, 12, 13], 'pythagoras-3': [8, 15, 17], 'pythagoras-4': [7, 24, 25]
+};
+
+/** The two short sides of a Pythagoras sum whose long side is c: the form's triangle, made c / its own long side times as big. */
+export function sidesOf(form: PythagorasForm, c: number): [number, number] {
+  const [a, b, long] = TRIANGLES[form];
+  return [a * c / long, b * c / long];
 }
 
 /** 10 × 5 × 4 = ? cm³: the volume of a box. The number is its length. */
@@ -232,7 +280,8 @@ export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft',
   ...FRACTION_SUM_FORMS, 'breuk-komma', ...RATIO_FORMS, ...DISCOUNT_FORMS, ...PERCENT_STEP_FORMS, 'welk-procent',
   ...SCALE_FORMS, ...MEAN_FORMS, ...VOLUME_FORMS, ...VOLUME_MEASURE_FORMS, 'tijdsduur', 'snelheid', ...TEMPERATURE_FORMS,
   'negatief', ...PRECEDENCE_FORMS, ...BRACKET_FORMS, ...UNLIKE_FRACTION_FORMS, ...TIMES_FRACTION_FORMS, ...FORMULA_FORMS,
-  'afronden-decimaal'];
+  'afronden-decimaal', ...POWER_FORMS, 'wortel', ...EQUATION_FORMS, ...FILL_IN_FORMS, ...PERCENT_CHANGE_FORMS, ...PYTHAGORAS_FORMS,
+  'driehoek'];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */
 export function readForm(raw: unknown): SumForm | undefined {
