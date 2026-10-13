@@ -12,7 +12,12 @@ export type BonusKey =
   | 'jump-title'
   | 'jump-how'
   | 'jump-board'
-  | 'jump-finished';
+  | 'jump-finished'
+  | 'balloons-title'
+  | 'balloons-how'
+  | 'balloons-board'
+  | 'balloons-hearts'
+  | 'balloons-finished';
 
 export const BONUS_WORDS: Words<BonusKey> = {
   en: {
@@ -26,7 +31,12 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'jump-title': 'Bounce ball',
     'jump-how': 'Tap to bounce over the blocks on the ground. Stay low under the ones in the air, and roll on to the flag!',
     'jump-board': 'A ball rolling past blocks on the ground and in the air',
-    'jump-finished': 'You reached the flag!'
+    'jump-finished': 'You reached the flag!',
+    'balloons-title': 'Balloons',
+    'balloons-how': 'Tap the balloons to pop them. Do not let three float away!',
+    'balloons-board': 'Balloons floating up to be popped',
+    'balloons-hearts': 'balloons may still float away',
+    'balloons-finished': 'That was the last balloon!'
   },
   nl: {
     'bonus-title': 'Balspel',
@@ -39,7 +49,12 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'jump-title': 'Springbal',
     'jump-how': 'Tik om over de blokken op de grond te springen. Blijf laag onder de blokken in de lucht en rol door naar de vlag!',
     'jump-board': 'Een rollende bal langs blokken op de grond en in de lucht',
-    'jump-finished': 'Je hebt de vlag gehaald!'
+    'jump-finished': 'Je hebt de vlag gehaald!',
+    'balloons-title': 'Ballonnen',
+    'balloons-how': 'Tik op de ballonnen om ze te laten knallen. Laat er geen drie wegvliegen!',
+    'balloons-board': 'Ballonnen die omhoog zweven om te knallen',
+    'balloons-hearts': 'ballonnen mogen nog wegvliegen',
+    'balloons-finished': 'Dat was de laatste ballon!'
   },
   es: {
     'bonus-title': 'Juego de pelota',
@@ -52,6 +67,11 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'jump-title': 'Pelota saltarina',
     'jump-how': '¡Toca para saltar los bloques del suelo. Quédate abajo bajo los del aire y rueda hasta la bandera!',
     'jump-board': 'Una pelota que rueda entre bloques en el suelo y en el aire',
-    'jump-finished': '¡Llegaste a la bandera!'
+    'jump-finished': '¡Llegaste a la bandera!',
+    'balloons-title': 'Globos',
+    'balloons-how': 'Toca los globos para reventarlos. ¡Que no se escapen tres!',
+    'balloons-board': 'Globos que suben para reventarlos',
+    'balloons-hearts': 'globos pueden escaparse todavía',
+    'balloons-finished': '¡Era el último globo!'
   }
 };

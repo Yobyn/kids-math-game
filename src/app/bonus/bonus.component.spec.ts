@@ -35,6 +35,9 @@ describe('BonusComponent, the bonus game after a round', () => {
   afterEach(() => {
     component.ngOnDestroy();
     localStorage.clear();
+    // Start brings a board that runs past the screen up into view
+    // (board-view.ts); the page goes back, so no later test measures a scrolled one
+    window.scrollTo(0, 0);
   });
 
   /** Started by hand, with the ball put where the test wants it and no animation running. */

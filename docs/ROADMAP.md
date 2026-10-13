@@ -425,6 +425,27 @@ middle, hard the end), one groep per run.
   up mid-game. Now Start scrolls the page just far enough to show the whole
   board and a 16px margin, never pushing its top off (`bonus/board-view.ts`);
   the score stays in view above it. On taller phones it moves 2px at most.
+- **The games, more and better (Yobyn, 2026-10-13): "for the next few days
+  focus on adding one game and improving the game play of the games and the
+  look and feel."** The plan, one step a run (twice a day now): J a third
+  game, K its polish, L the three games' shared look (how-to-play pictures,
+  3-2-1, a floating +1, each game's best), M Balspel's play, N Springbal's,
+  O a look of its own for each.
+- **J. Ballonnen, the third bonus game: DONE (2026-10-13).** Balloons float
+  up from the bottom of the board and a tap pops one for a point (a tap
+  counts a little outside it: a finger is not a pin). One that floats off the
+  top is missed; three hearts fade as they go, and the third ends the game.
+  Otherwise its finish comes at a random 20 s–2 min like Springbal's flag:
+  no more balloons come and it ends when the last has gone, with no clock
+  shown. They rise at one steady speed all game (about 3.5 s across), and
+  come more often as it goes, from one every 1.4 s to one every 0.6 s after
+  a minute, never faster. Rules in `bonus/balloons.ts` (DOM-free, tested);
+  the screen at `/bonus/balloons` in the bonus chunk, with the particle field
+  through the board, a pop swelling it and sparking where the balloon was.
+  One of three games now offered at random after a round (🎈, "Ballonnen" /
+  "Balloons" / "Globos"); XP like the others, capped. Calm under reduced
+  motion: slower, fewer, no sway. Next: K, the balloons drawn as balloons
+  and a pop that bursts.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

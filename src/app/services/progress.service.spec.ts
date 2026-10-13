@@ -1002,13 +1002,13 @@ describe('ProgressService and the bonus game a round earns', () => {
     expect(service.useBonus()).toBeFalse();
   });
 
-  it('picks one of the two games at random, and keeps it with the bonus', () => {
+  it('picks one of the three games at random, and keeps it with the bonus', () => {
     const picked = new Set<string>();
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 60; i++) {
       service.grantBonus();
       picked.add(service.bonusGame()!);
     }
-    expect(Array.from(picked).sort()).toEqual(['jump', 'pong']);
+    expect(Array.from(picked).sort()).toEqual(['balloons', 'jump', 'pong']);
     service.grantBonus('jump');
     expect(service.bonusGame()).toBe('jump');
     expect(service.bonusGame()).toBe('jump');
