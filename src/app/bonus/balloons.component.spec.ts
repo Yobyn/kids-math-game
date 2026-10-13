@@ -38,6 +38,9 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
   afterEach(() => {
     component.ngOnDestroy();
     localStorage.clear();
+    // Start brings a board that runs past the screen up into view
+    // (board-view.ts); the page goes back, so no later test measures a scrolled one
+    window.scrollTo(0, 0);
   });
 
   /** Started by hand, with one balloon up where the test wants it and nothing else coming. */
