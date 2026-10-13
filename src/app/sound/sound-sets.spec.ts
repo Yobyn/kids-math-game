@@ -1,7 +1,7 @@
 import { SOUND_SET_IDS, SoundEvent } from './sound-choice';
 import { Note, SOUND_SETS, frequency, length, notesFor, peak, soundSet } from './sound-sets';
 
-const EVENTS: SoundEvent[] = ['correct', 'tryAgain', 'tap', 'star', 'roundDone'];
+const EVENTS: SoundEvent[] = ['correct', 'tryAgain', 'tap', 'star', 'roundDone', 'pop'];
 
 /**
  * Where a sound ends up: the lowest pitch among the notes that start last
@@ -27,7 +27,7 @@ describe('sound sets', () => {
   });
 
   it('keeps every sound short enough not to hold the game up', () => {
-    const longest: { [event in SoundEvent]: number } = { tap: 0.08, tryAgain: 0.8, correct: 1, star: 0.8, roundDone: 2 };
+    const longest: { [event in SoundEvent]: number } = { tap: 0.08, tryAgain: 0.8, correct: 1, star: 0.8, roundDone: 2, pop: 0.15 };
     SOUND_SETS.forEach(set => EVENTS.forEach(event =>
       expect(length(set.sounds[event])).toBeLessThanOrEqual(longest[event], `${set.id} ${event}`)));
   });
@@ -55,6 +55,15 @@ describe('sound sets', () => {
       expect(peak(set.sounds.tap)).toBeLessThan(peak(set.sounds[event]), `${set.id} ${event}`);
       expect(length(set.sounds.tap)).toBeLessThan(length(set.sounds[event]), `${set.id} ${event}`);
     }));
+  });
+
+  it('pops a balloon softly: short, quieter than a right answer, and falling (Ballonnen, 2026-10-13)', () => {
+    SOUND_SETS.forEach(set => {
+      const pop = set.sounds.pop;
+      expect(length(pop)).toBeLessThanOrEqual(0.15, set.id);
+      expect(peak(pop)).toBeLessThan(peak(set.sounds.correct), set.id);
+      expect(lastPitch(pop)).toBeLessThan(pop[0].m, set.id);
+    });
   });
 
   it('uses no harsh waves: square only for the retro set, and quietly', () => {

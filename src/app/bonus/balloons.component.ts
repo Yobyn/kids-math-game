@@ -12,12 +12,15 @@ import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { prefersReducedMotion, rgb } from './drawing';
 import { showWholeBoard } from './board-view';
-import { BalloonEvent, Balloons, MISSES_ALLOWED, newBalloons, pop, step, swayedX } from './balloons';
+import { Balloon, BalloonEvent, Balloons, MISSES_ALLOWED, SWAY_SPEED, newBalloons, pop, step, swayedX } from './balloons';
+import { Burst, ageBursts, newBurst, piecesOf } from './pop-burst';
 
 /** The board is a little taller than wide: room for the balloons to rise. */
 export const BOARD_SHAPE = 1.25;
 /** How hard a balloon getting away nudges the field: a small sigh, not a burst. */
 export const MISS_PULSE = 0.12;
+/** The end is the biggest burst of the three games: two rings of sparks, and every balloon still up pops. */
+export const END_RINGS = 2;
 
 /**
  * The third bonus game (Yobyn, 2026-10-13): balloons float up and a tap
@@ -56,6 +59,8 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
   finished = false;
 
   readonly calm = prefersReducedMotion();
+  /** Balloons bursting into pieces, drawn until the pieces fade (pop-burst.ts); none under reduced motion. */
+  bursts: Burst[] = [];
   private frame = 0;
   private lastAt = 0;
   private context: CanvasRenderingContext2D | null = null;
@@ -144,20 +149,23 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     const seconds = Math.min(0.05, Math.max(0, (at - this.lastAt) / 1000));
     this.lastAt = at;
     this.advance(seconds);
-    if (!this.ended) {
+    if (!this.ended || this.bursts.length) {
       this.frame = requestAnimationFrame(next => this.loop(next));
     }
   }
 
   /** One frame: the balloons rise, the field answers. */
   advance(seconds: number) {
-    if (!this.started || this.ended) {
+    if (!this.started) {
       return;
     }
-    const { game, events } = step(this.game, seconds);
-    this.game = game;
-    events.forEach(event => this.answer(event));
-    this.show();
+    this.bursts = ageBursts(this.bursts, seconds);
+    if (!this.ended) {
+      const { game, events } = step(this.game, seconds);
+      this.game = game;
+      events.forEach(event => this.answer(event));
+      this.show();
+    }
     this.draw();
   }
 
@@ -173,9 +181,14 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Pops the balloon a tap at (x, y) on the board reaches. */
   popAt(x: number, y: number) {
-    const { game, event } = pop(this.game, x, y);
+    const before = this.game;
+    const { game, event } = pop(before, x, y);
     this.game = game;
     if (event) {
+      const popped = before.balloons.find(balloon => !game.balloons.includes(balloon));
+      if (popped) {
+        this.burst(popped, event.x);
+      }
       this.answer(event);
       this.show();
       this.draw();
@@ -213,7 +226,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     if (event.kind === 'pop') {
       this.pulseService.pulse(HIT_PULSE);
       this.pulseService.tap(left + event.x, top + event.y);
-      this.soundService.playTap();
+      this.soundService.playPop();
       return;
     }
     if (event.kind === 'miss') {
@@ -221,12 +234,29 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.pulseService.pulse(END_PULSE);
-    for (let i = 0; i < END_SPARKS; i++) {
-      const angle = (i / END_SPARKS) * Math.PI * 2;
-      this.pulseService.tap(left + event.x + Math.cos(angle) * END_SPARK_RADIUS, top + event.y + Math.sin(angle) * END_SPARK_RADIUS);
+    for (let ring = 1; ring <= END_RINGS; ring++) {
+      for (let i = 0; i < END_SPARKS; i++) {
+        const angle = ((i + ring / 2) / END_SPARKS) * Math.PI * 2;
+        const reach = END_SPARK_RADIUS * ring;
+        this.pulseService.tap(left + event.x + Math.cos(angle) * reach, top + event.y + Math.sin(angle) * reach);
+      }
     }
+    // Every balloon still up pops with it, each with its sparks
+    this.game.balloons.forEach(balloon => {
+      const x = swayedX(balloon, this.game.elapsed, this.calm);
+      this.pulseService.tap(left + x, top + balloon.y);
+      this.burst(balloon, x);
+    });
+    this.game = { ...this.game, balloons: [] };
     if (this.game.points > 0) {
       this.soundService.playSuccess();
+    }
+  }
+
+  /** A popped balloon flies apart into pieces, unless the child's device asks for calm. */
+  private burst(balloon: Balloon, x: number) {
+    if (!this.calm) {
+      this.bursts = [...this.bursts, newBurst(x, balloon.y, balloon.radius, balloon.hue, balloon.phase)];
     }
   }
 
@@ -248,38 +278,86 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!context) {
       return;
     }
-    const { width, height, balloons, elapsed, calm } = this.game;
+    const { width, height, balloons, elapsed } = this.game;
     context.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
     // Cleared, never filled: the field behind shows through
     context.clearRect(0, 0, width, height);
     context.save();
-    balloons.forEach(balloon => {
-      const x = swayedX(balloon, elapsed, calm);
-      const { y, radius } = balloon;
-      const colour = fieldColour(balloon.hue);
-      // The string, hanging from the knot
-      context.shadowBlur = 0;
-      context.strokeStyle = 'rgba(255, 255, 255, 0.55)';
-      context.lineWidth = 1.5;
-      context.beginPath();
-      context.moveTo(x, y + radius * 1.15);
-      context.quadraticCurveTo(x - radius * 0.3, y + radius * 1.7, x, y + radius * 2.3);
-      context.stroke();
-      // The balloon, a little taller than wide, glowing in the field's colour where it is
-      context.shadowColor = rgb(colour);
-      context.shadowBlur = 16;
-      context.fillStyle = `rgba(${colour.r}, ${colour.g}, ${colour.b}, 0.9)`;
-      context.beginPath();
-      context.ellipse(x, y, radius, radius * 1.15, 0, 0, Math.PI * 2);
-      context.fill();
-      // The knot
-      context.beginPath();
-      context.moveTo(x - radius * 0.18, y + radius * 1.25);
-      context.lineTo(x + radius * 0.18, y + radius * 1.25);
-      context.lineTo(x, y + radius * 1.1);
-      context.closePath();
-      context.fill();
-    });
+    balloons.forEach(balloon => this.drawBalloon(context, balloon, elapsed));
+    this.bursts.forEach(burst => this.drawBurst(context, burst));
     context.restore();
   }
+
+  /** A balloon: its string swaying behind it, the knot, the skin lit from the top left, and a shine. */
+  private drawBalloon(context: CanvasRenderingContext2D, balloon: Balloon, elapsed: number) {
+    const calm = this.calm;
+    const x = swayedX(balloon, elapsed, calm);
+    const { y, radius } = balloon;
+    const colour = fieldColour(balloon.hue);
+    const tall = radius * 1.15;
+
+    // The string trails the sway: it bends the other way
+    const swing = calm ? 0.25 : -Math.sin(elapsed * SWAY_SPEED + balloon.phase) * 0.6;
+    context.shadowBlur = 0;
+    context.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    context.lineWidth = 1.5;
+    context.beginPath();
+    context.moveTo(x, y + tall + radius * 0.12);
+    context.bezierCurveTo(
+      x + radius * swing, y + tall + radius * 0.6,
+      x - radius * swing, y + tall + radius * 1.0,
+      x + radius * swing * 0.5, y + tall + radius * 1.5);
+    context.stroke();
+
+    // The skin: light where the light falls, the field's colour, deeper at the edge
+    const skin = context.createRadialGradient(x - radius * 0.35, y - tall * 0.4, radius * 0.1, x, y, tall);
+    skin.addColorStop(0, `rgb(${mix(colour.r)}, ${mix(colour.g)}, ${mix(colour.b)})`);
+    skin.addColorStop(0.55, rgb(colour));
+    skin.addColorStop(1, `rgb(${Math.round(colour.r * 0.6)}, ${Math.round(colour.g * 0.6)}, ${Math.round(colour.b * 0.6)})`);
+    context.shadowColor = rgb(colour);
+    context.shadowBlur = 14;
+    context.fillStyle = skin;
+    context.beginPath();
+    context.ellipse(x, y, radius, tall, 0, 0, Math.PI * 2);
+    context.fill();
+
+    // The knot, tied at the bottom
+    context.shadowBlur = 0;
+    context.fillStyle = `rgb(${Math.round(colour.r * 0.7)}, ${Math.round(colour.g * 0.7)}, ${Math.round(colour.b * 0.7)})`;
+    context.beginPath();
+    context.moveTo(x, y + tall - radius * 0.05);
+    context.lineTo(x - radius * 0.16, y + tall + radius * 0.14);
+    context.lineTo(x + radius * 0.16, y + tall + radius * 0.14);
+    context.closePath();
+    context.fill();
+
+    // The shine
+    context.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    context.beginPath();
+    context.ellipse(x - radius * 0.38, y - tall * 0.42, radius * 0.16, radius * 0.3, -0.5, 0, Math.PI * 2);
+    context.fill();
+  }
+
+  /** The pieces of a popped balloon, flying apart and fading. */
+  private drawBurst(context: CanvasRenderingContext2D, burst: Burst) {
+    const { r, g, b } = fieldColour(burst.hue);
+    piecesOf(burst).forEach(piece => {
+      context.save();
+      context.translate(piece.x, piece.y);
+      context.rotate(piece.angle);
+      context.fillStyle = `rgba(${r}, ${g}, ${b}, ${piece.alpha.toFixed(3)})`;
+      context.beginPath();
+      // A curled scrap of skin
+      context.moveTo(-piece.size, 0);
+      context.quadraticCurveTo(0, -piece.size * 0.9, piece.size, 0);
+      context.quadraticCurveTo(0, -piece.size * 0.3, -piece.size, 0);
+      context.fill();
+      context.restore();
+    });
+  }
+}
+
+/** A colour channel lifted most of the way to white: the lit side of the skin. */
+function mix(channel: number): number {
+  return Math.round(channel + (255 - channel) * 0.55);
 }

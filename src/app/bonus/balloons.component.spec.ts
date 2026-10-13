@@ -2,7 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { BalloonsComponent, MISS_PULSE } from './balloons.component';
+import { BalloonsComponent, END_RINGS, MISS_PULSE } from './balloons.component';
+import { BURST_LIFE } from './pop-burst';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { ProgressService } from '../services/progress.service';
@@ -93,8 +94,8 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     again.componentInstance.ngOnDestroy();
   });
 
-  it('pops a balloon tapped on the board: a point, the field swells and sparks there, a soft blip', () => {
-    const blip = spyOn(TestBed.inject(SoundService), 'playTap');
+  it('pops a balloon tapped on the board: a point, the field swells and sparks there, a soft pop', () => {
+    const blip = spyOn(TestBed.inject(SoundService), 'playPop');
     const balloon = playWith({});
     const canvas = fixture.nativeElement.querySelector('canvas') as HTMLCanvasElement;
     const box = canvas.getBoundingClientRect();
@@ -107,6 +108,47 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     expect(pulses.pulse).toHaveBeenCalledWith(HIT_PULSE);
     expect(pulses.tap).toHaveBeenCalledWith(box.left + x, box.top + balloon.y);
     expect(blip).toHaveBeenCalled();
+  });
+
+  it('bursts a popped balloon into pieces that fly apart and fade', () => {
+    (component as { calm: boolean }).calm = false;
+    const balloon = playWith({});
+    component.popAt(swayedX(balloon, component.game.elapsed, false), balloon.y);
+    expect(component.bursts.length).toBe(1);
+    expect(component.bursts[0]).toEqual(jasmine.objectContaining({ y: balloon.y, radius: balloon.radius, hue: balloon.hue }));
+    component.advance(BURST_LIFE / 2);
+    expect(component.bursts.length).toBe(1);
+    component.advance(BURST_LIFE);
+    expect(component.bursts).toEqual([]);
+  });
+
+  it('pops without pieces under reduced motion', () => {
+    (component as { calm: boolean }).calm = true;
+    const balloon = playWith({});
+    component.popAt(balloon.x, balloon.y);
+    expect(component.points).toBe(1);
+    expect(component.bursts).toEqual([]);
+  });
+
+  it('ends with the biggest burst of the games: two rings of sparks, and every balloon still up pops', () => {
+    (component as { calm: boolean }).calm = false;
+    playWith({ y: 5 });
+    const game = component.game;
+    const still: Balloon[] = [
+      { id: 60, x: 60, y: game.height * 0.6, radius: 24, hue: 0.2, phase: 0 },
+      { id: 61, x: 200, y: game.height * 0.4, radius: 24, hue: 0.8, phase: 1 }
+    ];
+    component.game = { ...game, balloons: [...game.balloons, ...still], missed: MISSES_ALLOWED - 1 };
+    for (let i = 0; i < 20 && !component.ended; i++) {
+      component.advance(0.05);
+    }
+    expect(component.ended).toBeTrue();
+    expect(component.game.balloons).toEqual([]);
+    expect(component.bursts.length).toBe(still.length);
+    expect((pulses.tap as jasmine.Spy).calls.count()).toBeGreaterThanOrEqual(END_SPARKS * END_RINGS + still.length);
+    // the pieces go on flying after the end, then are gone
+    component.advance(BURST_LIFE);
+    expect(component.bursts).toEqual([]);
   });
 
   it('leaves the balloons be when a tap lands on nothing', () => {

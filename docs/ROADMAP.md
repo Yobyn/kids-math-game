@@ -446,6 +446,17 @@ middle, hard the end), one groep per run.
   "Balloons" / "Globos"); XP like the others, capped. Calm under reduced
   motion: slower, fewer, no sway. Next: K, the balloons drawn as balloons
   and a pop that bursts.
+- **K. Ballonnen polished: DONE (2026-10-14).** The balloons are drawn as
+  balloons: skin lit from the top left in the field's colour where they
+  are, a shine, a knot, and a string that trails the sway. A pop bursts the
+  balloon into eight curled pieces that fly out, slow, drop a little and
+  fade in under half a second (`bonus/pop-burst.ts`, DOM-free, tested; none
+  under reduced motion), with a soft falling pop in each of the five sound
+  sets (`pop` in sound/sound-sets.ts: shorter and quieter than a right
+  answer, louder than a key press, silent with no sound). The end is the
+  biggest of the three games: two rings of sparks, and every balloon still
+  up bursts with its own spark, so the end card no longer sits over frozen
+  balloons. Next: L, the three games' shared look.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",
