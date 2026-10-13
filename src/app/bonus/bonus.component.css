@@ -26,6 +26,17 @@ h1 {
   color: var(--accent-magenta-text);
 }
 
+.bonus-hearts {
+  font-size: 1.4rem;
+  letter-spacing: 0.15rem;
+  color: var(--accent-magenta-text);
+}
+
+/* A balloon that got away: its heart stays, faded, so the count reads at a glance */
+.bonus-heart.lost {
+  opacity: 0.25;
+}
+
 .bonus-board {
   position: relative;
   width: 100%;

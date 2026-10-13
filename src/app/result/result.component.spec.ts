@@ -1128,12 +1128,12 @@ describe('ResultComponent offering the bonus game a round earns', () => {
     open(10);
     expect(progress.hasBonus()).toBeTrue();
     expect(offer()).not.toBeNull();
-    const names = ['bonus-game', 'bonus-jump'].map(key => component.languageService.translate(key as any));
+    const names = ['bonus-game', 'bonus-jump', 'bonus-balloons'].map(key => component.languageService.translate(key as any));
     expect(names.some(name => offer()!.textContent!.includes(name))).toBeTrue();
   });
 
-  it('offers one of the two games at random, and the same one if the screen is opened again (Yobyn, 2026-10-10)', () => {
-    spyOn(Math, 'random').and.returnValue(0.9);
+  it('offers one of the games at random, and the same one if the screen is opened again (Yobyn, 2026-10-10)', () => {
+    spyOn(Math, 'random').and.returnValue(0.5);
     open(10);
     expect(progress.bonusGame()).toBe('jump');
     expect(offer()!.textContent).toContain('🏀');
@@ -1142,6 +1142,16 @@ describe('ResultComponent offering the bonus game a round earns', () => {
     fixture.detectChanges();
     expect(offer()!.textContent).toContain('🏓');
     expect(offer()!.textContent).toContain(component.languageService.translate('bonus-game'));
+  });
+
+  it('offers the balloon game by its own name and balloon, the third since 2026-10-13', () => {
+    open(10);
+    progress.grantBonus('balloons');
+    fixture.detectChanges();
+    expect(offer()!.textContent).toContain('🎈');
+    expect(offer()!.textContent).toContain(component.languageService.translate('bonus-balloons' as any));
+    offer()!.click();
+    expect(router.navigate).toHaveBeenCalledWith(['/bonus/balloons']);
   });
 
   it('opens it with the round let go, so coming back to this screen cannot pay the round twice', () => {

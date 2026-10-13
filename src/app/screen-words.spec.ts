@@ -20,6 +20,7 @@ import { SELECT_WORDS } from './grade-select/select-words';
 import { PLAY_WORDS } from './question/play-words';
 import { ITEM_WORDS } from './avatar/item-words';
 import { BonusComponent } from './bonus/bonus.component';
+import { BalloonsComponent } from './bonus/balloons.component';
 import { BONUS_WORDS } from './bonus/bonus-words';
 
 /**
@@ -41,7 +42,8 @@ describe('a screen fetched on its own brings its own words', () => {
     ['progress', ProgressComponent, [ITEM_WORDS]],
     ['scrapbook', ScrapbookComponent, [ITEM_WORDS]],
     ['dressing up', AvatarChooserComponent, [ITEM_WORDS]],
-    ['bonus game', BonusComponent, [BONUS_WORDS]]
+    ['bonus game', BonusComponent, [BONUS_WORDS]],
+    ['balloon game', BalloonsComponent, [BONUS_WORDS]]
   ];
 
   afterEach(() => localStorage.clear());
