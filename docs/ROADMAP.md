@@ -416,6 +416,15 @@ middle, hard the end), one groep per run.
   with nothing between). A thumb on the seam started a new round instead
   of the game just earned. They now share a width (16rem) with 16px
   between them, one over the other on every screen.
+- **Phone improvement 2: the whole bonus board on a short phone
+  (2026-10-13).** Both ball games looked at on 320 × 568 (iPhone SE size),
+  360 × 640 and 390 × 844 in nl, en and es. On the shortest, the header and
+  the score left 246px for a board that is never under 280px, so its bottom,
+  where the paddle slides and Springbal rolls, ran 20px past the screen; a
+  drag on the board cannot scroll (it steers), so a child could not bring it
+  up mid-game. Now Start scrolls the page just far enough to show the whole
+  board and a 16px margin, never pushing its top off (`bonus/board-view.ts`);
+  the score stays in view above it. On taller phones it moves 2px at most.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

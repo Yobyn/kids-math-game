@@ -12,6 +12,7 @@ import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { prefersReducedMotion, rgb, roundRect } from './drawing';
+import { showWholeBoard } from './board-view';
 import { Jumper, JumperEvent, jump, newJumper, step } from './jumper';
 
 /** The board is about square: wide enough to see what is coming, short enough to fit under the score. */
@@ -127,6 +128,10 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.fit();
     this.started = true;
+    // On a short phone the board runs past the screen: bring it all up
+    if (this.boardRef) {
+      showWholeBoard(this.boardRef.nativeElement, BOARD_MARGIN);
+    }
     this.zone.runOutsideAngular(() => {
       this.lastAt = performance.now();
       this.frame = requestAnimationFrame(at => this.loop(at));
