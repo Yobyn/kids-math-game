@@ -95,6 +95,21 @@ describe('SoundService', () => {
     ]);
   });
 
+  it('pops a balloon in the chosen set, and not at all with no sound', async () => {
+    service.choose('bubbles');
+    await settle();
+    player.played = [];
+    service.playPop();
+    await settle();
+    expect(player.played).toEqual([['bubbles', 'pop', 0]]);
+
+    service.choose('off');
+    player.played = [];
+    service.playPop();
+    await settle();
+    expect(player.played).toEqual([]);
+  });
+
   it('makes no sound, and does not even fetch the sounds, when there is no sound', async () => {
     localStorage.setItem('soundSet', 'off');
     const quiet = withFakePlayer(new SoundService());

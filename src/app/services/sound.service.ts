@@ -76,6 +76,11 @@ export class SoundService {
     this.play('tap');
   }
 
+  /** A balloon popped in the balloon game: short, soft, falling. */
+  playPop() {
+    this.play('pop');
+  }
+
   /** A star landing on the result screen: 0, 1 or 2, each a step higher. */
   playStar(step: number) {
     this.play('star', step);

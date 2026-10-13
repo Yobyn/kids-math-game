@@ -17,7 +17,8 @@ export const CHOICE_KEY = 'soundSet';
 export const LEGACY_KEY = 'soundEnabled';
 
 /** What the game makes a sound for. */
-export type SoundEvent = 'correct' | 'tryAgain' | 'tap' | 'star' | 'roundDone';
+/** What the game makes a sound for: `pop` is a balloon popped in Ballonnen (bonus/balloons.ts). */
+export type SoundEvent = 'correct' | 'tryAgain' | 'tap' | 'star' | 'roundDone' | 'pop';
 
 /**
  * Turns whatever is stored into a choice. Anything unrecognised is the
