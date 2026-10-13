@@ -11,6 +11,7 @@ import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { prefersReducedMotion, rgb, roundRect } from './drawing';
+import { showWholeBoard } from './board-view';
 import { Pong, PongEvent, movePaddle, newPong, step } from './pong';
 
 /** How far a held arrow key moves the paddle, in screen widths a second. */
@@ -143,6 +144,10 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.fit();
     this.started = true;
+    // On a short phone the board runs past the screen: bring it all up
+    if (this.boardRef) {
+      showWholeBoard(this.boardRef.nativeElement, BOARD_MARGIN);
+    }
     this.zone.runOutsideAngular(() => {
       this.lastAt = performance.now();
       this.frame = requestAnimationFrame(at => this.loop(at));

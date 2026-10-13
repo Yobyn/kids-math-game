@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { JumpComponent } from './jump.component';
-import { END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.component';
+import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
@@ -57,6 +57,24 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
     // and a tap before Start does not bounce
     component.tap();
     expect(onGround(component.game)).toBeTrue();
+  });
+
+  it('brings the whole board on screen as it starts, on a phone too short for it (320 × 568)', () => {
+    // The header and the score left 246px of a 568px screen and the board
+    // is never under MIN_BOARD: its bottom ran 18px past the screen
+    const board = fixture.nativeElement.querySelector('.bonus-board') as HTMLElement;
+    spyOn(board, 'getBoundingClientRect').and.returnValue({ top: 306, bottom: window.innerHeight + 18 } as DOMRect);
+    const scroll = spyOn(window, 'scrollBy');
+    component.start();
+    expect(scroll).toHaveBeenCalledOnceWith(0, 18 + BOARD_MARGIN);
+  });
+
+  it('leaves the page where it is when the board is on screen already', () => {
+    const board = fixture.nativeElement.querySelector('.bonus-board') as HTMLElement;
+    spyOn(board, 'getBoundingClientRect').and.returnValue({ top: 306, bottom: window.innerHeight - 40 } as DOMRect);
+    const scroll = spyOn(window, 'scrollBy');
+    component.start();
+    expect(scroll).not.toHaveBeenCalled();
   });
 
   it('spends the game as it starts: leaving half way does not buy another go', () => {

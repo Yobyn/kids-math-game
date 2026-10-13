@@ -138,6 +138,24 @@ describe('BonusComponent, the bonus game after a round', () => {
     }
   });
 
+  it('brings the whole board on screen as it starts, on a phone too short for it (320 × 568)', () => {
+    // The header and the score left 246px of a 568px screen and the board
+    // is never under MIN_BOARD: its bottom ran 18px past the screen
+    const board = fixture.nativeElement.querySelector('.bonus-board') as HTMLElement;
+    spyOn(board, 'getBoundingClientRect').and.returnValue({ top: 306, bottom: window.innerHeight + 18 } as DOMRect);
+    const scroll = spyOn(window, 'scrollBy');
+    component.start();
+    expect(scroll).toHaveBeenCalledOnceWith(0, 18 + BOARD_MARGIN);
+  });
+
+  it('leaves the page where it is when the board is on screen already', () => {
+    const board = fixture.nativeElement.querySelector('.bonus-board') as HTMLElement;
+    spyOn(board, 'getBoundingClientRect').and.returnValue({ top: 306, bottom: window.innerHeight - 40 } as DOMRect);
+    const scroll = spyOn(window, 'scrollBy');
+    component.start();
+    expect(scroll).not.toHaveBeenCalled();
+  });
+
   it('spends the round\'s game as it starts, so leaving half way does not buy another', () => {
     const progress = TestBed.inject(ProgressService);
     spyOn(window, 'requestAnimationFrame').and.returnValue(0);
