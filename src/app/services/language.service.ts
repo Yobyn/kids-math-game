@@ -74,6 +74,8 @@ export type TranslationKeys =
   | 'balloons-board'
   | 'balloons-hearts'
   | 'balloons-finished'
+  | 'bonus-best'
+  | 'bonus-new-best'
   | 'bonus-game'
   | 'bonus-jump'
   | 'bonus-balloons'

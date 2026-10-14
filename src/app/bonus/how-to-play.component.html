@@ -1,0 +1,21 @@
+<svg class="how" viewBox="0 0 120 64" aria-hidden="true" focusable="false" [ngSwitch]="game">
+  <!-- Balspel: the ball comes down onto the paddle as it slides under it -->
+  <g *ngSwitchCase="'pong'">
+    <rect class="paddle slide" x="44" y="54" width="32" height="6" rx="3"></rect>
+    <circle class="ball bounce" cx="60" cy="47" r="6"></circle>
+  </g>
+  <!-- Springbal: the ball hops over a block on the ground -->
+  <g *ngSwitchCase="'jump'">
+    <rect class="ground" x="4" y="58" width="112" height="2" rx="1"></rect>
+    <rect class="block" x="54" y="44" width="12" height="14" rx="3"></rect>
+    <circle class="ball hop" cx="24" cy="52" r="6"></circle>
+  </g>
+  <!-- Ballonnen: a balloon floats up and a finger taps it -->
+  <g *ngSwitchCase="'balloons'">
+    <g class="rise">
+      <ellipse class="balloon" cx="60" cy="30" rx="11" ry="13"></ellipse>
+      <path class="string" d="M60 43 q-3 6 0 12"></path>
+    </g>
+    <text class="finger tapping" x="74" y="40">👆</text>
+  </g>
+</svg>

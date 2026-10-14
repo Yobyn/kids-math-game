@@ -457,6 +457,21 @@ middle, hard the end), one groep per run.
   biggest of the three games: two rings of sparks, and every balloon still
   up bursts with its own spark, so the end card no longer sits over frozen
   balloons. Next: L, the three games' shared look.
+- **L. The three games' shared look and feel: DONE (2026-10-14).** Each
+  start card shows how to play as a small moving picture above the words
+  (`bonus/how-to-play.component.ts`: the ball dropping onto the sliding
+  paddle, the ball hopping a block, a balloon rising to a tapping finger;
+  still under reduced motion). Start counts 3-2-1 big over the board before
+  anything moves: the ball stays put (the paddle can already be placed), a
+  tap does not bounce, no balloon comes. Every point floats a "+1" up from
+  where it was scored and fades (only fades under reduced motion). The end
+  card shows that game's best so far for this child, and "🏆 Nieuw record!"
+  with a pop when the game just played beat an earlier best (the first game
+  sets a best, it beats none). Shared rules in `bonus/game-feel.ts`, bests
+  in `bonus/bonus-best.ts`, both in the bonus chunk; the progress service
+  only names the child's key (`ownerKey`). Cards now sit in the middle of
+  the board so the taller start card fits a 282px board. Next: M, Balspel's
+  play.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

@@ -17,7 +17,9 @@ export type BonusKey =
   | 'balloons-how'
   | 'balloons-board'
   | 'balloons-hearts'
-  | 'balloons-finished';
+  | 'balloons-finished'
+  | 'bonus-best'
+  | 'bonus-new-best';
 
 export const BONUS_WORDS: Words<BonusKey> = {
   en: {
@@ -36,7 +38,9 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'balloons-how': 'Tap the balloons to pop them. Do not let three float away!',
     'balloons-board': 'Balloons floating up to be popped',
     'balloons-hearts': 'balloons may still float away',
-    'balloons-finished': 'That was the last balloon!'
+    'balloons-finished': 'That was the last balloon!',
+    'bonus-best': 'Best so far',
+    'bonus-new-best': 'New best!'
   },
   nl: {
     'bonus-title': 'Balspel',
@@ -54,7 +58,9 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'balloons-how': 'Tik op de ballonnen om ze te laten knallen. Laat er geen drie wegvliegen!',
     'balloons-board': 'Ballonnen die omhoog zweven om te knallen',
     'balloons-hearts': 'ballonnen mogen nog wegvliegen',
-    'balloons-finished': 'Dat was de laatste ballon!'
+    'balloons-finished': 'Dat was de laatste ballon!',
+    'bonus-best': 'Beste tot nu toe',
+    'bonus-new-best': 'Nieuw record!'
   },
   es: {
     'bonus-title': 'Juego de pelota',
@@ -72,6 +78,8 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'balloons-how': 'Toca los globos para reventarlos. ¡Que no se escapen tres!',
     'balloons-board': 'Globos que suben para reventarlos',
     'balloons-hearts': 'globos pueden escaparse todavía',
-    'balloons-finished': '¡Era el último globo!'
+    'balloons-finished': '¡Era el último globo!',
+    'bonus-best': 'Mejor hasta ahora',
+    'bonus-new-best': '¡Nuevo récord!'
   }
 };
