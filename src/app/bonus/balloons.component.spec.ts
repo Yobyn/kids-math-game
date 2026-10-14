@@ -10,6 +10,7 @@ import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
 import { Balloon, MISSES_ALLOWED, balloonRadius, swayedX } from './balloons';
+import { HowToPlayComponent } from './how-to-play.component';
 
 describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
   let fixture: ComponentFixture<BalloonsComponent>;
@@ -24,7 +25,7 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     new ProgressService().grantBonus('balloons');
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule, HttpClientTestingModule],
-      declarations: [BalloonsComponent]
+      declarations: [BalloonsComponent, HowToPlayComponent]
     }).compileComponents();
     fixture = TestBed.createComponent(BalloonsComponent);
     component = fixture.componentInstance;
@@ -207,6 +208,49 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     expect(card).toContain('laatste ballon');
     expect(card).not.toContain('Goed gespeeld');
     expect(component.xpWon).toBe(BONUS_XP_CAP);
+  });
+
+  it('shows how to play on the start card, as a picture as well as words', () => {
+    const picture = fixture.nativeElement.querySelector('.bonus-card app-how-to-play');
+    expect(picture.querySelector('.balloon')).not.toBeNull();
+  });
+
+  it('counts 3, 2, 1 after Start before the first balloon comes, and pops nothing during it', () => {
+    spyOn(window, 'requestAnimationFrame').and.returnValue(0);
+    component.start();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.bonus-countdown').textContent.trim()).toBe('3');
+    component.advance(2.5);
+    expect(component.countdown).toBe(1);
+    expect(component.game.elapsed).toBe(0);
+    component.game = { ...component.game, balloons: [{ id: 9, x: 100, y: 100, radius: 24, hue: 0.5, phase: 0 }] };
+    component.popAt(100, 100);
+    expect(component.points).toBe(0);
+    component.advance(0.6);
+    expect(component.countdown).toBe(0);
+    component.popAt(swayedX(component.game.balloons[0], component.game.elapsed, component.calm), 100);
+    expect(component.points).toBe(1);
+  });
+
+  it('floats a +1 up where a balloon was popped', () => {
+    const balloon = playWith({});
+    const x = swayedX(balloon, component.game.elapsed, component.calm);
+    component.popAt(x, balloon.y);
+    expect(component.floats.length).toBe(1);
+    expect(component.floats[0]).toEqual(jasmine.objectContaining({ x, y: balloon.y, text: '+1' }));
+  });
+
+  it('keeps no best before a game with points, and shows the first one without "new best"', () => {
+    expect(fixture.nativeElement.querySelector('.bonus-best')).toBeNull();
+    component.started = true;
+    component.game = { ...component.game, points: 6, finishAt: 0, untilNext: 1e9 };
+    component.advance(0.05);
+    fixture.detectChanges();
+    expect(component.best).toBe(6);
+    expect(component.newBest).toBeFalse();
+    const best = fixture.nativeElement.querySelector('[role="status"] .bonus-best');
+    expect(best.textContent).toContain('Beste tot nu toe: 6');
+    expect(best.querySelector('.bonus-new-best')).toBeNull();
   });
 
   it('goes back to choosing what to play next', () => {

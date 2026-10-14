@@ -4,10 +4,12 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { BOARD_MARGIN, BonusComponent, CHILD_BAND, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
-import { BALL_RADIUS } from './pong';
+import { BALL_RADIUS, movePaddle } from './pong';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
+import { HowToPlayComponent } from './how-to-play.component';
+import { bonusBest, recordBonusBest } from './bonus-best';
 
 describe('BonusComponent, the bonus game after a round', () => {
   let fixture: ComponentFixture<BonusComponent>;
@@ -21,7 +23,7 @@ describe('BonusComponent, the bonus game after a round', () => {
     new ProgressService().grantBonus();
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule, HttpClientTestingModule],
-      declarations: [BonusComponent]
+      declarations: [BonusComponent, HowToPlayComponent]
     }).compileComponents();
     fixture = TestBed.createComponent(BonusComponent);
     component = fixture.componentInstance;
@@ -96,6 +98,66 @@ describe('BonusComponent, the bonus game after a round', () => {
     expect(card.textContent).toContain('Goed gespeeld!');
     expect(card.querySelector('.bonus-won-number').textContent.trim()).toBe('4');
     expect(END_PULSE).toBeGreaterThan(HIT_PULSE);
+  });
+
+  it('shows how to play on the start card, as a picture as well as words', () => {
+    const picture = fixture.nativeElement.querySelector('.bonus-card app-how-to-play');
+    expect(picture).not.toBeNull();
+    expect(picture.querySelector('.paddle')).not.toBeNull();
+  });
+
+  it('counts 3, 2, 1 after Start, the ball still until it is over, the paddle free to move', () => {
+    spyOn(window, 'requestAnimationFrame').and.returnValue(0);
+    component.start();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.bonus-countdown').textContent.trim()).toBe('3');
+    const ball = component.game.ball;
+    component.advance(1);
+    expect(component.countdown).toBe(2);
+    expect(component.game.ball).toEqual(ball);
+    const was = component.game.paddle.x;
+    component.game = movePaddle(component.game, was + 50);
+    component.advance(0.1);
+    expect(component.game.paddle.x).toBeGreaterThan(was);
+    component.advance(1.5);
+    expect(component.countdown).toBe(1);
+    component.advance(0.6);
+    fixture.detectChanges();
+    expect(component.countdown).toBe(0);
+    expect(fixture.nativeElement.querySelector('.bonus-countdown')).toBeNull();
+    component.advance(0.05);
+    expect(component.game.ball).not.toEqual(ball);
+  });
+
+  it('floats a +1 up from the paddle on every hit, and lets it fade', () => {
+    const paddle = component.game.paddle;
+    playWithBall(paddle.x, paddle.y - BALL_RADIUS - 2, 0, 300);
+    component.advance(0.03);
+    expect(component.floats.length).toBe(1);
+    expect(component.floats[0].text).toBe('+1');
+    expect(component.floats[0].y).toBeLessThan(paddle.y);
+    component.advance(0.05);
+    for (let i = 0; i < 20; i++) {
+      component.game = { ...component.game, ball: { ...component.game.ball, y: component.game.height / 3, vy: -50 } };
+      component.advance(0.05);
+    }
+    expect(component.floats).toEqual([]);
+  });
+
+  it('shows this game\'s best on the end card, and says so when it is beaten', () => {
+    recordBonusBest('bonusBest:guest', 'pong', 3);
+    component.started = true;
+    component.game = { ...component.game, hits: 4 };
+    playWithBall(10, component.game.height - 5, 0, 400);
+    component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
+    component.advance(0.05);
+    fixture.detectChanges();
+    const best = fixture.nativeElement.querySelector('[role="status"] .bonus-best');
+    expect(component.best).toBe(4);
+    expect(component.newBest).toBeTrue();
+    expect(best.textContent).toContain('Nieuw record!');
+    expect(best.textContent).toContain('Beste tot nu toe: 4');
+    expect(bonusBest('bonusBest:guest', 'pong')).toBe(4);
   });
 
   it('puts the paddle under the finger anywhere on the board', () => {
@@ -265,7 +327,7 @@ describe('BonusComponent without a finished round', () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule, HttpClientTestingModule],
-      declarations: [BonusComponent]
+      declarations: [BonusComponent, HowToPlayComponent]
     }).compileComponents();
   });
 

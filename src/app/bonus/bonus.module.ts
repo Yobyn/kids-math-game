@@ -4,10 +4,11 @@ import { SharedModule } from '../shared/shared.module';
 import { BonusComponent } from './bonus.component';
 import { JumpComponent } from './jump.component';
 import { BalloonsComponent } from './balloons.component';
+import { HowToPlayComponent } from './how-to-play.component';
 
 /** The bonus games, fetched only when one is opened: nothing of them is in the first load. */
 @NgModule({
-  declarations: [BonusComponent, JumpComponent, BalloonsComponent],
+  declarations: [BonusComponent, JumpComponent, BalloonsComponent, HowToPlayComponent],
   imports: [SharedModule, RouterModule.forChild([
     { path: '', component: BonusComponent },
     { path: 'jump', component: JumpComponent },

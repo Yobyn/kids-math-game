@@ -10,7 +10,9 @@ import { SoundService } from '../services/sound.service';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
-import { prefersReducedMotion, rgb } from './drawing';
+import { drawFloats, prefersReducedMotion, rgb } from './drawing';
+import { COUNTDOWN, FloatUp, ageFloats, countdownShown, newFloat } from './game-feel';
+import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
 import { Balloon, BalloonEvent, Balloons, MISSES_ALLOWED, SWAY_SPEED, newBalloons, pop, step, swayedX } from './balloons';
 import { Burst, ageBursts, newBurst, piecesOf } from './pop-burst';
@@ -57,11 +59,19 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   /** Ended at its finish rather than on the third balloon away. */
   finished = false;
+  /** The 3-2-1 after Start, as shown; 0 once the game is going (game-feel.ts). */
+  countdown = 0;
+  /** This game's best for this child, and whether the game just played beat it. */
+  best = 0;
+  newBest = false;
+  /** "+1"s floating up where points were scored. */
+  floats: FloatUp[] = [];
 
   readonly calm = prefersReducedMotion();
   /** Balloons bursting into pieces, drawn until the pieces fade (pop-burst.ts); none under reduced motion. */
   bursts: Burst[] = [];
   private frame = 0;
+  private countdownLeft = 0;
   private lastAt = 0;
   private context: CanvasRenderingContext2D | null = null;
   private ratio = 1;
@@ -134,6 +144,8 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.fit();
     this.started = true;
+    this.countdownLeft = COUNTDOWN;
+    this.countdown = COUNTDOWN;
     // On a short phone the board runs past the screen: bring it all up
     if (this.boardRef) {
       showWholeBoard(this.boardRef.nativeElement, BOARD_MARGIN);
@@ -159,6 +171,17 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.started) {
       return;
     }
+    // The 3-2-1: nothing moves until it is over
+    if (this.countdownLeft > 0) {
+      this.countdownLeft = Math.max(0, this.countdownLeft - seconds);
+      const shown = countdownShown(this.countdownLeft);
+      if (shown !== this.countdown) {
+        this.zone.run(() => this.countdown = shown);
+      }
+      this.draw();
+      return;
+    }
+    this.floats = ageFloats(this.floats, seconds);
     this.bursts = ageBursts(this.bursts, seconds);
     if (!this.ended) {
       const { game, events } = step(this.game, seconds);
@@ -181,6 +204,9 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Pops the balloon a tap at (x, y) on the board reaches. */
   popAt(x: number, y: number) {
+    if (this.countdownLeft > 0) {
+      return;
+    }
     const before = this.game;
     const { game, event } = pop(before, x, y);
     this.game = game;
@@ -209,6 +235,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
       this.ended = game.ended !== null;
       this.finished = game.ended === 'finished';
       if (ending) {
+        this.floats = [];
         this.pay();
       }
     });
@@ -224,6 +251,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     const left = box ? box.left : 0;
     const top = box ? box.top : 0;
     if (event.kind === 'pop') {
+      this.floats = [...this.floats, newFloat(event.x, event.y)];
       this.pulseService.pulse(HIT_PULSE);
       this.pulseService.tap(left + event.x, top + event.y);
       this.soundService.playPop();
@@ -264,6 +292,9 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
   private pay() {
     this.xpWon = bonusXp(this.points);
     this.progressService.addXp(this.xpWon);
+    const record = recordBonusBest(this.progressService.ownerKey(BONUS_BEST_KEY), 'balloons', this.points);
+    this.best = record.best;
+    this.newBest = record.beaten;
     this.avatarService.refresh();
     this.progressSync.push().subscribe();
   }
@@ -286,6 +317,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     balloons.forEach(balloon => this.drawBalloon(context, balloon, elapsed));
     this.bursts.forEach(burst => this.drawBurst(context, burst));
     context.restore();
+    drawFloats(context, this.floats, this.calm, rgb(fieldColour(0.5)));
   }
 
   /** A balloon: its string swaying behind it, the knot, the skin lit from the top left, and a shine. */

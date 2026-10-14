@@ -16,14 +16,21 @@
             (pointermove)="steer($event)"></canvas>
 
     <div class="bonus-card" *ngIf="!started">
+      <app-how-to-play game="pong"></app-how-to-play>
       <p>{{ languageService.translate('bonus-how') }}</p>
       <button type="button" class="bonus-button" (click)="start()">{{ languageService.translate('bonus-start') }}</button>
     </div>
+
+    <div class="bonus-countdown" *ngIf="countdown > 0" aria-live="assertive">{{ countdown }}</div>
 
     <div class="bonus-card" *ngIf="ended" role="status">
       <p class="bonus-well-played">{{ languageService.translate('bonus-well-played') }}</p>
       <p class="bonus-won"><span class="bonus-won-number">{{ hits }}</span> {{ languageService.translate('bonus-points-won') }}</p>
       <p class="bonus-xp">+{{ xpWon }} {{ languageService.translate('xp') }}</p>
+      <p class="bonus-best" *ngIf="best > 0">
+        <span class="bonus-new-best" *ngIf="newBest">🏆 {{ languageService.translate('bonus-new-best') }}</span>
+        {{ languageService.translate('bonus-best') }}: {{ best }}
+      </p>
       <button type="button" class="bonus-button" (click)="done()">{{ languageService.translate('bonus-done') }}</button>
     </div>
   </div>

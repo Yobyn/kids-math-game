@@ -10,7 +10,9 @@ import { SoundService } from '../services/sound.service';
 import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
-import { prefersReducedMotion, rgb, roundRect } from './drawing';
+import { drawFloats, prefersReducedMotion, rgb, roundRect } from './drawing';
+import { COUNTDOWN, FloatUp, ageFloats, countdownShown, newFloat } from './game-feel';
+import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
 import { Pong, PongEvent, movePaddle, newPong, step } from './pong';
 
@@ -62,12 +64,20 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
   childColour: string | null = null;
   /** The XP the game paid, once it has ended: one per bounce, capped (level-curve.ts). */
   xpWon = 0;
+  /** The 3-2-1 after Start, as shown; 0 once the game is going (game-feel.ts). */
+  countdown = 0;
+  /** This game's best for this child, and whether the game just played beat it. */
+  best = 0;
+  newBest = false;
+  /** "+1"s floating up where points were scored. */
+  floats: FloatUp[] = [];
 
   readonly calm = prefersReducedMotion();
   private trail: Array<{ x: number; y: number }> = [];
   private frame = 0;
   private lastAt = 0;
   private keyDirection = 0;
+  private countdownLeft = 0;
   private context: CanvasRenderingContext2D | null = null;
   private ratio = 1;
 
@@ -144,6 +154,8 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.fit();
     this.started = true;
+    this.countdownLeft = COUNTDOWN;
+    this.countdown = COUNTDOWN;
     // On a short phone the board runs past the screen: bring it all up
     if (this.boardRef) {
       showWholeBoard(this.boardRef.nativeElement, BOARD_MARGIN);
@@ -172,6 +184,17 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.keyDirection) {
       this.game = movePaddle(this.game, this.game.paddle.x + this.keyDirection * KEY_SPEED * this.game.width * seconds);
     }
+    // The 3-2-1: nothing moves until it is over
+    if (this.countdownLeft > 0) {
+      this.countdownLeft = Math.max(0, this.countdownLeft - seconds);
+      const shown = countdownShown(this.countdownLeft);
+      if (shown !== this.countdown) {
+        this.zone.run(() => this.countdown = shown);
+      }
+      this.draw();
+      return;
+    }
+    this.floats = ageFloats(this.floats, seconds);
     const { game, events } = step(this.game, seconds);
     this.game = game;
     if (!this.calm) {
@@ -184,6 +207,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
         this.hits = game.hits;
         this.ended = game.ended !== null;
         if (ending) {
+          this.floats = [];
           this.pay();
         }
       });
@@ -201,6 +225,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     const left = box ? box.left : 0;
     const top = box ? box.top : 0;
     if (event.kind === 'hit') {
+      this.floats = [...this.floats, newFloat(event.x, event.y - 24)];
       this.pulseService.pulse(HIT_PULSE);
       this.pulseService.tap(left + event.x, top + event.y);
       this.soundService.playTap();
@@ -246,6 +271,9 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
   private pay() {
     this.xpWon = bonusXp(this.hits);
     this.progressService.addXp(this.xpWon);
+    const record = recordBonusBest(this.progressService.ownerKey(BONUS_BEST_KEY), 'pong', this.hits);
+    this.best = record.best;
+    this.newBest = record.beaten;
     this.avatarService.refresh();
     this.progressSync.push().subscribe();
   }
@@ -308,5 +336,6 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     context.fill();
     context.restore();
+    drawFloats(context, this.floats, this.calm, rgb(fieldColour(0.5)));
   }
 }

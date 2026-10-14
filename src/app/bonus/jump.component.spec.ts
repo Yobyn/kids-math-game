@@ -9,6 +9,8 @@ import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
 import { makeObstacle, onGround } from './jumper';
+import { HowToPlayComponent } from './how-to-play.component';
+import { recordBonusBest } from './bonus-best';
 
 describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () => {
   let fixture: ComponentFixture<JumpComponent>;
@@ -23,7 +25,7 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
     new ProgressService().grantBonus('jump');
     await TestBed.configureTestingModule({
       imports: [RouterTestingModule, HttpClientTestingModule],
-      declarations: [JumpComponent]
+      declarations: [JumpComponent, HowToPlayComponent]
     }).compileComponents();
     fixture = TestBed.createComponent(JumpComponent);
     component = fixture.componentInstance;
@@ -160,6 +162,53 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
     expect(card).toContain('vlag gehaald');
     expect(card).not.toContain('Goed gespeeld');
     expect(component.xpWon).toBe(BONUS_XP_CAP);
+  });
+
+  it('shows how to play on the start card, as a picture as well as words', () => {
+    const picture = fixture.nativeElement.querySelector('.bonus-card app-how-to-play');
+    expect(picture.querySelector('.block')).not.toBeNull();
+  });
+
+  it('counts 3, 2, 1 after Start, and a tap during it does not bounce', () => {
+    spyOn(window, 'requestAnimationFrame').and.returnValue(0);
+    component.start();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.bonus-countdown').textContent.trim()).toBe('3');
+    const before = component.game;
+    component.advance(1.2);
+    component.tap();
+    expect(component.countdown).toBe(2);
+    expect(component.game).toBe(before);
+    component.advance(2);
+    expect(component.countdown).toBe(0);
+    component.advance(0.05);
+    expect(component.game.elapsed).toBeGreaterThan(0);
+    component.tap();
+    expect(component.game.ball.vy).toBeLessThan(0);
+  });
+
+  it('floats a +1 up over the ball for each obstacle passed', () => {
+    playFacing('middle', 0);
+    for (let i = 0; i < 60 && component.points === 0; i++) {
+      component.advance(0.05);
+    }
+    expect(component.floats.length).toBe(1);
+    expect(component.floats[0].y).toBeLessThan(component.game.ball.y);
+  });
+
+  it('shows this game\'s best on the end card, without "new best" when the game did not beat it', () => {
+    recordBonusBest('bonusBest:guest', 'jump', 20);
+    playFacing('ground', 30);
+    component.game = { ...component.game, points: 9 };
+    for (let i = 0; i < 40 && !component.ended; i++) {
+      component.advance(0.05);
+    }
+    fixture.detectChanges();
+    const best = fixture.nativeElement.querySelector('[role="status"] .bonus-best');
+    expect(component.newBest).toBeFalse();
+    expect(best.textContent).toContain('Beste tot nu toe: 20');
+    expect(best.textContent).not.toContain('Nieuw record');
+    expect(component.floats).toEqual([]);
   });
 
   it('goes back to choosing what to play next', () => {

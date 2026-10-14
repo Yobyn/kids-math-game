@@ -1022,6 +1022,13 @@ describe('ProgressService and the bonus game a round earns', () => {
     expect(service.bonusGame()).toBe('pong');
   });
 
+  it('names a child\'s own key, for a screen that keeps its own things', () => {
+    expect(service.ownerKey('bonusBest')).toBe('bonusBest:guest');
+    localStorage.setItem('username', 'sam');
+    localStorage.setItem('token', 't');
+    expect(service.ownerKey('bonusBest')).toBe('bonusBest:user:sam');
+  });
+
   it('keeps a child\'s game to that child', () => {
     service.grantBonus();
     localStorage.setItem('username', 'sam');

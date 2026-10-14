@@ -11,7 +11,9 @@ import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
-import { prefersReducedMotion, rgb, roundRect } from './drawing';
+import { drawFloats, prefersReducedMotion, rgb, roundRect } from './drawing';
+import { COUNTDOWN, FloatUp, ageFloats, countdownShown, newFloat } from './game-feel';
+import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
 import { Jumper, JumperEvent, jump, newJumper, step } from './jumper';
 
@@ -51,9 +53,17 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
   xpWon = 0;
   /** Ended at the finish flag rather than on an obstacle. */
   finished = false;
+  /** The 3-2-1 after Start, as shown; 0 once the game is going (game-feel.ts). */
+  countdown = 0;
+  /** This game's best for this child, and whether the game just played beat it. */
+  best = 0;
+  newBest = false;
+  /** "+1"s floating up where points were scored. */
+  floats: FloatUp[] = [];
 
   readonly calm = prefersReducedMotion();
   private trail: number[] = [];
+  private countdownLeft = 0;
   private frame = 0;
   private lastAt = 0;
   private context: CanvasRenderingContext2D | null = null;
@@ -128,6 +138,8 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.fit();
     this.started = true;
+    this.countdownLeft = COUNTDOWN;
+    this.countdown = COUNTDOWN;
     // On a short phone the board runs past the screen: bring it all up
     if (this.boardRef) {
       showWholeBoard(this.boardRef.nativeElement, BOARD_MARGIN);
@@ -153,6 +165,17 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     if (!this.started || this.ended) {
       return;
     }
+    // The 3-2-1: nothing moves until it is over
+    if (this.countdownLeft > 0) {
+      this.countdownLeft = Math.max(0, this.countdownLeft - seconds);
+      const shown = countdownShown(this.countdownLeft);
+      if (shown !== this.countdown) {
+        this.zone.run(() => this.countdown = shown);
+      }
+      this.draw();
+      return;
+    }
+    this.floats = ageFloats(this.floats, seconds);
     const { game, events } = step(this.game, seconds);
     this.game = game;
     if (!this.calm) {
@@ -166,6 +189,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
         this.ended = game.ended !== null;
         this.finished = game.ended === 'finished';
         if (ending) {
+          this.floats = [];
           this.pay();
         }
       });
@@ -175,7 +199,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** A tap anywhere on the board bounces the ball. */
   tap(event?: Event) {
-    if (!this.started || this.ended) {
+    if (!this.started || this.ended || this.countdownLeft > 0) {
       return;
     }
     event?.preventDefault();
@@ -199,6 +223,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     const left = box ? box.left : 0;
     const top = box ? box.top : 0;
     if (event.kind === 'pass') {
+      this.floats = [...this.floats, newFloat(event.x, event.y - this.game.ball.radius * 2.5)];
       this.pulseService.pulse(HIT_PULSE);
       this.pulseService.tap(left + event.x, top + event.y);
       this.soundService.playTap();
@@ -220,6 +245,9 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
   private pay() {
     this.xpWon = bonusXp(this.points);
     this.progressService.addXp(this.xpWon);
+    const record = recordBonusBest(this.progressService.ownerKey(BONUS_BEST_KEY), 'jump', this.points);
+    this.best = record.best;
+    this.newBest = record.beaten;
     this.avatarService.refresh();
     this.progressSync.push().subscribe();
   }
@@ -310,5 +338,6 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     context.lineTo(ball.x + Math.cos(ball.turn) * ball.radius * 0.8, ball.y + Math.sin(ball.turn) * ball.radius * 0.8);
     context.stroke();
     context.restore();
+    drawFloats(context, this.floats, this.calm, rgb(fieldColour(0.5)));
   }
 }

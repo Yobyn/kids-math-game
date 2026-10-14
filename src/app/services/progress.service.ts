@@ -439,6 +439,11 @@ export class ProgressService {
     return true;
   }
 
+  /** Where something of this child's is kept: `base:<owner>`, for a screen that keeps its own (bonus/bonus-best.ts). */
+  ownerKey(base: string): string {
+    return this.key(base, this.currentOwner());
+  }
+
   /** True when a guest has anything an account would be worth keeping for. */
   hasGuestProgress(): boolean {
     return this.readHistory(GUEST_OWNER).length > 0;
