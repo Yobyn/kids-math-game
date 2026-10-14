@@ -46,11 +46,13 @@ export interface Pong {
   ended: Ending | null;
   /** Calmer under prefers-reduced-motion: a slower ball that speeds up less. */
   calm: boolean;
+  /** Where the finger wants the paddle: it glides there (followPaddle), or null when it is where it should be. */
+  paddleTarget?: number | null;
 }
 
-/** Something the screen answers: a paddle hit (sparks there) or the end. */
+/** Something the screen answers: a paddle hit (sparks there), a wall the ball bounced off (a glow there), or the end. */
 export interface PongEvent {
-  kind: 'hit' | 'end';
+  kind: 'hit' | 'wall' | 'end';
   x: number;
   y: number;
 }
@@ -80,6 +82,14 @@ export const TOP_SPEED = 24;
 /** Under reduced motion: two thirds the start speed, and it doubles a third more slowly. */
 export const CALM_SPEED = 2 / 3;
 export const CALM_DOUBLING_SECONDS = 60;
+/**
+ * The paddle glides to the finger rather than jumping (2026-10-14: playing
+ * it, a tap across the board moved it 76px in one frame): most of the way
+ * within this many seconds...
+ */
+export const PADDLE_EASE = 0.04;
+/** ...and never faster than this many board widths a second, quick enough to reach any ball. */
+export const PADDLE_TOP_SPEED = 4;
 /** The longest single physics step: the walls and the paddle stay exact at the top speed. */
 export const MAX_STEP = 1 / 600;
 
@@ -119,11 +129,54 @@ export function newPong(width: number, height: number, calm = false, random: () 
   };
 }
 
-/** Moves the paddle's middle to x, keeping all of it on the screen. */
-export function movePaddle(game: Pong, x: number): Pong {
+/** The paddle's middle can go this far each way and keep all of it on the screen. */
+function paddleRange(game: Pong, x: number): number {
   const half = game.paddle.width / 2;
-  const clamped = Math.min(game.width - half, Math.max(half, x));
-  return { ...game, paddle: { ...game.paddle, x: clamped } };
+  return Math.min(game.width - half, Math.max(half, x));
+}
+
+/** Moves the paddle's middle to x at once, keeping all of it on the screen (the arrow keys, and before Start). */
+export function movePaddle(game: Pong, x: number): Pong {
+  return { ...game, paddle: { ...game.paddle, x: paddleRange(game, x) }, paddleTarget: null };
+}
+
+/** Where a finger wants the paddle: it glides there over the next frames (followPaddle). */
+export function aimPaddle(game: Pong, x: number): Pong {
+  return { ...game, paddleTarget: paddleRange(game, x) };
+}
+
+/** The paddle `seconds` further on its glide to the finger: smooth, never a jump, never slower than a thumb. */
+export function followPaddle(game: Pong, seconds: number): Pong {
+  const target = game.paddleTarget;
+  if (target === null || target === undefined) {
+    return game;
+  }
+  const gap = target - game.paddle.x;
+  if (Math.abs(gap) < 0.5) {
+    return { ...game, paddle: { ...game.paddle, x: target }, paddleTarget: null };
+  }
+  const eased = gap * (1 - Math.exp(-Math.max(0, seconds) / PADDLE_EASE));
+  const most = PADDLE_TOP_SPEED * game.width * Math.max(0, seconds);
+  const move = Math.max(-most, Math.min(most, eased));
+  return { ...game, paddle: { ...game.paddle, x: game.paddle.x + move } };
+}
+
+/** The ball resting on the middle of the paddle, still: where it waits during the 3-2-1, moving with the paddle. */
+export function restOnPaddle(game: Pong): Pong {
+  const { paddle, ball } = game;
+  return { ...game, ball: { ...ball, x: paddle.x, y: paddle.y - ball.radius - 1, vx: 0, vy: 0 } };
+}
+
+/**
+ * The serve, as the 3-2-1 ends: the ball leaves the paddle upwards, between
+ * 20° and 40° to one side, at the start speed, so the child watches it go
+ * from where they are rather than finding it in mid-air.
+ */
+export function serve(game: Pong, random: () => number = Math.random): Pong {
+  const rested = restOnPaddle(game);
+  const speed = speedAt(game.height, game.calm, game.elapsed);
+  const angle = (Math.PI / 9 + random() * Math.PI / 9) * (random() < 0.5 ? -1 : 1);
+  return { ...rested, ball: { ...rested.ball, vx: Math.sin(angle) * speed, vy: -Math.cos(angle) * speed } };
 }
 
 /** The ball's speed, whatever its direction. */
@@ -163,7 +216,8 @@ export function step(game: Pong, seconds: number): { game: Pong; events: PongEve
   return { game: current, events };
 }
 
-function tick(game: Pong, dt: number, events: PongEvent[]): Pong {
+function tick(before: Pong, dt: number, events: PongEvent[]): Pong {
+  const game = followPaddle(before, dt);
   const elapsed = game.elapsed + dt;
   // The same direction, at the speed this moment has reached
   const speed = speedAt(game.height, game.calm, elapsed);
@@ -172,7 +226,7 @@ function tick(game: Pong, dt: number, events: PongEvent[]): Pong {
   let vx = game.ball.vx * scale;
   let vy = game.ball.vy * scale;
   const r = game.ball.radius;
-  const before = y;
+  const fromY = y;
   x += vx * dt;
   y += vy * dt;
 
@@ -180,20 +234,23 @@ function tick(game: Pong, dt: number, events: PongEvent[]): Pong {
   if (x - r < 0) {
     x = r;
     vx = Math.abs(vx);
+    events.push({ kind: 'wall', x: 0, y });
   } else if (x + r > game.width) {
     x = game.width - r;
     vx = -Math.abs(vx);
+    events.push({ kind: 'wall', x: game.width, y });
   }
   if (y - r < 0) {
     y = r;
     vy = Math.abs(vy);
+    events.push({ kind: 'wall', x, y: 0 });
   }
 
   let ball: Ball = { ...game.ball, x, y, vx, vy };
   let hits = game.hits;
   const paddle = game.paddle;
   // Coming down, and crossing the paddle's top in this step, over the paddle
-  const crossed = vy > 0 && before + r <= paddle.y && y + r >= paddle.y;
+  const crossed = vy > 0 && fromY + r <= paddle.y && y + r >= paddle.y;
   const over = x >= paddle.x - paddle.width / 2 - r && x <= paddle.x + paddle.width / 2 + r;
   if (crossed && over) {
     ball = bounceOffPaddle(ball, paddle, speed);

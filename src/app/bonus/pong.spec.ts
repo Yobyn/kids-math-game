@@ -1,5 +1,6 @@
 import {
-  BALL_RADIUS, DOUBLING_SECONDS, DURATION, MAX_BOUNCE, Pong, movePaddle, newPong, speedAt, speedOf, startSpeed, step, topSpeed
+  BALL_RADIUS, DOUBLING_SECONDS, DURATION, MAX_BOUNCE, PADDLE_TOP_SPEED, Pong, aimPaddle, followPaddle, movePaddle, newPong,
+  restOnPaddle, serve, speedAt, speedOf, startSpeed, step, topSpeed
 } from './pong';
 
 const W = 360;
@@ -147,6 +148,63 @@ describe('the bonus game\'s ball and paddle (bonus/pong.ts)', () => {
     // a third of a second at this speed is several trips up and down: every one caught
     expect(after.hits).toBeGreaterThanOrEqual(1);
     expect(after.ended).toBeNull();
+  });
+
+  it('glides the paddle to where the finger is, smoothly, never jumping (2026-10-14)', () => {
+    const game = aimPaddle(newPong(W, H), W);
+    const target = W - game.paddle.width / 2;
+    expect(game.paddleTarget).toBe(target);
+    expect(game.paddle.x).toBe(W / 2);
+    let current = game;
+    let frames = 0;
+    while (current.paddle.x !== target && frames < 120) {
+      const next = followPaddle(current, 1 / 60);
+      // no frame moves it more than a thumb could
+      expect(next.paddle.x - current.paddle.x).toBeLessThanOrEqual(PADDLE_TOP_SPEED * W / 60 + 1e-9);
+      expect(next.paddle.x).toBeGreaterThanOrEqual(current.paddle.x);
+      current = next;
+      frames++;
+    }
+    // there in a moment: well under a third of a second across half the board
+    expect(frames).toBeLessThan(20);
+    expect(current.paddleTarget).toBeNull();
+  });
+
+  it('glides the paddle as the game runs, and lets the arrow keys put it straight there', () => {
+    const aimed = aimPaddle(withBall(W / 2, 100, 0, -50), 40);
+    const later = step(aimed, 0.3).game;
+    expect(later.paddle.x).toBe(aimed.paddle.width / 2);
+    const keyed = movePaddle(aimed, 200);
+    expect(keyed.paddle.x).toBe(200);
+    expect(keyed.paddleTarget).toBeNull();
+    expect(step(keyed, 0.2).game.paddle.x).toBe(200);
+  });
+
+  it('rests the ball on the middle of the paddle before the serve, and serves it up from there', () => {
+    const rested = restOnPaddle(movePaddle(newPong(W, H), 120));
+    expect(rested.ball.x).toBe(120);
+    expect(rested.ball.y + rested.ball.radius).toBeLessThanOrEqual(rested.paddle.y);
+    expect(rested.ball.vx).toBe(0);
+    expect(rested.ball.vy).toBe(0);
+    [() => 0, () => 0.99].forEach(random => {
+      const served = serve(rested, random);
+      expect(served.ball.x).toBe(120);
+      expect(served.ball.vy).toBeLessThan(0);
+      const fromUp = Math.abs(Math.atan2(served.ball.vx, -served.ball.vy));
+      expect(fromUp).toBeGreaterThanOrEqual(Math.PI / 9 - 1e-9);
+      expect(fromUp).toBeLessThanOrEqual(2 * Math.PI / 9 + 1e-9);
+      expect(speedOf(served.ball)).toBeCloseTo(startSpeed(H, false), 6);
+    });
+  });
+
+  it('says where the ball struck a wall or the top, for a glow there', () => {
+    const left = step(withBall(BALL_RADIUS + 1, H / 3, -300, -60), 0.02);
+    expect(left.events).toEqual([jasmine.objectContaining({ kind: 'wall', x: 0 })]);
+    const right = step(withBall(W - BALL_RADIUS - 1, H / 3, 300, -60), 0.02);
+    expect(right.events).toEqual([jasmine.objectContaining({ kind: 'wall', x: W })]);
+    const top = step(withBall(W / 2, BALL_RADIUS + 1, 0, -300), 0.02);
+    expect(top.events).toEqual([jasmine.objectContaining({ kind: 'wall', y: 0 })]);
+    expect(step(withBall(W / 2, H / 3, 0, -60), 0.02).events).toEqual([]);
   });
 
   it('gives a paddle a thumb can hit on the smallest phone', () => {
