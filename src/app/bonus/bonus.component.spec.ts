@@ -4,7 +4,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { BOARD_MARGIN, BonusComponent, CHILD_BAND, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
-import { BALL_RADIUS, movePaddle } from './pong';
+import { BALL_RADIUS, PADDLE_TOP_SPEED } from './pong';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
@@ -106,27 +106,73 @@ describe('BonusComponent, the bonus game after a round', () => {
     expect(picture.querySelector('.paddle')).not.toBeNull();
   });
 
-  it('counts 3, 2, 1 after Start, the ball still until it is over, the paddle free to move', () => {
+  it('counts 3, 2, 1 after Start with the ball waiting on the paddle, going where the paddle goes', () => {
     spyOn(window, 'requestAnimationFrame').and.returnValue(0);
     component.start();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.bonus-countdown').textContent.trim()).toBe('3');
-    const ball = component.game.ball;
     component.advance(1);
     expect(component.countdown).toBe(2);
-    expect(component.game.ball).toEqual(ball);
-    const was = component.game.paddle.x;
-    component.game = movePaddle(component.game, was + 50);
-    component.advance(0.1);
-    expect(component.game.paddle.x).toBeGreaterThan(was);
-    component.advance(1.5);
+    const paddle = component.game.paddle;
+    expect(component.game.ball).toEqual(jasmine.objectContaining({ x: paddle.x, vx: 0, vy: 0 }));
+    expect(component.game.ball.y + component.game.ball.radius).toBeLessThanOrEqual(paddle.y);
+    // the paddle can already be steered, and the ball rides along
+    const canvas = fixture.nativeElement.querySelector('canvas') as HTMLCanvasElement;
+    const box = canvas.getBoundingClientRect();
+    canvas.dispatchEvent(new PointerEvent('pointerdown', { clientX: box.left + paddle.x + 60, clientY: box.top + 50 }));
+    component.advance(0.5);
+    expect(component.game.paddle.x).toBeCloseTo(paddle.x + 60, 0);
+    expect(component.game.ball.x).toBe(component.game.paddle.x);
+    component.advance(1);
     expect(component.countdown).toBe(1);
     component.advance(0.6);
     fixture.detectChanges();
     expect(component.countdown).toBe(0);
     expect(fixture.nativeElement.querySelector('.bonus-countdown')).toBeNull();
-    component.advance(0.05);
-    expect(component.game.ball).not.toEqual(ball);
+  });
+
+  it('serves the ball up from the paddle as the count ends, so the child sees it go', () => {
+    spyOn(window, 'requestAnimationFrame').and.returnValue(0);
+    component.start();
+    component.advance(3.1);
+    const served = component.game.ball;
+    expect(served.vy).toBeLessThan(0);
+    expect(served.vx).not.toBe(0);
+    expect(served.x).toBe(component.game.paddle.x);
+    component.advance(0.1);
+    expect(component.game.ball.y).toBeLessThan(served.y);
+  });
+
+  it('glides the paddle to the finger once the game is on, never jumping across the board', () => {
+    component.started = true;
+    const canvas = fixture.nativeElement.querySelector('canvas') as HTMLCanvasElement;
+    const box = canvas.getBoundingClientRect();
+    const from = component.game.paddle.x;
+    const far = component.game.width - component.game.paddle.width / 2;
+    component.game = { ...component.game, ball: { ...component.game.ball, y: 60, vy: -100 } };
+    canvas.dispatchEvent(new PointerEvent('pointermove', { clientX: box.left + far, clientY: box.top + 50 }));
+    expect(component.game.paddle.x).toBe(from);
+    let x = from;
+    for (let i = 0; i < 20; i++) {
+      component.advance(1 / 60);
+      expect(component.game.paddle.x - x).toBeLessThanOrEqual(PADDLE_TOP_SPEED * component.game.width / 60 + 0.01);
+      x = component.game.paddle.x;
+    }
+    expect(component.game.paddle.x).toBeCloseTo(far, 0);
+  });
+
+  it('glows where the ball strikes a wall, and the glow fades', () => {
+    (component as { calm: boolean }).calm = false;
+    playWithBall(BALL_RADIUS + 2, component.game.height / 3, -300, -100);
+    component.advance(0.02);
+    expect(component.flashes.length).toBe(1);
+    expect(component.flashes[0].x).toBe(0);
+    expect(pulses.pulse).not.toHaveBeenCalled();
+    for (let i = 0; i < 10; i++) {
+      component.game = { ...component.game, ball: { ...component.game.ball, x: component.game.width / 2, y: component.game.height / 3, vx: 0, vy: 50 } };
+      component.advance(0.05);
+    }
+    expect(component.flashes).toEqual([]);
   });
 
   it('floats a +1 up from the paddle on every hit, and lets it fade', () => {

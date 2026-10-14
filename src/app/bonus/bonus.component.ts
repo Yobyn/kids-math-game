@@ -11,10 +11,10 @@ import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { drawFloats, prefersReducedMotion, rgb, roundRect } from './drawing';
-import { COUNTDOWN, FloatUp, ageFloats, countdownShown, newFloat } from './game-feel';
+import { COUNTDOWN, FLASH_LIFE, Flash, FloatUp, ageFlashes, ageFloats, countdownShown, newFloat } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
-import { Pong, PongEvent, movePaddle, newPong, step } from './pong';
+import { Pong, PongEvent, aimPaddle, followPaddle, movePaddle, newPong, restOnPaddle, serve, step } from './pong';
 
 /** How far a held arrow key moves the paddle, in screen widths a second. */
 const KEY_SPEED = 1.1;
@@ -71,6 +71,8 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
   newBest = false;
   /** "+1"s floating up where points were scored. */
   floats: FloatUp[] = [];
+  /** Glows where the ball struck a wall or the top, fading (game-feel.ts). */
+  flashes: Flash[] = [];
 
   readonly calm = prefersReducedMotion();
   private trail: Array<{ x: number; y: number }> = [];
@@ -184,17 +186,23 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.keyDirection) {
       this.game = movePaddle(this.game, this.game.paddle.x + this.keyDirection * KEY_SPEED * this.game.width * seconds);
     }
-    // The 3-2-1: nothing moves until it is over
+    // The 3-2-1: the ball waits on the paddle, going where the paddle goes,
+    // and is served from it as the count ends
     if (this.countdownLeft > 0) {
       this.countdownLeft = Math.max(0, this.countdownLeft - seconds);
+      this.game = restOnPaddle(followPaddle(this.game, seconds));
       const shown = countdownShown(this.countdownLeft);
       if (shown !== this.countdown) {
         this.zone.run(() => this.countdown = shown);
+      }
+      if (this.countdownLeft === 0) {
+        this.game = serve(this.game);
       }
       this.draw();
       return;
     }
     this.floats = ageFloats(this.floats, seconds);
+    this.flashes = ageFlashes(this.flashes, seconds);
     const { game, events } = step(this.game, seconds);
     this.game = game;
     if (!this.calm) {
@@ -208,6 +216,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
         this.ended = game.ended !== null;
         if (ending) {
           this.floats = [];
+          this.flashes = [];
           this.pay();
         }
       });
@@ -224,6 +233,13 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     const box = this.canvasRef?.nativeElement.getBoundingClientRect();
     const left = box ? box.left : 0;
     const top = box ? box.top : 0;
+    if (event.kind === 'wall') {
+      // Only a glow on the board: the field and the sound are for points
+      if (!this.calm) {
+        this.flashes = [...this.flashes, { x: event.x, y: event.y, age: 0 }];
+      }
+      return;
+    }
     if (event.kind === 'hit') {
       this.floats = [...this.floats, newFloat(event.x, event.y - 24)];
       this.pulseService.pulse(HIT_PULSE);
@@ -243,13 +259,20 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  /** A finger (or the mouse) anywhere on the board puts the paddle under it. */
+  /**
+   * A finger (or the mouse) anywhere on the board sends the paddle under it:
+   * once the game is on, it glides there over a few frames rather than
+   * jumping (pong.ts followPaddle); before, it is simply put there.
+   */
   steer(event: PointerEvent) {
     const box = this.canvasRef.nativeElement.getBoundingClientRect();
-    this.game = movePaddle(this.game, event.clientX - box.left);
-    if (!this.started) {
-      this.draw();
+    const x = event.clientX - box.left;
+    if (this.started) {
+      this.game = aimPaddle(this.game, x);
+      return;
     }
+    this.game = movePaddle(this.game, x);
+    this.draw();
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -336,6 +359,20 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     context.fill();
     context.restore();
+    this.drawFlashes(context);
     drawFloats(context, this.floats, this.calm, rgb(fieldColour(0.5)));
+  }
+
+  /** A soft glow where the ball struck a wall or the top, in the field's colour there, fading out. */
+  private drawFlashes(context: CanvasRenderingContext2D) {
+    this.flashes.forEach(flash => {
+      const { r, g, b } = fieldColour(Math.min(1, Math.max(0, flash.x / this.game.width)));
+      const alpha = 0.85 * (1 - flash.age / FLASH_LIFE);
+      const glow = context.createRadialGradient(flash.x, flash.y, 0, flash.x, flash.y, 40);
+      glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${alpha.toFixed(3)})`);
+      glow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+      context.fillStyle = glow;
+      context.fillRect(flash.x - 40, flash.y - 40, 80, 80);
+    });
   }
 }

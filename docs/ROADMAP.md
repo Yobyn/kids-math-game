@@ -472,6 +472,19 @@ middle, hard the end), one groep per run.
   only names the child's key (`ownerKey`). Cards now sit in the middle of
   the board so the taller start card fits a 282px board. Next: M, Balspel's
   play.
+- **M. Balspel's play: DONE (2026-10-15).** Played first on a 360px phone
+  with a finger that follows the ball a beat late: the paddle jumped to the
+  finger, up to 76px in one frame; the first ball appeared in mid-air; a
+  wall bounce left no mark. Now the paddle glides to the finger (most of the
+  way in 0.04 s, never faster than 4 board widths a second: 22px a frame at
+  most, quick enough for any ball; the arrow keys still put it straight
+  there). During the 3-2-1 the ball waits on the middle of the paddle and
+  moves with it, and is served up from there at 20°–40° as the count ends.
+  A wall or the top glows where the ball strikes it, fading in 0.35 s (not
+  under reduced motion; no sound or field pulse, which stay for points).
+  Where the ball lands on the paddle still steers it. It still speeds up
+  until lightning, and the five minutes stay hidden. Next: N, Springbal's
+  play.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

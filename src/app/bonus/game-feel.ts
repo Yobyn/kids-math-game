@@ -43,3 +43,19 @@ export function ageFloats(floats: FloatUp[], seconds: number): FloatUp[] {
     .map(float => ({ ...float, age: float.age + Math.max(0, seconds) }))
     .filter(float => float.age < FLOAT_LIFE);
 }
+
+/** A short glow where something was struck (Balspel's walls), fading in this many seconds. */
+export const FLASH_LIFE = 0.35;
+
+export interface Flash {
+  x: number;
+  y: number;
+  age: number;
+}
+
+/** The glows this much later: older, and gone once faded. */
+export function ageFlashes(flashes: Flash[], seconds: number): Flash[] {
+  return flashes
+    .map(flash => ({ ...flash, age: flash.age + Math.max(0, seconds) }))
+    .filter(flash => flash.age < FLASH_LIFE);
+}
