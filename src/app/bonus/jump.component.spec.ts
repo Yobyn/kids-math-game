@@ -2,13 +2,13 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { JumpComponent } from './jump.component';
+import { JumpComponent, SQUASH_TIME } from './jump.component';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
-import { makeObstacle, onGround } from './jumper';
+import { AIRTIME, jump, makeObstacle, makeStar, onGround, worldSpeed } from './jumper';
 import { HowToPlayComponent } from './how-to-play.component';
 import { recordBonusBest } from './bonus-best';
 
@@ -209,6 +209,44 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
     expect(best.textContent).toContain('Beste tot nu toe: 20');
     expect(best.textContent).not.toContain('Nieuw record');
     expect(component.floats).toEqual([]);
+  });
+
+  it('takes a star a bounce reaches: a point, a +1 where it hung, sparks and a chime', () => {
+    const chime = spyOn(TestBed.inject(SoundService), 'playStar');
+    component.started = true;
+    const game = component.game;
+    const star = makeStar(game, game.ball.x + worldSpeed(game.width, false) * AIRTIME / 2);
+    component.game = jump({ ...game, stars: [star], untilNext: 1e9 });
+    for (let i = 0; i < 20 && component.points === 0; i++) {
+      component.advance(0.05);
+    }
+    fixture.detectChanges();
+    expect(component.points).toBe(1);
+    expect(fixture.nativeElement.querySelector('.bonus-points').textContent).toContain('1');
+    expect(component.floats.length).toBe(1);
+    expect(pulses.pulse).toHaveBeenCalledWith(HIT_PULSE);
+    expect(pulses.tap).toHaveBeenCalled();
+    expect(chime).toHaveBeenCalledWith(1);
+  });
+
+  it('squashes the ball for a moment as it lands, but not under reduced motion', () => {
+    (component as { calm: boolean }).calm = false;
+    component.started = true;
+    component.game = jump({ ...component.game, untilNext: 1e9 });
+    for (let i = 0; i < 40 && component.squash === 0; i++) {
+      component.advance(0.025);
+    }
+    expect(component.squash).toBeGreaterThan(0);
+    expect(component.squash).toBeLessThanOrEqual(SQUASH_TIME);
+    component.advance(SQUASH_TIME);
+    expect(component.squash).toBe(0);
+
+    (component as { calm: boolean }).calm = true;
+    component.game = jump(component.game);
+    for (let i = 0; i < 40; i++) {
+      component.advance(0.025);
+    }
+    expect(component.squash).toBe(0);
   });
 
   it('goes back to choosing what to play next', () => {

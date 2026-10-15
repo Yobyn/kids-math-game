@@ -485,6 +485,24 @@ middle, hard the end), one groep per run.
   Where the ball lands on the paddle still steers it. It still speeds up
   until lightning, and the five minutes stay hidden. Next: N, Springbal's
   play.
+- **N. Springbal's play: DONE (2026-10-15).** Played first on a 360px
+  phone, bouncing over what is on the ground: every obstacle the same plain
+  bar, an empty sky, nothing to reach for, only things to avoid, and no
+  weight to a landing. Now a star hangs in every second gap, at the ball's
+  middle at the top of a bounce (`makeStar`, `STAR_EVERY` in jumper.ts): a
+  bounce whose top comes at it, or a little early or late, takes it for a
+  point with a chime, a +1 and sparks; a rolling ball never does. The
+  obstacles look like what they are: a block on the ground (a lid, brick
+  lines), a cloud in the middle of the air, a lamp hanging from the top (a
+  cord out of a bounce's reach, the shade and a glowing bulb at the bottom
+  of its box); each fills the box it can be struck in. The ball squashes
+  for a moment as it lands (not under reduced motion). Played with a child
+  bouncing over the ground blocks and up to the stars: 16 of 16 stars, 48
+  points against 27 before, to the flag. A landing was missed on some board
+  heights (the last step before it ended within half a pixel of the
+  ground); it is now said on every height from 280 to 480px, tested frame
+  by frame. The steady speed and the random flag stay. Next: O, a look of
+  its own for each game.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",
