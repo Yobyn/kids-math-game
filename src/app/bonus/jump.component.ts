@@ -15,12 +15,15 @@ import { drawFloats, prefersReducedMotion, rgb, roundRect } from './drawing';
 import { COUNTDOWN, FloatUp, ageFloats, countdownShown, newFloat } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
-import { Jumper, JumperEvent, jump, newJumper, step } from './jumper';
+import { Jumper, JumperEvent, Obstacle, Star, jump, newJumper, step } from './jumper';
 
 /** The board is about square: wide enough to see what is coming, short enough to fit under the score. */
 export const BOARD_SHAPE = 1.1;
 /** The ball's glowing tail: this many of its last heights. */
 const TRAIL = 6;
+/** How long a landing squashes the ball, in seconds, and how much: a quarter wider and flatter at first. */
+export const SQUASH_TIME = 0.16;
+const SQUASH = 0.25;
 
 /**
  * The second bonus game (Yobyn, 2026-10-10): a ball rolling along the
@@ -60,6 +63,8 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
   newBest = false;
   /** "+1"s floating up where points were scored. */
   floats: FloatUp[] = [];
+  /** Seconds of squash left from the last landing (none under reduced motion). */
+  squash = 0;
 
   readonly calm = prefersReducedMotion();
   private trail: number[] = [];
@@ -176,6 +181,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.floats = ageFloats(this.floats, seconds);
+    this.squash = Math.max(0, this.squash - seconds);
     const { game, events } = step(this.game, seconds);
     this.game = game;
     if (!this.calm) {
@@ -222,6 +228,20 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     const box = this.canvasRef?.nativeElement.getBoundingClientRect();
     const left = box ? box.left : 0;
     const top = box ? box.top : 0;
+    if (event.kind === 'land') {
+      if (!this.calm) {
+        this.squash = SQUASH_TIME;
+      }
+      return;
+    }
+    if (event.kind === 'star') {
+      // A star taken: a point, a chime a step up from a pass, sparks where it hung
+      this.floats = [...this.floats, newFloat(event.x, event.y - 18)];
+      this.pulseService.pulse(HIT_PULSE);
+      this.pulseService.tap(left + event.x, top + event.y);
+      this.soundService.playStar(1);
+      return;
+    }
     if (event.kind === 'pass') {
       this.floats = [...this.floats, newFloat(event.x, event.y - this.game.ball.radius * 2.5)];
       this.pulseService.pulse(HIT_PULSE);
@@ -277,15 +297,11 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     context.fillStyle = line;
     context.fillRect(0, ground, width, 3);
 
-    // The obstacles, glowing in the colour of the ring where they are
-    obstacles.forEach(obstacle => {
-      const colour = fieldColour(Math.min(1, Math.max(0, (obstacle.x + obstacle.width / 2) / width)));
-      context.shadowColor = rgb(colour);
-      context.shadowBlur = 14;
-      context.fillStyle = `rgba(${colour.r}, ${colour.g}, ${colour.b}, 0.85)`;
-      roundRect(context, obstacle.x, obstacle.y, obstacle.width, obstacle.height, 8);
-      context.fill();
-    });
+    // The obstacles, each its own shape, glowing in the colour of the ring where they are
+    obstacles.forEach(obstacle => this.drawObstacle(context, obstacle));
+
+    // The stars to bounce up to
+    this.game.stars.forEach(star => this.drawStar(context, star));
 
     // The finish flag: a pole from the ground with a flag in the ring's colours
     if (this.game.flag !== null) {
@@ -318,8 +334,13 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       context.fill();
     });
 
-    // The ball, glowing, with a stripe that shows it rolling
+    // The ball, glowing, with a stripe that shows it rolling; squashed for a moment as it lands
     const colour = fieldColour(ball.x / width);
+    const squashed = (this.squash / SQUASH_TIME) * SQUASH;
+    context.save();
+    context.translate(ball.x, ball.y + ball.radius);
+    context.scale(1 + squashed, 1 - squashed);
+    context.translate(-ball.x, -ball.y - ball.radius);
     context.shadowColor = rgb(colour);
     context.shadowBlur = 18;
     context.beginPath();
@@ -338,6 +359,103 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     context.lineTo(ball.x + Math.cos(ball.turn) * ball.radius * 0.8, ball.y + Math.sin(ball.turn) * ball.radius * 0.8);
     context.stroke();
     context.restore();
+    context.restore();
     drawFloats(context, this.floats, this.calm, rgb(fieldColour(0.5)));
+  }
+
+  /**
+   * What is on the ground is a block, what floats in the middle of the air
+   * a cloud, what hangs from the top a lamp: shapes a child knows what to do
+   * with. Each fills the box it can be struck in, so what is seen is what
+   * is hit (the lamp's cord is out of a bounce's reach).
+   */
+  private drawObstacle(context: CanvasRenderingContext2D, obstacle: Obstacle) {
+    const { x, y, width: w, height: h } = obstacle;
+    const colour = fieldColour(Math.min(1, Math.max(0, (x + w / 2) / this.game.width)));
+    const fill = `rgba(${colour.r}, ${colour.g}, ${colour.b}, 0.85)`;
+    context.shadowColor = rgb(colour);
+    context.shadowBlur = 14;
+    context.fillStyle = fill;
+    if (obstacle.place === 'ground') {
+      // A block: a lighter lid and the lines of its bricks
+      roundRect(context, x, y, w, h, 5);
+      context.fill();
+      context.shadowBlur = 0;
+      context.fillStyle = 'rgba(255, 255, 255, 0.28)';
+      roundRect(context, x + 2, y + 2, w - 4, Math.min(8, h / 4), 3);
+      context.fill();
+      context.strokeStyle = 'rgba(0, 0, 0, 0.25)';
+      context.lineWidth = 1.5;
+      context.beginPath();
+      context.moveTo(x + 3, y + h * 0.55);
+      context.lineTo(x + w - 3, y + h * 0.55);
+      context.moveTo(x + w / 2, y + h * 0.55);
+      context.lineTo(x + w / 2, y + h - 2);
+      context.stroke();
+      return;
+    }
+    if (obstacle.place === 'middle') {
+      // A cloud: puffs along the top of a flat-bottomed body, all inside its box
+      const bottom = y + h;
+      context.beginPath();
+      roundRect(context, x, y + h * 0.45, w, h * 0.55, h * 0.27);
+      context.fill();
+      [[0.25, 0.32], [0.5, 0.48], [0.75, 0.34]].forEach(([at, size]) => {
+        const r = Math.min(h * size, w * 0.22);
+        context.beginPath();
+        context.arc(x + w * at, Math.max(y + r, bottom - h * 0.45 - r * 0.3), r, 0, Math.PI * 2);
+        context.fill();
+      });
+      context.shadowBlur = 0;
+      context.fillStyle = 'rgba(255, 255, 255, 0.22)';
+      context.beginPath();
+      context.arc(x + w * 0.45, y + h * 0.4, Math.min(h, w) * 0.16, 0, Math.PI * 2);
+      context.fill();
+      return;
+    }
+    // A hanging lamp: a cord from the top, the shade at the bottom of its box, a glowing bulb under it
+    const shade = Math.min(h, Math.max(26, h * 0.4));
+    context.shadowBlur = 0;
+    context.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+    context.lineWidth = 2;
+    context.beginPath();
+    context.moveTo(x + w / 2, y);
+    context.lineTo(x + w / 2, y + h - shade);
+    context.stroke();
+    context.shadowBlur = 14;
+    context.fillStyle = fill;
+    context.beginPath();
+    context.moveTo(x + w * 0.3, y + h - shade);
+    context.lineTo(x + w * 0.7, y + h - shade);
+    context.lineTo(x + w, y + h);
+    context.lineTo(x, y + h);
+    context.closePath();
+    context.fill();
+    context.fillStyle = 'rgba(255, 236, 160, 0.9)';
+    context.shadowColor = 'rgba(255, 236, 160, 0.9)';
+    context.shadowBlur = 16;
+    context.beginPath();
+    context.arc(x + w / 2, y + h, Math.min(8, w / 6), 0, Math.PI);
+    context.fill();
+  }
+
+  /** A five-pointed star, warm and glowing, turning slowly (still under reduced motion). */
+  private drawStar(context: CanvasRenderingContext2D, star: Star) {
+    const turn = this.calm ? 0 : this.game.elapsed * 1.5;
+    context.save();
+    context.translate(star.x, star.y);
+    context.rotate(turn);
+    context.shadowColor = 'rgba(255, 220, 120, 0.95)';
+    context.shadowBlur = 14;
+    context.fillStyle = '#ffd86b';
+    context.beginPath();
+    for (let i = 0; i < 10; i++) {
+      const r = i % 2 === 0 ? star.radius : star.radius * 0.45;
+      const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+      context.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+    }
+    context.closePath();
+    context.fill();
+    context.restore();
   }
 }

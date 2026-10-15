@@ -1,6 +1,6 @@
 import {
-  AIRTIME, BALL_RADIUS, FINISH_EARLIEST, FINISH_LATEST, GROUND_TALL, Jumper, JUMP_RISE, Place,
-  gapAfter, jump, makeObstacle, newJumper, onGround, pickPlace, step, touches, worldSpeed
+  AIRTIME, BALL_RADIUS, FINISH_EARLIEST, FINISH_LATEST, GROUND_TALL, Jumper, JUMP_RISE, MIDDLE_TO, Place, STAR_EVERY, STAR_HEIGHT,
+  gapAfter, jump, makeObstacle, makeStar, newJumper, onGround, pickPlace, reachesStar, step, touches, worldSpeed
 } from './jumper';
 
 const W = 360;
@@ -197,6 +197,73 @@ describe('the second bonus game: a rolling ball bounced over obstacles (bonus/ju
     const { game, events } = step(facing('middle', 10), 3);
     expect(game.points).toBe(1);
     expect(events.filter(event => event.kind === 'pass').length).toBe(1);
+  });
+
+  it('hangs a star in every second gap, in its middle, between the middle of the air and the top (2026-10-15)', () => {
+    const base = { ...newJumper(W, H, false, () => 0.5), untilNext: 0.001 };
+    // the first obstacle: no star after it
+    const first = step(base, 1 / 60, seeded(9)).game;
+    expect(first.made).toBe(1);
+    expect(first.stars).toEqual([]);
+    // the second: a star in the gap after it
+    const second = step({ ...base, made: 1 }, 1 / 60, seeded(9)).game;
+    expect(second.made).toBe(STAR_EVERY);
+    expect(second.stars.length).toBe(1);
+    const star = second.stars[0];
+    const coming = second.obstacles[second.obstacles.length - 1];
+    expect(star.x - star.radius).toBeGreaterThan(coming.x + coming.width);
+    expect(star.x + star.radius).toBeLessThan(coming.x + coming.width + second.untilNext);
+    // at the ball's middle at the top of a bounce: well above the middle of the air
+    expect(second.ground - star.y).toBeCloseTo(STAR_HEIGHT * second.ground + BALL_RADIUS, 6);
+    expect((second.ground - star.y) / second.ground).toBeGreaterThan(MIDDLE_TO);
+  });
+
+  it('gives a point for a star a bounce reaches, and none for one the ball rolls under', () => {
+    const game = newJumper(W, H);
+    const star = makeStar(game, game.ball.x + worldSpeed(W, false) * AIRTIME / 2);
+    // rolling along the ground, it passes under
+    const rolled = step({ ...game, stars: [star], untilNext: 1e9 }, AIRTIME);
+    expect(rolled.game.points).toBe(0);
+    expect(rolled.events.some(event => event.kind === 'star')).toBeFalse();
+    // a bounce now meets it on the way
+    const bounced = step(jump({ ...game, stars: [star], untilNext: 1e9 }), AIRTIME);
+    expect(bounced.game.points).toBe(1);
+    expect(bounced.game.stars).toEqual([]);
+    expect(bounced.events.filter(event => event.kind === 'star').length).toBe(1);
+    // a bounce a little early or late still takes it: the ball stays near its top a while
+    [-0.08, 0.08].forEach(early => {
+      const near = makeStar(game, game.ball.x + worldSpeed(W, false) * (AIRTIME / 2 + early));
+      expect(step(jump({ ...game, stars: [near], untilNext: 1e9 }), AIRTIME).game.points).toBe(1);
+    });
+  });
+
+  it('counts a star the whole ball touches, not only the forgiving middle', () => {
+    const game = newJumper(W, H);
+    const star = { x: game.ball.x + game.ball.radius + 8, y: game.ball.y, radius: 11 };
+    expect(reachesStar(game.ball, star)).toBeTrue();
+    expect(reachesStar(game.ball, { ...star, x: star.x + 20 })).toBeFalse();
+  });
+
+  it('says when the ball lands on a board of any height, played frame by frame as a phone does', () => {
+    // On a 361px board the last step before landing ended within half a
+    // pixel of the ground, and the landing went unsaid
+    for (let height = 280; height <= 480; height++) {
+      let game = jump({ ...newJumper(W, height), untilNext: 1e9 });
+      let lands = 0;
+      for (let frame = 0; frame < 60; frame++) {
+        const result = step(game, 1 / 60);
+        lands += result.events.filter(event => event.kind === 'land').length;
+        game = result.game;
+      }
+      expect(lands).toBe(1, `a ${height}px board`);
+    }
+  });
+
+  it('says when the ball lands after a bounce, for a squash, and not while it rolls', () => {
+    const rolling = step({ ...newJumper(W, H), untilNext: 1e9 }, 0.5);
+    expect(rolling.events.some(event => event.kind === 'land')).toBeFalse();
+    const bounced = step(jump({ ...newJumper(W, H), untilNext: 1e9 }), AIRTIME + 0.1);
+    expect(bounced.events.filter(event => event.kind === 'land').length).toBe(1);
   });
 
   it('forgives a near miss: only a real touch ends it', () => {

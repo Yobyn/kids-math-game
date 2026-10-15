@@ -10,7 +10,10 @@
  *   - on the ground: bounce over it;
  *   - in the middle of the air: roll under it, a bounce runs into it;
  *   - hanging from the top: a bounce's highest point runs into it.
- * So the game is choosing WHEN to bounce. Every obstacle passed is a point.
+ * So the game is choosing WHEN to bounce. Every obstacle passed is a point,
+ * and so is every star: one hangs in every second gap, at the top of a
+ * bounce, something to reach for as well as things to avoid
+ * (2026-10-15).
  *
  * The world keeps one steady speed, and the game ends at a finish flag
  * (Yobyn, 2026-10-10: "let's rather not increase the speed but have an end
@@ -44,6 +47,14 @@ export interface Roller {
   turn: number;
 }
 
+/** A star hanging in a gap between obstacles, where a bounce reaches: a point for touching it (2026-10-15). */
+export interface Star {
+  /** Its middle. */
+  x: number;
+  y: number;
+  radius: number;
+}
+
 export type JumperEnding = 'crashed' | 'finished';
 
 export interface Jumper {
@@ -53,6 +64,8 @@ export interface Jumper {
   ground: number;
   ball: Roller;
   obstacles: Obstacle[];
+  /** Stars to bounce up to, one in every second gap. */
+  stars: Star[];
   /** Pixels still to travel before the next obstacle comes in at the right. */
   untilNext: number;
   /** How many obstacles have come in so far. */
@@ -69,8 +82,9 @@ export interface Jumper {
   calm: boolean;
 }
 
+/** An obstacle passed, a star taken (both points), the ball landing (a squash), or the end. */
 export interface JumperEvent {
-  kind: 'pass' | 'end';
+  kind: 'pass' | 'star' | 'land' | 'end';
   x: number;
   y: number;
 }
@@ -112,6 +126,15 @@ export const GAP_MIN = 0.35;
 export const GAP_MAX = 0.9;
 /** The ball's hit circle is this share of what is drawn: a near miss is a miss. */
 export const FORGIVE = 0.75;
+/**
+ * The stars: their size, and where they hang: at the ball's middle at the
+ * very top of a bounce, so a bounce whose top comes at the star takes it
+ * (the ball stays near its top for a good while), and a rolling ball never does.
+ */
+export const STAR_RADIUS = 11;
+export const STAR_HEIGHT = JUMP_RISE;
+/** A star hangs in every this many gaps: often enough to reach for, not in every one. */
+export const STAR_EVERY = 2;
 /** The longest single physics step. */
 export const MAX_STEP = 1 / 240;
 
@@ -149,6 +172,7 @@ export function newJumper(width: number, height: number, calm = false, random: (
     ground,
     ball: { x: width * BALL_AT, y: ground - BALL_RADIUS, vy: 0, radius: BALL_RADIUS, turn: 0 },
     obstacles: [],
+    stars: [],
     untilNext: width * 0.5,
     made: 0,
     points: 0,
@@ -201,6 +225,16 @@ export function gapAfter(width: number, speed: number, random: () => number): nu
   return speed * AIRTIME * 1.1 + width * (GAP_MIN + random() * (GAP_MAX - GAP_MIN));
 }
 
+/** A star in the middle of the gap after an obstacle, where the ball's middle is at the top of a bounce. */
+export function makeStar(game: { ground: number }, x: number): Star {
+  return { x, y: game.ground - STAR_HEIGHT * room(game) - BALL_RADIUS, radius: STAR_RADIUS };
+}
+
+/** Whether the ball reaches a star: the whole ball, not the forgiving circle, so a near one counts. */
+export function reachesStar(ball: Roller, star: Star): boolean {
+  return Math.hypot(ball.x - star.x, ball.y - star.y) < ball.radius + star.radius;
+}
+
 /** Whether the ball (its forgiving hit circle) touches an obstacle. */
 export function touches(ball: Roller, obstacle: Obstacle): boolean {
   const r = ball.radius * FORGIVE;
@@ -239,6 +273,11 @@ function tick(game: Jumper, dt: number, random: () => number, events: JumperEven
     vy = 0;
   }
   const ball: Roller = { ...game.ball, y, vy, turn: game.ball.turn + dx / game.ball.radius };
+  // Down on the ground after a bounce: the screen squashes it. Anywhere
+  // above the ground a moment ago counts: a rolling ball sits exactly on it
+  if (game.ball.y < restingY(game) && y === restingY(game)) {
+    events.push({ kind: 'land', x: ball.x, y: game.ground });
+  }
 
   // The world comes to the left; one that has gone off the board is gone
   let obstacles = game.obstacles
@@ -247,6 +286,9 @@ function tick(game: Jumper, dt: number, random: () => number, events: JumperEven
 
   // A new one coming in at the right, when the space after the last has gone by;
   // once it is time, the flag comes in that space instead, and nothing after it
+  let stars = game.stars
+    .map(star => ({ ...star, x: star.x - dx }))
+    .filter(star => star.x + star.radius > 0);
   let untilNext = game.untilNext - dx;
   let made = game.made;
   let flag = game.flag === null ? null : game.flag - dx;
@@ -257,10 +299,24 @@ function tick(game: Jumper, dt: number, random: () => number, events: JumperEven
     const coming = makeObstacle(game, pickPlace(made, random), game.width + untilNext);
     obstacles = [...obstacles, coming];
     made += 1;
-    untilNext += coming.width + gapAfter(game.width, speed, random);
+    const gap = gapAfter(game.width, speed, random);
+    if (made % STAR_EVERY === 0) {
+      stars = [...stars, makeStar(game, coming.x + coming.width + gap / 2)];
+    }
+    untilNext += coming.width + gap;
   }
 
+  // A star the ball reaches is taken: a point
   let points = game.points;
+  stars = stars.filter(star => {
+    if (reachesStar(ball, star)) {
+      points += 1;
+      events.push({ kind: 'star', x: star.x, y: star.y });
+      return false;
+    }
+    return true;
+  });
+
   obstacles = obstacles.map(obstacle => {
     if (!obstacle.passed && obstacle.x + obstacle.width < ball.x - ball.radius) {
       points += 1;
@@ -270,7 +326,7 @@ function tick(game: Jumper, dt: number, random: () => number, events: JumperEven
     return obstacle;
   });
 
-  const next: Jumper = { ...game, ball, obstacles, untilNext, made, points, elapsed, flag };
+  const next: Jumper = { ...game, ball, obstacles, stars, untilNext, made, points, elapsed, flag };
   if (obstacles.some(obstacle => touches(ball, obstacle))) {
     events.push({ kind: 'end', x: ball.x, y: ball.y });
     return { ...next, ended: 'crashed' };
