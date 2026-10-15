@@ -10,8 +10,8 @@ import { SoundService } from '../services/sound.service';
 import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
-import { drawFloats, prefersReducedMotion, rgb, roundRect } from './drawing';
-import { COUNTDOWN, FLASH_LIFE, Flash, FloatUp, ageFlashes, ageFloats, countdownShown, newFloat } from './game-feel';
+import { drawCourt, drawFloats, drawShine, prefersReducedMotion, rgb, roundRect } from './drawing';
+import { COUNTDOWN, FLASH_LIFE, Flash, FloatUp, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, newFloat, squashScale } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
 import { Pong, PongEvent, aimPaddle, followPaddle, movePaddle, newPong, restOnPaddle, serve, step } from './pong';
@@ -73,6 +73,8 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
   floats: FloatUp[] = [];
   /** Glows where the ball struck a wall or the top, fading (game-feel.ts). */
   flashes: Flash[] = [];
+  /** Seconds of squash left from the last paddle hit (none under reduced motion). */
+  squash = 0;
 
   readonly calm = prefersReducedMotion();
   private trail: Array<{ x: number; y: number }> = [];
@@ -203,6 +205,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.floats = ageFloats(this.floats, seconds);
     this.flashes = ageFlashes(this.flashes, seconds);
+    this.squash = Math.max(0, this.squash - seconds);
     const { game, events } = step(this.game, seconds);
     this.game = game;
     if (!this.calm) {
@@ -241,6 +244,9 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     if (event.kind === 'hit') {
+      if (!this.calm) {
+        this.squash = SQUASH_TIME;
+      }
       this.floats = [...this.floats, newFloat(event.x, event.y - 24)];
       this.pulseService.pulse(HIT_PULSE);
       this.pulseService.tap(left + event.x, top + event.y);
@@ -315,6 +321,8 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     context.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
     // Cleared, never filled: the field behind shows through
     context.clearRect(0, 0, width, height);
+    // The court, marked out faintly under the play
+    drawCourt(context, width, height, rgb(fieldColour(0.5)));
 
     // The ball's tail, fading out behind it
     this.trail.forEach((point, i) => {
@@ -346,8 +354,12 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
       context.fill();
     }
 
-    // The ball, glowing in the colour of the ring where it is
+    // The ball, glowing in the colour of the ring where it is, squashed for a moment off the paddle
     const colour = fieldColour(ball.x / width);
+    const squashed = squashScale(this.squash);
+    context.translate(ball.x, ball.y + ball.radius);
+    context.scale(squashed.x, squashed.y);
+    context.translate(-ball.x, -ball.y - ball.radius);
     context.shadowColor = rgb(colour);
     context.shadowBlur = 18;
     context.beginPath();
@@ -358,6 +370,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     context.fillStyle = `rgba(${colour.r}, ${colour.g}, ${colour.b}, 0.55)`;
     context.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
     context.fill();
+    drawShine(context, ball.x, ball.y, ball.radius);
     context.restore();
     this.drawFlashes(context);
     drawFloats(context, this.floats, this.calm, rgb(fieldColour(0.5)));

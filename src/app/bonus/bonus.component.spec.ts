@@ -5,6 +5,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { BOARD_MARGIN, BonusComponent, CHILD_BAND, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { BALL_RADIUS, PADDLE_TOP_SPEED } from './pong';
+import { SQUASH_TIME } from './game-feel';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
@@ -159,6 +160,23 @@ describe('BonusComponent, the bonus game after a round', () => {
       x = component.game.paddle.x;
     }
     expect(component.game.paddle.x).toBeCloseTo(far, 0);
+  });
+
+  it('squashes the ball for a moment off the paddle, like the other games\' balls, but not under reduced motion', () => {
+    (component as { calm: boolean }).calm = false;
+    const paddle = component.game.paddle;
+    playWithBall(paddle.x, paddle.y - BALL_RADIUS - 2, 0, 300);
+    component.advance(0.03);
+    expect(component.hits).toBe(1);
+    expect(component.squash).toBeGreaterThan(0);
+    component.game = { ...component.game, ball: { ...component.game.ball, y: component.game.height / 3, vy: -50 } };
+    component.advance(SQUASH_TIME);
+    expect(component.squash).toBe(0);
+
+    (component as { calm: boolean }).calm = true;
+    playWithBall(paddle.x, paddle.y - BALL_RADIUS - 2, 0, 300);
+    component.advance(0.03);
+    expect(component.squash).toBe(0);
   });
 
   it('glows where the ball strikes a wall, and the glow fades', () => {

@@ -10,7 +10,8 @@ import { SoundService } from '../services/sound.service';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
-import { drawFloats, prefersReducedMotion, rgb } from './drawing';
+import { drawClouds, drawFloats, prefersReducedMotion, rgb } from './drawing';
+import { cloudsAt } from './backdrops';
 import { COUNTDOWN, FloatUp, ageFloats, countdownShown, newFloat } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
@@ -313,6 +314,8 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     context.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
     // Cleared, never filled: the field behind shows through
     context.clearRect(0, 0, width, height);
+    // Soft clouds drifting slowly behind the balloons; still under reduced motion
+    drawClouds(context, cloudsAt(width, height, elapsed, this.calm), '#ffffff');
     context.save();
     balloons.forEach(balloon => this.drawBalloon(context, balloon, elapsed));
     this.bursts.forEach(burst => this.drawBurst(context, burst));

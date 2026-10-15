@@ -59,3 +59,16 @@ export function ageFlashes(flashes: Flash[], seconds: number): Flash[] {
     .map(flash => ({ ...flash, age: flash.age + Math.max(0, seconds) }))
     .filter(flash => flash.age < FLASH_LIFE);
 }
+
+/**
+ * A ball squashed for a moment as it lands or is struck, the same in every
+ * game: this long, a quarter wider and flatter at first, easing back.
+ */
+export const SQUASH_TIME = 0.16;
+export const SQUASH = 0.25;
+
+/** How much wider (x) and flatter (y) a ball is with this much squash time left. */
+export function squashScale(left: number): { x: number; y: number } {
+  const amount = Math.min(1, Math.max(0, left / SQUASH_TIME)) * SQUASH;
+  return { x: 1 + amount, y: 1 - amount };
+}
