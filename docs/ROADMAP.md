@@ -503,6 +503,20 @@ middle, hard the end), one groep per run.
   ground); it is now said on every height from 280 to 480px, tested frame
   by frame. The steady speed and the random flag stay. Next: O, a look of
   its own for each game.
+- **O. A look of its own for each game: DONE (2026-10-16).** Each board
+  now has a faint background, drawn on the see-through canvas so the
+  particle field still shows through (`bonus/backdrops.ts`, DOM-free,
+  tested; drawn in drawing.ts at 12–18% opacity): Balspel a court marked
+  out (an inset outline, a half-way line, a centre circle); Springbal two
+  rows of far-off hills that slide by slower than the obstacles, the far
+  row slowest, repeating without a seam; Ballonnen four soft clouds
+  drifting across and coming round again. Under reduced motion the hills
+  and clouds stand still. The three balls are one family now: the same
+  shine (`drawShine`), the trails they had, and the same squash
+  (`squashScale` in game-feel.ts), which Balspel's ball now gets off the
+  paddle as Springbal's does on landing. This ends the planned steps (J–O);
+  from here each run plays all three on a phone and picks one game-play or
+  look-and-feel improvement.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

@@ -1,4 +1,4 @@
-import { COUNTDOWN, FLOAT_LIFE, FLOAT_RISE, ageFloats, countdownShown, floatAt, newFloat } from './game-feel';
+import { COUNTDOWN, FLOAT_LIFE, FLOAT_RISE, SQUASH, SQUASH_TIME, ageFloats, countdownShown, floatAt, newFloat, squashScale } from './game-feel';
 
 describe('how the bonus games feel: the 3-2-1 and the floating +1', () => {
   it('counts down 3, 2, 1 and then lets the game go', () => {
@@ -36,5 +36,14 @@ describe('how the bonus games feel: the 3-2-1 and the floating +1', () => {
     expect(later[0].age).toBeCloseTo(0.2, 9);
     expect(ageFloats(later, FLOAT_LIFE)).toEqual([]);
     expect(ageFloats([newFloat(0, 0)], -1)[0].age).toBe(0);
+  });
+
+  it('squashes a ball the same in every game: wider and flatter at first, back to round', () => {
+    expect(squashScale(SQUASH_TIME)).toEqual({ x: 1 + SQUASH, y: 1 - SQUASH });
+    const half = squashScale(SQUASH_TIME / 2);
+    expect(half.x).toBeCloseTo(1 + SQUASH / 2, 9);
+    expect(half.y).toBeCloseTo(1 - SQUASH / 2, 9);
+    expect(squashScale(0)).toEqual({ x: 1, y: 1 });
+    expect(squashScale(-1)).toEqual({ x: 1, y: 1 });
   });
 });

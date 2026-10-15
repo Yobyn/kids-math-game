@@ -11,19 +11,16 @@ import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
-import { drawFloats, prefersReducedMotion, rgb, roundRect } from './drawing';
-import { COUNTDOWN, FloatUp, ageFloats, countdownShown, newFloat } from './game-feel';
+import { drawFloats, drawHills, drawShine, prefersReducedMotion, rgb, roundRect } from './drawing';
+import { COUNTDOWN, FloatUp, SQUASH_TIME, ageFloats, countdownShown, newFloat, squashScale } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
-import { Jumper, JumperEvent, Obstacle, Star, jump, newJumper, step } from './jumper';
+import { Jumper, JumperEvent, Obstacle, Star, jump, newJumper, step, worldSpeed } from './jumper';
 
 /** The board is about square: wide enough to see what is coming, short enough to fit under the score. */
 export const BOARD_SHAPE = 1.1;
 /** The ball's glowing tail: this many of its last heights. */
 const TRAIL = 6;
-/** How long a landing squashes the ball, in seconds, and how much: a quarter wider and flatter at first. */
-export const SQUASH_TIME = 0.16;
-const SQUASH = 0.25;
 
 /**
  * The second bonus game (Yobyn, 2026-10-10): a ball rolling along the
@@ -286,6 +283,9 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     context.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
     // Cleared, never filled: the field behind shows through
     context.clearRect(0, 0, width, height);
+    // Far-off hills, sliding by slower than the world; still under reduced motion
+    const travelled = this.calm ? 0 : this.game.elapsed * worldSpeed(width, false);
+    drawHills(context, width, ground, travelled, rgb(fieldColour(0.35)));
     context.save();
 
     // The ground: the ring's blue at the left, its magenta at the right
@@ -336,10 +336,10 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // The ball, glowing, with a stripe that shows it rolling; squashed for a moment as it lands
     const colour = fieldColour(ball.x / width);
-    const squashed = (this.squash / SQUASH_TIME) * SQUASH;
+    const squashed = squashScale(this.squash);
     context.save();
     context.translate(ball.x, ball.y + ball.radius);
-    context.scale(1 + squashed, 1 - squashed);
+    context.scale(squashed.x, squashed.y);
     context.translate(-ball.x, -ball.y - ball.radius);
     context.shadowColor = rgb(colour);
     context.shadowBlur = 18;
@@ -358,6 +358,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     context.moveTo(ball.x - Math.cos(ball.turn) * ball.radius * 0.8, ball.y - Math.sin(ball.turn) * ball.radius * 0.8);
     context.lineTo(ball.x + Math.cos(ball.turn) * ball.radius * 0.8, ball.y + Math.sin(ball.turn) * ball.radius * 0.8);
     context.stroke();
+    drawShine(context, ball.x, ball.y, ball.radius);
     context.restore();
     context.restore();
     drawFloats(context, this.floats, this.calm, rgb(fieldColour(0.5)));
