@@ -7,6 +7,7 @@ export type BonusKey =
   | 'bonus-start'
   | 'bonus-well-played'
   | 'bonus-points-won'
+  | 'bonus-point-won'
   | 'bonus-done'
   | 'bonus-board'
   | 'jump-title'
@@ -28,6 +29,7 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'bonus-start': 'Start',
     'bonus-well-played': 'Well played!',
     'bonus-points-won': 'bonus points',
+    'bonus-point-won': 'bonus point',
     'bonus-done': 'Carry on',
     'bonus-board': 'A ball bouncing above a paddle',
     'jump-title': 'Bounce ball',
@@ -48,6 +50,7 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'bonus-start': 'Start',
     'bonus-well-played': 'Goed gespeeld!',
     'bonus-points-won': 'bonuspunten',
+    'bonus-point-won': 'bonuspunt',
     'bonus-done': 'Verder',
     'bonus-board': 'Een bal die boven een plankje stuitert',
     'jump-title': 'Springbal',
@@ -68,6 +71,7 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'bonus-start': 'Empezar',
     'bonus-well-played': '¡Bien jugado!',
     'bonus-points-won': 'puntos extra',
+    'bonus-point-won': 'punto extra',
     'bonus-done': 'Seguir',
     'bonus-board': 'Una pelota que rebota sobre una paleta',
     'jump-title': 'Pelota saltarina',

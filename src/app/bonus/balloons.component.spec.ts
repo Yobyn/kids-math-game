@@ -253,6 +253,18 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     expect(best.querySelector('.bonus-new-best')).toBeNull();
   });
 
+  it('says one point is a point, and more are points (2026-10-16: "1 bonuspunten")', () => {
+    component.started = true;
+    component.game = { ...component.game, points: 1, finishAt: 0, untilNext: 1e9 };
+    component.advance(0.05);
+    fixture.detectChanges();
+    const won = () => fixture.nativeElement.querySelector('.bonus-won').textContent.replace(/\s+/g, ' ').trim();
+    expect(won()).toBe('1 bonuspunt');
+    component.points = 2;
+    fixture.detectChanges();
+    expect(won()).toBe('2 bonuspunten');
+  });
+
   it('goes back to choosing what to play next', () => {
     component.done();
     expect(router.navigate).toHaveBeenCalledWith(['/grade']);
