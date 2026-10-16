@@ -179,6 +179,20 @@ describe('BonusComponent, the bonus game after a round', () => {
     expect(component.squash).toBe(0);
   });
 
+  it('says one point is a point, and more are points (2026-10-16: "1 bonuspunten")', () => {
+    component.started = true;
+    component.game = { ...component.game, hits: 1 };
+    playWithBall(10, component.game.height - 5, 0, 400);
+    component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
+    component.advance(0.05);
+    fixture.detectChanges();
+    const won = () => fixture.nativeElement.querySelector('.bonus-won').textContent.replace(/\s+/g, ' ').trim();
+    expect(won()).toBe('1 bonuspunt');
+    component.hits = 3;
+    fixture.detectChanges();
+    expect(won()).toBe('3 bonuspunten');
+  });
+
   it('glows where the ball strikes a wall, and the glow fades', () => {
     (component as { calm: boolean }).calm = false;
     playWithBall(BALL_RADIUS + 2, component.game.height / 3, -300, -100);

@@ -25,7 +25,8 @@
 
     <div class="bonus-card" *ngIf="ended" role="status">
       <p class="bonus-well-played">{{ languageService.translate('bonus-well-played') }}</p>
-      <p class="bonus-won"><span class="bonus-won-number">{{ hits }}</span> {{ languageService.translate('bonus-points-won') }}</p>
+      <!-- One point is a point, not "points" -->
+      <p class="bonus-won"><span class="bonus-won-number">{{ hits }}</span> {{ languageService.translate(hits === 1 ? 'bonus-point-won' : 'bonus-points-won') }}</p>
       <p class="bonus-xp">+{{ xpWon }} {{ languageService.translate('xp') }}</p>
       <p class="bonus-best" *ngIf="best > 0">
         <span class="bonus-new-best" *ngIf="newBest">🏆 {{ languageService.translate('bonus-new-best') }}</span>

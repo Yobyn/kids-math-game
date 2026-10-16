@@ -517,6 +517,11 @@ middle, hard the end), one groep per run.
   paddle as Springbal's does on landing. This ends the planned steps (J–O);
   from here each run plays all three on a phone and picks one game-play or
   look-and-feel improvement.
+- **After O, run 1: one point is a point (2026-10-16).** All three games
+  played to the end at 320, 360 and 390px in nl, en and es (27 games). A
+  child who scored one point read "1 bonuspunten", "1 bonus points", "1
+  puntos extra" on every end card. It now says "1 bonuspunt", "1 bonus
+  point", "1 punto extra" (`bonus-point-won`); 0 and 2 or more stay plural.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",
