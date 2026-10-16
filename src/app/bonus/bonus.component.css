@@ -37,6 +37,23 @@ h1 {
   opacity: 0.25;
 }
 
+/* The heart just lost swells, shakes and drops into its faded place */
+.bonus-heart.just-lost {
+  display: inline-block;
+  animation: bonus-heart-lost 0.7s ease-out;
+}
+
+@keyframes bonus-heart-lost {
+  0% { transform: scale(1.6); opacity: 1; }
+  25% { transform: scale(1.4) rotate(-14deg); }
+  45% { transform: scale(1.3) rotate(12deg); }
+  100% { transform: translateY(0) scale(1); opacity: 0.25; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bonus-heart.just-lost { animation: none; }
+}
+
 .bonus-board {
   position: relative;
   width: 100%;

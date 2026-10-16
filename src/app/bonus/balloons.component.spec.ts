@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { BalloonsComponent, END_RINGS, MISS_PULSE } from './balloons.component';
+import { BalloonsComponent, END_RINGS, ESCAPE_LIFE, MISS_PULSE } from './balloons.component';
 import { BURST_LIFE } from './pop-burst';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
@@ -263,6 +263,36 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     component.points = 2;
     fixture.detectChanges();
     expect(won()).toBe('2 bonuspunten');
+  });
+
+  it('marks where a balloon got away and drops the heart it cost, so a miss is seen (2026-10-17)', () => {
+    const balloon = playWith({ y: 5, hue: 0.3 });
+    for (let i = 0; i < 20 && component.game.missed === 0; i++) {
+      component.advance(0.05);
+    }
+    fixture.detectChanges();
+    expect(component.escapes.length).toBe(1);
+    expect(component.escapes[0].x).toBeCloseTo(swayedX(balloon, component.game.elapsed, component.calm), 0);
+    expect(component.escapes[0].y).toBe(0.3);
+    const hearts = fixture.nativeElement.querySelectorAll('.bonus-heart');
+    expect(hearts[MISSES_ALLOWED - 1].classList).toContain('just-lost');
+    expect(fixture.nativeElement.querySelectorAll('.bonus-heart.just-lost').length).toBe(1);
+    // the mark fades away; the heart stays faded
+    component.advance(ESCAPE_LIFE);
+    fixture.detectChanges();
+    expect(component.escapes).toEqual([]);
+    expect(fixture.nativeElement.querySelectorAll('.bonus-heart.lost').length).toBe(1);
+  });
+
+  it('drops only the heart just lost: the next miss drops the next one', () => {
+    playWith({ y: 5 });
+    component.game = { ...component.game, missed: 1 };
+    for (let i = 0; i < 20 && component.game.missed === 1; i++) {
+      component.advance(0.05);
+    }
+    fixture.detectChanges();
+    const hearts = Array.from(fixture.nativeElement.querySelectorAll('.bonus-heart')) as HTMLElement[];
+    expect(hearts.map(heart => heart.classList.contains('just-lost'))).toEqual([false, true, false]);
   });
 
   it('goes back to choosing what to play next', () => {

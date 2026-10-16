@@ -12,7 +12,7 @@ import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { drawClouds, drawFloats, prefersReducedMotion, rgb } from './drawing';
 import { cloudsAt } from './backdrops';
-import { COUNTDOWN, FloatUp, ageFloats, countdownShown, newFloat } from './game-feel';
+import { COUNTDOWN, Flash, FloatUp, ageFlashes, ageFloats, countdownShown, newFloat } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
 import { Balloon, BalloonEvent, Balloons, MISSES_ALLOWED, SWAY_SPEED, newBalloons, pop, step, swayedX } from './balloons';
@@ -22,6 +22,12 @@ import { Burst, ageBursts, newBurst, piecesOf } from './pop-burst';
 export const BOARD_SHAPE = 1.25;
 /** How hard a balloon getting away nudges the field: a small sigh, not a burst. */
 export const MISS_PULSE = 0.12;
+/**
+ * Where a balloon got away stays marked at the top of the board for this
+ * long (2026-10-17: playing it, a balloon leaving cost a heart with nothing
+ * on the board to say so, and the heart above it faded quietly).
+ */
+export const ESCAPE_LIFE = 0.9;
 /** The end is the biggest burst of the three games: two rings of sparks, and every balloon still up pops. */
 export const END_RINGS = 2;
 
@@ -67,6 +73,8 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
   newBest = false;
   /** "+1"s floating up where points were scored. */
   floats: FloatUp[] = [];
+  /** Where balloons got away at the top, fading (ESCAPE_LIFE); the x is where it left, y the hue. */
+  escapes: Flash[] = [];
 
   readonly calm = prefersReducedMotion();
   /** Balloons bursting into pieces, drawn until the pieces fade (pop-burst.ts); none under reduced motion. */
@@ -184,6 +192,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.floats = ageFloats(this.floats, seconds);
     this.bursts = ageBursts(this.bursts, seconds);
+    this.escapes = ageFlashes(this.escapes, seconds, ESCAPE_LIFE);
     if (!this.ended) {
       const { game, events } = step(this.game, seconds);
       this.game = game;
@@ -237,6 +246,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
       this.finished = game.ended === 'finished';
       if (ending) {
         this.floats = [];
+        this.escapes = [];
         this.pay();
       }
     });
@@ -259,6 +269,8 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     if (event.kind === 'miss') {
+      // Marked where it left, so the heart it cost is not a surprise
+      this.escapes = [...this.escapes, { x: event.x, y: event.hue, age: 0 }];
       this.pulseService.pulse(MISS_PULSE);
       return;
     }
@@ -319,6 +331,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     context.save();
     balloons.forEach(balloon => this.drawBalloon(context, balloon, elapsed));
     this.bursts.forEach(burst => this.drawBurst(context, burst));
+    this.escapes.forEach(escape => this.drawEscape(context, escape));
     context.restore();
     drawFloats(context, this.floats, this.calm, rgb(fieldColour(0.5)));
   }
@@ -371,6 +384,31 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     context.beginPath();
     context.ellipse(x - radius * 0.38, y - tall * 0.42, radius * 0.16, radius * 0.3, -0.5, 0, Math.PI * 2);
     context.fill();
+  }
+
+  /**
+   * Where a balloon got away: a glow at the top edge in its colour and an
+   * arrow pointing up out of the board, fading. It holds still under
+   * reduced motion; otherwise the arrow drifts up as it fades.
+   */
+  private drawEscape(context: CanvasRenderingContext2D, escape: Flash) {
+    const t = Math.min(1, escape.age / ESCAPE_LIFE);
+    const { r, g, b } = fieldColour(escape.y);
+    const alpha = 1 - t;
+    const glow = context.createRadialGradient(escape.x, 0, 0, escape.x, 0, 46);
+    glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${(0.7 * alpha).toFixed(3)})`);
+    glow.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+    context.fillStyle = glow;
+    context.fillRect(escape.x - 46, 0, 92, 46);
+    const lift = this.calm ? 0 : 10 * t;
+    context.strokeStyle = `rgba(255, 255, 255, ${alpha.toFixed(3)})`;
+    context.lineWidth = 3;
+    context.lineCap = 'round';
+    context.beginPath();
+    context.moveTo(escape.x - 9, 22 - lift);
+    context.lineTo(escape.x, 12 - lift);
+    context.lineTo(escape.x + 9, 22 - lift);
+    context.stroke();
   }
 
   /** The pieces of a popped balloon, flying apart and fading. */
