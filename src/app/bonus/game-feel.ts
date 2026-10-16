@@ -53,11 +53,11 @@ export interface Flash {
   age: number;
 }
 
-/** The glows this much later: older, and gone once faded. */
-export function ageFlashes(flashes: Flash[], seconds: number): Flash[] {
+/** The glows this much later: older, and gone once faded (after `life` seconds). */
+export function ageFlashes(flashes: Flash[], seconds: number, life = FLASH_LIFE): Flash[] {
   return flashes
     .map(flash => ({ ...flash, age: flash.age + Math.max(0, seconds) }))
-    .filter(flash => flash.age < FLASH_LIFE);
+    .filter(flash => flash.age < life);
 }
 
 /**

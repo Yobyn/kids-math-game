@@ -522,6 +522,13 @@ middle, hard the end), one groep per run.
   child who scored one point read "1 bonuspunten", "1 bonus points", "1
   puntos extra" on every end card. It now says "1 bonuspunt", "1 bonus
   point", "1 punto extra" (`bonus-point-won`); 0 and 2 or more stay plural.
+- **After O, run 2: a balloon getting away is seen (2026-10-17).** Playing
+  Ballonnen on a 360px phone: a balloon floating off the top cost a heart
+  with nothing on the board to say so, and the heart above it faded
+  quietly, easy to miss mid-game. Now where it left glows at the top edge
+  in its colour with an arrow pointing out, fading in 0.9 s
+  (`ESCAPE_LIFE`), and the heart it cost swells, wobbles and drops into
+  its faded place (`.just-lost`; still under reduced motion).
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",

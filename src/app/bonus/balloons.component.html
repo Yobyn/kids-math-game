@@ -6,7 +6,8 @@
     <span class="bonus-points" aria-live="polite">{{ points }}</span>
     <span class="bonus-hearts" role="img"
           [attr.aria-label]="heartsLeft + ' ' + languageService.translate('balloons-hearts')">
-      <span *ngFor="let heart of hearts" class="bonus-heart" [class.lost]="!heart">♥</span>
+      <!-- The heart just lost drops and fades as it goes, so losing it is seen (bonus.component.css) -->
+      <span *ngFor="let heart of hearts; let i = index" class="bonus-heart" [class.lost]="!heart" [class.just-lost]="i === heartsLeft">♥</span>
     </span>
   </div>
 
