@@ -1821,6 +1821,8 @@ no unit test: karma's narrowest window (about 485px) is wider than the
 
 **THE SIGN-UP SCREEN IS TAPPABLE — DONE (2026-10-06).** Its two targets were the only ones left under the size the rest of the game holds to: the Sign up button was 42px tall and "Already have an account? Log in" was a bare 17px line of text. Both are now 48px. The screen had no spec at all; it has one now.
 
+**A PHONE NO LONGER CHANGES A CHILD'S NAME — DONE (2026-10-06).** Names are matched exactly at sign-in, and a phone keyboard capitalises and autocorrects a plain text box by itself: "sam" signed up on a laptop became "Sam" on the phone, and the sign-in failed. The name fields on the sign-in and sign-up screens now ask the keyboard for no capital, no correction and no spellcheck, and every field says what it is (name, current or new password, email), so a phone can fill in or offer to save a password.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
