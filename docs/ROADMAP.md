@@ -1805,6 +1805,14 @@ in English, Dutch and Spanish at 320, 360 and 390 wide, the button no longer
 moves. The answer-and-method message after a second miss can still be
 taller, but by then the button has become Next anyway.
 
+**"CONTROLEER ANTWOORD" ON ONE LINE — DONE (2026-10-06).** On a 320-wide
+phone in Dutch, Check Answer wrapped onto two lines and grew from 47px to
+70px, pushing it 23px further down. On a phone the button is already the
+card's full width, so its side padding came down from 2rem to 1rem; it is
+one line, 47px, in all three languages at 320, 360 and 390 wide. There is
+no unit test: karma's narrowest window (about 485px) is wider than the
+480px layout where the button goes full width, so it cannot wrap there.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
