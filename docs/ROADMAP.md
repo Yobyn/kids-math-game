@@ -1839,6 +1839,15 @@ in written-form.ts), drawn half as large again, so its digits sit close to the
 20's size. "⅕ van 50 =" still fits on one line at 320px in all three
 languages. Test: "draws ¼ large enough that its digits read beside the 20".
 
+**THE ANSWER STAYS ON SCREEN WHEN NEXT GETS FOCUS — DONE (2026-10-06).** After
+a second miss the game focuses Next, and the browser centred it on the
+screen. On a phone held sideways (740x360), with the easier offer between
+them, that pushed "the answer is 85" off the top: the child saw the method
+and the offer, but not the answer. Next is now focused without that scroll,
+and the page moves only as far as Next needs, never past the top of the
+verdict. Upright phones keep the whole verdict, method, offer and Next on
+screen. Tests: the question screen's "bringing Next into view".
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
