@@ -11,8 +11,15 @@ const CACHE_VERSION = 'math-game-__BUILD_VERSION__';
 // The character's parts are precached at install, not on first use: a child
 // who installs and goes offline before seeing their character would otherwise
 // get one with no hair, no eyes and no clothes.
+// EVERY BUILT BUNDLE IS PRECACHED TOO, filled in by the same build script.
+// Before, the bundles were only cached the next time the page asked for
+// them. The ones the first visit loaded were fetched before this worker
+// existed, and the dressing-up screen, which is loaded when it is opened,
+// was never cached until then. A child who installed the game and went
+// offline got a blank page, or no dressing-up screen.
+const BUILT = [/*__BUILD_FILES__*/];
 const SHELL = ['./', './index.html', './assets/icon-192.png', './assets/icon-512.png',
-  './assets/avatar/parts.svg'];
+  './assets/avatar/parts.svg', ...BUILT];
 
 // NO skipWaiting HERE, on purpose. A new worker that takes over the moment
 // it installs swaps the cache under a page that is still running the old
