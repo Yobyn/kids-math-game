@@ -529,6 +529,18 @@ middle, hard the end), one groep per run.
   in its colour with an arrow pointing out, fading in 0.9 s
   (`ESCAPE_LIFE`), and the heart it cost swells, wobbles and drops into
   its faded place (`.just-lost`; still under reduced motion).
+- **The old phone-fit drafts, checked against today's game (2026-10-17).**
+  Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
+  to be kept if they still make the game better and closed if not. All 21
+  were merged onto today's main, tested together (2214 specs, test:future,
+  test:scripts, production build) and compared with main at 360x640 and
+  320x568. Twenty are kept, and their own notes are in this file. Together
+  they put Check Answer on screen on a 360x640 phone, where it was below
+  the fold. They also put the title screen's languages on one row, fit all
+  three climbs and six groups on screen, add page gutters and 48px sign-up
+  targets, and stand ¾ = ?/12 as a fraction. #118 (keypad minus only on
+  request) is closed: nothing asks for the minus, so it would have taken
+  the key away from the klas 1–4 sums that have negative answers.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",
