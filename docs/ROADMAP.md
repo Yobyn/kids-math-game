@@ -1813,6 +1813,8 @@ one line, 47px, in all three languages at 320, 360 and 390 wide. There is
 no unit test: karma's narrowest window (about 485px) is wider than the
 480px layout where the button goes full width, so it cannot wrap there.
 
+**THE END-OF-ROUND BUTTONS LINE UP — DONE (2026-10-06).** "How far you have come" and "Your character" were each as wide as their own words, so the two stacked buttons sat about 30px apart in width, and a different amount in every language. They now share one width (up to 15rem), so they read as a pair under Play Again.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
