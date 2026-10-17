@@ -101,7 +101,7 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
   it('bounces on a tap on the board, and on Space or the up arrow', () => {
     component.started = true;
     const canvas = fixture.nativeElement.querySelector('canvas') as HTMLCanvasElement;
-    canvas.dispatchEvent(new Event('pointerdown'));
+    canvas.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
     expect(component.game.ball.vy).toBeLessThan(0);
     component.game = { ...component.game, ball: { ...component.game.ball, vy: 0 } };
     window.dispatchEvent(new KeyboardEvent('keydown', { key: ' ' }));
@@ -109,6 +109,40 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
     component.game = { ...component.game, ball: { ...component.game.ball, vy: 0 } };
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowUp' }));
     expect(component.game.ball.vy).toBeLessThan(0);
+  });
+
+  it('bounces on a tap anywhere on the screen, so a thumb below the board plays too', () => {
+    // Below the board on a phone held upright: the page, not the canvas
+    const below = document.createElement('div');
+    document.body.appendChild(below);
+    try {
+      below.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      expect(component.game.ball.vy).toBe(0);
+
+      component.started = true;
+      below.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      expect(component.game.ball.vy).toBeLessThan(0);
+    } finally {
+      below.remove();
+    }
+  });
+
+  it('leaves a tap on a button or the header to that control', () => {
+    component.started = true;
+    const header = document.createElement('header');
+    const sound = document.createElement('button');
+    header.appendChild(sound);
+    const link = document.createElement('a');
+    document.body.append(header, link);
+    try {
+      sound.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      header.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      link.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      expect(component.game.ball.vy).toBe(0);
+    } finally {
+      header.remove();
+      link.remove();
+    }
   });
 
   it('scores each obstacle passed, and the field swells and sparks at the ball with a soft blip', () => {
