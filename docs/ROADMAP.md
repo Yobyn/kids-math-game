@@ -1855,6 +1855,13 @@ first item is its drawing, so "for grown-ups" hung 17px below the middle of
 the button next to it. Both are now centred on one line. Test: the grade
 screen's "lines up your character and for grown-ups on a phone held sideways".
 
+**¾ = ?/12 IS WRITTEN AS A FRACTION — DONE (2026-10-07).** The box for the
+  new numerator stood on one line with "/ 12" after it, which reads as a
+  division to a child who has only ever seen fractions stacked. The box now
+  stands over the 12 with a fraction bar between them. `over` on the sum's
+  layout (written-form.ts) marks it; the slash stays in the page for a
+  screen reader and is drawn as the bar.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
