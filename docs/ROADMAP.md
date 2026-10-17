@@ -1787,6 +1787,14 @@ wide, the smallest 91px by 54), which brings "Play without an account" up
 screen redesign moved the selector out of, so they never apply. Left as is
 here; it is a colour choice for Yobyn, not a fit fix.
 
+**A GUTTER ROUND THE CARD ON "HOW FAR YOU HAVE COME", THE GROWN-UPS PAGE
+AND SIGN-UP — DONE (2026-10-06).** On a phone these three cards ran edge to
+edge (0px either side at 320, 360 and 390 wide), so their rounded corners
+and border went off the screen, while the grade, difficulty and question
+screens keep 12-16px. They now keep 16px. Tablets and landscape are
+unchanged. The dressing-up screen's card does the same and is left for the
+avatar work, which is changing that screen all the time.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,

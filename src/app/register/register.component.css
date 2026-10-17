@@ -113,3 +113,13 @@ button:disabled {
 .register-container a {
   color: var(--text-dim);
 }
+
+/* On a phone the card ran edge to edge: its rounded corners and border went
+   off the sides of the screen, where every other screen keeps a gutter.
+   496px is its 400px column plus its padding, plus the two gutters. */
+@media (max-width: 496px) {
+  .register-container {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+}

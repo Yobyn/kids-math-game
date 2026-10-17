@@ -223,3 +223,12 @@
 :host-context(html[data-fit='short']) .progress-page .counts {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+
+/* On a phone the card ran edge to edge: its rounded corners and border went
+   off the sides of the screen, where every other screen keeps a gutter. */
+@media (max-width: 632px) {
+  .progress-page {
+    margin-left: 1rem;
+    margin-right: 1rem;
+  }
+}
