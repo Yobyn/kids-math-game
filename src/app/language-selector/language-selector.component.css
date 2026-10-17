@@ -67,3 +67,32 @@
     padding: 0.5rem;
   }
 }
+
+/* On the title screen of a phone held upright the three names did not fit on
+   one row, even at 390 wide, so Español sat alone on a second row: 96px of
+   lopsided buttons at the top of the first screen a child sees. Each button
+   now takes a third of the row with its flag over its name, so all three
+   fit down to a 320 wide phone and the target stays at least 44px. */
+@media (max-width: 600px) {
+  /* The whole width, or the thirds are thirds of the buttons' own size */
+  :host-context(.title-screen) {
+    display: block;
+    width: 100%;
+  }
+
+  :host-context(.title-screen) .language-selector {
+    flex-wrap: nowrap;
+  }
+
+  :host-context(.title-screen) .lang-btn {
+    flex: 1 1 0;
+    flex-direction: column;
+    gap: 0.1rem;
+    max-width: 7.5rem;
+    padding: 0.35rem 0.25rem;
+  }
+
+  :host-context(.title-screen) .lang-name {
+    font-size: 0.8rem;
+  }
+}

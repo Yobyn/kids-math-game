@@ -46,6 +46,29 @@ describe('LoginComponent', () => {
     expect((fixture.nativeElement.querySelector('input[name="username"]') as HTMLInputElement).value).toBe('zoe');
   });
 
+  it('stops a phone from capitalising or correcting a name, so it still matches at sign-in', () => {
+    // Names are matched exactly on the server. A phone keyboard turns "sam"
+    // into "Sam" by itself, and a child who signed up on a laptop is told
+    // their name is wrong
+    const username = fixture.nativeElement.querySelector('input[name="username"]') as HTMLInputElement;
+    expect(username.getAttribute('autocapitalize')).toBe('none');
+    expect(username.getAttribute('autocorrect')).toBe('off');
+    expect(username.getAttribute('spellcheck')).toBe('false');
+    expect(username.getAttribute('autocomplete')).toBe('username');
+  });
+
+  it('tells the phone which password this is, so a saved one can be filled in', () => {
+    const password = () => fixture.nativeElement.querySelector('input[name="password"]') as HTMLInputElement;
+    expect(password().getAttribute('autocomplete')).toBe('current-password');
+
+    component.isRegistering = true;
+    fixture.detectChanges();
+    expect(password().getAttribute('autocomplete')).toBe('new-password');
+    const email = fixture.nativeElement.querySelector('input[name="email"]') as HTMLInputElement;
+    expect(email.getAttribute('autocapitalize')).toBe('none');
+    expect(email.getAttribute('autocomplete')).toBe('email');
+  });
+
   it('sends the form without the page reloading, and without the browser\u2019s own warnings', () => {
     const submit = spyOn(component, 'onSubmit');
     const form = fixture.nativeElement.querySelector('form') as HTMLFormElement;

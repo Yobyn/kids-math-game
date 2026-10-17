@@ -510,6 +510,18 @@ describe('ResultComponent naming the reward', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/avatar']);
   });
 
+  it('stacks the two ways on as a pair of the same width', () => {
+    // Each was as wide as its own words, so "How far you have come" and
+    // "Your character" sat under each other 30px apart, a different 30px
+    // in every language
+    finishRoundAt(0, 50);
+
+    const width = (selector: string) =>
+      fixture.nativeElement.querySelector(selector).getBoundingClientRect().width;
+    expect(width('.see-progress')).toBeGreaterThan(0);
+    expect(width('.see-character')).toBe(width('.see-progress'));
+  });
+
   it('says put it on when the round actually handed something over', () => {
     // The screen says "Unlocked: Cap" and then, until now, offered no way to
     // go and wear it

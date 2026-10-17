@@ -1,5 +1,5 @@
 import { RoundTrackComponent } from './round-track.component';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ElementRef, NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SoundService } from '../services/sound.service';
 import { Router } from '@angular/router';
@@ -711,6 +711,57 @@ describe('QuestionComponent', () => {
     });
   });
 
+  describe('bringing Next into view', () => {
+    // Where the verdict's top and Next's bottom sit on the screen, as a phone
+    // held sideways would have them once the answer and the easier offer show
+    function place(verdictTop: number, nextBottom: number) {
+      const next = document.createElement('button');
+      spyOn(next, 'getBoundingClientRect').and.returnValue({ top: nextBottom - 48, bottom: nextBottom } as DOMRect);
+      spyOn(next, 'focus');
+      const verdict = document.createElement('div');
+      spyOn(verdict, 'getBoundingClientRect').and.returnValue({ top: verdictTop, bottom: verdictTop + 70 } as DOMRect);
+      component.nextButton = new ElementRef(next);
+      component.verdict = new ElementRef(verdict);
+      return next;
+    }
+
+    function focusNext() {
+      (component as unknown as { focusNext(): void }).focusNext();
+    }
+
+    beforeEach(() => spyOn(window, 'scrollBy'));
+
+    it('focuses Next without the browser centring it', () => {
+      const next = place(100, 300);
+      focusNext();
+      expect(next.focus).toHaveBeenCalledWith({ preventScroll: true });
+    });
+
+    it('scrolls the answer back into view rather than leaving it above the screen', () => {
+      place(-80, window.innerHeight - 100);
+      focusNext();
+      expect(window.scrollBy).toHaveBeenCalledWith(0, -88);
+    });
+
+    it('scrolls down only as far as Next needs', () => {
+      place(300, window.innerHeight + 100);
+      focusNext();
+      expect(window.scrollBy).toHaveBeenCalledWith(0, 108);
+    });
+
+    it('keeps the answer on screen when the answer and Next will not both fit', () => {
+      place(200, window.innerHeight + 300);
+      focusNext();
+      expect(window.scrollBy).toHaveBeenCalledWith(0, 192);
+    });
+
+    it('leaves the page where it is when both are already on screen', () => {
+      place(100, window.innerHeight - 50);
+      focusNext();
+      expect(window.scrollBy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('touch keypad', () => {
     beforeEach(() => {
       component.userAnswer = '';
@@ -1044,6 +1095,28 @@ describe('QuestionComponent showing how', () => {
     const shown = fixture.nativeElement.querySelector('.worked-step');
     expect(shown.textContent).toContain('8 + 2 = 10');
     expect(shown.textContent).toContain('One way to do it:');
+  });
+
+  it('wraps the worked line between its steps, never inside one', () => {
+    ask(47, 38);
+
+    answer('1');
+    answer('2');
+    fixture.detectChanges();
+
+    const parts: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.worked-part'));
+    expect(parts.map(part => part.textContent)).toEqual(['47 + 30 = 77', '→ 77 + 8 = 85']);
+
+    // As narrow as the box gets on a 320px phone: the line has to wrap, and
+    // it may only do so at the arrow, so "77 + 8 =" never loses its 85
+    const box: HTMLElement = fixture.nativeElement.querySelector('.worked-step');
+    box.style.width = '190px';
+    box.style.boxSizing = 'border-box';
+    parts.forEach(part => {
+      const lineHeight = parseFloat(getComputedStyle(part).fontSize) * 1.6;
+      expect(part.getBoundingClientRect().height).toBeLessThan(lineHeight);
+    });
+    expect(parts[1].getBoundingClientRect().top).toBeGreaterThan(parts[0].getBoundingClientRect().top);
   });
 
   it('never shows a method to a child who got it right', () => {
@@ -1792,7 +1865,11 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
   /** The sum on the card, in order, with the answer box as "[ ]". */
   function card(): string[] {
     const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    // The box and what follows it sit in a wrapper that only lays them out
+    // (.answer-group), so read through it
     return Array.from(problem.children)
+      .reduce((all: Element[], child) =>
+        all.concat(child.classList.contains('answer-group') ? Array.from(child.children) : [child]), [])
       .filter(child => !child.classList.contains('currency'))
       .map(child => child.tagName === 'INPUT' ? '[ ]' : child.textContent!.trim());
   }
@@ -1869,6 +1946,38 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()).toEqual(['7', '+', '5', '=', '[ ]']);
   });
 
+  it('draws ¼ large enough that its digits read beside the 20', () => {
+    build('nl');
+    ask({ num1: 20, num2: 4, operation: '/', form: 'deel' });
+    const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    const fraction = problem.querySelector('.fraction') as HTMLElement;
+    const amount = problem.querySelector('.number') as HTMLElement;
+    expect(fraction.textContent!.trim()).toBe('¼');
+    expect(amount.textContent!.trim()).toBe('20');
+    // The glyph's own digits are about half its size, so it is drawn larger
+    expect(parseFloat(getComputedStyle(fraction).fontSize))
+      .toBeGreaterThanOrEqual(1.4 * parseFloat(getComputedStyle(amount).fontSize));
+  });
+
+  it('draws ¾ and ⅖ as large as ¼, in ¾ van 20 and ¾ = ?/12', () => {
+    build('nl');
+    const sizes = () => {
+      const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+      const fraction = problem.querySelector('.fraction') as HTMLElement;
+      const number = problem.querySelector('.number') as HTMLElement;
+      return { glyph: fraction.textContent!.trim(), ratio: parseFloat(getComputedStyle(fraction).fontSize) / parseFloat(getComputedStyle(number).fontSize) };
+    };
+    ask({ num1: 5, num2: 3, operation: '*', form: 'van-4' });
+    expect(sizes().glyph).toBe('¾');
+    expect(sizes().ratio).toBeGreaterThanOrEqual(1.4);
+    ask({ num1: 7, num2: 2, operation: '*', form: 'van-5' });
+    expect(sizes().glyph).toBe('⅖');
+    expect(sizes().ratio).toBeGreaterThanOrEqual(1.4);
+    ask({ num1: 3, num2: 3, operation: '*', form: 'gelijk-4' });
+    expect(sizes().glyph).toBe('¾');
+    expect(sizes().ratio).toBeGreaterThanOrEqual(1.4);
+  });
+
   it('says dubbel and de helft van in the child’s language', () => {
     build('en');
     ask({ num1: 7, num2: 7, operation: '+', form: 'dubbel' });
@@ -1938,6 +2047,34 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(heading.bottom).toBeLessThanOrEqual(sum.top);
     // and the sum below it is one line: the number and the box side by side
     expect(Math.abs((sum.top + sum.bottom) / 2 - (box.top + box.bottom) / 2)).toBeLessThan(sum.height / 2);
+  });
+
+  it('stands the box over the 12 for ¾ = ?/12, with a fraction bar between, as the workbook writes it', () => {
+    build('nl');
+    ask({ num1: 3, num2: 3, operation: '*', form: 'gelijk-4' });
+    const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    const box = (problem.querySelector('input') as HTMLElement).getBoundingClientRect();
+    const under = problem.querySelector('.answer-group .number') as HTMLElement;
+    const twelve = under.getBoundingClientRect();
+    expect(under.textContent!.trim()).toBe('12');
+    // under the box, not beside it, and centred on it
+    expect(twelve.top).toBeGreaterThanOrEqual(box.bottom);
+    expect(Math.abs((twelve.left + twelve.right) / 2 - (box.left + box.right) / 2)).toBeLessThan(1);
+    // the bar is drawn, and the slash is gone from sight but not from a screen reader
+    expect(parseFloat(getComputedStyle(under).borderTopWidth)).toBeGreaterThanOrEqual(3);
+    const slash = problem.querySelector('.answer-group .operation') as HTMLElement;
+    expect(slash.getBoundingClientRect().width).toBeLessThanOrEqual(1);
+    expect(getComputedStyle(slash).display).not.toBe('none');
+  });
+
+  it('keeps every other sum on one line, the box beside what follows it', () => {
+    build('nl');
+    ask({ num1: 3, num2: 100, operation: '*', form: 'm-cm' });
+    const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    const box = (problem.querySelector('input') as HTMLElement).getBoundingClientRect();
+    const unit = (problem.querySelector('.answer-group .word') as HTMLElement).getBoundingClientRect();
+    expect(unit.left).toBeGreaterThanOrEqual(box.right);
+    expect(problem.querySelector('.answer-group.over')).toBeNull();
   });
 
   it('marks the nearest ten or hundred for a rounding, a 5 going up, and not the number itself or the other way', () => {

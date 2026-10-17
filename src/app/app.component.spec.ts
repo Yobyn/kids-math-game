@@ -100,6 +100,22 @@ describe('AppComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/avatar']);
   });
 
+  it('marks the header as in a round only while a question is on screen', () => {
+    TestBed.inject(AuthService).playAsGuest();
+    const header = () => fixture.nativeElement.querySelector('.app-header');
+
+    (component as any).route = '/questions?level=2';
+    fixture.detectChanges();
+    expect(header().classList).toContain('in-round');
+    // Still there, just tucked away by CSS on a phone
+    expect(header().querySelector('.sound-btn')).toBeTruthy();
+    expect(header().querySelector('.avatar-button')).toBeTruthy();
+
+    (component as any).route = '/grade';
+    fixture.detectChanges();
+    expect(header().classList).not.toContain('in-round');
+  });
+
   it('starts with sound on', () => {
     expect(component.soundEnabled).toBe(true);
   });

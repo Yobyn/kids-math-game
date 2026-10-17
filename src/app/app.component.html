@@ -1,6 +1,6 @@
 <app-particles></app-particles>
 
-<header class="app-header" *ngIf="username || isGuest">
+<header class="app-header" *ngIf="username || isGuest" [class.in-round]="inRound">
   <div class="header-content">
     <div class="welcome-message">
       <button type="button"

@@ -106,6 +106,16 @@ describe('the layout on a screen that is not a phone held upright', () => {
       });
     });
 
+    it('keeps the comma key larger than a digit, as it is upright', () => {
+      fixture.componentInstance.currentQuestion = { num1: 25, num2: 3, operation: '*', form: 'breuk-komma' };
+      fit('short');
+
+      const mark = fixture.nativeElement.querySelector('.keypad .key-mark') as HTMLElement;
+      expect(mark).toBeTruthy();
+      expect(parseFloat(getComputedStyle(mark).fontSize))
+        .toBeGreaterThanOrEqual(1.6 * parseFloat(getComputedStyle(keys()[0]).fontSize));
+    });
+
     it('keeps the answer surface light, whichever way the phone is held', () => {
       const luminance = (colour: string): number => {
         const parts = (colour.match(/\d+/g) || ['0', '0', '0']).slice(0, 3).map(Number);
@@ -143,6 +153,54 @@ describe('the layout on a screen that is not a phone held upright', () => {
       // A line of text the whole width of a 1366px tablet is harder to read,
       // not easier, so the cap comes up rather than off
       expect(wide).toBeLessThan(1000);
+    });
+  });
+
+  describe('a small phone held upright', () => {
+    // A media query, so this checks whichever side of it the runner's window
+    // falls on: the rule is loaded and keyed on height, not that it fires.
+    const small = () => window.matchMedia('(max-height: 700px)').matches;
+
+    it('takes a little off each key when the screen is short, never below 48px', () => {
+      fit('stack');
+      const height = parseFloat(getComputedStyle(keys()[0]).minHeight);
+
+      if (small()) {
+        expect(height).toBe(52);
+      } else {
+        expect(height).toBeGreaterThanOrEqual(56);
+      }
+      expect(height).toBeGreaterThanOrEqual(48);
+    });
+
+    it('still holds the feedback space open, so the card does not jump', () => {
+      fit('stack');
+      const feedback = fixture.nativeElement.querySelector('.feedback-container');
+
+      expect(getComputedStyle(feedback).minHeight).toBe('60px');
+    });
+  });
+
+  describe('a phone held upright', () => {
+    it('fits a two-line "try again" in the space held for it, so Check Answer does not move', () => {
+      // A media query on the window, and karma cannot resize its window: this
+      // only runs where the runner's window is phone-sized
+      if (!window.matchMedia('(max-width: 600px)').matches) {
+        pending('the window is wider than a phone');
+        return;
+      }
+      fit('stack');
+      fixture.nativeElement.style.display = 'block';
+      fixture.nativeElement.style.width = '320px';
+      const check = () => fixture.nativeElement.querySelector('.check-button').getBoundingClientRect().top;
+      const before = check();
+
+      // The longest of the three languages' "try again"
+      fixture.componentInstance.feedback = 'Niet helemaal goed, probeer nog een keer!';
+      fixture.componentInstance.answerWasCorrect = false;
+      fixture.detectChanges();
+
+      expect(check()).toBe(before);
     });
   });
 

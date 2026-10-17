@@ -529,6 +529,18 @@ middle, hard the end), one groep per run.
   in its colour with an arrow pointing out, fading in 0.9 s
   (`ESCAPE_LIFE`), and the heart it cost swells, wobbles and drops into
   its faded place (`.just-lost`; still under reduced motion).
+- **The old phone-fit drafts, checked against today's game (2026-10-17).**
+  Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
+  to be kept if they still make the game better and closed if not. All 21
+  were merged onto today's main, tested together (2214 specs, test:future,
+  test:scripts, production build) and compared with main at 360x640 and
+  320x568. Twenty are kept, and their own notes are in this file. Together
+  they put Check Answer on screen on a 360x640 phone, where it was below
+  the fold. They also put the title screen's languages on one row, fit all
+  three climbs and six groups on screen, add page gutters and 48px sign-up
+  targets, and stand ¾ = ?/12 as a fraction. #118 (keypad minus only on
+  request) is closed: nothing asks for the minus, so it would have taken
+  the key away from the klas 1–4 sums that have negative answers.
 - **Years not built yet are locked (2026-10-09).** Yobyn: klas 4
   Uitdaging asked 12 : 4. Groep 8 and klas 1–4 still had the old generic
   sums, so their cards on the grade screen are locked ("🔒 Komt eraan",
@@ -804,6 +816,11 @@ person standing still does, and says hello to what it is given:
   little and the arms ease out and back.
 - It blinks, at uneven gaps of two to five seconds; blinks on the dot look
   mechanical. Not in the first moment on screen.
+  At the bottom of a blink the eye is drawn as a soft dark line curving
+  down, in place of the eye pressed flat, which on a phone read as white
+  flecks (nightly run, 2026-09-26, with before and after screenshots). The
+  line undoes the press on itself so it keeps its shape (`rig.ts`,
+  `openEyes`; tested in `rig.spec.ts` on both figures).
 - It waves when a hat, glasses or a top goes on that was not on before:
   the right arm comes up level with the shoulder, the forearm points up,
   the hand rocks three times, and the arm comes back down. Not for a new
@@ -1432,11 +1449,21 @@ WHAT IS NEXT, in the order the runs should take them:
 3. **Better materials.** Hair strands or clumps rather than one smooth
    shell for the straight styles; fabric folds; a soft contact shadow on the
    stand.
-4. **Offline.** (Draft #78 from the other Routine does this: Yobyn's to
-   review, not to redo.) The dressing-up chunk is only cached once it has been
-   opened. A child who installs and goes offline before opening it gets no
-   dressing-up screen. Precache the lazy chunks in the service worker
-   (the still renderer's chunks too, so the pictures work offline).
+4. **Offline — DONE (nightly run, 2026-09-27).** It was worse than this
+   item said. The worker precached `index.html` and a few assets, and
+   cached bundles only when the page next asked for them. The first visit's
+   own bundles (main, runtime, polyfills, styles) were fetched before the
+   worker existed. So a child who opened the game once and then went
+   offline got a BLANK PAGE once the browser's HTTP cache let go of those
+   bundles. Now `scripts/stamp-service-worker.js` writes every built file
+   (all scripts and stylesheets, lazy chunks included, plus the manifest
+   and favicon) into the worker's precache list at build time, sorted so
+   the same build gives the same worker bytes. It fails the build if the
+   marker is missing. Checked in a real browser with the server switched
+   off, because Playwright's offline switch does not reach a service worker
+   and made the old worker look fine: before, blank; after, the grade
+   screen and the 3D dressing-up screen both work, on a screen never
+   opened while online. About 1.2 MB raw is fetched once at install.
 
 ## Art direction (Yobyn, 2026-09-23)
 
@@ -1734,6 +1761,131 @@ in all). A mutation sweep caught 10 of 13 breakages. The other three were
 equivalent: a redundant clamp, `display: inline` on a flex item (which is
 blockified anyway), and a hard-coded 10 where the round is always 10. The
 first load grew 0.87 kB, to 491.52 kB.
+
+**ONE ROW OF HEADER DURING A ROUND, ON A PHONE — DONE (2026-10-05).** On a
+phone held upright the app header wrapped to two rows: the character, the
+greeting and the sound button, then the language and sign-in buttons. That
+took 153px (205px at 320 wide), and measured at 360x740, Check Answer was
+below the fold on every question. While a question is on screen
+(`AppComponent.inRound`), a phone now gets one row with just the character
+and the sound button, 76px high. The language and sign-in buttons come back
+between rounds. Neither is something a child needs halfway through a sum.
+
+Measured after: Check Answer sits at 666px of 740 and 681px of 844. At
+320x568 the whole keypad, 0 included, is now on screen, but Check Answer
+still is not (681px of 568). The card's own padding and the round track are
+the next places to find height for that size.
+
+**CHECK ANSWER ON SCREEN ON AN IPHONE SE — DONE (2026-10-05).** On a phone
+held upright and 700px tall or less (an iPhone SE is 667, many Androids 640),
+Check Answer ended at 758px, so a child scrolled to hand in every answer.
+`fit.css` now tightens the question screen at that height: less padding
+round the card, smaller gaps above and below the keypad, and keys of 52px
+instead of 56 (still above the 48px floor). The 60px held open for feedback
+stays, so the card does not jump. Measured with the same question: at
+375x667 Check Answer went from 758 to 662, on screen. At 360x640 and 320x568
+it is still below the fold (662 and 714) until the one-row round header
+(the draft before this one) lands as well. Phones on their side and tablets
+are untouched.
+
+**THE TITLE SCREEN'S LANGUAGES ON ONE ROW — DONE (2026-10-05).** On a
+phone held upright the three language buttons did not fit on one row, even
+at 390 wide, so Español sat alone under English and Nederlands: 112px of
+lopsided buttons at the top of the first screen a child sees. Each now takes
+a third of the row with its flag over its name (all three fit down to 320
+wide, the smallest 91px by 54), which brings "Play without an account" up
+42px. Header and landscape unchanged. Found on the way: the selector's
+"login screen" colours are keyed on `.login-container`, which the title
+screen redesign moved the selector out of, so they never apply. Left as is
+here; it is a colour choice for Yobyn, not a fit fix.
+
+**A GUTTER ROUND THE CARD ON "HOW FAR YOU HAVE COME", THE GROWN-UPS PAGE
+AND SIGN-UP — DONE (2026-10-06).** On a phone these three cards ran edge to
+edge (0px either side at 320, 360 and 390 wide), so their rounded corners
+and border went off the screen, while the grade, difficulty and question
+screens keep 12-16px. They now keep 16px. Tablets and landscape are
+unchanged. The dressing-up screen's card does the same and is left for the
+avatar work, which is changing that screen all the time.
+
+**CHECK ANSWER STAYS PUT WHEN "TRY AGAIN" APPEARS — DONE (2026-10-06).**
+The question card holds 60px open for feedback so the card does not jump,
+but on a phone the "try again" message wrapped to two lines at 1.25rem and
+came out 70px tall (93px in Dutch at 320 wide). So Check Answer moved down
+10-33px just as the child went to tap it again. On a phone the message is
+now 1.05rem with a little less padding, and two lines fit in 58px: measured
+in English, Dutch and Spanish at 320, 360 and 390 wide, the button no longer
+moves. The answer-and-method message after a second miss can still be
+taller, but by then the button has become Next anyway.
+
+**"CONTROLEER ANTWOORD" ON ONE LINE — DONE (2026-10-06).** On a 320-wide
+phone in Dutch, Check Answer wrapped onto two lines and grew from 47px to
+70px, pushing it 23px further down. On a phone the button is already the
+card's full width, so its side padding came down from 2rem to 1rem; it is
+one line, 47px, in all three languages at 320, 360 and 390 wide. There is
+no unit test: karma's narrowest window (about 485px) is wider than the
+480px layout where the button goes full width, so it cannot wrap there.
+
+**THE END-OF-ROUND BUTTONS LINE UP — DONE (2026-10-06).** "How far you have come" and "Your character" were each as wide as their own words, so the two stacked buttons sat about 30px apart in width, and a different amount in every language. They now share one width (up to 15rem), so they read as a pair under Play Again.
+
+**ALL THREE CLIMBS FIT ON A SMALL PHONE — DONE (2026-10-06).** The climb cards' 96px minimum was measured from the content box, so it came on top of the padding and border and made every card 125px. The third climb ended 99px below a 360x640 screen and 20px below a 375x667 one. On phones the minimum now counts from the card's edge, and the gap above the title is gone, so the cards are 108px and all three end on screen at both sizes. At 320x568 the last one still needs a short scroll.
+
+**MORE GROUPS ON A PHONE'S FIRST SCREEN — DONE (2026-10-06).** The group cards had the same content-box minimum as the climbs: each was 128px instead of 96px, and a 360x640 or 375x667 phone showed 4 of the 10 groups. On phones the minimum now counts from the card's edge and the gap above the title is gone, so the cards are 113px and those phones show 6. A 390x844 phone shows all 10.
+
+**THE SIGN-UP SCREEN IS TAPPABLE — DONE (2026-10-06).** Its two targets were the only ones left under the size the rest of the game holds to: the Sign up button was 42px tall and "Already have an account? Log in" was a bare 17px line of text. Both are now 48px. The screen had no spec at all; it has one now.
+
+**A PHONE NO LONGER CHANGES A CHILD'S NAME — DONE (2026-10-06).** Names are matched exactly at sign-in, and a phone keyboard capitalises and autocorrects a plain text box by itself: "sam" signed up on a laptop became "Sam" on the phone, and the sign-in failed. The name fields on the sign-in and sign-up screens now ask the keyboard for no capital, no correction and no spellcheck, and every field says what it is (name, current or new password, email), so a phone can fill in or offer to save a password.
+
+**THE WORKED LINE WRAPS AT ITS ARROW — DONE (2026-10-06).** On a 320px phone
+the "one way to do it" line under a given-away answer broke inside a step:
+"47 + 30 = 77 → 77 + 8 =" on one line and a lone "85" on the next, which reads
+as a sum with no answer. The line is now a wrapping row of its steps
+(`workedSteps`), so it breaks only at the arrow: "47 + 30 = 77" over
+"→ 77 + 8 = 85". Wider phones still show it on one line. Test: the question
+screen's "wraps the worked line between its steps, never inside one".
+
+**¼ VAN 20, READABLE ON A PHONE — DONE (2026-10-06).** Groep 5's "¼ van 20"
+drew the fraction as one glyph at the size of the numbers, which puts its own
+1 and 4 at about half their size: small enough on a phone that a child has to
+lean in to tell ¼ from ⅕. A fraction is now its own part (`kind: 'fraction'`
+in written-form.ts), drawn half as large again, so its digits sit close to the
+20's size. "⅕ van 50 =" still fits on one line at 320px in all three
+languages. Test: "draws ¼ large enough that its digits read beside the 20".
+
+**THE ANSWER STAYS ON SCREEN WHEN NEXT GETS FOCUS — DONE (2026-10-06).** After
+a second miss the game focuses Next, and the browser centred it on the
+screen. On a phone held sideways (740x360), with the easier offer between
+them, that pushed "the answer is 85" off the top: the child saw the method
+and the offer, but not the answer. Next is now focused without that scroll,
+and the page moves only as far as Next needs, never past the top of the
+verdict. Upright phones keep the whole verdict, method, offer and Next on
+screen. Tests: the question screen's "bringing Next into view".
+
+**THE GRADE SCREEN'S WAYS OFF LINE UP SIDEWAYS — DONE (2026-10-07).** On a
+phone held sideways, "your character" and "for grown-ups" sit side by side
+(src/fit.css). They were lined up by baseline, and the character button's
+first item is its drawing, so "for grown-ups" hung 17px below the middle of
+the button next to it. Both are now centred on one line. Test: the grade
+screen's "lines up your character and for grown-ups on a phone held sideways".
+
+**¾ = ?/12 IS WRITTEN AS A FRACTION — DONE (2026-10-07).** The box for the
+  new numerator stood on one line with "/ 12" after it, which reads as a
+  division to a child who has only ever seen fractions stacked. The box now
+  stands over the 12 with a fraction bar between them. `over` on the sum's
+  layout (written-form.ts) marks it; the slash stays in the page for a
+  screen reader and is drawn as the bar.
+
+**THE COMMA KEY IS BIG ENOUGH TO FIND — DONE (2026-10-08).** Groep 7 types
+  ¾ = 0,75, and the keypad's comma was drawn at a digit's size: a few pixels
+  of ink at the bottom of a key, easy to miss on a phone. It is drawn at
+  2.8rem now (2rem on a phone held sideways, where fit.css sets the keys'
+  size), and the point on the English money keypad with it.
+
+**THE PHONE'S OWN BAR IS THE GAME'S COLOUR — DONE (2026-10-09).** theme-color
+  and the manifest still carried the old look: a bright blue #0984e3 status
+  and address bar on Android above a page that is now night-dark, and a pale
+  cyan splash before the installed game appeared. Both are #0b0a18 now, the
+  page background in styles.css, and scripts/index-html.test.js holds the
+  three to one colour.
 
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait

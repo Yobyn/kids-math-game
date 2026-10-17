@@ -146,6 +146,12 @@ html[data-fit='short'] .question-box .keypad .key {
   border-radius: 10px;
 }
 
+/* The comma keeps its larger size here too (keypad.component.css says why);
+   the rule above would otherwise bring it down to a digit's 1.2rem. */
+html[data-fit='short'] .question-box .keypad .key-mark {
+  font-size: 2rem;
+}
+
 html[data-fit='short'] .math-problem {
   margin: 0.2rem 0;
 }
@@ -237,10 +243,15 @@ html[data-fit='short'] .or-pick {
   font-size: 0.9rem;
 }
 
-/* The ways off the grade screen sit side by side instead of stacked */
+/* The ways off the grade screen sit side by side instead of stacked, centred
+   on one line: lined up by their baselines, the character button's has no
+   text to sit on (its first item is the drawing), so "for grown-ups" hung
+   half a line below it */
 html[data-fit='short'] .your-character,
 html[data-fit='short'] .grown-ups-link {
   display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
   margin: 0.4rem 0.3rem 0;
   width: auto;
 }
@@ -390,6 +401,45 @@ html[data-fit='short'] .difficulty-container h1 {
 
 /* The progress page's own landscape rules live in its stylesheet: it is a
    lazy route, and rules here ship in everyone's first load. */
+
+/* ---------- A small phone held upright ---------- */
+
+/* An iPhone SE is 667px tall and many Androids 640, and on both Check Answer
+   ended at 758px: below the fold on every question, so a child had to
+   scroll to hand in each answer. The height comes from the space around the
+   keypad, and 4px off each key. Measured at 375x667, this takes Check Answer
+   from 758 to 662. The 60px held open for feedback stays, so the card still
+   does not jump when it appears. */
+@media (max-height: 700px) {
+  html[data-fit='stack'] .question-container {
+    padding-top: 0.5rem;
+  }
+
+  html[data-fit='stack'] .round-track {
+    margin-bottom: 0.75rem;
+  }
+
+  html[data-fit='stack'] .question-box {
+    padding: 1rem;
+  }
+
+  html[data-fit='stack'] .math-problem {
+    margin-bottom: 1rem;
+  }
+
+  html[data-fit='stack'] .feedback-container {
+    margin: 0.25rem 0;
+  }
+
+  /* 52px still clears the 48px floor this project holds every key to. */
+  html[data-fit='stack'] .question-box .keypad .key {
+    min-height: 52px;
+  }
+
+  html[data-fit='stack'] .question-box .button-container {
+    margin-top: 0.5rem;
+  }
+}
 
 /* ---------- A large tablet ---------- */
 

@@ -57,6 +57,16 @@
   font-weight: bold;
 }
 
+/* ¼ in ¼ van 20. A fraction glyph draws its digits at about half the size
+   of the numbers beside it, too small to read at a glance on a phone, so
+   the glyph is drawn larger to bring them close to the numbers' size. */
+.fraction {
+  font-weight: bold;
+  color: var(--accent-blue-read);
+  font-size: 1.5em;
+  line-height: 1;
+}
+
 /* "Rond af op tientallen": a heading on a line of its own */
 .caption {
   flex-basis: 100%;
@@ -70,6 +80,37 @@
   color: var(--text-read-dim);
   font-size: 0.6em;
   white-space: nowrap;
+}
+
+/* Lays nothing out on its own, so the box and what follows it sit in the
+   sum's row as if the wrapper were not there. */
+.answer-group {
+  display: contents;
+}
+
+/* ¾ = ?/12: the box over the 12, as a fraction is written in the workbook,
+   rather than "? / 12" on one line, which reads as a division to a child. */
+.answer-group.over {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+/* The slash becomes the bar: still there for a screen reader, drawn as a line */
+.answer-group.over .operation {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.answer-group.over .number {
+  margin-top: 0.3rem;
+  padding-top: 0.15rem;
+  border-top: 4px solid var(--text-read);
+  text-align: center;
+  line-height: 1.1;
 }
 
 input {
@@ -234,6 +275,17 @@ input.incorrect {
   }
 }
 
+/* On a phone, a two-line "try again" fits the 60px held open for it, so
+   Check Answer stays where the child last tapped it. At 1.25rem the message
+   was 70px, 93 in Dutch on a small phone, and the button jumped 10-33px. */
+@media (max-width: 600px) {
+  .feedback {
+    padding: 0.5rem 1rem;
+    font-size: 1.05rem;
+    line-height: 1.25;
+  }
+}
+
 /* The smallest phones: room for 4518 + 1467 = on one line */
 @media (max-width: 360px) {
   .question-box {
@@ -303,8 +355,12 @@ input.incorrect {
   color: var(--text-read-dim);
 }
 
+/* A flex row of its steps (workedSteps), so a narrow phone wraps the line
+   at an arrow and keeps each step's sum with its answer */
 .worked-line {
-  display: block;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.3em;
   margin-top: 0.2rem;
   font-size: 1.15rem;
   font-weight: 700;
@@ -369,4 +425,15 @@ input.incorrect {
 
 .resume-hello {
   font-weight: 700;
+}
+
+/* On a phone the button is the card's full width, so 2rem a side was more
+   padding than it needed: at 320 wide "Controleer antwoord" wrapped onto a
+   second line and the button grew from 47px to 70px. */
+@media (max-width: 600px) {
+  .check-button,
+  .next-button {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }

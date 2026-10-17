@@ -58,6 +58,35 @@ describe('GradeSelectComponent', () => {
     const card = fixture.nativeElement.querySelector('.grade-card');
     expect(card.getBoundingClientRect().height).toBeGreaterThanOrEqual(48);
   });
+
+  it('counts the 96px minimum from the edge a finger lands on, on a phone', () => {
+    // Measured from the content box, the minimum came on top of the padding
+    // and border: every card was 128px, and a 360x640 phone showed four of
+    // the ten groups
+    if (!window.matchMedia('(max-width: 560px)').matches) {
+      pending('the window is wider than a phone');
+      return;
+    }
+    const cards = Array.from(fixture.nativeElement.querySelectorAll('.grade-card')) as HTMLElement[];
+    cards.forEach(card => {
+      expect(getComputedStyle(card).boxSizing).toBe('border-box');
+      expect(card.getBoundingClientRect().height).toBeGreaterThanOrEqual(96);
+    });
+  });
+
+  it('lines up "your character" and "for grown-ups" on a phone held sideways', () => {
+    // src/fit.css sets them side by side when the screen is short
+    document.documentElement.setAttribute('data-fit', 'short');
+    try {
+      const middle = (selector: string) => {
+        const box = (fixture.nativeElement.querySelector(selector) as HTMLElement).getBoundingClientRect();
+        return box.top + box.height / 2;
+      };
+      expect(Math.abs(middle('.your-character') - middle('.grown-ups-link'))).toBeLessThan(1.5);
+    } finally {
+      document.documentElement.removeAttribute('data-fit');
+    }
+  });
 });
 
 describe('GradeSelectComponent naming the year as the school does', () => {

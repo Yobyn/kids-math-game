@@ -106,3 +106,47 @@ describe('LanguageSelectorComponent on a small screen', () => {
     expect(localStorage.getItem('language')).toBe('nl');
   });
 });
+
+describe('LanguageSelectorComponent on the title screen of a phone', () => {
+  let fixture: ComponentFixture<LanguageSelectorComponent>;
+  let screen: HTMLElement;
+
+  beforeEach(async () => {
+    localStorage.clear();
+    await TestBed.configureTestingModule({
+      declarations: [LanguageSelectorComponent]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(LanguageSelectorComponent);
+    // Where the login screen puts it, 320px wide like the smallest phone
+    screen = document.createElement('div');
+    screen.className = 'title-screen';
+    screen.style.width = '320px';
+    screen.appendChild(fixture.nativeElement);
+    document.body.appendChild(screen);
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    screen.remove();
+    localStorage.clear();
+  });
+
+  it('fits all three on one row, each still big enough for a finger', () => {
+    // A media query on the window, and karma cannot resize its window: this
+    // only runs where the runner's window is phone-sized
+    if (!window.matchMedia('(max-width: 600px)').matches) {
+      pending('the window is wider than a phone');
+      return;
+    }
+    const buttons: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.lang-btn'));
+    const boxes = buttons.map(b => b.getBoundingClientRect());
+
+    expect(new Set(boxes.map(b => Math.round(b.top))).size).toBe(1);
+    boxes.forEach(b => {
+      expect(b.width).toBeGreaterThanOrEqual(44);
+      expect(b.height).toBeGreaterThanOrEqual(44);
+    });
+    buttons.forEach(b => expect(b.scrollWidth).toBeLessThanOrEqual(b.clientWidth + 1));
+  });
+});
