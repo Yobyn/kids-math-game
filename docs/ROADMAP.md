@@ -1819,6 +1819,8 @@ no unit test: karma's narrowest window (about 485px) is wider than the
 
 **MORE GROUPS ON A PHONE'S FIRST SCREEN — DONE (2026-10-06).** The group cards had the same content-box minimum as the climbs: each was 128px instead of 96px, and a 360x640 or 375x667 phone showed 4 of the 10 groups. On phones the minimum now counts from the card's edge and the gap above the title is gone, so the cards are 113px and those phones show 6. A 390x844 phone shows all 10.
 
+**THE SIGN-UP SCREEN IS TAPPABLE — DONE (2026-10-06).** Its two targets were the only ones left under the size the rest of the game holds to: the Sign up button was 42px tall and "Already have an account? Log in" was a bare 17px line of text. Both are now 48px. The screen had no spec at all; it has one now.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,

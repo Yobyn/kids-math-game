@@ -38,6 +38,9 @@ input:focus {
 
 button {
   width: 100%;
+  /* Children have an adult-sized contact patch with less motor control, so
+     nothing they tap is allowed below 48px. This button was 42. */
+  min-height: 48px;
   padding: 0.75rem;
   font-size: 1rem;
   background-color: #007bff;
@@ -66,7 +69,14 @@ button:disabled {
   margin-top: 1rem;
 }
 
+/* The way back to signing in was a 17px line of text. It is the same words,
+   with a tappable area around them. */
 .login-link a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 0.75rem;
   color: #007bff;
   text-decoration: none;
 }
