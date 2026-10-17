@@ -234,6 +234,17 @@ input.incorrect {
   }
 }
 
+/* On a phone, a two-line "try again" fits the 60px held open for it, so
+   Check Answer stays where the child last tapped it. At 1.25rem the message
+   was 70px, 93 in Dutch on a small phone, and the button jumped 10-33px. */
+@media (max-width: 600px) {
+  .feedback {
+    padding: 0.5rem 1rem;
+    font-size: 1.05rem;
+    line-height: 1.25;
+  }
+}
+
 /* The smallest phones: room for 4518 + 1467 = on one line */
 @media (max-width: 360px) {
   .question-box {

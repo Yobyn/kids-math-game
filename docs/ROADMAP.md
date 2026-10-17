@@ -1795,6 +1795,16 @@ screens keep 12-16px. They now keep 16px. Tablets and landscape are
 unchanged. The dressing-up screen's card does the same and is left for the
 avatar work, which is changing that screen all the time.
 
+**CHECK ANSWER STAYS PUT WHEN "TRY AGAIN" APPEARS — DONE (2026-10-06).**
+The question card holds 60px open for feedback so the card does not jump,
+but on a phone the "try again" message wrapped to two lines at 1.25rem and
+came out 70px tall (93px in Dutch at 320 wide). So Check Answer moved down
+10-33px just as the child went to tap it again. On a phone the message is
+now 1.05rem with a little less padding, and two lines fit in 58px: measured
+in English, Dutch and Spanish at 320, 360 and 390 wide, the button no longer
+moves. The answer-and-method message after a second miss can still be
+taller, but by then the button has become Next anyway.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
