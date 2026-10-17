@@ -1815,6 +1815,8 @@ no unit test: karma's narrowest window (about 485px) is wider than the
 
 **THE END-OF-ROUND BUTTONS LINE UP — DONE (2026-10-06).** "How far you have come" and "Your character" were each as wide as their own words, so the two stacked buttons sat about 30px apart in width, and a different amount in every language. They now share one width (up to 15rem), so they read as a pair under Play Again.
 
+**ALL THREE CLIMBS FIT ON A SMALL PHONE — DONE (2026-10-06).** The climb cards' 96px minimum was measured from the content box, so it came on top of the padding and border and made every card 125px. The third climb ended 99px below a 360x640 screen and 20px below a 375x667 one. On phones the minimum now counts from the card's edge, and the gap above the title is gone, so the cards are 108px and all three end on screen at both sizes. At 320x568 the last one still needs a short scroll.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
