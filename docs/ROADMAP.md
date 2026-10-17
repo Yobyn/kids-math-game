@@ -1848,6 +1848,13 @@ and the page moves only as far as Next needs, never past the top of the
 verdict. Upright phones keep the whole verdict, method, offer and Next on
 screen. Tests: the question screen's "bringing Next into view".
 
+**THE GRADE SCREEN'S WAYS OFF LINE UP SIDEWAYS — DONE (2026-10-07).** On a
+phone held sideways, "your character" and "for grown-ups" sit side by side
+(src/fit.css). They were lined up by baseline, and the character button's
+first item is its drawing, so "for grown-ups" hung 17px below the middle of
+the button next to it. Both are now centred on one line. Test: the grade
+screen's "lines up your character and for grown-ups on a phone held sideways".
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,

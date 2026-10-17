@@ -73,6 +73,20 @@ describe('GradeSelectComponent', () => {
       expect(card.getBoundingClientRect().height).toBeGreaterThanOrEqual(96);
     });
   });
+
+  it('lines up "your character" and "for grown-ups" on a phone held sideways', () => {
+    // src/fit.css sets them side by side when the screen is short
+    document.documentElement.setAttribute('data-fit', 'short');
+    try {
+      const middle = (selector: string) => {
+        const box = (fixture.nativeElement.querySelector(selector) as HTMLElement).getBoundingClientRect();
+        return box.top + box.height / 2;
+      };
+      expect(Math.abs(middle('.your-character') - middle('.grown-ups-link'))).toBeLessThan(1.5);
+    } finally {
+      document.documentElement.removeAttribute('data-fit');
+    }
+  });
 });
 
 describe('GradeSelectComponent naming the year as the school does', () => {
