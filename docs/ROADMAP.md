@@ -529,6 +529,16 @@ middle, hard the end), one groep per run.
   in its colour with an arrow pointing out, fading in 0.9 s
   (`ESCAPE_LIFE`), and the heart it cost swells, wobbles and drops into
   its faded place (`.just-lost`; still under reduced motion).
+- **After O, run 3: the board gets the header's room (2026-10-17).** Playing
+  all three at 320 and 360px, the app header was 205px: greeting, three
+  flags and sign-in, on two rows. At 320x568 every board was squeezed to
+  its 280px minimum and still ran off the bottom, so the page scrolled the
+  header away. During a bonus game the header is now the one row a round
+  already has (`AppComponent.inPlay`, `.in-play`): the character and the
+  sound button, 76px. Measured: at 320x568 the boards are 375 (Balspel),
+  317 (Springbal) and 360px (Ballonnen) tall, all on screen. At 360x640
+  Balspel went from 318 to 447 and Ballonnen from 318 to 410. The result
+  screen and a phone on its side are unchanged.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21

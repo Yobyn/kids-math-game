@@ -100,20 +100,37 @@ describe('AppComponent', () => {
     expect(router.navigate).toHaveBeenCalledWith(['/avatar']);
   });
 
-  it('marks the header as in a round only while a question is on screen', () => {
+  it('marks the header as in play only while a question is on screen', () => {
     TestBed.inject(AuthService).playAsGuest();
     const header = () => fixture.nativeElement.querySelector('.app-header');
 
     (component as any).route = '/questions?level=2';
     fixture.detectChanges();
-    expect(header().classList).toContain('in-round');
+    expect(header().classList).toContain('in-play');
     // Still there, just tucked away by CSS on a phone
     expect(header().querySelector('.sound-btn')).toBeTruthy();
     expect(header().querySelector('.avatar-button')).toBeTruthy();
 
     (component as any).route = '/grade';
     fixture.detectChanges();
-    expect(header().classList).not.toContain('in-round');
+    expect(header().classList).not.toContain('in-play');
+  });
+
+  it('keeps the header to one row during each bonus game too, so the board gets the room', () => {
+    TestBed.inject(AuthService).playAsGuest();
+    const header = () => fixture.nativeElement.querySelector('.app-header');
+    const inPlay = (route: string) => {
+      (component as any).route = route;
+      fixture.detectChanges();
+      return header().classList.contains('in-play');
+    };
+
+    expect(inPlay('/bonus')).toBeTrue();
+    expect(inPlay('/bonus/jump')).toBeTrue();
+    expect(inPlay('/bonus/balloons')).toBeTrue();
+    // The screens around a game keep the full header
+    expect(inPlay('/result')).toBeFalse();
+    expect(inPlay('/bonusboard')).toBeFalse();
   });
 
   it('starts with sound on', () => {

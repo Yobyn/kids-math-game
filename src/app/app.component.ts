@@ -103,14 +103,17 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * True during a round. On a phone held upright the header then keeps only
-   * the character and the sound button, on one row: the language and sign-in
-   * buttons took a second row, and that pushed Check Answer below the fold
-   * on every question (see app.component.css). Neither is something a child
-   * needs halfway through a sum.
+   * True during a round or a bonus game. On a phone held upright the header
+   * then keeps only the character and the sound button, on one row: the
+   * language and sign-in buttons took a second row, and that pushed Check
+   * Answer below the fold on every question (see app.component.css). In a
+   * bonus game the same 205px squeezed the board to its smallest at 320x568,
+   * and still off the bottom. Neither is something a child needs halfway
+   * through a sum or a game.
    */
-  get inRound(): boolean {
-    return this.route.split(/[?#]/)[0] === '/questions';
+  get inPlay(): boolean {
+    const path = this.route.split(/[?#]/)[0];
+    return path === '/questions' || path === '/bonus' || path.startsWith('/bonus/');
   }
 
   /** Asks the rule, rather than deciding here. */
