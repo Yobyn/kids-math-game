@@ -1868,6 +1868,13 @@ screen's "lines up your character and for grown-ups on a phone held sideways".
   2.8rem now (2rem on a phone held sideways, where fit.css sets the keys'
   size), and the point on the English money keypad with it.
 
+**THE PHONE'S OWN BAR IS THE GAME'S COLOUR — DONE (2026-10-09).** theme-color
+  and the manifest still carried the old look: a bright blue #0984e3 status
+  and address bar on Android above a page that is now night-dark, and a pale
+  cyan splash before the installed game appeared. Both are #0b0a18 now, the
+  page background in styles.css, and scripts/index-html.test.js holds the
+  three to one colour.
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
