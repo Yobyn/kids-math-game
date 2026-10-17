@@ -200,7 +200,22 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     this.draw();
   }
 
-  /** A tap anywhere on the board bounces the ball. */
+  /**
+   * A tap anywhere on the screen bounces the ball, not only on the board
+   * (2026-10-18: on a phone held upright the board ends 200-270px above the
+   * bottom of the screen, where a thumb rests, and a tap there did nothing).
+   * A tap on a button, a link or the header is that control's own.
+   */
+  @HostListener('window:pointerdown', ['$event'])
+  onPointerDown(event: PointerEvent) {
+    const target = event.target as Element | null;
+    if (target?.closest?.('button, a, input, select, textarea, header, [role="dialog"]')) {
+      return;
+    }
+    this.tap(event);
+  }
+
+  /** Bounces the ball, while the game is on. */
   tap(event?: Event) {
     if (!this.started || this.ended || this.countdownLeft > 0) {
       return;

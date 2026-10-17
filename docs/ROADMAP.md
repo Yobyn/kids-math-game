@@ -539,6 +539,15 @@ middle, hard the end), one groep per run.
   317 (Springbal) and 360px (Ballonnen) tall, all on screen. At 360x640
   Balspel went from 318 to 447 and Ballonnen from 318 to 410. The result
   screen and a phone on its side are unchanged.
+- **After O, run 4: Springbal answers a thumb anywhere (2026-10-18).** All
+  three played at 320, 360 and 390px in nl, en and es (27 games, no
+  errors). Springbal is about square, so on a phone held upright its board
+  ends 200–270px above the bottom of the screen, where a thumb rests one-
+  handed, and a tap there did nothing: the ball rolled into the block. Now
+  a tap anywhere on the screen bounces the ball
+  (`JumpComponent.onPointerDown` on the window, in place of the canvas's
+  own handler). A tap on a button, a link or the header still belongs to
+  that control, so the sound button opens its picker without a bounce.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21

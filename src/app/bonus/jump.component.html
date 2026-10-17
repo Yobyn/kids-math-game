@@ -11,8 +11,8 @@
     <canvas #canvas
             class="bonus-canvas"
             role="img"
-            [attr.aria-label]="languageService.translate('jump-board')"
-            (pointerdown)="tap($event)"></canvas>
+            [attr.aria-label]="languageService.translate('jump-board')"></canvas>
+    <!-- A tap anywhere on the screen bounces the ball (onPointerDown), not only here -->
 
     <div class="bonus-card" *ngIf="!started">
       <app-how-to-play game="jump"></app-how-to-play>
