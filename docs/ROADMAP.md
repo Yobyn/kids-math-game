@@ -1823,6 +1823,14 @@ no unit test: karma's narrowest window (about 485px) is wider than the
 
 **A PHONE NO LONGER CHANGES A CHILD'S NAME — DONE (2026-10-06).** Names are matched exactly at sign-in, and a phone keyboard capitalises and autocorrects a plain text box by itself: "sam" signed up on a laptop became "Sam" on the phone, and the sign-in failed. The name fields on the sign-in and sign-up screens now ask the keyboard for no capital, no correction and no spellcheck, and every field says what it is (name, current or new password, email), so a phone can fill in or offer to save a password.
 
+**THE WORKED LINE WRAPS AT ITS ARROW — DONE (2026-10-06).** On a 320px phone
+the "one way to do it" line under a given-away answer broke inside a step:
+"47 + 30 = 77 → 77 + 8 =" on one line and a lone "85" on the next, which reads
+as a sum with no answer. The line is now a wrapping row of its steps
+(`workedSteps`), so it breaks only at the arrow: "47 + 30 = 77" over
+"→ 77 + 8 = 85". Wider phones still show it on one line. Test: the question
+screen's "wraps the worked line between its steps, never inside one".
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
