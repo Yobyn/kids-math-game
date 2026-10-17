@@ -1831,6 +1831,14 @@ as a sum with no answer. The line is now a wrapping row of its steps
 "→ 77 + 8 = 85". Wider phones still show it on one line. Test: the question
 screen's "wraps the worked line between its steps, never inside one".
 
+**¼ VAN 20, READABLE ON A PHONE — DONE (2026-10-06).** Groep 5's "¼ van 20"
+drew the fraction as one glyph at the size of the numbers, which puts its own
+1 and 4 at about half their size: small enough on a phone that a child has to
+lean in to tell ¼ from ⅕. A fraction is now its own part (`kind: 'fraction'`
+in written-form.ts), drawn half as large again, so its digits sit close to the
+20's size. "⅕ van 50 =" still fits on one line at 320px in all three
+languages. Test: "draws ¼ large enough that its digits read beside the 20".
+
 **THE END OF A ROUND IS A REWARD, NOT A REPORT — DONE (2026-09-24).** With
 the character and the tap done, every screen was screenshotted in portrait
 and landscape and read side by side. The weakest was the result screen,
