@@ -18,8 +18,13 @@ import { showWholeBoard } from './board-view';
 import { Balloon, BalloonEvent, Balloons, MISSES_ALLOWED, SWAY_SPEED, newBalloons, pop, step, swayedX } from './balloons';
 import { Burst, ageBursts, newBurst, piecesOf } from './pop-burst';
 
-/** The board is a little taller than wide: room for the balloons to rise. */
-export const BOARD_SHAPE = 1.25;
+/**
+ * The board may be as tall as Balspel's, 1.6 times its width, when the phone
+ * has the room: more sky for the balloons to rise through. At 1.25 it left
+ * 150px (360x740) to 218px (390x844) of empty screen below it (2026-10-19).
+ * A balloon still takes the same time to cross it (balloons.ts RISE).
+ */
+export const BOARD_SHAPE = 1.6;
 /** A star balloon's gold: Springbal's stars' (jump.component.ts). */
 export const STAR_GOLD = { r: 255, g: 216, b: 107 };
 /** How hard a balloon getting away nudges the field: a small sigh, not a burst. */
