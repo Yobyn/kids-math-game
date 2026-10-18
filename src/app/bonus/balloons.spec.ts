@@ -1,6 +1,6 @@
 import {
   Balloon, Balloons, FINISH_EARLIEST, FINISH_LATEST, FIRST_GAP, LAST_GAP, MISSES_ALLOWED, MIN_REACH, RAMP,
-  balloonRadius, gapAt, makeBalloon, newBalloons, pop, reaches, riseSpeed, step, swayedX
+  STAR_EVERY, STAR_POINTS, balloonRadius, gapAt, makeBalloon, newBalloons, pop, reaches, riseSpeed, step, swayedX
 } from './balloons';
 
 const W = 360;
@@ -77,6 +77,50 @@ describe('Ballonnen, the balloon game (Yobyn, 2026-10-13)', () => {
     expect(event).toEqual(jasmine.objectContaining({ kind: 'pop', y: 200 }));
   });
 
+  it('makes every eighth balloon a gold star balloon, so a long game has something to look out for', () => {
+    const game = newBalloons(W, H);
+    const stars = Array.from({ length: 3 * STAR_EVERY }, (_, made) => makeBalloon({ ...game, made }, seeded(made)))
+      .map((balloon, made) => (balloon.star ? made : -1))
+      .filter(made => made >= 0);
+    expect(STAR_EVERY).toBe(8);
+    expect(stars).toEqual([7, 15, 23]);
+    // and one comes up as the game goes, not only when asked for: played by
+    // a child who pops each balloon half way up, so none gets away
+    let played = newBalloons(W, H, false, () => 0.5);
+    const seen = new Map<number, boolean>();
+    for (let i = 0; i < 2000 && played.made < STAR_EVERY && !played.ended; i++) {
+      played = step(played, 0.05, seeded(i)).game;
+      played.balloons.forEach(balloon => seen.set(balloon.id, !!balloon.star));
+      const high = played.balloons.find(balloon => balloon.y < H / 2);
+      if (high) {
+        played = pop(played, swayedX(high, played.elapsed, false), high.y).game;
+      }
+    }
+    expect(played.made).toBe(STAR_EVERY);
+    expect(seen.get(STAR_EVERY - 1)).toBeTrue();
+    expect(seen.get(STAR_EVERY - 2)).toBeFalse();
+  });
+
+  it('pops a star balloon for three points, and says it was one', () => {
+    const game = withBalloon({ x: 180, y: 200, star: true });
+    const x = swayedX(game.balloons[0], game.elapsed, false);
+    const { game: after, event } = pop(game, x, 200);
+    expect(STAR_POINTS).toBe(3);
+    expect(after.points).toBe(STAR_POINTS);
+    expect(event).toEqual(jasmine.objectContaining({ kind: 'pop', points: STAR_POINTS, star: true }));
+    // an ordinary one is still one point
+    const plain = withBalloon({ x: 180, y: 200 });
+    expect(pop(plain, x, 200).event).toEqual(jasmine.objectContaining({ points: 1, star: false }));
+  });
+
+  it('lets a star balloon rise at the same steady speed, and costs a heart when it gets away like any other', () => {
+    const plain = step(withBalloon({ y: H }), 0.5).game.balloons[0].y;
+    const star = step(withBalloon({ y: H, star: true }), 0.5).game.balloons[0].y;
+    expect(star).toBeCloseTo(plain, 9);
+    const gone = step(withBalloon({ y: 10, star: true }), 1).game;
+    expect(gone.missed).toBe(1);
+  });
+
   it('counts a tap just outside a balloon, as a finger is not a pin, but not one far off', () => {
     const game = withBalloon({ x: 180, y: 200, phase: 0 });
     const balloon = game.balloons[0];
@@ -144,7 +188,10 @@ describe('Ballonnen, the balloon game (Yobyn, 2026-10-13)', () => {
     }
     expect(game.ended).toBe('finished');
     expect(game.missed).toBe(0);
-    expect(game.points).toBe(game.made);
+    // a point a balloon, and the star balloons' extra
+    const stars = Math.floor(game.made / STAR_EVERY);
+    expect(stars).toBeGreaterThan(0);
+    expect(game.points).toBe(game.made + stars * (STAR_POINTS - 1));
   });
 
   it('brings a new balloon up away from the last one when there is room', () => {

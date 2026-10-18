@@ -23,6 +23,8 @@ export interface Balloon {
   hue: number;
   /** Where in its sway it started, so no two sway together. */
   phase: number;
+  /** A gold balloon with a star on it, worth STAR_POINTS. */
+  star?: boolean;
 }
 
 export type BalloonsEnding = 'missed' | 'finished';
@@ -51,6 +53,9 @@ export interface BalloonEvent {
   x: number;
   y: number;
   hue: number;
+  /** A pop's points: 1, or STAR_POINTS for a star balloon. */
+  points?: number;
+  star?: boolean;
 }
 
 /** Balloons stop coming somewhere between these, in seconds. */
@@ -81,6 +86,14 @@ export const SWAY = 6;
 export const SWAY_SPEED = 1.6;
 /** A new balloon comes up at least this many radii from the last one, when there is room. */
 export const APART = 2.2;
+/**
+ * Every this many balloons one is gold with a star, worth more (2026-10-18:
+ * played on a phone, every balloon looked alike and was worth the same, so
+ * a long game had nothing to look out for). It rises like the rest, and
+ * getting away costs a heart like any other.
+ */
+export const STAR_EVERY = 8;
+export const STAR_POINTS = 3;
 /** The longest single step. */
 export const MAX_STEP = 1 / 60;
 
@@ -137,7 +150,8 @@ export function makeBalloon(game: Balloons, random: () => number): Balloon {
     y: game.height + radius,
     radius,
     hue: Math.min(1, Math.max(0, x / game.width)),
-    phase: random() * Math.PI * 2
+    phase: random() * Math.PI * 2,
+    star: game.made % STAR_EVERY === STAR_EVERY - 1
   };
 }
 
@@ -151,7 +165,8 @@ export function reaches(balloon: Balloon, x: number, y: number, elapsed: number,
 
 /**
  * A tap at (x, y): pops the balloon it reaches, the nearest when it reaches
- * two, for a point. A tap on nothing, or once the game is over, does nothing.
+ * two, for a point, or STAR_POINTS for a star balloon. A tap on nothing,
+ * or once the game is over, does nothing.
  */
 export function pop(game: Balloons, x: number, y: number): { game: Balloons; event: BalloonEvent | null } {
   if (game.ended) {
@@ -173,9 +188,10 @@ export function pop(game: Balloons, x: number, y: number): { game: Balloons; eve
     return { game, event: null };
   }
   const popped: Balloon = nearest;
+  const points = popped.star ? STAR_POINTS : 1;
   return {
-    game: { ...game, balloons: game.balloons.filter(balloon => balloon.id !== popped.id), points: game.points + 1 },
-    event: { kind: 'pop', x: swayedX(popped, game.elapsed, game.calm), y: popped.y, hue: popped.hue }
+    game: { ...game, balloons: game.balloons.filter(balloon => balloon.id !== popped.id), points: game.points + points },
+    event: { kind: 'pop', x: swayedX(popped, game.elapsed, game.calm), y: popped.y, hue: popped.hue, points, star: !!popped.star }
   };
 }
 

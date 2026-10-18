@@ -17,6 +17,8 @@ export interface Burst {
   age: number;
   /** Where the first piece flies, so no two bursts look the same. */
   turn: number;
+  /** A star balloon's: its pieces are gold. */
+  star?: boolean;
 }
 
 export interface Piece {

@@ -10,7 +10,7 @@ import { SoundService } from '../services/sound.service';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
-import { drawClouds, drawFloats, prefersReducedMotion, rgb } from './drawing';
+import { drawClouds, drawFloats, prefersReducedMotion, rgb, starPath } from './drawing';
 import { cloudsAt } from './backdrops';
 import { COUNTDOWN, Flash, FloatUp, ageFlashes, ageFloats, countdownShown, newFloat } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
@@ -20,6 +20,8 @@ import { Burst, ageBursts, newBurst, piecesOf } from './pop-burst';
 
 /** The board is a little taller than wide: room for the balloons to rise. */
 export const BOARD_SHAPE = 1.25;
+/** A star balloon's gold: Springbal's stars' (jump.component.ts). */
+export const STAR_GOLD = { r: 255, g: 216, b: 107 };
 /** How hard a balloon getting away nudges the field: a small sigh, not a burst. */
 export const MISS_PULSE = 0.12;
 /**
@@ -262,10 +264,15 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     const left = box ? box.left : 0;
     const top = box ? box.top : 0;
     if (event.kind === 'pop') {
-      this.floats = [...this.floats, newFloat(event.x, event.y)];
+      this.floats = [...this.floats, newFloat(event.x, event.y, `+${event.points ?? 1}`)];
       this.pulseService.pulse(HIT_PULSE);
       this.pulseService.tap(left + event.x, top + event.y);
-      this.soundService.playPop();
+      if (event.star) {
+        // A star balloon chimes like Springbal's stars, a step higher
+        this.soundService.playStar(2);
+      } else {
+        this.soundService.playPop();
+      }
       return;
     }
     if (event.kind === 'miss') {
@@ -297,7 +304,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
   /** A popped balloon flies apart into pieces, unless the child's device asks for calm. */
   private burst(balloon: Balloon, x: number) {
     if (!this.calm) {
-      this.bursts = [...this.bursts, newBurst(x, balloon.y, balloon.radius, balloon.hue, balloon.phase)];
+      this.bursts = [...this.bursts, { ...newBurst(x, balloon.y, balloon.radius, balloon.hue, balloon.phase), star: !!balloon.star }];
     }
   }
 
@@ -336,12 +343,15 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     drawFloats(context, this.floats, this.calm, rgb(fieldColour(0.5)));
   }
 
-  /** A balloon: its string swaying behind it, the knot, the skin lit from the top left, and a shine. */
+  /**
+   * A balloon: its string swaying behind it, the knot, the skin lit from the
+   * top left, and a shine. A star balloon is gold, with a white star on it.
+   */
   private drawBalloon(context: CanvasRenderingContext2D, balloon: Balloon, elapsed: number) {
     const calm = this.calm;
     const x = swayedX(balloon, elapsed, calm);
     const { y, radius } = balloon;
-    const colour = fieldColour(balloon.hue);
+    const colour = balloon.star ? STAR_GOLD : fieldColour(balloon.hue);
     const tall = radius * 1.15;
 
     // The string trails the sway: it bends the other way
@@ -384,6 +394,12 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     context.beginPath();
     context.ellipse(x - radius * 0.38, y - tall * 0.42, radius * 0.16, radius * 0.3, -0.5, 0, Math.PI * 2);
     context.fill();
+
+    if (balloon.star) {
+      context.fillStyle = 'rgba(255, 255, 255, 0.92)';
+      starPath(context, x, y + tall * 0.05, radius * 0.5);
+      context.fill();
+    }
   }
 
   /**
@@ -413,7 +429,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** The pieces of a popped balloon, flying apart and fading. */
   private drawBurst(context: CanvasRenderingContext2D, burst: Burst) {
-    const { r, g, b } = fieldColour(burst.hue);
+    const { r, g, b } = burst.star ? STAR_GOLD : fieldColour(burst.hue);
     piecesOf(burst).forEach(piece => {
       context.save();
       context.translate(piece.x, piece.y);

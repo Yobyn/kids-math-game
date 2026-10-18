@@ -11,7 +11,7 @@ import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
-import { drawFloats, drawHills, drawShine, prefersReducedMotion, rgb, roundRect } from './drawing';
+import { drawFloats, drawHills, drawShine, prefersReducedMotion, rgb, roundRect, starPath } from './drawing';
 import { COUNTDOWN, FloatUp, SQUASH_TIME, ageFloats, countdownShown, newFloat, squashScale } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
@@ -459,18 +459,10 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
   private drawStar(context: CanvasRenderingContext2D, star: Star) {
     const turn = this.calm ? 0 : this.game.elapsed * 1.5;
     context.save();
-    context.translate(star.x, star.y);
-    context.rotate(turn);
     context.shadowColor = 'rgba(255, 220, 120, 0.95)';
     context.shadowBlur = 14;
     context.fillStyle = '#ffd86b';
-    context.beginPath();
-    for (let i = 0; i < 10; i++) {
-      const r = i % 2 === 0 ? star.radius : star.radius * 0.45;
-      const angle = -Math.PI / 2 + (i * Math.PI) / 5;
-      context.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
-    }
-    context.closePath();
+    starPath(context, star.x, star.y, star.radius, turn);
     context.fill();
     context.restore();
   }
