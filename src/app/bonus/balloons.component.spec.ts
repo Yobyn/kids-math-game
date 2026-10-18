@@ -9,7 +9,7 @@ import { FieldPulseService } from '../services/field-pulse.service';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
-import { Balloon, MISSES_ALLOWED, balloonRadius, swayedX } from './balloons';
+import { Balloon, MISSES_ALLOWED, STAR_POINTS, balloonRadius, swayedX } from './balloons';
 import { HowToPlayComponent } from './how-to-play.component';
 
 describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
@@ -238,6 +238,21 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     component.popAt(x, balloon.y);
     expect(component.floats.length).toBe(1);
     expect(component.floats[0]).toEqual(jasmine.objectContaining({ x, y: balloon.y, text: '+1' }));
+  });
+
+  it('pops a star balloon with a +3, gold pieces and a chime instead of the soft pop', () => {
+    (component as { calm: boolean }).calm = false;
+    const sounds = TestBed.inject(SoundService);
+    const chime = spyOn(sounds, 'playStar');
+    const blip = spyOn(sounds, 'playPop');
+    const balloon = playWith({ star: true });
+    const x = swayedX(balloon, component.game.elapsed, component.calm);
+    component.popAt(x, balloon.y);
+    expect(component.points).toBe(STAR_POINTS);
+    expect(component.floats[0]).toEqual(jasmine.objectContaining({ x, y: balloon.y, text: '+' + STAR_POINTS }));
+    expect(component.bursts[0].star).toBeTrue();
+    expect(chime).toHaveBeenCalled();
+    expect(blip).not.toHaveBeenCalled();
   });
 
   it('keeps no best before a game with points, and shows the first one without "new best"', () => {

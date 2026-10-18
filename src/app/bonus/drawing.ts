@@ -23,6 +23,17 @@ export function prefersReducedMotion(): boolean {
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+/** A five-pointed star's outline around (x, y), turned by `turn`, ready to fill (Springbal's stars, Ballonnen's star balloons). */
+export function starPath(context: CanvasRenderingContext2D, x: number, y: number, radius: number, turn = 0) {
+  context.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const r = i % 2 === 0 ? radius : radius * 0.45;
+    const angle = turn - Math.PI / 2 + (i * Math.PI) / 5;
+    context.lineTo(x + Math.cos(angle) * r, y + Math.sin(angle) * r);
+  }
+  context.closePath();
+}
+
 /** The "+1"s floating up where points were scored (game-feel.ts), in white with the field's glow. */
 export function drawFloats(context: CanvasRenderingContext2D, floats: FloatUp[], calm: boolean, glow: string) {
   if (!floats.length) {

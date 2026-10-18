@@ -548,6 +548,17 @@ middle, hard the end), one groep per run.
   (`JumpComponent.onPointerDown` on the window, in place of the canvas's
   own handler). A tap on a button, a link or the header still belongs to
   that control, so the sound button opens its picker without a bounce.
+- **After O, run 5: a gold star balloon in Ballonnen (2026-10-18).** All
+  three played at 320, 360 and 390px in nl, en and es (27 games, no
+  errors), and Ballonnen once more by hand, popping each balloon half way
+  up. Every balloon looked alike and was worth one point, so a long game
+  had nothing to look out for. Now every eighth balloon (`STAR_EVERY`) is
+  gold with a white star on it, the gold of Springbal's stars, and worth
+  three (`STAR_POINTS`). It rises at the same steady speed as the rest,
+  and getting away costs a heart like any other. Popped, it floats "+3",
+  bursts into gold pieces and chimes like a Springbal star instead of the
+  soft pop. The star outline is now one shared helper (`starPath` in
+  drawing.ts) for both games. The XP cap is unchanged.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21
