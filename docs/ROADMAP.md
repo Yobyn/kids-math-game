@@ -559,6 +559,14 @@ middle, hard the end), one groep per run.
   bursts into gold pieces and chimes like a Springbal star instead of the
   soft pop. The star outline is now one shared helper (`starPath` in
   drawing.ts) for both games. The XP cap is unchanged.
+- **After O, run 6: more sky in Ballonnen (2026-10-19).** All three played
+  at 320, 360 and 390px in nl, en and es (27 games, no errors). Ballonnen's
+  board was at most 1.25 times as tall as wide, so it left 150px (360x740)
+  to 218px (390x844) of empty screen below it. It may now be as tall as
+  Balspel's, 1.6 times its width (`BOARD_SHAPE`), when the phone has the
+  room. Measured: 360x740 410→525px, 390x844 448→573, 360x640 410→447,
+  320x568 360→375; a phone on its side is unchanged. A balloon still takes
+  the same time to cross the board (`RISE`), so the game is no harder.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21

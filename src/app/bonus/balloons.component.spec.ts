@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { BalloonsComponent, END_RINGS, ESCAPE_LIFE, MISS_PULSE } from './balloons.component';
+import { BOARD_SHAPE, BalloonsComponent, END_RINGS, ESCAPE_LIFE, MISS_PULSE } from './balloons.component';
 import { BURST_LIFE } from './pop-burst';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
@@ -85,6 +85,16 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     const scroll = spyOn(window, 'scrollBy');
     component.start();
     expect(scroll).toHaveBeenCalledOnceWith(0, 18 + BOARD_MARGIN);
+  });
+
+  it('grows the board as tall as the one in Balspel when the phone has the room, so no screen is left empty below it', () => {
+    const board = fixture.nativeElement.querySelector('.bonus-board') as HTMLElement;
+    // A tall phone: far more room below the score than the board can take
+    spyOn(board, 'getBoundingClientRect').and.returnValue({ top: window.innerHeight - BOARD_MARGIN - 3000 } as DOMRect);
+    component.fit();
+    const width = Math.max(240, Math.round(board.clientWidth));
+    expect(BOARD_SHAPE).toBe(1.6);
+    expect(component.game.height).toBe(Math.round(width * BOARD_SHAPE));
   });
 
   it('sends a child without a finished round back, rather than giving a free game', () => {
