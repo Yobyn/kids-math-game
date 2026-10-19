@@ -87,6 +87,16 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     expect(scroll).toHaveBeenCalledOnceWith(0, 18 + BOARD_MARGIN);
   });
 
+  it('brings the whole board, and Start with it, on screen as the game opens on a phone held sideways', () => {
+    // 740 x 360 on its side: the board's bottom, and the start card's Start
+    // button, were below the screen until Start was found and tapped
+    const board = fixture.nativeElement.querySelector('.bonus-board') as HTMLElement;
+    spyOn(board, 'getBoundingClientRect').and.returnValue({ top: 162, bottom: window.innerHeight + 82 } as DOMRect);
+    const scroll = spyOn(window, 'scrollBy');
+    component.ngAfterViewInit();
+    expect(scroll).toHaveBeenCalledOnceWith(0, 82 + BOARD_MARGIN);
+  });
+
   it('grows the board as tall as the one in Balspel when the phone has the room, so no screen is left empty below it', () => {
     const board = fixture.nativeElement.querySelector('.bonus-board') as HTMLElement;
     // A tall phone: far more room below the score than the board can take

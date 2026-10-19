@@ -567,6 +567,17 @@ middle, hard the end), one groep per run.
   room. Measured: 360x740 410→525px, 390x844 448→573, 360x640 410→447,
   320x568 360→375; a phone on its side is unchanged. A balloon still takes
   the same time to cross the board (`RISE`), so the game is no harder.
+- **After O, run 7: Start on screen with the phone on its side (2026-10-19).**
+  All three played at 320, 360 and 390px in nl, en and es (27 games, no
+  errors), and on their sides at 740x360 and 844x390. Held sideways, the
+  board (never under 280px) runs past the screen, and the start card's
+  Start button with it. Measured: at 740x360 it sat at 348–396px, 12px of
+  it showing; at 640x360 and 568x320 it was wholly below the screen. A
+  child had to find it by scrolling. Each game now brings the whole board
+  up as it opens (`showWholeBoard` in `ngAfterViewInit`), as it already
+  did at Start. Measured after: Start at 249–297px of 360 (640 and 740
+  wide), 209–257 of 320, and 279–327 of 390, all three games. Upright
+  phones whose board fits are left where they are.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21
