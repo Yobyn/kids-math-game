@@ -162,6 +162,69 @@ describe('BonusComponent, the bonus game after a round', () => {
     expect(component.game.paddle.x).toBeCloseTo(far, 0);
   });
 
+  it('steers from a thumb anywhere off the board once the game is on, so it need not hide the paddle', () => {
+    const canvas = fixture.nativeElement.querySelector('canvas') as HTMLCanvasElement;
+    const box = canvas.getBoundingClientRect();
+    const far = component.game.width - component.game.paddle.width / 2;
+    // Below the board on a phone held upright: the page, not the canvas
+    const below = document.createElement('div');
+    document.body.appendChild(below);
+    const press = (type: string, x: number) =>
+      below.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerType: 'touch', clientX: box.left + x, clientY: box.bottom + 40 }));
+    try {
+      press('pointerdown', far);
+      expect(component.game.paddleTarget).toBeFalsy();
+
+      component.started = true;
+      press('pointerdown', far);
+      expect(component.game.paddleTarget).toBeCloseTo(far, 0);
+      press('pointermove', component.game.width / 2);
+      expect(component.game.paddleTarget).toBeCloseTo(component.game.width / 2, 0);
+    } finally {
+      below.remove();
+    }
+  });
+
+  it('leaves a press on a button or the header, and a mouse just passing over the page, alone', () => {
+    component.started = true;
+    const header = document.createElement('header');
+    const sound = document.createElement('button');
+    header.appendChild(sound);
+    const page = document.createElement('div');
+    document.body.append(header, page);
+    try {
+      sound.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, pointerType: 'touch', clientX: 5 }));
+      header.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerType: 'touch', clientX: 5 }));
+      page.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerType: 'mouse', buttons: 0, clientX: 5 }));
+      expect(component.game.paddleTarget).toBeFalsy();
+      // held down, the mouse steers like a finger
+      page.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerType: 'mouse', buttons: 1, clientX: 5 }));
+      expect(component.game.paddleTarget).toEqual(jasmine.any(Number));
+    } finally {
+      header.remove();
+      page.remove();
+    }
+  });
+
+  it('keeps the page from scrolling under a sliding thumb while the game is on, and lets it go after', () => {
+    spyOn(window, 'requestAnimationFrame').and.returnValue(0);
+    component.start();
+    expect(document.documentElement.style.touchAction).toBe('none');
+    // at the end of the game
+    playWithBall(10, component.game.height - 5, 0, 400);
+    component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
+    (component as unknown as { countdownLeft: number }).countdownLeft = 0;
+    component.advance(0.05);
+    expect(component.ended).toBeTrue();
+    expect(document.documentElement.style.touchAction).toBe('');
+    // and when the screen is left half way
+    component.started = false;
+    component.ended = false;
+    component.start();
+    component.ngOnDestroy();
+    expect(document.documentElement.style.touchAction).toBe('');
+  });
+
   it('squashes the ball for a moment off the paddle, like the other games\' balls, but not under reduced motion', () => {
     (component as { calm: boolean }).calm = false;
     const paddle = component.game.paddle;
