@@ -117,6 +117,16 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     cancelAnimationFrame(this.frame);
+    this.holdPage(false);
+  }
+
+  /**
+   * While the game is on, a finger sliding off the board steers rather than
+   * scrolls or zooms the page (onPagePointer): the whole board is on screen
+   * by then, so there is nothing to scroll to.
+   */
+  private holdPage(hold: boolean) {
+    document.documentElement.style.touchAction = hold ? 'none' : '';
   }
 
   /**
@@ -161,6 +171,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.fit();
     this.started = true;
+    this.holdPage(true);
     this.countdownLeft = COUNTDOWN;
     this.countdown = COUNTDOWN;
     // On a short phone the board runs past the screen: bring it all up
@@ -223,6 +234,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
         if (ending) {
           this.floats = [];
           this.flashes = [];
+          this.holdPage(false);
           this.pay();
         }
       });
@@ -282,6 +294,30 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     this.game = movePaddle(this.game, x);
     this.draw();
+  }
+
+  /**
+   * Once the game is on, a finger anywhere off the board steers too
+   * (2026-10-20: on a phone held upright the board ends above the bottom of
+   * the screen, and a thumb down there, under the paddle where it does not
+   * hide it, did nothing). The board's own presses are steer()'s; a press on
+   * a button, a link or the header is that control's own; a mouse steers off
+   * the board only while its button is held.
+   */
+  @HostListener('window:pointerdown', ['$event'])
+  @HostListener('window:pointermove', ['$event'])
+  onPagePointer(event: PointerEvent) {
+    if (!this.started || this.ended) {
+      return;
+    }
+    const target = event.target as Element | null;
+    if (target === this.canvasRef?.nativeElement || target?.closest?.('button, a, input, select, textarea, header, [role="dialog"]')) {
+      return;
+    }
+    if (event.pointerType === 'mouse' && !event.buttons) {
+      return;
+    }
+    this.steer(event);
   }
 
   @HostListener('window:keydown', ['$event'])

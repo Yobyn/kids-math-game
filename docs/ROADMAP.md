@@ -578,6 +578,20 @@ middle, hard the end), one groep per run.
   did at Start. Measured after: Start at 249–297px of 360 (640 and 740
   wide), 209–257 of 320, and 279–327 of 390, all three games. Upright
   phones whose board fits are left where they are.
+- **After O, run 8: Balspel steers from a thumb below the board (2026-10-20).**
+  All three played at 320, 360 and 390px in nl, en and es (27 games, no
+  errors). Balspel's paddle followed only a finger on the board. On a
+  phone held upright the board ends 40–90px above the bottom of the
+  screen, and a thumb down there, under the paddle where it does not hide
+  it, did nothing. Measured with real touch events at 390x844: a thumb
+  sliding from left to right below the board left the paddle where it was.
+  Now a finger anywhere off the board steers once the game is on
+  (`BonusComponent.onPagePointer`). The page holds still under it while
+  the game is on (`touch-action: none` on the page), so the slide is not
+  taken as a scroll, and lets go at the end or when the screen is left.
+  Buttons, links and the header keep their own presses, and a mouse steers
+  off the board only with its button held. After: the paddle follows the
+  thumb to where it stops, at 320, 360 and 390 wide.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21
