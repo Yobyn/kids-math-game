@@ -110,6 +110,9 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     this.context = this.canvasRef.nativeElement.getContext('2d');
     this.fit();
     this.draw();
+    // On a phone held sideways the board runs past the screen, and Start
+    // with it, as the game opens: bring it all up now, not only at Start
+    showWholeBoard(this.boardRef.nativeElement, BOARD_MARGIN);
   }
 
   ngOnDestroy() {

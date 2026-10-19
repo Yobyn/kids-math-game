@@ -274,6 +274,10 @@ describe('BonusComponent, the bonus game after a round', () => {
 
   it('fits the board in the height left below the score, so the paddle never needs scrolling to', () => {
     const board = fixture.nativeElement.querySelector('.bonus-board') as HTMLElement;
+    // Measured from where the page stands as it is fitted: when the board is
+    // too tall for the runner's window, opening the game scrolled it up
+    window.scrollTo(0, 0);
+    component.fit();
     const room = window.innerHeight - board.getBoundingClientRect().top - BOARD_MARGIN;
     expect(component.game.height).toBe(Math.round(Math.min(Math.max(room, MIN_BOARD), component.game.width * 1.6)));
     if (room >= MIN_BOARD) {
@@ -289,6 +293,16 @@ describe('BonusComponent, the bonus game after a round', () => {
     const scroll = spyOn(window, 'scrollBy');
     component.start();
     expect(scroll).toHaveBeenCalledOnceWith(0, 18 + BOARD_MARGIN);
+  });
+
+  it('brings the whole board, and Start with it, on screen as the game opens on a phone held sideways', () => {
+    // 740 x 360 on its side: the board's bottom, and the start card's Start
+    // button, were below the screen until Start was found and tapped
+    const board = fixture.nativeElement.querySelector('.bonus-board') as HTMLElement;
+    spyOn(board, 'getBoundingClientRect').and.returnValue({ top: 162, bottom: window.innerHeight + 82 } as DOMRect);
+    const scroll = spyOn(window, 'scrollBy');
+    component.ngAfterViewInit();
+    expect(scroll).toHaveBeenCalledOnceWith(0, 82 + BOARD_MARGIN);
   });
 
   it('leaves the page where it is when the board is on screen already', () => {
