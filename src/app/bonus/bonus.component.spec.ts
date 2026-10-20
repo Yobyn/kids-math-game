@@ -5,7 +5,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { BOARD_MARGIN, BonusComponent, CHILD_BAND, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { BALL_RADIUS, PADDLE_TOP_SPEED } from './pong';
-import { END_BUZZ, POINT_BUZZ, SQUASH_TIME } from './game-feel';
+import { COUNTDOWN, END_BUZZ, POINT_BUZZ, SQUASH_TIME } from './game-feel';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
@@ -83,6 +83,26 @@ describe('BonusComponent, the bonus game after a round', () => {
     component.advance(0.03);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.bonus-points').textContent.trim()).toBe('1');
+  });
+
+  it('gives the 3-2-1 again when the child comes back mid-game: the ball waits on the paddle, then is served', () => {
+    const hidden = spyOnProperty(document, 'hidden').and.returnValue(true);
+    // before Start there is nothing to pause
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(component.countdown).toBe(0);
+
+    playWithBall(40, 60, 300, -300);
+    document.dispatchEvent(new Event('visibilitychange'));
+    hidden.and.returnValue(false);
+    expect(component.countdown).toBe(COUNTDOWN);
+    component.advance(1);
+    const paddle = component.game.paddle;
+    expect(component.game.ball.y).toBeLessThan(paddle.y);
+    expect(component.game.ball.y).toBeGreaterThan(paddle.y - 4 * component.game.ball.radius);
+    expect(component.game.ended).toBeNull();
+    component.advance(COUNTDOWN);
+    expect(component.countdown).toBe(0);
+    expect(component.game.ball.vy).toBeLessThan(0);
   });
 
   it('ticks the phone for each bounce and pulses it twice as a game with points ends, not for a wall', () => {

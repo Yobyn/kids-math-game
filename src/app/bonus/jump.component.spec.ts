@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { JumpComponent } from './jump.component';
-import { END_BUZZ, POINT_BUZZ, SQUASH_TIME } from './game-feel';
+import { COUNTDOWN, END_BUZZ, POINT_BUZZ, SQUASH_TIME } from './game-feel';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { ProgressService } from '../services/progress.service';
@@ -153,6 +153,23 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
       header.remove();
       link.remove();
     }
+  });
+
+  it('gives the 3-2-1 again when the child comes back mid-game, with nothing moving until it is over', () => {
+    const hidden = spyOnProperty(document, 'hidden').and.returnValue(true);
+    playFacing('ground', 200);
+    document.dispatchEvent(new Event('visibilitychange'));
+    hidden.and.returnValue(false);
+    expect(component.countdown).toBe(COUNTDOWN);
+    const x = component.game.obstacles[0].x;
+    component.advance(1);
+    expect(component.game.obstacles[0].x).toBe(x);
+    // a tap in the count does not bounce
+    component.tap();
+    expect(component.game.ball.vy).toBe(0);
+    component.advance(COUNTDOWN);
+    component.advance(0.1);
+    expect(component.game.obstacles[0].x).toBeLessThan(x);
   });
 
   it('ticks the phone for each block passed and star taken, and pulses it twice as a game with points ends', () => {

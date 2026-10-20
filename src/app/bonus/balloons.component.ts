@@ -185,6 +185,21 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Leaving mid-game (another app, a notification, the screen locking) and
+   * coming back gives the 3-2-1 again before anything moves (2026-10-21:
+   * the game went on the moment the screen was back, before the child had
+   * looked).
+   */
+  @HostListener('document:visibilitychange')
+  onVisibilityChange() {
+    if (document.hidden && this.started && !this.ended) {
+      this.countdownLeft = COUNTDOWN;
+      this.countdown = COUNTDOWN;
+      this.draw();
+    }
+  }
+
   /** One frame: the balloons rise, the field answers. */
   advance(seconds: number) {
     if (!this.started) {

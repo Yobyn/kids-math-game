@@ -603,6 +603,18 @@ middle, hard the end), one groep per run.
   goes through `SoundService.vibrate`, so nothing buzzes when the child has
   turned sound off. Checked by recording `navigator.vibrate` through whole
   games on a 360px phone, with sound on and off.
+- **After O, run 10: a 3-2-1 after leaving mid-game (2026-10-21).** All
+  three played at 320, 360 and 390px in nl, en and es (27 games, no
+  errors). A child who left a game half way (another app, a notification,
+  the screen locking) came back to it already moving, before they had
+  looked. The frame clamp kept the game from jumping ahead, but nothing
+  waited for the child. Now leaving gives the 3-2-1 again
+  (`onVisibilityChange` in each game, on `document:visibilitychange`), and
+  nothing moves until it is over. Balspel's ball waits on the paddle and is
+  served again at the speed it had reached. Its trail is cleared so no
+  streak is drawn. Springbal's world and Ballonnen's balloons hold still,
+  and a tap in the count does nothing, as at Start. Before Start and after
+  the end, leaving changes nothing.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21
