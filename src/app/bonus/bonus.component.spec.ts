@@ -5,7 +5,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { BOARD_MARGIN, BonusComponent, CHILD_BAND, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { BALL_RADIUS, PADDLE_TOP_SPEED } from './pong';
-import { SQUASH_TIME } from './game-feel';
+import { END_BUZZ, POINT_BUZZ, SQUASH_TIME } from './game-feel';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
@@ -83,6 +83,22 @@ describe('BonusComponent, the bonus game after a round', () => {
     component.advance(0.03);
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.bonus-points').textContent.trim()).toBe('1');
+  });
+
+  it('ticks the phone for each bounce and pulses it twice as a game with points ends, not for a wall', () => {
+    const buzz = spyOn(TestBed.inject(SoundService), 'vibrate');
+    component.answer({ kind: 'wall', x: 0, y: 50 });
+    expect(buzz).not.toHaveBeenCalled();
+    component.answer({ kind: 'hit', x: 50, y: 200 });
+    expect(buzz).toHaveBeenCalledOnceWith(POINT_BUZZ);
+    component.game = { ...component.game, hits: 3 };
+    component.answer({ kind: 'end', x: 50, y: 200 });
+    expect(buzz).toHaveBeenCalledWith(END_BUZZ);
+    // a game with nothing to show ends without the pulse
+    buzz.calls.reset();
+    component.game = { ...component.game, hits: 0 };
+    component.answer({ kind: 'end', x: 50, y: 200 });
+    expect(buzz).not.toHaveBeenCalled();
   });
 
   it('ends on a miss with "well played" and the points, and a bigger swell of the field', () => {

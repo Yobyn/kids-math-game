@@ -12,7 +12,7 @@ import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { drawFloats, drawHills, drawShine, prefersReducedMotion, rgb, roundRect, starPath } from './drawing';
-import { COUNTDOWN, FloatUp, SQUASH_TIME, ageFloats, countdownShown, newFloat, squashScale } from './game-feel';
+import { COUNTDOWN, END_BUZZ, FloatUp, POINT_BUZZ, SQUASH_TIME, ageFloats, countdownShown, newFloat, squashScale } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
 import { Jumper, JumperEvent, Obstacle, Star, jump, newJumper, step, worldSpeed } from './jumper';
@@ -255,6 +255,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       this.pulseService.pulse(HIT_PULSE);
       this.pulseService.tap(left + event.x, top + event.y);
       this.soundService.playStar(1);
+      this.soundService.vibrate(POINT_BUZZ);
       return;
     }
     if (event.kind === 'pass') {
@@ -262,6 +263,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       this.pulseService.pulse(HIT_PULSE);
       this.pulseService.tap(left + event.x, top + event.y);
       this.soundService.playTap();
+      this.soundService.vibrate(POINT_BUZZ);
       return;
     }
     this.pulseService.pulse(END_PULSE);
@@ -273,6 +275,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.game.points > 0) {
       this.soundService.playSuccess();
+      this.soundService.vibrate(END_BUZZ);
     }
   }
 

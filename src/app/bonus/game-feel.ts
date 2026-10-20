@@ -72,3 +72,15 @@ export function squashScale(left: number): { x: number; y: number } {
   const amount = Math.min(1, Math.max(0, left / SQUASH_TIME)) * SQUASH;
   return { x: 1 + amount, y: 1 - amount };
 }
+
+/**
+ * What the phone feels in the bonus games, through SoundService.vibrate, so
+ * nothing when the child has turned sound off; the same as in a round
+ * (2026-10-20: the games were the only part of the game that never buzzed).
+ * A tick for a point, like a key's, and a right answer's double pulse when a
+ * game with points ends. A balloon getting away is a soft nudge, gentler
+ * than a wrong answer's buzz: a bonus game never tells a child off.
+ */
+export const POINT_BUZZ = 10;
+export const END_BUZZ = [0, 30, 40, 30];
+export const MISS_BUZZ = 40;

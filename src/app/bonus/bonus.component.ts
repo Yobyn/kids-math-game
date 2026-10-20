@@ -11,7 +11,7 @@ import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { drawCourt, drawFloats, drawShine, prefersReducedMotion, rgb, roundRect } from './drawing';
-import { COUNTDOWN, FLASH_LIFE, Flash, FloatUp, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, newFloat, squashScale } from './game-feel';
+import { COUNTDOWN, END_BUZZ, FLASH_LIFE, Flash, FloatUp, POINT_BUZZ, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, newFloat, squashScale } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
 import { Pong, PongEvent, aimPaddle, followPaddle, movePaddle, newPong, restOnPaddle, serve, step } from './pong';
@@ -266,6 +266,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
       this.pulseService.pulse(HIT_PULSE);
       this.pulseService.tap(left + event.x, top + event.y);
       this.soundService.playTap();
+      this.soundService.vibrate(POINT_BUZZ);
       return;
     }
     this.pulseService.pulse(END_PULSE);
@@ -277,6 +278,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.game.hits > 0) {
       this.soundService.playSuccess();
+      this.soundService.vibrate(END_BUZZ);
     }
   }
 
