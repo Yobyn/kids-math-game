@@ -8,7 +8,7 @@ import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.componen
 import { FieldPulseService } from '../services/field-pulse.service';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
-import { END_BUZZ, MISS_BUZZ, POINT_BUZZ } from './game-feel';
+import { COUNTDOWN, END_BUZZ, MISS_BUZZ, POINT_BUZZ } from './game-feel';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
 import { Balloon, MISSES_ALLOWED, STAR_POINTS, balloonRadius, swayedX } from './balloons';
 import { HowToPlayComponent } from './how-to-play.component';
@@ -114,6 +114,25 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     again.detectChanges();
     expect(router.navigate).toHaveBeenCalledWith(['/grade']);
     again.componentInstance.ngOnDestroy();
+  });
+
+  it('gives the 3-2-1 again when the child comes back mid-game, with no balloon rising until it is over', () => {
+    const hidden = spyOnProperty(document, 'hidden').and.returnValue(true);
+    const balloon = playWith({});
+    document.dispatchEvent(new Event('visibilitychange'));
+    hidden.and.returnValue(false);
+    expect(component.countdown).toBe(COUNTDOWN);
+    component.advance(1);
+    expect(component.game.balloons[0].y).toBe(balloon.y);
+    component.advance(COUNTDOWN);
+    component.advance(0.1);
+    expect(component.game.balloons[0].y).toBeLessThan(balloon.y);
+    // once the game is over, leaving changes nothing
+    component.game = { ...component.game, ended: 'missed' };
+    component.ended = true;
+    hidden.and.returnValue(true);
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(component.countdown).toBe(0);
   });
 
   it('ticks the phone for a pop, nudges it softly for a balloon getting away, and pulses it twice at the end', () => {
