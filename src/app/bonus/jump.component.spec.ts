@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { JumpComponent } from './jump.component';
-import { SQUASH_TIME } from './game-feel';
+import { END_BUZZ, POINT_BUZZ, SQUASH_TIME } from './game-feel';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { ProgressService } from '../services/progress.service';
@@ -153,6 +153,18 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
       header.remove();
       link.remove();
     }
+  });
+
+  it('ticks the phone for each block passed and star taken, and pulses it twice as a game with points ends', () => {
+    const buzz = spyOn(TestBed.inject(SoundService), 'vibrate');
+    component.answer({ kind: 'land', x: 50, y: 200 });
+    expect(buzz).not.toHaveBeenCalled();
+    component.answer({ kind: 'pass', x: 50, y: 200 });
+    component.answer({ kind: 'star', x: 50, y: 100 });
+    expect(buzz.calls.allArgs()).toEqual([[POINT_BUZZ], [POINT_BUZZ]]);
+    component.game = { ...component.game, points: 2 };
+    component.answer({ kind: 'end', x: 50, y: 200 });
+    expect(buzz).toHaveBeenCalledWith(END_BUZZ);
   });
 
   it('scores each obstacle passed, and the field swells and sparks at the ball with a soft blip', () => {

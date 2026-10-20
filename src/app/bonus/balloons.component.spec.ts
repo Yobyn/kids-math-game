@@ -8,6 +8,7 @@ import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.componen
 import { FieldPulseService } from '../services/field-pulse.service';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
+import { END_BUZZ, MISS_BUZZ, POINT_BUZZ } from './game-feel';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
 import { Balloon, MISSES_ALLOWED, STAR_POINTS, balloonRadius, swayedX } from './balloons';
 import { HowToPlayComponent } from './how-to-play.component';
@@ -113,6 +114,19 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     again.detectChanges();
     expect(router.navigate).toHaveBeenCalledWith(['/grade']);
     again.componentInstance.ngOnDestroy();
+  });
+
+  it('ticks the phone for a pop, nudges it softly for a balloon getting away, and pulses it twice at the end', () => {
+    const buzz = spyOn(TestBed.inject(SoundService), 'vibrate');
+    component.answer({ kind: 'pop', x: 50, y: 200, hue: 0.5, points: 1, star: false });
+    expect(buzz).toHaveBeenCalledOnceWith(POINT_BUZZ);
+    component.answer({ kind: 'miss', x: 50, y: 0, hue: 0.5 });
+    expect(buzz).toHaveBeenCalledWith(MISS_BUZZ);
+    // gentler than a wrong answer's buzz in a round (120ms)
+    expect(MISS_BUZZ).toBeLessThan(120);
+    component.game = { ...component.game, points: 4 };
+    component.answer({ kind: 'end', x: 50, y: 200, hue: 0.5 });
+    expect(buzz).toHaveBeenCalledWith(END_BUZZ);
   });
 
   it('pops a balloon tapped on the board: a point, the field swells and sparks there, a soft pop', () => {

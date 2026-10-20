@@ -592,6 +592,17 @@ middle, hard the end), one groep per run.
   Buttons, links and the header keep their own presses, and a mouse steers
   off the board only with its button held. After: the paddle follows the
   thumb to where it stops, at 320, 360 and 390 wide.
+- **After O, run 9: the bonus games buzz like a round does (2026-10-20).**
+  All three played at 320, 360 and 390px in nl, en and es (27 games, no
+  errors). A round ticks the phone for every key and pulses it for a right
+  answer, but the three bonus games never buzzed at all. Now each point
+  ticks it (`POINT_BUZZ`, 10ms, a key's): a Balspel bounce, a Springbal
+  block or star, a balloon popped. A game with points ends on a right
+  answer's double pulse (`END_BUZZ`). A balloon getting away is a soft
+  40ms nudge (`MISS_BUZZ`), gentler than a wrong answer's 120ms. All of it
+  goes through `SoundService.vibrate`, so nothing buzzes when the child has
+  turned sound off. Checked by recording `navigator.vibrate` through whole
+  games on a 360px phone, with sound on and off.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21
