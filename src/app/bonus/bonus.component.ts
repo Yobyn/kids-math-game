@@ -11,7 +11,7 @@ import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { drawCourt, drawFloats, drawShine, prefersReducedMotion, rgb, roundRect } from './drawing';
-import { COUNTDOWN, END_BUZZ, FLASH_LIFE, Flash, FloatUp, POINT_BUZZ, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, newFloat, squashScale } from './game-feel';
+import { COUNTDOWN, END_BUZZ, FLASH_LIFE, Flash, FloatUp, POINT_BUZZ, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, newFloat, soundCount, squashScale } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
 import { Pong, PongEvent, aimPaddle, followPaddle, movePaddle, newPong, restOnPaddle, serve, step } from './pong';
@@ -174,6 +174,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     this.holdPage(true);
     this.countdownLeft = COUNTDOWN;
     this.countdown = COUNTDOWN;
+    soundCount(this.soundService, COUNTDOWN);
     // On a short phone the board runs past the screen: bring it all up
     if (this.boardRef) {
       showWholeBoard(this.boardRef.nativeElement, BOARD_MARGIN);
@@ -228,6 +229,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
       const shown = countdownShown(this.countdownLeft);
       if (shown !== this.countdown) {
         this.zone.run(() => this.countdown = shown);
+        soundCount(this.soundService, shown);
       }
       if (this.countdownLeft === 0) {
         this.game = serve(this.game);

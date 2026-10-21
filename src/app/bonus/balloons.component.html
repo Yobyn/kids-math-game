@@ -25,7 +25,8 @@
       <button type="button" class="bonus-button" (click)="start()">{{ languageService.translate('bonus-start') }}</button>
     </div>
 
-    <div class="bonus-countdown" *ngIf="countdown > 0" aria-live="assertive">{{ countdown }}</div>
+    <!-- A fresh span for each number, so each one pops in (bonus.component.css) -->
+    <div class="bonus-countdown" *ngIf="countdown > 0" aria-live="assertive"><span class="bonus-count" *ngFor="let shown of [countdown]">{{ shown }}</span></div>
 
     <div class="bonus-card" *ngIf="ended" role="status">
       <p class="bonus-well-played" *ngIf="finished">🎈 {{ languageService.translate('balloons-finished') }}</p>
