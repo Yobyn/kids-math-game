@@ -8,6 +8,13 @@
   color: var(--text);
 }
 
+/* Springbal runs sideways: where the screen has the room (a phone on its
+   side, a laptop, a tablet) it is wider, to see further ahead. Its speed is
+   in board widths a second (jumper.ts), so it plays the same, just bigger. */
+.bonus.bonus-wide {
+  max-width: 760px;
+}
+
 h1 {
   margin: 0.25rem 0;
   font-size: 1.6rem;
