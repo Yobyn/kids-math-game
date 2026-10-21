@@ -285,6 +285,30 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     expect(component.points).toBe(1);
   });
 
+  it('makes the 3-2-1 heard, a tick each and a chime to go, and pops each number in afresh', () => {
+    spyOn(window, 'requestAnimationFrame').and.returnValue(0);
+    const sounds = TestBed.inject(SoundService);
+    const tick = spyOn(sounds, 'playTap');
+    const chime = spyOn(sounds, 'playStar');
+    component.start();
+    fixture.detectChanges();
+    expect(tick).toHaveBeenCalledTimes(1);
+    const three = fixture.nativeElement.querySelector('.bonus-countdown .bonus-count') as HTMLElement;
+    expect(three.textContent!.trim()).toBe('3');
+    component.advance(1);
+    fixture.detectChanges();
+    expect(tick).toHaveBeenCalledTimes(2);
+    const two = fixture.nativeElement.querySelector('.bonus-countdown .bonus-count') as HTMLElement;
+    expect(two.textContent!.trim()).toBe('2');
+    // a new element, so its pop-in plays again
+    expect(two).not.toBe(three);
+    expect(getComputedStyle(two).animationName).toBe('bonus-count-in');
+    component.advance(1);
+    component.advance(1);
+    expect(tick).toHaveBeenCalledTimes(3);
+    expect(chime).toHaveBeenCalledOnceWith(0);
+  });
+
   it('floats a +1 up where a balloon was popped', () => {
     const balloon = playWith({});
     const x = swayedX(balloon, component.game.elapsed, component.calm);

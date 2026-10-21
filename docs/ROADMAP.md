@@ -615,6 +615,16 @@ middle, hard the end), one groep per run.
   streak is drawn. Springbal's world and Ballonnen's balloons hold still,
   and a tap in the count does nothing, as at Start. Before Start and after
   the end, leaving changes nothing.
+- **After O, run 11: a 3-2-1 you can hear (2026-10-21).** All three played
+  at 320, 360 and 390px in nl, en and es (27 games, no errors), and once at
+  360px with reduced motion on. Every game starts with the 3-2-1, and since
+  run 10 resumes with it too, but the count was a silent number that just
+  changed. Now each number pops in (`.bonus-count`, a fresh element per
+  number, so the animation plays again) with a soft tick, and play begins
+  on a chime (`soundCount` in game-feel.ts: `playTap`, then `playStar(0)`).
+  Under reduced motion the numbers do not pop, but the sounds stay. Sound
+  follows the child's setting as ever. Checked on a 360px phone: Balspel
+  and Ballonnen each heard tick, tick, tick, chime.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21

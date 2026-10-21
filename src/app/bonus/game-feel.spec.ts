@@ -1,6 +1,15 @@
-import { COUNTDOWN, FLASH_LIFE, FLOAT_LIFE, FLOAT_RISE, SQUASH, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, floatAt, newFloat, squashScale } from './game-feel';
+import { COUNTDOWN, FLASH_LIFE, FLOAT_LIFE, FLOAT_RISE, SQUASH, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, floatAt, newFloat, soundCount, squashScale } from './game-feel';
 
 describe('how the bonus games feel: the 3-2-1 and the floating +1', () => {
+  it('ticks softly for each number of the 3-2-1 and chimes as play begins', () => {
+    const sounds = jasmine.createSpyObj('sounds', ['playTap', 'playStar']);
+    [3, 2, 1].forEach(shown => soundCount(sounds, shown));
+    expect(sounds.playTap).toHaveBeenCalledTimes(3);
+    expect(sounds.playStar).not.toHaveBeenCalled();
+    soundCount(sounds, 0);
+    expect(sounds.playStar).toHaveBeenCalledOnceWith(0);
+  });
+
   it('counts down 3, 2, 1 and then lets the game go', () => {
     expect(countdownShown(COUNTDOWN)).toBe(3);
     expect(countdownShown(2.5)).toBe(3);

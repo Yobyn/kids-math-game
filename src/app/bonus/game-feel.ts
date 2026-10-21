@@ -18,6 +18,19 @@ export function countdownShown(left: number): number {
   return left > 0 ? Math.ceil(left - 1e-9) : 0;
 }
 
+/**
+ * The 3-2-1 heard as well as seen (2026-10-21: it was a silent number): a
+ * soft tick as each number comes, and a chime as play begins. Through the
+ * sound service, so silent when the child has turned sound off.
+ */
+export function soundCount(sounds: { playTap(): void; playStar(step: number): void }, shown: number): void {
+  if (shown > 0) {
+    sounds.playTap();
+  } else {
+    sounds.playStar(0);
+  }
+}
+
 export interface FloatUp {
   x: number;
   y: number;

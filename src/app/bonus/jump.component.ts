@@ -12,7 +12,7 @@ import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { drawFloats, drawHills, drawShine, prefersReducedMotion, rgb, roundRect, starPath } from './drawing';
-import { COUNTDOWN, END_BUZZ, FloatUp, POINT_BUZZ, SQUASH_TIME, ageFloats, countdownShown, newFloat, squashScale } from './game-feel';
+import { COUNTDOWN, END_BUZZ, FloatUp, POINT_BUZZ, SQUASH_TIME, ageFloats, countdownShown, newFloat, soundCount, squashScale } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
 import { Jumper, JumperEvent, Obstacle, Star, jump, newJumper, step, worldSpeed } from './jumper';
@@ -145,6 +145,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     this.started = true;
     this.countdownLeft = COUNTDOWN;
     this.countdown = COUNTDOWN;
+    soundCount(this.soundService, COUNTDOWN);
     // On a short phone the board runs past the screen: bring it all up
     if (this.boardRef) {
       showWholeBoard(this.boardRef.nativeElement, BOARD_MARGIN);
@@ -191,6 +192,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       const shown = countdownShown(this.countdownLeft);
       if (shown !== this.countdown) {
         this.zone.run(() => this.countdown = shown);
+        soundCount(this.soundService, shown);
       }
       this.draw();
       return;
