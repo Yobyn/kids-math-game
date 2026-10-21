@@ -108,6 +108,15 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
     again.componentInstance.ngOnDestroy();
   });
 
+  it('may be wider than the other games where the screen has room, as it runs sideways', () => {
+    const page = fixture.nativeElement.querySelector('.bonus') as HTMLElement;
+    expect(page.classList).toContain('bonus-wide');
+    expect(getComputedStyle(page).maxWidth).toBe('760px');
+    // and the board, and so the game, takes that width when it is there
+    const board = fixture.nativeElement.querySelector('.bonus-board') as HTMLElement;
+    expect(component.game.width).toBe(Math.max(240, Math.round(board.clientWidth)));
+  });
+
   it('bounces on a tap on the board, and on Space or the up arrow', () => {
     component.started = true;
     const canvas = fixture.nativeElement.querySelector('canvas') as HTMLCanvasElement;

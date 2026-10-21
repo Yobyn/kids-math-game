@@ -625,6 +625,16 @@ middle, hard the end), one groep per run.
   Under reduced motion the numbers do not pop, but the sounds stay. Sound
   follows the child's setting as ever. Checked on a 360px phone: Balspel
   and Ballonnen each heard tick, tick, tick, chime.
+- **After O, run 12: Springbal wider where there is room (2026-10-22).** All
+  three played at 320, 360 and 390px in nl, en and es (27 games, no
+  errors), and on laptop screens (1280x720 to 1920x1080), as Yobyn's
+  children play on his PC. All three boards were at most 480px wide. That
+  suits upright Balspel and Ballonnen, but Springbal runs sideways and saw
+  little of what was coming, on a laptop and on a phone held sideways
+  alike. Its page may now be 760px wide (`.bonus-wide`). Its speed is in
+  board widths a second (jumper.ts), so it plays the same, just bigger.
+  Measured: 740x360 480x280→708x280, 844x390 →760x280, 1366x768
+  480x528→760x575. Upright phones are unchanged, and Start stays on screen.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21

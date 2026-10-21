@@ -371,6 +371,12 @@ describe('BonusComponent, the bonus game after a round', () => {
     expect(pixel(paddle.x, paddle.y + paddle.height / 2)[3]).toBeGreaterThan(200);
   });
 
+  it('keeps its upright board no wider than a phone, unlike sideways Springbal', () => {
+    const page = fixture.nativeElement.querySelector('.bonus') as HTMLElement;
+    expect(page.classList).not.toContain('bonus-wide');
+    expect(getComputedStyle(page).maxWidth).toBe('480px');
+  });
+
   it('fits the board in the height left below the score, so the paddle never needs scrolling to', () => {
     const board = fixture.nativeElement.querySelector('.bonus-board') as HTMLElement;
     // Measured from where the page stands as it is fitted: when the board is
