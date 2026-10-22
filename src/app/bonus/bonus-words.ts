@@ -15,6 +15,7 @@ export type BonusKey =
   | 'jump-board'
   | 'jump-finished'
   | 'jump-hearts'
+  | 'pong-hearts'
   | 'balloons-title'
   | 'balloons-how'
   | 'balloons-board'
@@ -42,6 +43,7 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'balloons-board': 'Balloons floating up to be popped',
     'balloons-hearts': 'balloons may still float away',
     'jump-hearts': 'bumps to spare',
+    'pong-hearts': 'misses to spare',
     'balloons-finished': 'That was the last balloon!',
     'bonus-best': 'Best so far',
     'bonus-new-best': 'New best!'
@@ -64,6 +66,7 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'balloons-board': 'Ballonnen die omhoog zweven om te knallen',
     'balloons-hearts': 'ballonnen mogen nog wegvliegen',
     'jump-hearts': 'keer botsen mag nog',
+    'pong-hearts': 'keer missen mag nog',
     'balloons-finished': 'Dat was de laatste ballon!',
     'bonus-best': 'Beste tot nu toe',
     'bonus-new-best': 'Nieuw record!'
@@ -86,6 +89,7 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'balloons-board': 'Globos que suben para reventarlos',
     'balloons-hearts': 'globos pueden escaparse todavía',
     'jump-hearts': 'choques de sobra',
+    'pong-hearts': 'fallos de sobra',
     'balloons-finished': '¡Era el último globo!',
     'bonus-best': 'Mejor hasta ahora',
     'bonus-new-best': '¡Nuevo récord!'

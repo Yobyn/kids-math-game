@@ -1,9 +1,14 @@
 <div class="bonus">
   <h1>{{ languageService.translate('bonus-title') }}</h1>
 
-  <!-- The points, big. No clock: the ball's speed ends the game (pong.ts) -->
+  <!-- The points, big, and the balls that may still be missed. No clock: the ball's speed ends the game (pong.ts) -->
   <div class="bonus-bar">
     <span class="bonus-points" aria-live="polite">{{ hits }}</span>
+    <span class="bonus-hearts" role="img"
+          [attr.aria-label]="heartsLeft + ' ' + languageService.translate('pong-hearts')">
+      <!-- The heart just lost drops and fades as it goes, as in the other games (bonus.component.css) -->
+      <span *ngFor="let heart of hearts; let i = index" class="bonus-heart" [class.lost]="!heart" [class.just-lost]="i === heartsLeft">♥</span>
+    </span>
   </div>
 
   <!-- See-through: the particle field behind every screen shows through the board -->

@@ -6,9 +6,12 @@
  * point.
  *
  * The ball gets faster the longer it is kept up, until it is lightning fast
- * (Yobyn, 2026-10-10: "the user should fail on the speed not the time"). It
- * ends when the ball is missed. DURATION is only a backstop, never shown: by
- * then the ball is long past what anyone can follow, so the game always ends.
+ * (Yobyn, 2026-10-10: "the user should fail on the speed not the time"). A
+ * missed ball costs one of three hearts, as in the other two games
+ * (2026-10-23: one miss ended it): the ball waits on the paddle and is served
+ * again at the speed it had reached, so it is still the speed that ends the
+ * game, at the third miss. DURATION is only a backstop, never shown: by then
+ * the ball is long past what anyone can follow, so the game always ends.
  *
  * Free of the DOM, in CSS pixels, so it can be tested straight: the screen
  * (bonus.component.ts) only draws what this says and feeds it the paddle.
@@ -34,6 +37,9 @@ export interface Paddle {
 
 export type Ending = 'missed' | 'time';
 
+/** Three balls missed and the game is over. */
+export const MISSES_ALLOWED = 3;
+
 export interface Pong {
   width: number;
   height: number;
@@ -43,6 +49,8 @@ export interface Pong {
   hits: number;
   /** Seconds played. */
   elapsed: number;
+  /** Balls missed so far: hearts lost. */
+  misses: number;
   ended: Ending | null;
   /** Calmer under prefers-reduced-motion: a slower ball that speeds up less. */
   calm: boolean;
@@ -50,9 +58,9 @@ export interface Pong {
   paddleTarget?: number | null;
 }
 
-/** Something the screen answers: a paddle hit (sparks there), a wall the ball bounced off (a glow there), or the end. */
+/** Something the screen answers: a paddle hit (sparks there), a wall the ball bounced off (a glow there), a ball missed, or the end. */
 export interface PongEvent {
-  kind: 'hit' | 'wall' | 'end';
+  kind: 'hit' | 'wall' | 'miss' | 'end';
   x: number;
   y: number;
 }
@@ -124,6 +132,7 @@ export function newPong(width: number, height: number, calm = false, random: () 
     paddle: { x: width / 2, width: paddleWidth, y: height - PADDLE_LIFT - PADDLE_HEIGHT, height: PADDLE_HEIGHT },
     hits: 0,
     elapsed: 0,
+    misses: 0,
     ended: null,
     calm
   };
@@ -259,8 +268,14 @@ function tick(before: Pong, dt: number, events: PongEvent[]): Pong {
   }
 
   if (ball.y - r > game.height) {
-    events.push({ kind: 'end', x: ball.x, y: game.height });
-    return { ...game, ball, hits, elapsed, ended: 'missed' };
+    const misses = game.misses + 1;
+    if (misses >= MISSES_ALLOWED) {
+      events.push({ kind: 'end', x: ball.x, y: game.height });
+      return { ...game, ball, hits, elapsed, misses, ended: 'missed' };
+    }
+    // A heart gone: the ball waits on the paddle for the screen's 3-2-1 and serve
+    events.push({ kind: 'miss', x: ball.x, y: game.height });
+    return restOnPaddle({ ...game, ball, hits, elapsed, misses });
   }
   if (elapsed >= DURATION) {
     events.push({ kind: 'end', x: ball.x, y: ball.y });

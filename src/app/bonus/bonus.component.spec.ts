@@ -2,10 +2,10 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { BOARD_MARGIN, BonusComponent, CHILD_BAND, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
+import { BOARD_MARGIN, BonusComponent, CHILD_BAND, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, LOST_BALL_PULSE, MIN_BOARD } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
-import { BALL_RADIUS, PADDLE_TOP_SPEED } from './pong';
-import { COUNTDOWN, END_BUZZ, POINT_BUZZ, SQUASH_TIME } from './game-feel';
+import { BALL_RADIUS, MISSES_ALLOWED, PADDLE_TOP_SPEED, speedAt, speedOf } from './pong';
+import { COUNTDOWN, END_BUZZ, MISS_BUZZ, POINT_BUZZ, SQUASH_TIME } from './game-feel';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
@@ -49,9 +49,9 @@ describe('BonusComponent, the bonus game after a round', () => {
    * at the speed the moment has reached (pong.ts), quick by then, in the
    * direction given.
    */
-  function playWithBall(x: number, y: number, vx: number, vy: number) {
+  function playWithBall(x: number, y: number, vx: number, vy: number, misses = 0) {
     component.started = true;
-    component.game = { ...component.game, elapsed: 120, ball: { ...component.game.ball, x, y, vx, vy } };
+    component.game = { ...component.game, elapsed: 120, misses, ball: { ...component.game.ball, x, y, vx, vy } };
   }
 
   it('says how to play and waits for Start, with no ball moving yet', () => {
@@ -121,10 +121,36 @@ describe('BonusComponent, the bonus game after a round', () => {
     expect(buzz).not.toHaveBeenCalled();
   });
 
+  it('loses one of three hearts for a missed ball: it waits on the paddle through another 3-2-1, then is served again', () => {
+    const buzz = spyOn(TestBed.inject(SoundService), 'vibrate');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.bonus-heart').length).toBe(MISSES_ALLOWED);
+    playWithBall(10, component.game.height - 5, 0, 400);
+    component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
+    component.advance(0.05);
+    fixture.detectChanges();
+
+    expect(component.ended).toBeFalse();
+    expect(component.heartsLeft).toBe(MISSES_ALLOWED - 1);
+    expect(fixture.nativeElement.querySelectorAll('.bonus-heart.lost').length).toBe(1);
+    expect(component.countdown).toBe(COUNTDOWN);
+    expect(pulses.pulse).toHaveBeenCalledWith(LOST_BALL_PULSE);
+    expect(buzz).toHaveBeenCalledWith(MISS_BUZZ);
+    component.advance(1);
+    const paddle = component.game.paddle;
+    expect(component.game.ball.x).toBeCloseTo(paddle.x, 0);
+    expect(component.game.ball.vy).toBe(0);
+    component.advance(COUNTDOWN);
+    expect(component.countdown).toBe(0);
+    expect(component.game.ball.vy).toBeLessThan(0);
+    // the speed it had reached as it was missed, not the start's
+    expect(speedOf(component.game.ball)).toBeCloseTo(speedAt(component.game.height, component.calm, component.game.elapsed), 3);
+  });
+
   it('ends on a miss with "well played" and the points, and a bigger swell of the field', () => {
     component.started = true;
     component.game = { ...component.game, hits: 4 };
-    playWithBall(10, component.game.height - 5, 0, 400);
+    playWithBall(10, component.game.height - 5, 0, 400, MISSES_ALLOWED - 1);
     component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
     component.advance(0.05);
     fixture.detectChanges();
@@ -247,7 +273,7 @@ describe('BonusComponent, the bonus game after a round', () => {
     component.start();
     expect(document.documentElement.style.touchAction).toBe('none');
     // at the end of the game
-    playWithBall(10, component.game.height - 5, 0, 400);
+    playWithBall(10, component.game.height - 5, 0, 400, MISSES_ALLOWED - 1);
     component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
     (component as unknown as { countdownLeft: number }).countdownLeft = 0;
     component.advance(0.05);
@@ -281,7 +307,7 @@ describe('BonusComponent, the bonus game after a round', () => {
   it('says one point is a point, and more are points (2026-10-16: "1 bonuspunten")', () => {
     component.started = true;
     component.game = { ...component.game, hits: 1 };
-    playWithBall(10, component.game.height - 5, 0, 400);
+    playWithBall(10, component.game.height - 5, 0, 400, MISSES_ALLOWED - 1);
     component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
     component.advance(0.05);
     fixture.detectChanges();
@@ -325,7 +351,7 @@ describe('BonusComponent, the bonus game after a round', () => {
     recordBonusBest('bonusBest:guest', 'pong', 3);
     component.started = true;
     component.game = { ...component.game, hits: 4 };
-    playWithBall(10, component.game.height - 5, 0, 400);
+    playWithBall(10, component.game.height - 5, 0, 400, MISSES_ALLOWED - 1);
     component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
     component.advance(0.05);
     fixture.detectChanges();
@@ -432,7 +458,7 @@ describe('BonusComponent, the bonus game after a round', () => {
     const before = progress.getXp();
     component.started = true;
     component.game = { ...component.game, hits: 9 };
-    playWithBall(10, component.game.height - 5, 0, 400);
+    playWithBall(10, component.game.height - 5, 0, 400, MISSES_ALLOWED - 1);
     component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
     component.advance(0.05);
     component.advance(0.05);
@@ -448,7 +474,7 @@ describe('BonusComponent, the bonus game after a round', () => {
     const before = progress.getXp();
     component.started = true;
     component.game = { ...component.game, hits: 2 };
-    playWithBall(10, component.game.height - 5, 0, 400);
+    playWithBall(10, component.game.height - 5, 0, 400, MISSES_ALLOWED - 1);
     component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
     component.advance(0.05);
     expect(progress.getXp()).toBe(before + bonusXp(2));
@@ -480,7 +506,7 @@ describe('BonusComponent, the bonus game after a round', () => {
     spyOn(sounds, 'playSuccess');
     component.started = true;
     component.game = { ...component.game, hits: 3 };
-    playWithBall(component.game.width / 2, component.game.height - 5, 0, 400);
+    playWithBall(component.game.width / 2, component.game.height - 5, 0, 400, MISSES_ALLOWED - 1);
     component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
     (pulses.tap as jasmine.Spy).calls.reset();
     component.advance(0.05);
