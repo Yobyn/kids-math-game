@@ -71,6 +71,7 @@ export type TranslationKeys =
   | 'jump-board'
   | 'jump-finished'
   | 'jump-hearts'
+  | 'pong-hearts'
   | 'balloons-title'
   | 'balloons-how'
   | 'balloons-board'

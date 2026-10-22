@@ -647,6 +647,16 @@ middle, hard the end), one groep per run.
   speed and the random flag are unchanged. Played after: the same 9
   Springbal runs that had all ended within 18 s, 6 of them still going at
   18 s.
+- **After O, run 14: three hearts in Balspel too (2026-10-23).** All three
+  played at 320, 360 and 390px in nl, en and es (27 games, no errors).
+  After run 13 Balspel was the only game where one slip ended everything.
+  A missed ball now costs one of three hearts (`MISSES_ALLOWED` in
+  pong.ts). The heart drops as in the other two, the field and the phone
+  get a soft nudge (`LOST_BALL_PULSE`, `MISS_BUZZ`), and the ball waits on
+  the paddle through another 3-2-1. It is then served again at the speed
+  it had reached, so it is still the speed that ends the game (Yobyn: "the
+  user should fail on the speed not the time"), now at the third miss. The
+  hidden 5-minute backstop is unchanged.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21

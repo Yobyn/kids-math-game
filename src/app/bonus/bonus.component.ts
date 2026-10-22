@@ -11,10 +11,10 @@ import { paddleColour } from './paddle-colour';
 import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { drawCourt, drawFloats, drawShine, prefersReducedMotion, rgb, roundRect } from './drawing';
-import { COUNTDOWN, END_BUZZ, FLASH_LIFE, Flash, FloatUp, POINT_BUZZ, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, newFloat, soundCount, squashScale } from './game-feel';
+import { COUNTDOWN, END_BUZZ, FLASH_LIFE, Flash, FloatUp, MISS_BUZZ, POINT_BUZZ, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, newFloat, soundCount, squashScale } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
-import { Pong, PongEvent, aimPaddle, followPaddle, movePaddle, newPong, restOnPaddle, serve, step } from './pong';
+import { MISSES_ALLOWED, Pong, PongEvent, aimPaddle, followPaddle, movePaddle, newPong, restOnPaddle, serve, step } from './pong';
 
 /** How far a held arrow key moves the paddle, in screen widths a second. */
 const KEY_SPEED = 1.1;
@@ -28,6 +28,8 @@ const TRAIL = 8;
 /** How hard a paddle hit swells the field, and the end of the game. */
 export const HIT_PULSE = 0.35;
 export const END_PULSE = 1;
+/** How hard a missed ball stirs the field when hearts are left: a small sigh, not a burst. */
+export const LOST_BALL_PULSE = 0.12;
 /** The end of the game throws sparks from this many places round the ball: a bigger burst than a hit's. */
 export const END_SPARKS = 6;
 /** How far from the ball those sparks start, in pixels. */
@@ -60,6 +62,12 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
   ended = false;
   /** What the screen shows; copied from the game only when it changes. */
   hits = 0;
+  /** The three hearts: one goes for each ball missed (pong.ts MISSES_ALLOWED). */
+  hearts: boolean[] = Array(MISSES_ALLOWED).fill(true);
+
+  get heartsLeft(): number {
+    return this.hearts.filter(Boolean).length;
+  }
   /** The middle of the paddle in the child's own colour, when they have one (paddle-colour.ts). */
   childColour: string | null = null;
   /** The XP the game paid, once it has ended: one per bounce, capped (level-curve.ts). */
@@ -246,10 +254,12 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
       this.trail = [...this.trail, { x: game.ball.x, y: game.ball.y }].slice(-TRAIL);
     }
     events.forEach(event => this.answer(event));
-    if (game.hits !== this.hits || (game.ended && !this.ended)) {
+    const left = MISSES_ALLOWED - game.misses;
+    if (game.hits !== this.hits || left !== this.heartsLeft || (game.ended && !this.ended)) {
       const ending = game.ended !== null && !this.ended;
       this.zone.run(() => {
         this.hits = game.hits;
+        this.hearts = Array.from({ length: MISSES_ALLOWED }, (_, i) => i < left);
         this.ended = game.ended !== null;
         if (ending) {
           this.floats = [];
@@ -276,6 +286,17 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!this.calm) {
         this.flashes = [...this.flashes, { x: event.x, y: event.y, age: 0 }];
       }
+      return;
+    }
+    if (event.kind === 'miss') {
+      // A heart gone, not the game: the ball waits on the paddle through
+      // another 3-2-1 and is served again at the speed it had reached
+      this.countdownLeft = COUNTDOWN;
+      this.zone.run(() => this.countdown = COUNTDOWN);
+      soundCount(this.soundService, COUNTDOWN);
+      this.trail = [];
+      this.pulseService.pulse(LOST_BALL_PULSE);
+      this.soundService.vibrate(MISS_BUZZ);
       return;
     }
     if (event.kind === 'hit') {

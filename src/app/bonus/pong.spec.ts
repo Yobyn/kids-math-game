@@ -1,5 +1,5 @@
 import {
-  BALL_RADIUS, DOUBLING_SECONDS, DURATION, MAX_BOUNCE, PADDLE_TOP_SPEED, Pong, aimPaddle, followPaddle, movePaddle, newPong,
+  BALL_RADIUS, DOUBLING_SECONDS, DURATION, MAX_BOUNCE, MISSES_ALLOWED, PADDLE_TOP_SPEED, Pong, aimPaddle, followPaddle, movePaddle, newPong,
   restOnPaddle, serve, speedAt, speedOf, startSpeed, step, topSpeed
 } from './pong';
 
@@ -101,8 +101,28 @@ describe('the bonus game\'s ball and paddle (bonus/pong.ts)', () => {
     expect(speedOf(newPong(W, H, true).ball)).toBeCloseTo(startSpeed(H, true), 6);
   });
 
-  it('ends when the ball gets past the paddle, with the points it had', () => {
-    const game = { ...withBall(20, H - 30, 0, 400), hits: 3 };
+  it('costs one of three hearts when the ball gets past the paddle, and the ball waits on the paddle to be served again', () => {
+    expect(MISSES_ALLOWED).toBe(3);
+    expect(newPong(W, H).misses).toBe(0);
+    const game = { ...withBall(20, H - 30, 0, 400), hits: 3, elapsed: 40 };
+    const far = movePaddle(game, W);
+    const { game: after, events } = step(far, 0.5);
+
+    expect(after.ended).toBeNull();
+    expect(after.misses).toBe(1);
+    expect(after.hits).toBe(3);
+    expect(events.map(event => event.kind)).toEqual(['miss']);
+    // on the paddle, still, for the screen's 3-2-1
+    expect(after.ball).toEqual(restOnPaddle(after).ball);
+    expect(after.ball.vx).toBe(0);
+    expect(after.ball.vy).toBe(0);
+    // and served again at the speed it had reached, not the start's
+    expect(speedOf(serve(after).ball)).toBeCloseTo(speedAt(H, false, after.elapsed), 6);
+    expect(speedAt(H, false, 40)).toBeGreaterThan(startSpeed(H, false));
+  });
+
+  it('ends at the third ball missed, with the points it had', () => {
+    const game = { ...withBall(20, H - 30, 0, 400), hits: 3, misses: MISSES_ALLOWED - 1 };
     const far = movePaddle(game, W);
     const { game: after, events } = step(far, 0.5);
 
