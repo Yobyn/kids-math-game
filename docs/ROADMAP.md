@@ -635,6 +635,18 @@ middle, hard the end), one groep per run.
   board widths a second (jumper.ts), so it plays the same, just bigger.
   Measured: 740x360 480x280→708x280, 844x390 →760x280, 1366x768
   480x528→760x575. Upright phones are unchanged, and Start stays on screen.
+- **After O, run 13: three hearts in Springbal (2026-10-22).** All three
+  played at 320, 360 and 390px in nl, en and es (27 games, no errors).
+  Springbal ended at the first obstacle run into: every run scored 1 to 4,
+  and the finish flag (20 s to 2 min away) was hardly ever reached. It now
+  has Ballonnen's three hearts (`BUMPS_ALLOWED` in jumper.ts). Running into
+  an obstacle costs one, and the ball rolls on through it. That obstacle is
+  drawn faded (`HIT_FADE`) and scores nothing. The heart drops in the bar
+  as in Ballonnen, and the field and the phone get a soft nudge
+  (`BUMP_PULSE`, `MISS_BUZZ`). The third bump ends the run. The steady
+  speed and the random flag are unchanged. Played after: the same 9
+  Springbal runs that had all ended within 18 s, 6 of them still going at
+  18 s.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21

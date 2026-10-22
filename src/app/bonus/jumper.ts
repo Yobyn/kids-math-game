@@ -18,12 +18,18 @@
  * The world keeps one steady speed, and the game ends at a finish flag
  * (Yobyn, 2026-10-10: "let's rather not increase the speed but have an end
  * flag, after random time between 20 secs and 2 min"): a run is a race to
- * the flag, and a crash on the way ends it early.
+ * the flag. Running into an obstacle costs one of three hearts, and the
+ * ball goes on through it; the third ends the race early (2026-10-22: one
+ * crash ending it, a run scored 1 to 4 and the flag was hardly ever
+ * reached; Ballonnen's three hearts, the same here).
  *
  * Free of the DOM, in CSS pixels, y downwards, so it can be tested straight.
  */
 
 export type Place = 'ground' | 'middle' | 'top';
+
+/** Three bumps and the run is over. */
+export const BUMPS_ALLOWED = 3;
 
 export interface Obstacle {
   place: Place;
@@ -34,6 +40,8 @@ export interface Obstacle {
   height: number;
   /** Counted once the ball is past it. */
   passed: boolean;
+  /** Run into: it cost a heart, the ball goes through it, and it scores nothing. */
+  hit?: boolean;
 }
 
 export interface Roller {
@@ -77,14 +85,16 @@ export interface Jumper {
   finishAt: number;
   /** The finish flag's x, once it is on the board; the game is won when it reaches the ball. */
   flag: number | null;
+  /** Obstacles run into so far: hearts lost. */
+  bumps: number;
   ended: JumperEnding | null;
   /** Calmer under prefers-reduced-motion: slower, and it speeds up more slowly. */
   calm: boolean;
 }
 
-/** An obstacle passed, a star taken (both points), the ball landing (a squash), or the end. */
+/** An obstacle passed, a star taken (both points), the ball landing (a squash), one run into, or the end. */
 export interface JumperEvent {
-  kind: 'pass' | 'star' | 'land' | 'end';
+  kind: 'pass' | 'star' | 'land' | 'bump' | 'end';
   x: number;
   y: number;
 }
@@ -179,6 +189,7 @@ export function newJumper(width: number, height: number, calm = false, random: (
     elapsed: 0,
     finishAt: FINISH_EARLIEST + random() * (FINISH_LATEST - FINISH_EARLIEST),
     flag: null,
+    bumps: 0,
     ended: null,
     calm
   };
@@ -317,6 +328,17 @@ function tick(game: Jumper, dt: number, random: () => number, events: JumperEven
     return true;
   });
 
+  // One the ball runs into costs a heart; the ball goes on through it
+  let bumps = game.bumps;
+  obstacles = obstacles.map(obstacle => {
+    if (!obstacle.hit && !obstacle.passed && touches(ball, obstacle)) {
+      bumps += 1;
+      events.push({ kind: 'bump', x: ball.x, y: ball.y });
+      return { ...obstacle, hit: true, passed: true };
+    }
+    return obstacle;
+  });
+
   obstacles = obstacles.map(obstacle => {
     if (!obstacle.passed && obstacle.x + obstacle.width < ball.x - ball.radius) {
       points += 1;
@@ -326,8 +348,8 @@ function tick(game: Jumper, dt: number, random: () => number, events: JumperEven
     return obstacle;
   });
 
-  const next: Jumper = { ...game, ball, obstacles, stars, untilNext, made, points, elapsed, flag };
-  if (obstacles.some(obstacle => touches(ball, obstacle))) {
+  const next: Jumper = { ...game, ball, obstacles, stars, untilNext, made, points, bumps, elapsed, flag };
+  if (bumps >= BUMPS_ALLOWED) {
     events.push({ kind: 'end', x: ball.x, y: ball.y });
     return { ...next, ended: 'crashed' };
   }

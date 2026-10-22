@@ -2,14 +2,14 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { JumpComponent } from './jump.component';
-import { COUNTDOWN, END_BUZZ, POINT_BUZZ, SQUASH_TIME } from './game-feel';
+import { BUMP_PULSE, JumpComponent } from './jump.component';
+import { COUNTDOWN, END_BUZZ, MISS_BUZZ, POINT_BUZZ, SQUASH_TIME } from './game-feel';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
-import { AIRTIME, jump, makeObstacle, makeStar, onGround, worldSpeed } from './jumper';
+import { AIRTIME, BUMPS_ALLOWED, jump, makeObstacle, makeStar, onGround, worldSpeed } from './jumper';
 import { HowToPlayComponent } from './how-to-play.component';
 import { recordBonusBest } from './bonus-best';
 
@@ -207,11 +207,34 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
     expect(blip).toHaveBeenCalled();
   });
 
-  it('ends on a crash with "well played", the points and the XP, a bigger burst, paid once', () => {
+  it('loses one of three hearts for a block run into, and rolls on through it, as in Ballonnen', () => {
+    const buzz = spyOn(TestBed.inject(SoundService), 'vibrate');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('.bonus-heart').length).toBe(BUMPS_ALLOWED);
+    playFacing('ground', 30);
+    for (let i = 0; i < 40 && component.game.bumps === 0; i++) {
+      component.advance(0.05);
+    }
+    fixture.detectChanges();
+    expect(component.heartsLeft).toBe(BUMPS_ALLOWED - 1);
+    expect(fixture.nativeElement.querySelectorAll('.bonus-heart.lost').length).toBe(1);
+    expect(fixture.nativeElement.querySelector('.bonus-heart.just-lost')).not.toBeNull();
+    expect(component.ended).toBeFalse();
+    expect(component.game.obstacles[0].hit).toBeTrue();
+    expect(pulses.pulse).toHaveBeenCalledWith(BUMP_PULSE);
+    expect(buzz).toHaveBeenCalledWith(MISS_BUZZ);
+    // it rolls on through, for no point, and the game goes on
+    component.advance(1);
+    expect(component.ended).toBeFalse();
+    expect(component.points).toBe(0);
+  });
+
+  it('ends on the third bump with "well played", the points and the XP, a bigger burst, paid once', () => {
     const progress = TestBed.inject(ProgressService);
     const before = progress.getXp();
+    // the last of the three hearts
     playFacing('ground', 30);
-    component.game = { ...component.game, points: 9 };
+    component.game = { ...component.game, points: 9, bumps: BUMPS_ALLOWED - 1 };
     for (let i = 0; i < 40 && !component.ended; i++) {
       component.advance(0.05);
     }
@@ -281,8 +304,9 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
 
   it('shows this game\'s best on the end card, without "new best" when the game did not beat it', () => {
     recordBonusBest('bonusBest:guest', 'jump', 20);
+    // the last of the three hearts
     playFacing('ground', 30);
-    component.game = { ...component.game, points: 9 };
+    component.game = { ...component.game, points: 9, bumps: BUMPS_ALLOWED - 1 };
     for (let i = 0; i < 40 && !component.ended; i++) {
       component.advance(0.05);
     }
@@ -333,8 +357,9 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
   });
 
   it('says one point is a point, and more are points (2026-10-16: "1 bonuspunten")', () => {
+    // the last of the three hearts
     playFacing('ground', 30);
-    component.game = { ...component.game, points: 1 };
+    component.game = { ...component.game, points: 1, bumps: BUMPS_ALLOWED - 1 };
     for (let i = 0; i < 40 && !component.ended; i++) {
       component.advance(0.05);
     }
@@ -351,7 +376,8 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
     expect(router.navigate).toHaveBeenCalledWith(['/grade']);
   });
 
-  it('shows no clock: only the points, the flag comes when it comes', () => {
-    expect(fixture.nativeElement.querySelector('.bonus-bar').children.length).toBe(1);
+  it('shows no clock: only the points and the hearts, the flag comes when it comes', () => {
+    const bar = Array.from(fixture.nativeElement.querySelector('.bonus-bar').children) as HTMLElement[];
+    expect(bar.map(part => part.className)).toEqual(['bonus-points', 'bonus-hearts']);
   });
 });
