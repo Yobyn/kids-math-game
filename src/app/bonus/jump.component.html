@@ -1,9 +1,14 @@
 <div class="bonus bonus-wide">
   <h1>{{ languageService.translate('jump-title') }}</h1>
 
-  <!-- The points, big. No clock: the finish flag comes when it comes (jumper.ts) -->
+  <!-- The points, big, and the bumps still to spare. No clock: the finish flag comes when it comes (jumper.ts) -->
   <div class="bonus-bar">
     <span class="bonus-points" aria-live="polite">{{ points }}</span>
+    <span class="bonus-hearts" role="img"
+          [attr.aria-label]="heartsLeft + ' ' + languageService.translate('jump-hearts')">
+      <!-- The heart just lost drops and fades as it goes, as in Ballonnen (bonus.component.css) -->
+      <span *ngFor="let heart of hearts; let i = index" class="bonus-heart" [class.lost]="!heart" [class.just-lost]="i === heartsLeft">♥</span>
+    </span>
   </div>
 
   <!-- See-through: the particle field behind every screen shows through the board -->

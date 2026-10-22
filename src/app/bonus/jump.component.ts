@@ -12,13 +12,17 @@ import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { drawFloats, drawHills, drawShine, prefersReducedMotion, rgb, roundRect, starPath } from './drawing';
-import { COUNTDOWN, END_BUZZ, FloatUp, POINT_BUZZ, SQUASH_TIME, ageFloats, countdownShown, newFloat, soundCount, squashScale } from './game-feel';
+import { COUNTDOWN, END_BUZZ, FloatUp, MISS_BUZZ, POINT_BUZZ, SQUASH_TIME, ageFloats, countdownShown, newFloat, soundCount, squashScale } from './game-feel';
 import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
-import { Jumper, JumperEvent, Obstacle, Star, jump, newJumper, step, worldSpeed } from './jumper';
+import { BUMPS_ALLOWED, Jumper, JumperEvent, Obstacle, Star, jump, newJumper, step, worldSpeed } from './jumper';
 
 /** The board is about square: wide enough to see what is coming, short enough to fit under the score. */
 export const BOARD_SHAPE = 1.1;
+/** How hard running into an obstacle stirs the field: a small sigh, not a burst. */
+export const BUMP_PULSE = 0.12;
+/** An obstacle already run into is drawn this faint. */
+export const HIT_FADE = 0.3;
 /** The ball's glowing tail: this many of its last heights. */
 const TRAIL = 6;
 
@@ -47,6 +51,12 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
   ended = false;
   /** What the screen shows; copied from the game only when it changes. */
   points = 0;
+  /** The three hearts: one goes for each obstacle run into (jumper.ts BUMPS_ALLOWED). */
+  hearts: boolean[] = Array(BUMPS_ALLOWED).fill(true);
+
+  get heartsLeft(): number {
+    return this.hearts.filter(Boolean).length;
+  }
   /** A stripe round the ball in the child's own colour, when they have one (paddle-colour.ts). */
   childColour: string | null = null;
   /** The XP the game paid, once it has ended (level-curve.ts). */
@@ -205,10 +215,12 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       this.trail = [...this.trail, game.ball.y].slice(-TRAIL);
     }
     events.forEach(event => this.answer(event));
-    if (game.points !== this.points || (game.ended && !this.ended)) {
+    const left = BUMPS_ALLOWED - game.bumps;
+    if (game.points !== this.points || left !== this.heartsLeft || (game.ended && !this.ended)) {
       const ending = game.ended !== null && !this.ended;
       this.zone.run(() => {
         this.points = game.points;
+        this.hearts = Array.from({ length: BUMPS_ALLOWED }, (_, i) => i < left);
         this.ended = game.ended !== null;
         this.finished = game.ended === 'finished';
         if (ending) {
@@ -264,6 +276,13 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       if (!this.calm) {
         this.squash = SQUASH_TIME;
       }
+      return;
+    }
+    if (event.kind === 'bump') {
+      // Run into: a heart goes, the field barely stirs and the phone nudges,
+      // and the ball rolls on through (the obstacle is drawn faded)
+      this.pulseService.pulse(BUMP_PULSE);
+      this.soundService.vibrate(MISS_BUZZ);
       return;
     }
     if (event.kind === 'star') {
@@ -336,7 +355,13 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     context.fillRect(0, ground, width, 3);
 
     // The obstacles, each its own shape, glowing in the colour of the ring where they are
-    obstacles.forEach(obstacle => this.drawObstacle(context, obstacle));
+    obstacles.forEach(obstacle => {
+      // One already run into is faded: it is no longer in the way
+      context.save();
+      context.globalAlpha = obstacle.hit ? HIT_FADE : 1;
+      this.drawObstacle(context, obstacle);
+      context.restore();
+    });
 
     // The stars to bounce up to
     this.game.stars.forEach(star => this.drawStar(context, star));

@@ -1,5 +1,5 @@
 import {
-  AIRTIME, BALL_RADIUS, FINISH_EARLIEST, FINISH_LATEST, GROUND_TALL, Jumper, JUMP_RISE, MIDDLE_TO, Place, STAR_EVERY, STAR_HEIGHT,
+  AIRTIME, BALL_RADIUS, BUMPS_ALLOWED, FINISH_EARLIEST, FINISH_LATEST, GROUND_TALL, Jumper, JUMP_RISE, MIDDLE_TO, Place, STAR_EVERY, STAR_HEIGHT,
   gapAfter, jump, makeObstacle, makeStar, newJumper, onGround, pickPlace, reachesStar, step, touches, worldSpeed
 } from './jumper';
 
@@ -34,9 +34,9 @@ function play(game: Jumper, seconds: number, bounceNow: (game: Jumper) => boolea
   return current;
 }
 
-/** Whether this game, played on with no more bounces and nothing new coming, crashes within `seconds`. */
+/** Whether this game, played on with no more bounces and nothing new coming, runs into something within `seconds`. */
 function crashesWithin(game: Jumper, seconds: number): boolean {
-  return step({ ...game, untilNext: 1e9 }, seconds).game.ended === 'crashed';
+  return step({ ...game, untilNext: 1e9 }, seconds).game.bumps > game.bumps;
 }
 
 /**
@@ -100,7 +100,7 @@ describe('the second bonus game: a rolling ball bounced over obstacles (bonus/ju
     expect(under.ended).toBeNull();
     expect(under.points).toBe(1);
     const into = play(facing('middle', 60), 3, game => onGround(game) && game.obstacles.length > 0 && game.obstacles[0].x - game.ball.x < 20);
-    expect(into.ended).toBe('crashed');
+    expect(into.bumps).toBe(1);
   });
 
   it('lets a rolling ball pass under one hanging from the top, and the top of a bounce runs into it', () => {
@@ -111,7 +111,7 @@ describe('the second bonus game: a rolling ball bounced over obstacles (bonus/ju
     const width = makeObstacle(newJumper(W, H), 'top', 0).width;
     const ahead = worldSpeed(W, false) * AIRTIME / 2 - width / 2;
     const into = play(facing('top', ahead), 3, game => game.elapsed === 0);
-    expect(into.ended).toBe('crashed');
+    expect(into.bumps).toBe(1);
   });
 
   it('puts obstacles on the ground, in the middle of the air and at the top, at random, the first on the ground', () => {
@@ -173,10 +173,28 @@ describe('the second bonus game: a rolling ball bounced over obstacles (bonus/ju
     expect(step(after, 1).game).toEqual(after);
   });
 
-  it('still ends early on a crash before the flag', () => {
-    const game = play({ ...facing('ground', 40), finishAt: 60 }, 3, () => false);
+  it('still ends early before the flag, at the third bump', () => {
+    const game = play({ ...facing('ground', 40), finishAt: 60, bumps: BUMPS_ALLOWED - 1 }, 3, () => false);
     expect(game.ended).toBe('crashed');
     expect(game.flag).toBeNull();
+  });
+
+  it('costs one of three hearts for an obstacle run into, and the ball goes on through it for no point', () => {
+    expect(BUMPS_ALLOWED).toBe(3);
+    expect(newJumper(W, H).bumps).toBe(0);
+    let game = facing('ground', 60);
+    const events: string[] = [];
+    for (let t = 0; t < 3; t += 1 / 60) {
+      const result = step(game, 1 / 60);
+      game = result.game;
+      result.events.forEach(event => events.push(event.kind));
+    }
+    expect(game.bumps).toBe(1);
+    expect(game.ended).toBeNull();
+    expect(game.points).toBe(0);
+    expect(events.filter(kind => kind === 'bump').length).toBe(1);
+    expect(events).not.toContain('pass');
+    expect(events).not.toContain('end');
   });
 
   it('always leaves a whole bounce between obstacles, so there is always a way through', () => {
