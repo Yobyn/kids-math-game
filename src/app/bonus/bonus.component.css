@@ -143,6 +143,33 @@ h1 {
   .bonus-count { animation: none; }
 }
 
+/* "New best!" on the board, the moment the game passes the child's best:
+   it pops in, holds, and fades; still under reduced motion */
+.bonus-record {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 16%;
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: var(--accent-magenta-text);
+  text-shadow: var(--glow);
+  pointer-events: none;
+  animation: bonus-record-in 1.6s ease-out forwards;
+}
+
+@keyframes bonus-record-in {
+  0% { opacity: 0; transform: scale(0.6); }
+  15% { opacity: 1; transform: scale(1.15); }
+  30% { transform: scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bonus-record { animation: none; }
+}
+
 .bonus-best {
   margin: 0.25rem 0;
   color: var(--text-dim);

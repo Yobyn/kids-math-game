@@ -1,6 +1,16 @@
-import { COUNTDOWN, FLASH_LIFE, FLOAT_LIFE, FLOAT_RISE, SQUASH, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, floatAt, newFloat, soundCount, squashScale } from './game-feel';
+import { COUNTDOWN, FLASH_LIFE, FLOAT_LIFE, FLOAT_RISE, SQUASH, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, floatAt, newFloat, passesBest, soundCount, squashScale } from './game-feel';
 
 describe('how the bonus games feel: the 3-2-1 and the floating +1', () => {
+  it('sees the moment a game passes the best, once, and none before there is a best', () => {
+    expect(passesBest(5, 5, 6)).toBeTrue();
+    expect(passesBest(5, 4, 8)).toBeTrue();
+    // a star balloon jumping right over it still counts
+    expect(passesBest(5, 3, 6)).toBeTrue();
+    expect(passesBest(5, 4, 5)).toBeFalse();
+    expect(passesBest(5, 6, 7)).toBeFalse();
+    expect(passesBest(0, 0, 1)).toBeFalse();
+  });
+
   it('ticks softly for each number of the 3-2-1 and chimes as play begins', () => {
     const sounds = jasmine.createSpyObj('sounds', ['playTap', 'playStar']);
     [3, 2, 1].forEach(shown => soundCount(sounds, shown));

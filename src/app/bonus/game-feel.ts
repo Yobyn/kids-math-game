@@ -97,3 +97,16 @@ export function squashScale(left: number): { x: number; y: number } {
 export const POINT_BUZZ = 10;
 export const END_BUZZ = [0, 30, 40, 30];
 export const MISS_BUZZ = 40;
+
+/**
+ * Whether going from `before` to `after` points passes this child's best,
+ * kept from earlier games: the moment for "New best!" on the board, as it
+ * happens, rather than only on the end card (2026-10-24). With no best yet
+ * there is nothing to pass.
+ */
+export function passesBest(best: number, before: number, after: number): boolean {
+  return best > 0 && before <= best && after > best;
+}
+/** How long "New best!" stays on the board, in milliseconds, and how hard it swells the field. */
+export const RECORD_SHOW_MS = 1600;
+export const RECORD_PULSE = 0.7;
