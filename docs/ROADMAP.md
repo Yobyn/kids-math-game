@@ -657,6 +657,16 @@ middle, hard the end), one groep per run.
   it had reached, so it is still the speed that ends the game (Yobyn: "the
   user should fail on the speed not the time"), now at the third miss. The
   hidden 5-minute backstop is unchanged.
+- **After O, run 15: "New best!" the moment it happens (2026-10-23).** All
+  three played at 320, 360 and 390px in nl, en and es (27 games, no
+  errors). Beating a best was only found out on the end card, after the
+  game. Now the moment the score passes this child's best (`passesBest`
+  in game-feel.ts, against `bonusBest` read at Start), "🏆 Nieuw record!"
+  pops in on the board for 1.6 s (`.bonus-record`). It comes with a chime
+  (`playStar(3)`), a swell of the field (`RECORD_PULSE`) and a right
+  answer's double buzz. It comes once per game, in all three games,
+  praising the game as the end card does. In a first game there is no best
+  to pass, so there is no moment. Under reduced motion it does not pop.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21

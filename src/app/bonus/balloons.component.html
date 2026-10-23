@@ -28,6 +28,9 @@
     <!-- A fresh span for each number, so each one pops in (bonus.component.css) -->
     <div class="bonus-countdown" *ngIf="countdown > 0" aria-live="assertive"><span class="bonus-count" *ngFor="let shown of [countdown]">{{ shown }}</span></div>
 
+    <!-- The moment this game passes the child's best (bonus.component.css) -->
+    <div class="bonus-record" *ngIf="recordShown" aria-live="polite">🏆 {{ languageService.translate('bonus-new-best') }}</div>
+
     <div class="bonus-card" *ngIf="ended" role="status">
       <p class="bonus-well-played" *ngIf="finished">🎈 {{ languageService.translate('balloons-finished') }}</p>
       <p class="bonus-well-played" *ngIf="!finished">{{ languageService.translate('bonus-well-played') }}</p>

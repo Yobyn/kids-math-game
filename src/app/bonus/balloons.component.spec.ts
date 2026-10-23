@@ -8,10 +8,11 @@ import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.componen
 import { FieldPulseService } from '../services/field-pulse.service';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
-import { COUNTDOWN, END_BUZZ, MISS_BUZZ, POINT_BUZZ } from './game-feel';
+import { COUNTDOWN, END_BUZZ, MISS_BUZZ, POINT_BUZZ, RECORD_PULSE, RECORD_SHOW_MS } from './game-feel';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
 import { Balloon, MISSES_ALLOWED, STAR_POINTS, balloonRadius, swayedX } from './balloons';
 import { HowToPlayComponent } from './how-to-play.component';
+import { recordBonusBest } from './bonus-best';
 
 describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
   let fixture: ComponentFixture<BalloonsComponent>;
@@ -307,6 +308,52 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     component.advance(1);
     expect(tick).toHaveBeenCalledTimes(3);
     expect(chime).toHaveBeenCalledOnceWith(0);
+  });
+
+  it('shows "New best!" on the board the moment the game passes the best, with a chime, and then lets it go', () => {
+    jasmine.clock().install();
+    try {
+      spyOn(window, 'requestAnimationFrame').and.returnValue(0);
+      recordBonusBest('bonusBest:guest', 'balloons', 3);
+      const chime = spyOn(TestBed.inject(SoundService), 'playStar');
+      component.start();
+      component.advance(COUNTDOWN);
+      const pop = (points: number) => {
+        component.game = { ...component.game, points, balloons: [{ id: 50 + points, x: 100, y: 100, radius: 24, hue: 0.5, phase: 0 }] };
+        component.popAt(swayedX(component.game.balloons[0], component.game.elapsed, component.calm), 100);
+        fixture.detectChanges();
+      };
+      // up to the best: nothing yet
+      pop(2);
+      expect(component.recordShown).toBeFalse();
+      expect(fixture.nativeElement.querySelector('.bonus-record')).toBeNull();
+      // past it
+      pop(3);
+      expect(component.points).toBe(4);
+      expect(component.recordShown).toBeTrue();
+      expect(fixture.nativeElement.querySelector('.bonus-record').textContent).toContain('Nieuw record!');
+      expect(pulses.pulse).toHaveBeenCalledWith(RECORD_PULSE);
+      expect(chime).toHaveBeenCalledWith(3);
+      // once only
+      chime.calls.reset();
+      pop(4);
+      expect(chime).not.toHaveBeenCalledWith(3);
+      jasmine.clock().tick(RECORD_SHOW_MS + 10);
+      fixture.detectChanges();
+      expect(component.recordShown).toBeFalse();
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('has no "New best!" moment in a first game, with no best to pass', () => {
+    spyOn(window, 'requestAnimationFrame').and.returnValue(0);
+    component.start();
+    component.advance(COUNTDOWN);
+    component.game = { ...component.game, balloons: [{ id: 9, x: 100, y: 100, radius: 24, hue: 0.5, phase: 0 }] };
+    component.popAt(swayedX(component.game.balloons[0], component.game.elapsed, component.calm), 100);
+    expect(component.points).toBe(1);
+    expect(component.recordShown).toBeFalse();
   });
 
   it('floats a +1 up where a balloon was popped', () => {

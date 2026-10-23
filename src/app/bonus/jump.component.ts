@@ -12,8 +12,8 @@ import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { drawFloats, drawHills, drawShine, prefersReducedMotion, rgb, roundRect, starPath } from './drawing';
-import { COUNTDOWN, END_BUZZ, FloatUp, MISS_BUZZ, POINT_BUZZ, SQUASH_TIME, ageFloats, countdownShown, newFloat, soundCount, squashScale } from './game-feel';
-import { BONUS_BEST_KEY, recordBonusBest } from './bonus-best';
+import { COUNTDOWN, END_BUZZ, FloatUp, MISS_BUZZ, POINT_BUZZ, RECORD_PULSE, RECORD_SHOW_MS, SQUASH_TIME, ageFloats, countdownShown, newFloat, passesBest, soundCount, squashScale } from './game-feel';
+import { BONUS_BEST_KEY, bonusBest, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
 import { BUMPS_ALLOWED, Jumper, JumperEvent, Obstacle, Star, jump, newJumper, step, worldSpeed } from './jumper';
 
@@ -65,6 +65,8 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
   finished = false;
   /** The 3-2-1 after Start, as shown; 0 once the game is going (game-feel.ts). */
   countdown = 0;
+  /** "New best!" on the board, the moment the game passes this child's best. */
+  recordShown = false;
   /** This game's best for this child, and whether the game just played beat it. */
   best = 0;
   newBest = false;
@@ -76,6 +78,9 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly calm = prefersReducedMotion();
   private trail: number[] = [];
   private countdownLeft = 0;
+  /** This child's best before this game, to see the moment it is passed. */
+  private bestBefore = 0;
+  private recordTimer = 0;
   private frame = 0;
   private lastAt = 0;
   private context: CanvasRenderingContext2D | null = null;
@@ -113,6 +118,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     cancelAnimationFrame(this.frame);
+    clearTimeout(this.recordTimer);
   }
 
   /** The board takes the screen's width and the height left below the score, about square. */
@@ -151,6 +157,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       this.router.navigate(['/grade']);
       return;
     }
+    this.bestBefore = bonusBest(this.progressService.ownerKey(BONUS_BEST_KEY), 'jump');
     this.fit();
     this.started = true;
     this.countdownLeft = COUNTDOWN;
@@ -219,6 +226,9 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     if (game.points !== this.points || left !== this.heartsLeft || (game.ended && !this.ended)) {
       const ending = game.ended !== null && !this.ended;
       this.zone.run(() => {
+        if (passesBest(this.bestBefore, this.points, game.points) && !game.ended) {
+          this.celebrateBest();
+        }
         this.points = game.points;
         this.hearts = Array.from({ length: BUMPS_ALLOWED }, (_, i) => i < left);
         this.ended = game.ended !== null;
@@ -313,6 +323,20 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       this.soundService.playSuccess();
       this.soundService.vibrate(END_BUZZ);
     }
+  }
+
+  /**
+   * The moment the game passes this child's best: "New best!" on the board
+   * for a moment, a chime, a swell of the field and a right answer's double
+   * buzz. It praises the game, as the end card does, never the child.
+   */
+  private celebrateBest() {
+    this.recordShown = true;
+    this.pulseService.pulse(RECORD_PULSE);
+    this.soundService.playStar(3);
+    this.soundService.vibrate(END_BUZZ);
+    clearTimeout(this.recordTimer);
+    this.recordTimer = window.setTimeout(() => this.zone.run(() => this.recordShown = false), RECORD_SHOW_MS);
   }
 
   /** The game's XP, paid once as it ends, and kept like a round's. */
