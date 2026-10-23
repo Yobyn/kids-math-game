@@ -7,7 +7,7 @@
     <span class="bonus-hearts" role="img"
           [attr.aria-label]="heartsLeft + ' ' + languageService.translate('jump-hearts')">
       <!-- The heart just lost drops and fades as it goes, as in Ballonnen (bonus.component.css) -->
-      <span *ngFor="let heart of hearts; let i = index" class="bonus-heart" [class.lost]="!heart" [class.just-lost]="i === heartsLeft">♥</span>
+      <span *ngFor="let heart of hearts; let i = index" class="bonus-heart" [class.lost]="!heart" [class.just-lost]="i === heartsLeft" [class.last]="heart && heartsLeft === 1">♥</span>
     </span>
   </div>
 

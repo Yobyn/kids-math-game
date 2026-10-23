@@ -229,6 +229,18 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
     expect(component.points).toBe(0);
   });
 
+  it('beats the last heart left, so a child knows it is the last, and none while more are left', () => {
+    const last = () => Array.from(fixture.nativeElement.querySelectorAll('.bonus-heart.last')) as HTMLElement[];
+    component.hearts = [true, true, false];
+    fixture.detectChanges();
+    expect(last().length).toBe(0);
+    component.hearts = [true, false, false];
+    fixture.detectChanges();
+    expect(last().length).toBe(1);
+    expect(last()[0]).toBe(fixture.nativeElement.querySelector('.bonus-heart'));
+    expect(getComputedStyle(last()[0]).animationName).toBe('bonus-heart-beat');
+  });
+
   it('ends on the third bump with "well played", the points and the XP, a bigger burst, paid once', () => {
     const progress = TestBed.inject(ProgressService);
     const before = progress.getXp();

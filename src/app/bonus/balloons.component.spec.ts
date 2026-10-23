@@ -356,6 +356,18 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     expect(component.recordShown).toBeFalse();
   });
 
+  it('beats the last heart left, so a child knows it is the last, and none while more are left', () => {
+    const last = () => Array.from(fixture.nativeElement.querySelectorAll('.bonus-heart.last')) as HTMLElement[];
+    component.hearts = [true, true, false];
+    fixture.detectChanges();
+    expect(last().length).toBe(0);
+    component.hearts = [true, false, false];
+    fixture.detectChanges();
+    expect(last().length).toBe(1);
+    expect(last()[0]).toBe(fixture.nativeElement.querySelector('.bonus-heart'));
+    expect(getComputedStyle(last()[0]).animationName).toBe('bonus-heart-beat');
+  });
+
   it('floats a +1 up where a balloon was popped', () => {
     const balloon = playWith({});
     const x = swayedX(balloon, component.game.elapsed, component.calm);
