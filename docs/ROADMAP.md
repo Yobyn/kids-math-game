@@ -667,6 +667,12 @@ middle, hard the end), one groep per run.
   answer's double buzz. It comes once per game, in all three games,
   praising the game as the end card does. In a first game there is no best
   to pass, so there is no moment. Under reduced motion it does not pop.
+- **After O, run 16: the last heart beats (2026-10-24).** All three played
+  at 320, 360 and 390px in nl, en and es (27 games, no errors). Since runs
+  13 and 14 all three games have three hearts, but nothing showed when a
+  child was down to the last one. Now the last heart left beats gently
+  (`.bonus-heart.last`, a double pulse every 1.1 s), the same in all three
+  games. Under reduced motion it holds still.
 - **The old phone-fit drafts, checked against today's game (2026-10-17).**
   Yobyn asked for the 21 drafts left open by the paused routine (#74–#125)
   to be kept if they still make the game better and closed if not. All 21
