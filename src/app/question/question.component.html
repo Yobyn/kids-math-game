@@ -89,7 +89,7 @@
                            [class.incorrect]="answerWasCorrect === false"
                            role="status"
                            aria-live="polite">
-        {{ feedback }}
+        <span *ngIf="answerWasCorrect === true" aria-hidden="true">✓ </span>{{ feedback }}
       </div>
       <div class="worked-step" *ngIf="workedLine" aria-live="polite">
         <span class="worked-label">{{ languageService.translate('one-way') }}</span>

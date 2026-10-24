@@ -4,7 +4,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { SoundService } from '../services/sound.service';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
-import { AskedQuestion, QuestionComponent } from './question.component';
+import { AskedQuestion, QuestionComponent, RIGHT_ANSWER } from './question.component';
+import { PLAY_WORDS } from './play-words';
 import { ProgressService } from '../services/progress.service';
 import { MAX_PICKED, fewestPieces } from '../teaching/coin-pick';
 import { KeypadComponent } from '../keypad/keypad.component';
@@ -706,7 +707,7 @@ describe('QuestionComponent', () => {
       component.checkAnswer();
 
       expect(component.answerWasCorrect).toBe(true);
-      expect(component.feedback).toContain(component.languageService.translate('correct'));
+      expect(RIGHT_ANSWER.map(key => component.languageService.translate(key))).toContain(component.feedback);
       expect(component.streakCount).toBe(1);
     });
   });
@@ -2428,5 +2429,84 @@ describe('QuestionComponent telling a sum as a story (verhaaltjessommen, 2026-10
     expect(groep3).toBeGreaterThan(0);
     expect(groep3).toBeLessThan(40);
     expect(storiesIn('3')).toBe(0);
+  });
+});
+
+describe('QuestionComponent when an answer is right (2026-10-25)', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  function build(language: string) {
+    localStorage.clear();
+    localStorage.setItem('grade', '1');
+    localStorage.setItem('difficulty', 'medium');
+    localStorage.setItem('language', language);
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  function rightAnswer(): string {
+    component.currentQuestion = { num1: 4, num2: 3, operation: '+' };
+    component.userAnswer = '7';
+    component.showOkButton = false;
+    component.wrongAttempts = 0;
+    component.isSecondAttempt = false;
+    component.answerWasCorrect = null;
+    // One at a time: a streak's bonus points would be said after the praise
+    component.streakCount = 0;
+    component.checkAnswer();
+    fixture.detectChanges();
+    return component.feedback;
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [QuestionComponent, KeypadComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('says so in more than one way, never the same way twice running, in every language', () => {
+    ['nl', 'en', 'es'].forEach(language => {
+      build(language);
+      const said: string[] = [];
+      for (let i = 0; i < 40; i++) {
+        said.push(rightAnswer());
+      }
+      expect(new Set(said).size).toBeGreaterThanOrEqual(3);
+      said.slice(1).forEach((text, i) => expect(text).not.toBe(said[i]));
+      said.forEach(text => expect(RIGHT_ANSWER.map(key => component.languageService.translate(key))).toContain(text));
+      fixture.destroy();
+    });
+  });
+
+  it('praises the sum, and every way of saying it is there in all three languages', () => {
+    (['nl', 'en', 'es'] as const).forEach(language => RIGHT_ANSWER.forEach(key => {
+      const text = PLAY_WORDS[language][key];
+      expect(text).toBeTruthy();
+      expect(text.trim().endsWith('!')).toBeTrue();
+      // Not "you are clever": the work is what was good
+      expect(text.toLowerCase()).not.toMatch(/slim|knap|clever|smart|listo|inteligente|you are|jij bent|eres/);
+    }));
+  });
+
+  it('marks a right answer with a tick, and a wrong one without', () => {
+    build('nl');
+    rightAnswer();
+    const verdict = () => (fixture.nativeElement.querySelector('.feedback') as HTMLElement);
+    expect(verdict().classList).toContain('correct');
+    const tick = verdict().querySelector('[aria-hidden="true"]') as HTMLElement;
+    expect(tick.textContent!.trim()).toBe('✓');
+    component.moveToNextQuestion();
+    fixture.detectChanges();
+    component.currentQuestion = { num1: 4, num2: 3, operation: '+' };
+    component.userAnswer = '9';
+    component.checkAnswer();
+    fixture.detectChanges();
+    expect(verdict().textContent).not.toContain('✓');
   });
 });

@@ -137,7 +137,8 @@ body {
 }
 
 .check-button,
-.next-button {
+.next-button,
+.feedback.correct {
   animation: pop-in 200ms ease-out;
 }
 
@@ -146,7 +147,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .feedback-container,
   .check-button,
-  .next-button {
+  .next-button,
+  .feedback.correct {
     animation: none;
   }
 }

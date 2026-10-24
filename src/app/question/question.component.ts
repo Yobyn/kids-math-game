@@ -31,12 +31,14 @@ import {
   isResumable,
   resumeQuestionNumber
 } from './round-state';
-import { PLAY_WORDS } from './play-words';
+import { PLAY_WORDS, PlayKey } from './play-words';
 
 /** The quiz is ten questions long; ScoreService.isGameComplete() agrees. */
 const TOTAL_QUESTIONS = QUESTIONS_IN_ROUND;
 /** A missed question comes back this many questions later — soon, not last. */
 const REPLAY_GAP = 2;
+/** The ways a right answer is told it is right: more than one word, and more than one way */
+export const RIGHT_ANSWER: PlayKey[] = ['right-1', 'right-2', 'right-3', 'right-4'];
 
 /**
  * What is on the screen. A money question carries its whole self — the
@@ -106,6 +108,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
   answerWasCorrect: boolean | null = null;
   readonly totalQuestions = TOTAL_QUESTIONS;
   streakCount: number = 0;
+  private lastPraise?: PlayKey;
   useKeypad: boolean = false;
   /**
    * The coins a child has put down, for the one money shape whose answer is
@@ -807,7 +810,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     }
     this.streakCount++;
     const bonusPoints = this.calculateBonusPoints();
-    this.feedback = this.languageService.translate('correct');
+    this.feedback = this.languageService.translate(this.nextPraise());
     if (bonusPoints > 1) {
       this.feedback += ` +${bonusPoints} ${this.languageService.translate('bonus-points')}!`;
     }
@@ -821,6 +824,13 @@ export class QuestionComponent implements OnInit, OnDestroy {
     this.playSuccessSound();
     // Set focus on the next button after it appears
     setTimeout(() => this.focusNext(), 0);
+  }
+
+  /** Which way a right answer is praised: of the sum, never of the child, and not the same twice running */
+  private nextPraise(): PlayKey {
+    const others = RIGHT_ANSWER.filter(key => key !== this.lastPraise);
+    this.lastPraise = others[Math.floor(Math.random() * others.length)];
+    return this.lastPraise;
   }
 
   private handleWrongAnswer() {

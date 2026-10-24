@@ -59,7 +59,7 @@ describe('LanguageService', () => {
   it('translates every key in every supported language', () => {
     const service = new LanguageService();
     const keys: Array<Parameters<LanguageService['translate']>[0]> =
-      ['check', 'next', 'correct', 'money-total', 'money-change', 'new-best', 'sounds'];
+      ['check', 'next', 'welcome', 'money-total', 'money-change', 'new-best', 'sounds'];
 
     SUPPORTED_LANGUAGES.forEach(lang => {
       service.setLanguage(lang);

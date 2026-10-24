@@ -708,6 +708,18 @@ middle, hard the end), one groep per run.
   story is saved as the plain sum, and a saved round tells the same story
   again (`question/story-pick.ts`). At 320x568 a story puts Check Answer
   28px higher than a plain sum does.
+- **Look and feel, run 1: a right answer feels like one (2026-10-25).**
+  Whole rounds were played as a child (grade, climb, ten questions with
+  some wrong, then result and progress) in groep 3, groep 4 and klas 1, at
+  320, 360 and 390px in nl, en and es. There were no errors and no sideways
+  scroll. The weakest moment was a right answer. A wrong one got a whole
+  sentence, but a right one got only a small "Goed" pill. Now a right
+  answer gets a ✓, a short pop (`pop-in`, held still under reduced motion),
+  and one of four phrases per language. Each phrase praises the sum, never
+  the child ("Goed gerekend!", "Klopt helemaal!", "Spot on!", "¡Bien
+  calculado!"), and the same phrase never comes twice in a row. The words
+  live in play-words.ts (lazy). The unused `'correct'` key left the first
+  load, and an unused `@keyframes pulse` left question.component.css.
 - **Next, in order:** verhaaltjessommen for groep 5–6, then for groep 7–8
   and klas 1–2; klokkijken for groep 3–5; then the "Not yet" gaps.
 - Money is still its own strand and still comes up at every grade; in
