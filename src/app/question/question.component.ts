@@ -18,6 +18,8 @@ import { MAX_PICKED, addPiece, pickMatches, removeAt } from '../teaching/coin-pi
 import { applyKey, placeholderFor } from '../keypad/answer-entry';
 import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/in-round-tuner';
 import { momentFor, schoolSum } from '../teaching/school/groep';
+import { pickStory, storyEmoji, storyText } from '../teaching/school/story';
+import { StoryPick } from './story-pick';
 import { SumLayout, decimal, formWorkedStep, grouped, roundTo, signed, sumLayout, typedDecimal } from '../teaching/school/written-form';
 import { SumForm, placesOf } from './sum-form';
 import {
@@ -48,6 +50,8 @@ export interface AskedQuestion {
   money?: MoneyQuestion;
   /** Written as 7 + ? = 10 rather than 10 - 7 = ?; see sum-form.ts. */
   form?: SumForm;
+  /** Told as a story ("Er zitten 7 vogels in de boom...") rather than shown as the sum; see teaching/school/story.ts. */
+  story?: StoryPick;
 }
 
 interface PendingReplay {
@@ -73,6 +77,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
   
   isReplay = false;
   private missed: PendingReplay[] = [];
+  /** The stories told this round, so none is told twice. */
+  private storiesTold: string[] = [];
   /** Set while the question on screen is a review from an earlier day. */
   private reviewing?: MissedFact;
   currentQuestion: AskedQuestion = {
@@ -212,6 +218,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
       return;
     }
     this.scoreService.resetScore();
+    this.storiesTold = [];
     // A round abandoned half way could leave this set; a new round is honest
     // about its own setting until it is not.
     this.clearEasedFlag();
@@ -474,6 +481,17 @@ export class QuestionComponent implements OnInit, OnDestroy {
     );
   }
 
+  /** The story this question is told as, in the child's language, or '' for a sum shown as a sum. */
+  get storyLine(): string {
+    const { story, money, num1, num2 } = this.currentQuestion;
+    return story && !money ? storyText(story, num1, num2, this.languageService.getLanguage()) : '';
+  }
+
+  /** The story's picture. */
+  get storyPicture(): string {
+    return this.currentQuestion.story ? storyEmoji(this.currentQuestion.story) : '';
+  }
+
   /** What sits in front of the answer box, and what sits after it. */
   get answerPrefix(): string {
     return this.currentQuestion.money ? unitPrefix(this.currentQuestion.money.unit) : '';
@@ -649,6 +667,12 @@ export class QuestionComponent implements OnInit, OnDestroy {
     this.currentQuestion = { num1: school.num1, num2: school.num2, operation: school.operation };
     if (school.form) {
       this.currentQuestion.form = school.form;
+    }
+    // Now and then told as a story, from the middle of groep 3, never the same story twice in a round
+    const story = pickStory(school, grade + 2, momentFor(this.difficulty), this.storiesTold);
+    if (story) {
+      this.currentQuestion.story = story;
+      this.storiesTold.push(story.id);
     }
     this.userAnswer = '';
     this.picked = [];
@@ -826,7 +850,10 @@ export class QuestionComponent implements OnInit, OnDestroy {
       }
       // Kept for the next round too, whether or not this was already a replay:
       // a fact missed twice in one round is exactly the one to revisit later.
-      this.progressService.recordMissed({ ...this.currentQuestion });
+      // The fact behind a story is its sum, so it comes back on another day as the sum
+      const fact: AskedQuestion = { ...this.currentQuestion };
+      delete fact.story;
+      this.progressService.recordMissed(fact);
 
       // Out of attempts: show the answer itself. A child who only hears "wrong"
       // learns nothing from the question they just spent two tries on.
@@ -835,12 +862,16 @@ export class QuestionComponent implements OnInit, OnDestroy {
       // The answer is being given away either way, so give the method with
       // it. Money questions used to get nothing here; they now carry their
       // own line — a pile counted up, or change counted on from the price.
-      this.workedLine = this.currentQuestion.money
+      const step = this.currentQuestion.money
         ? this.currentQuestion.money.worked
         : formWorkedStep(this.currentQuestion.form, this.currentQuestion.num1, this.currentQuestion.num2,
                          this.currentQuestion.operation, this.decimalSign)
           || workedStep(this.currentQuestion.num1, this.currentQuestion.num2,
                         this.currentQuestion.operation) || '';
+      // A story's sum comes first: turning the story into it was the question
+      const storySum = this.storyLine
+        ? `${this.currentQuestion.num1} ${this.sign} ${this.currentQuestion.num2} = ${this.correctAnswer}` : '';
+      this.workedLine = [storySum, step].filter(Boolean).join(' → ');
       this.showOkButton = true;
       this.results.push(false);
       this.saveRound();

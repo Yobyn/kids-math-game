@@ -2331,3 +2331,102 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()).toEqual(['8', '=', '5', '+', '[ ]']);
   });
 });
+
+describe('QuestionComponent telling a sum as a story (verhaaltjessommen, 2026-10-24)', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+  const BIRDS = { id: 'plus-boom', who: 0, other: 1 };
+
+  function build(language = 'nl', grade = '1', difficulty = 'medium') {
+    localStorage.clear();
+    localStorage.setItem('grade', grade);
+    localStorage.setItem('difficulty', difficulty);
+    localStorage.setItem('language', language);
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  function ask(question: AskedQuestion) {
+    component.currentQuestion = question;
+    component.userAnswer = '';
+    component.showOkButton = false;
+    component.wrongAttempts = 0;
+    component.isSecondAttempt = false;
+    component.workedLine = '';
+    fixture.detectChanges();
+  }
+
+  function answer(value: string) {
+    component.userAnswer = value;
+    component.checkAnswer();
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [QuestionComponent, KeypadComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('tells the story with its picture and keeps only the box: finding the sum is the child\'s to do', () => {
+    build('nl');
+    ask({ num1: 7, num2: 5, operation: '+', story: BIRDS });
+    const story = fixture.nativeElement.querySelector('.story') as HTMLElement;
+    expect(story.textContent).toContain('🐦');
+    expect(story.textContent).toContain('Er zitten 7 vogels in de boom. Er komen er 5 bij. Hoeveel vogels zitten er nu in de boom?');
+    const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    expect(problem.querySelector('input')).not.toBeNull();
+    expect(problem.textContent!.replace(/\s+/g, '')).not.toContain('7+5');
+    expect(problem.textContent).not.toContain('+');
+  });
+
+  it('tells it in the child\'s own language', () => {
+    build('es');
+    ask({ num1: 7, num2: 5, operation: '+', story: BIRDS });
+    expect(fixture.nativeElement.querySelector('.story').textContent).toContain('Hay 7 pájaros en el árbol.');
+  });
+
+  it('marks a story by its sum', () => {
+    build('nl');
+    ask({ num1: 7, num2: 5, operation: '+', story: BIRDS });
+    answer('12');
+    expect(component.answerWasCorrect).toBeTrue();
+  });
+
+  it('shows the sum first after two tries, and keeps the fact behind it as the sum', () => {
+    build('nl');
+    const missed = spyOn(TestBed.inject(ProgressService), 'recordMissed');
+    ask({ num1: 8, num2: 7, operation: '+', story: BIRDS });
+    answer('1');
+    answer('2');
+    expect(component.workedLine.startsWith('8 + 7 = 15 → ')).toBeTrue();
+    // and how 8 + 7 is reached, as for the sum itself
+    expect(component.workedLine).toContain('8 + 2 = 10');
+    expect(missed).toHaveBeenCalledWith({ num1: 8, num2: 7, operation: '+' });
+  });
+
+  it('tells a story now and then in a groep 3 round, and never in groep 5', () => {
+    const storiesIn = (grade: string) => {
+      build('nl', grade, 'medium');
+      let stories = 0;
+      for (let i = 0; i < 80; i++) {
+        (component as any).storiesTold = [];
+        component.generateQuestion();
+        if (component.currentQuestion.story) {
+          stories++;
+          expect(component.storyLine).not.toBe('');
+        }
+      }
+      return stories;
+    };
+    const groep3 = storiesIn('1');
+    expect(groep3).toBeGreaterThan(0);
+    expect(groep3).toBeLessThan(40);
+    expect(storiesIn('3')).toBe(0);
+  });
+});

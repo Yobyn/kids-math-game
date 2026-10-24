@@ -25,6 +25,8 @@
 
   <div class="question-box" [class.shake]="showShakeAnimation" [class.picking]="isPicking">
     <p class="money-prompt" *ngIf="currentQuestion.money">{{ moneyText }}</p>
+    <!-- A verhaaltjessom (teaching/school/story.ts): the story and the box; the sum is the child's to find -->
+    <p class="money-prompt story" *ngIf="storyLine"><span aria-hidden="true">{{ storyPicture }}</span> {{ storyLine }}</p>
 
     <!-- The pieces on the table, for the shapes that put any there. -->
     <app-coins *ngIf="currentQuestion.money"
@@ -44,7 +46,7 @@
     <div class="math-problem" *ngIf="!isPicking">
       <!-- The box goes where the "?" is in the workbook: last for 7 + 5 = ?,
            in the middle for 7 + ? = 10 (sum-form.ts) -->
-      <ng-container *ngIf="!currentQuestion.money">
+      <ng-container *ngIf="!currentQuestion.money && !storyLine">
         <span *ngFor="let part of layout.before" [class]="part.kind">{{ part.text }}</span>
       </ng-container>
       <!-- The unit sits on the box itself, so a child is never left guessing
@@ -70,7 +72,7 @@
              [readonly]="useKeypad"
              [disabled]="showOkButton">
       <span class="currency unit-after" *ngIf="answerSuffix">{{ answerSuffix }}</span>
-      <ng-container *ngIf="!currentQuestion.money">
+      <ng-container *ngIf="!currentQuestion.money && !storyLine">
         <span *ngFor="let part of layout.after" [class]="part.kind">{{ part.text }}</span>
       </ng-container>
       </span>

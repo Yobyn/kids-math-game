@@ -311,4 +311,6 @@ its groep:
    generic sums (getNumberRange, getAvailableOperations) are gone: a grade
    from outside them gets the nearest year there is.
 8. **Verhaaltjessommen** (word problems) for every groep, in all three
-   languages.
+   languages. Part 1 is built (2026-10-24): groep 3 (M, E) and groep 4
+   tell about one sum in five as a story (`teaching/school/story.ts`).
+   Groep 5–8 and klas 1–2 are next.

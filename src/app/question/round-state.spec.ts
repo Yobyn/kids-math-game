@@ -37,6 +37,26 @@ function round(overrides: Partial<SavedRound> = {}): SavedRound {
 
 describe('round-state', () => {
   describe('a round survives the trip through storage', () => {
+    it('keeps the story a question was told as, so it comes back the same story (2026-10-24)', () => {
+      const story = { id: 'plus-boom', who: 2, other: 5 };
+      const back = parseRound(serialiseRound(round({
+        question: { num1: 7, num2: 5, operation: '+', story },
+        missed: [{ question: { num1: 9, num2: 4, operation: '-', story: { id: 'min-koekjes', who: 1, other: 0 } }, dueAfter: 6 }]
+      })));
+      expect(back!.question.story).toEqual(story);
+      expect(back!.missed[0].question.story).toEqual({ id: 'min-koekjes', who: 1, other: 0 });
+    });
+
+    it('drops a story that is not one, keeping the sum', () => {
+      const raw = JSON.parse(serialiseRound(round()));
+      [{ id: 'Plus Boom', who: 0, other: 1 }, { id: 'plus-boom', who: -1, other: 1 }, { id: 'plus-boom', who: 0 }, 'plus-boom']
+        .forEach(story => {
+          raw.question.story = story;
+          const back = parseRound(JSON.stringify(raw));
+          expect(back!.question).toEqual({ num1: 7, num2: 8, operation: '+' });
+        });
+    });
+
     it('comes back exactly as it went in', () => {
       const original = round({
         eased: true,
