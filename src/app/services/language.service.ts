@@ -21,7 +21,6 @@ export type TranslationKeys =
   | 'grade'
   | 'difficulty'
   | 'score'
-  | 'correct'
   | 'total'
   | 'sum-double'
   | 'sum-half'
@@ -98,6 +97,10 @@ export type TranslationKeys =
   | 'try-again'
   | 'answer-is'
   | 'good-try'
+  | 'right-1'
+  | 'right-2'
+  | 'right-3'
+  | 'right-4'
   | 'money-total'
   | 'money-change'
   | 'money-count'
@@ -321,7 +324,6 @@ export class LanguageService {
       'grade': 'Grade',
       'difficulty': 'Select Difficulty',
       'level': 'Level',
-      'correct': 'Correct',
       'wrong': 'Wrong',
       'welcome': 'Welcome',
       'logout': 'Logout',
@@ -348,7 +350,6 @@ export class LanguageService {
       'grade': 'Groep',
       'difficulty': 'Kies Moeilijkheidsgraad',
       'level': 'Niveau',
-      'correct': 'Goed',
       'wrong': 'Fout',
       'welcome': 'Welkom',
       'logout': 'Uitloggen',
@@ -375,7 +376,6 @@ export class LanguageService {
       'grade': 'Grado',
       'difficulty': 'Seleccione Dificultad',
       'level': 'Nivel',
-      'correct': 'Correcto',
       'wrong': 'Incorrecto',
       'welcome': 'Bienvenido',
       'logout': 'Cerrar sesión',

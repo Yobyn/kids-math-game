@@ -27,6 +27,10 @@ export type PlayKey =
   | 'resume-start-again'
   | 'answer-is'
   | 'good-try'
+  | 'right-1'
+  | 'right-2'
+  | 'right-3'
+  | 'right-4'
   | 'question'
   | 'of'
   | 'score'
@@ -98,6 +102,10 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'resume-start-again': 'Start again',
     'answer-is': 'The answer is',
     'good-try': "Good try — you'll get the next one!",
+    'right-1': 'Spot on!',
+    'right-2': "That's right!",
+    'right-3': 'Exactly right!',
+    'right-4': 'Well worked out!',
     'question': 'Question',
     'of': 'of',
     'score': 'Score',
@@ -168,6 +176,10 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'resume-start-again': 'Opnieuw beginnen',
     'answer-is': 'Het antwoord is',
     'good-try': 'Goed geprobeerd — de volgende lukt je!',
+    'right-1': 'Goed gerekend!',
+    'right-2': 'Klopt helemaal!',
+    'right-3': 'Precies goed!',
+    'right-4': 'Dat is het!',
     'question': 'Vraag',
     'of': 'van',
     'score': 'Score',
@@ -238,6 +250,10 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'resume-start-again': 'Empezar de nuevo',
     'answer-is': 'La respuesta es',
     'good-try': '¡Buen intento, la próxima te saldrá!',
+    'right-1': '¡Correcto!',
+    'right-2': '¡Exacto!',
+    'right-3': '¡Bien calculado!',
+    'right-4': '¡Eso es!',
     'question': 'Pregunta',
     'of': 'de',
     'score': 'Puntuación',
