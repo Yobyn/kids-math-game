@@ -692,8 +692,24 @@ middle, hard the end), one groep per run.
   `levels/school-year.ts` `LAST_READY_GRADE` says which are open;
   groep.spec.ts fails unless it matches exactly the grades whose sums are
   built, so building a year means unlocking it in the same change.
-- **Next, in order:** Yobyn checks groep 7 against his children's school
-  work; groep 8; then verhaaltjessommen.
+- **Verhaaltjessommen, part 1: groep 3 and 4 (2026-10-24).** Yobyn: focus
+  on the questions asked to the kids. From the middle of groep 3 to the end
+  of groep 4 about one sum in five is told as a short story with a picture
+  ("🐦 Er zitten 7 vogels in de boom. Er komen er 5 bij. Hoeveel vogels
+  zitten er nu in de boom?"), in nl, en and es. There are 13 stories
+  (`teaching/school/story.ts`): four for adding, four for taking away, three
+  for groups of, and two for sharing out. They use twelve first names,
+  never two the same in one story, and "1 vogel" or "7 vogels" as each
+  language says it. The story is still its sum: same numbers, same answer,
+  and only the answer box shows. A story only takes a sum it can hold: no
+  bus of 90 children, nothing written another way, nothing in hundreds. A
+  round never tells the same story twice. After two misses the worked line
+  starts with the sum ("7 + 5 = 12 → 7 + 3 = 10 → 10 + 2 = 12"). A missed
+  story is saved as the plain sum, and a saved round tells the same story
+  again (`question/story-pick.ts`). At 320x568 a story puts Check Answer
+  28px higher than a plain sum does.
+- **Next, in order:** verhaaltjessommen for groep 5–6, then for groep 7–8
+  and klas 1–2; klokkijken for groep 3–5; then the "Not yet" gaps.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 

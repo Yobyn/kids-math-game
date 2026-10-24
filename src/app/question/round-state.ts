@@ -2,6 +2,7 @@ import { MAX_PICKED } from '../teaching/coin-pick';
 import { MissedFact } from '../services/progress.service';
 import { MoneyQuestion } from '../teaching/money';
 import { SumForm, readForm } from './sum-form';
+import { StoryPick, readStory } from './story-pick';
 
 /**
  * A round that outlives the tab it was played in.
@@ -73,6 +74,8 @@ export interface SavedQuestion {
   money?: MoneyQuestion;
   /** How the sum was written (7 + ? = 10), so a round comes back as it was asked. See sum-form.ts. */
   form?: SumForm;
+  /** The story it was told as, so a round comes back with the same story. See story-pick.ts. */
+  story?: StoryPick;
 }
 
 export interface SavedReplay {
@@ -142,6 +145,10 @@ function readQuestion(raw: any): SavedQuestion | null {
   const form = readForm(raw.form);
   if (form) {
     question.form = form;
+  }
+  const story = readStory(raw.story);
+  if (story) {
+    question.story = story;
   }
   return question;
 }
