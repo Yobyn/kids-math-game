@@ -313,4 +313,6 @@ its groep:
 8. **Verhaaltjessommen** (word problems) for every groep, in all three
    languages. Part 1 is built (2026-10-24): groep 3 (M, E) and groep 4
    tell about one sum in five as a story (`teaching/school/story.ts`).
-   Groep 5–8 and klas 1–2 are next.
+   Part 2 is built (2026-10-25): groep 5 and 6, with tables, sharing with
+   a remainder, euros, measures, a part of an amount and area. Groep 7–8
+   and klas 1–2 are next.

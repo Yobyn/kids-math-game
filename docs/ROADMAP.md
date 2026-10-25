@@ -708,6 +708,31 @@ middle, hard the end), one groep per run.
   story is saved as the plain sum, and a saved round tells the same story
   again (`question/story-pick.ts`). At 320x568 a story puts Check Answer
   28px higher than a plain sum does.
+- **Verhaaltjessommen, part 2: groep 5 and 6 (2026-10-25).** About one
+  sum in five is now told as a story through groep 6 too. There are 22 new
+  stories, 35 in all:
+  - the tables and bigger times sums: rows of chairs in the hall, zoo
+    tickets, pages a day;
+  - sharing out past the tables: tournament teams, jumble-sale euros;
+  - sharing with something left over: eggs in boxes, groups in the PE
+    lesson, sweets between friends. The answer is the remainder;
+  - adding and taking away within 1000 and 10 000: saving up, a bike, a
+    book's pages, the library, a stadium, steps;
+  - measures (springtouw m→cm, wandelen km→m, meel kg→g, schoolreis
+    uur→min);
+  - a part of an amount said as a word ("Een kwart van hen heeft een
+    hond");
+  - area: the vegetable garden, a tiled floor.
+
+  A story takes a written form only when it is made for it
+  (`forms`). A measure or a part says only the first number, because
+  100 cm in a metre is what is asked (`onlyFirst`). After two tries, the
+  worked line writes the story's sum as the workbook does: "23 : 4 = 5 rest
+  3 → 4 × 5 = 20 → 23 − 20 = 3", "3 m = 300 cm", "¼ van 20 = 5". Two
+  groep 4–5 wordings are fixed: 7 : 1 was told as "verdeelt 7 knikkers
+  eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
+  told as stories: a double, a half, rounding, tenths, and fractions as
+  such (breuk-van, gelijke breuken).
 - **Look and feel, run 1: a right answer feels like one (2026-10-25).**
   Whole rounds were played as a child (grade, climb, ten questions with
   some wrong, then result and progress) in groep 3, groep 4 and klas 1, at
@@ -720,8 +745,8 @@ middle, hard the end), one groep per run.
   calculado!"), and the same phrase never comes twice in a row. The words
   live in play-words.ts (lazy). The unused `'correct'` key left the first
   load, and an unused `@keyframes pulse` left question.component.css.
-- **Next, in order:** verhaaltjessommen for groep 5–6, then for groep 7–8
-  and klas 1–2; klokkijken for groep 3–5; then the "Not yet" gaps.
+- **Next, in order:** verhaaltjessommen for groep 7–8 and klas 1–2;
+  klokkijken for groep 3–5; then the "Not yet" gaps.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 

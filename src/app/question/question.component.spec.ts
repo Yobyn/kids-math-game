@@ -2411,7 +2411,32 @@ describe('QuestionComponent telling a sum as a story (verhaaltjessommen, 2026-10
     expect(missed).toHaveBeenCalledWith({ num1: 8, num2: 7, operation: '+' });
   });
 
-  it('tells a story now and then in a groep 3 round, and never in groep 5', () => {
+  it('writes a groep 5 story\'s sum as the workbook does: a remainder, a measure, a part', () => {
+    build('nl', '3');
+    ask({ num1: 23, num2: 4, operation: '%', form: 'rest', story: { id: 'rest-snoep', who: 0, other: 1 } });
+    expect(component.storyLine).toContain('Hoeveel snoepjes blijven er over?');
+    // Only the box: the remainder sum is what the story is turned into
+    expect(fixture.nativeElement.querySelector('.math-problem').textContent).not.toContain('rest');
+    answer('3');
+    expect(component.answerWasCorrect).toBeTrue();
+
+    ask({ num1: 23, num2: 4, operation: '%', form: 'rest', story: { id: 'rest-snoep', who: 0, other: 1 } });
+    answer('1');
+    answer('2');
+    expect(component.workedLine.startsWith('23 : 4 = 5 rest 3 → ')).toBeTrue();
+
+    ask({ num1: 3, num2: 100, operation: '*', form: 'm-cm', story: { id: 'maat-touw', who: 0, other: 1 } });
+    answer('30');
+    answer('3');
+    expect(component.workedLine.startsWith('3 m = 300 cm')).toBeTrue();
+
+    ask({ num1: 20, num2: 4, operation: '/', form: 'deel', story: { id: 'deel-hond', who: 0, other: 1 } });
+    answer('4');
+    answer('6');
+    expect(component.workedLine.startsWith('¼ van 20 = 5')).toBeTrue();
+  });
+
+  it('tells a story now and then in groep 3 and groep 6 rounds, and never in groep 7', () => {
     const storiesIn = (grade: string) => {
       build('nl', grade, 'medium');
       let stories = 0;
@@ -2428,7 +2453,10 @@ describe('QuestionComponent telling a sum as a story (verhaaltjessommen, 2026-10
     const groep3 = storiesIn('1');
     expect(groep3).toBeGreaterThan(0);
     expect(groep3).toBeLessThan(40);
-    expect(storiesIn('3')).toBe(0);
+    const groep6 = storiesIn('4');
+    expect(groep6).toBeGreaterThan(0);
+    expect(groep6).toBeLessThan(40);
+    expect(storiesIn('5')).toBe(0);
   });
 });
 
