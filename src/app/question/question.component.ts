@@ -20,7 +20,7 @@ import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/
 import { momentFor, schoolSum } from '../teaching/school/groep';
 import { pickStory, storyEmoji, storyText } from '../teaching/school/story';
 import { StoryPick } from './story-pick';
-import { SumLayout, decimal, formWorkedStep, grouped, roundTo, signed, sumLayout, typedDecimal } from '../teaching/school/written-form';
+import { SumLayout, SumPart, decimal, formWorkedStep, grouped, roundTo, signed, sumLayout, typedDecimal } from '../teaching/school/written-form';
 import { SumForm, placesOf } from './sum-form';
 import {
   QUESTIONS_IN_ROUND,
@@ -584,6 +584,13 @@ export class QuestionComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** The whole sum on one line, its answer in the box's place: what a story was, said as a sum. */
+  private writtenSum(): string {
+    const { before, after } = this.layout;
+    const text = (parts: SumPart[]) => parts.filter(part => part.kind !== 'caption').map(part => part.text);
+    return [...text(before), this.correctAnswerText, ...text(after)].join(' ');
+  }
+
   /** The sign as it is written in class: × for keer, : for delen (÷ in English). */
   get sign(): string {
     const operation = this.currentQuestion.operation;
@@ -878,9 +885,9 @@ export class QuestionComponent implements OnInit, OnDestroy {
                          this.currentQuestion.operation, this.decimalSign)
           || workedStep(this.currentQuestion.num1, this.currentQuestion.num2,
                         this.currentQuestion.operation) || '';
-      // A story's sum comes first: turning the story into it was the question
-      const storySum = this.storyLine
-        ? `${this.currentQuestion.num1} ${this.sign} ${this.currentQuestion.num2} = ${this.correctAnswer}` : '';
+      // A story's sum comes first: turning the story into it was the question.
+      // Written as the workbook writes it: 23 : 4 = 5 rest 3, 3 m = 300 cm, ¼ van 20 = 5
+      const storySum = this.storyLine ? this.writtenSum() : '';
       this.workedLine = [storySum, step].filter(Boolean).join(' → ');
       this.showOkButton = true;
       this.results.push(false);

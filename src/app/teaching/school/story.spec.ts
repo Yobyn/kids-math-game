@@ -33,10 +33,11 @@ function answerOf(sum: Pick<SchoolSum, 'num1' | 'num2' | 'operation'>): number {
   return sum.operation === '+' ? sum.num1 + sum.num2
     : sum.operation === '-' ? sum.num1 - sum.num2
     : sum.operation === '*' ? sum.num1 * sum.num2
+    : sum.operation === '%' ? sum.num1 % sum.num2
     : sum.num1 / sum.num2;
 }
 
-describe('verhaaltjessommen, groep 3 and 4 (Yobyn, 2026-10-24)', () => {
+describe('verhaaltjessommen, groep 3 to 6 (Yobyn, 2026-10-24)', () => {
   it('tells every sum it takes with exactly that sum\'s numbers, as a question, in all three languages', () => {
     const sums = storySums();
     let told = 0;
@@ -45,8 +46,10 @@ describe('verhaaltjessommen, groep 3 and 4 (Yobyn, 2026-10-24)', () => {
       LANGUAGES.forEach(language => {
         const text = storyText({ id: story.id, who: 0, other: 1 }, sum.num1, sum.num2, language);
         const numbers = (text.match(/\d+/g) || []).map(Number);
-        // Both numbers of the sum, and no other number: the answer is not given away
-        expect(numbers.sort((a, b) => a - b)).toEqual([sum.num1, sum.num2].sort((a, b) => a - b));
+        // Both numbers of the sum, and no other number: the answer is not given away. A
+        // measure or a part says only the first: 100 cm in a metre is what is asked
+        const said = story.onlyFirst ? [sum.num1] : [sum.num1, sum.num2];
+        expect(numbers.sort((a, b) => a - b)).toEqual(said.sort((a, b) => a - b));
         expect(text.trim().endsWith('?')).toBeTrue();
         expect(text).not.toContain('{');
         expect(text).not.toContain('undefined');
@@ -92,7 +95,7 @@ describe('verhaaltjessommen, groep 3 and 4 (Yobyn, 2026-10-24)', () => {
     }));
   });
 
-  it('tells about one sum in five from the middle of groep 3 through groep 4, and none before or after', () => {
+  it('tells about one sum in five from the middle of groep 3 through groep 6, and none before or after', () => {
     const random = seeded(11);
     const share = (groep: number, moment: Moment) => {
       const topics = Object.keys(CURRICULUM[groep][moment]).filter(topic => topic !== 'honderdtallen');
@@ -112,12 +115,13 @@ describe('verhaaltjessommen, groep 3 and 4 (Yobyn, 2026-10-24)', () => {
       return tellable ? stories / tellable : 0;
     };
     expect(share(3, 'B')).toBe(0);
-    [[3, 'M'], [3, 'E'], [4, 'B'], [4, 'M'], [4, 'E']].forEach(([groep, moment]) => {
+    [[3, 'M'], [3, 'E'], [4, 'B'], [4, 'M'], [4, 'E'], [5, 'B'], [5, 'M'], [5, 'E'], [6, 'B'], [6, 'M'], [6, 'E']]
+      .forEach(([groep, moment]) => {
       const seen = share(groep as number, moment as Moment);
       expect(seen).toBeGreaterThan(STORY_SHARE - 0.05);
       expect(seen).toBeLessThan(STORY_SHARE + 0.05);
     });
-    expect(share(5, 'B')).toBe(0);
+    expect(share(7, 'B')).toBe(0);
   });
 
   it('never tells a story already told this round, and gives two different names', () => {
@@ -144,5 +148,51 @@ describe('verhaaltjessommen, groep 3 and 4 (Yobyn, 2026-10-24)', () => {
     expect(storyText({ id: 'gone-story', who: 0, other: 1 }, 3, 4, 'nl')).toBe('');
     expect(storyEmoji({ id: 'gone-story', who: 0, other: 1 })).toBe('');
     expect(storyEmoji({ id: 'plus-boom', who: 0, other: 1 })).toBe('🐦');
+  });
+
+  it('tells what groep 5 and 6 learn: tables, bigger sums, a remainder, euros, measures, a part and area', () => {
+    // Not stories: a double, a half, rounding, tenths and fractions as such are written sums
+    const notStories = ['honderdtallen', 'dubbel-van-tot-100', 'helft-van-tot-100', 'afronden', 'tienden', 'breuk-van',
+      'gelijke-breuken'];
+    const random = seeded(17);
+    [5, 6].forEach(groep => (['B', 'M', 'E'] as Moment[]).forEach(moment => {
+      Object.keys(CURRICULUM[groep][moment]).filter(topic => !notStories.includes(topic)).forEach(topic => {
+        let told = 0;
+        for (let i = 0; i < 60; i++) {
+          const sum = { ...TOPICS[topic](random), topic };
+          told += STORIES.some(story => tells(story, sum)) ? 1 : 0;
+        }
+        expect(told).withContext(`groep ${groep}${moment} ${topic}`).toBeGreaterThan(0);
+      });
+    }));
+    ['rest', 'deel', 'oppervlakte', 'm-cm', 'km-m', 'kg-g', 'uur-min'].forEach(form => {
+      expect(STORIES.some(story => (story.forms || []).includes(form as any))).withContext(form).toBeTrue();
+    });
+  });
+
+  it('asks what is left over, the measure in the smaller unit, and the part as a word', () => {
+    const pick = (id: string) => ({ id, who: 0, other: 1 });
+    expect(storyText(pick('rest-snoep'), 23, 4, 'nl'))
+      .toBe('Noor verdeelt 23 snoepjes eerlijk over 4 vrienden. Iedereen krijgt evenveel. Hoeveel snoepjes blijven er over?');
+    expect(storyText(pick('maat-touw'), 3, 100, 'nl')).toBe('Het springtouw van Noor is 3 meter lang. Hoeveel centimeter is dat?');
+    expect(storyText(pick('deel-hond'), 20, 4, 'nl')).toContain('Een kwart van hen heeft een hond.');
+    expect(storyText(pick('deel-hond'), 15, 3, 'en')).toContain('A third of them have a dog.');
+    expect(storyText(pick('deel-boek'), 20, 5, 'es')).toContain('gasta la quinta parte en un libro');
+    expect(storyText(pick('opp-moestuin'), 8, 5, 'nl')).toContain('8 meter lang en 5 meter breed');
+  });
+
+  it('never tells a share over 1, a bag of 1, a bike for €7 or a remainder as a plain share', () => {
+    const story = (id: string) => STORIES.find(each => each.id === id)!;
+    // "verdeelt 7 knikkers eerlijk over 1 kinderen" (the 1 table, groep 4 and 5)
+    expect(tells(story('deel-knikkers'), { num1: 7, num2: 1, operation: '/' })).toBeFalse();
+    expect(tells(story('deel-knikkers'), { num1: 14, num2: 2, operation: '/' })).toBeTrue();
+    expect(tells(story('min-fiets'), { num1: 7, num2: 3, operation: '-' })).toBeFalse();
+    expect(tells(story('min-fiets'), { num1: 345, num2: 180, operation: '-' })).toBeTrue();
+    expect(tells(story('rest-snoep'), { num1: 23, num2: 4, operation: '%' })).toBeFalse();
+    expect(tells(story('rest-snoep'), { num1: 23, num2: 4, operation: '%', form: 'rest' })).toBeTrue();
+    expect(tells(story('maat-touw'), { num1: 3, num2: 1000, operation: '*', form: 'km-m' })).toBeFalse();
+    expect(tells(story('keer-stoelen'), { num1: 23, num2: 14, operation: '*' })).toBeTrue();
+    // "8 zakjes met elk 1 snoepje" (the 1 table)
+    expect(tells(story('keer-snoep'), { num1: 8, num2: 1, operation: '*' })).toBeFalse();
   });
 });
