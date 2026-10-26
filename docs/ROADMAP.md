@@ -733,6 +733,20 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 2: a klas equation is what you see first (2026-10-26).**
+  Rounds were played in groep 3 and 4, groep 8, and klas 1 and 3, at 320,
+  360 and 390px in nl, en and es, with no errors. In klas 2–4 the equation a
+  child solves ("3(x + 4) = 21", "x² − 17x + 72 = 0", "a = 3 × b + 4",
+  "A = l × b, A = 36", "x = 2") was drawn as a caption: 0.6em and grey, the
+  smallest thing on the card. It is now a `given`, a part kind of its own
+  in written-form.ts. It sits on its own line, bold, in the reading colour,
+  at 0.9em, and is never broken. On a 320px phone it is 25px instead of
+  17px, and Check Answer moves down by 8px. The longest, "x² − 17x + 72 =
+  0", is 177px of the card's 254px. Instructions in words ("Rond af op
+  tientallen", "Oppervlakte van de rechthoek") stay small captions. The
+  bytes came from two hover colours on Check and Next that the gradient
+  covers, and from a transform transition on the card that nothing used.
+  question.component.css went from 4.87 to 4.86 kB.
 - **Look and feel, run 1: a right answer feels like one (2026-10-25).**
   Whole rounds were played as a child (grade, climb, ten questions with
   some wrong, then result and progress) in groep 3, groep 4 and klas 1, at

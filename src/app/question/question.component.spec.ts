@@ -2050,6 +2050,24 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(Math.abs((sum.top + sum.bottom) / 2 - (box.top + box.bottom) / 2)).toBeLessThan(sum.height / 2);
   });
 
+  it('writes the equation a klas sum starts from as maths: bold, nearly the sum\'s size, above the box', () => {
+    build('nl');
+    ask({ num1: 7, num2: 4, operation: '-', form: 'haakvgl-3' });
+    const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    const given = problem.querySelector('.given') as HTMLElement;
+    expect(given.textContent!.trim()).toBe('3(x + 4) = 21');
+    const size = (element: Element) => parseFloat(getComputedStyle(element).fontSize);
+    // As large as the sum nearly, where an instruction is little more than half of it
+    expect(size(given) / size(problem)).toBeGreaterThanOrEqual(0.85);
+    expect(Number(getComputedStyle(given).fontWeight)).toBeGreaterThanOrEqual(600);
+    expect(given.getBoundingClientRect().bottom).toBeLessThanOrEqual(problem.querySelector('input')!.getBoundingClientRect().top);
+    expect(getComputedStyle(given).whiteSpace).toBe('nowrap');
+
+    ask({ num1: 2468, num2: 100, operation: '≈', form: 'afronden' });
+    const caption = problem.querySelector('.caption') as HTMLElement;
+    expect(size(caption) / size(problem)).toBeLessThan(0.7);
+  });
+
   it('stands the box over the 12 for ¾ = ?/12, with a fraction bar between, as the workbook writes it', () => {
     build('nl');
     ask({ num1: 3, num2: 3, operation: '*', form: 'gelijk-4' });

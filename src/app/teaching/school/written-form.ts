@@ -11,7 +11,12 @@ import {
 
 /** One piece of a sum on the screen. `kind` is its CSS class on the question card. */
 export interface SumPart {
-  kind: 'number' | 'fraction' | 'operation' | 'equals' | 'word' | 'caption';
+  /**
+   * A caption is an instruction above the sum ("Rond af op tientallen"). A
+   * given is what a klas sum starts from, "3(x + 4) = 21" or "x = 2", read
+   * as maths and written as large as it.
+   */
+  kind: 'number' | 'fraction' | 'operation' | 'equals' | 'word' | 'caption' | 'given';
   text: string;
 }
 
@@ -490,7 +495,7 @@ function klasLayout(sum: SumToShow, words: FormWords): SumLayout | undefined {
   if (form.startsWith('formule-')) {
     const times = lastNumberOf(form);
     return {
-      before: [{ kind: 'caption', text: `a = ${times} × b + ${sum.num2}` }, { kind: 'word', text: 'b =' }, number(sum.num1 / times),
+      before: [{ kind: 'given', text: `a = ${times} × b + ${sum.num2}` }, { kind: 'word', text: 'b =' }, number(sum.num1 / times),
                sign('→'), { kind: 'word', text: 'a =' }],
       after: []
     };
@@ -520,7 +525,7 @@ function klas2Layout(sum: SumToShow, words: FormWords): SumLayout | undefined {
   if (form.startsWith('vergelijking-')) {
     const added = lastNumberOf(form);
     return {
-      before: [{ kind: 'caption', text: `${sum.num2 === 1 ? '' : sum.num2}x + ${added} = ${sum.num1 + added}` }, word('x'), equals],
+      before: [{ kind: 'given', text: `${sum.num2 === 1 ? '' : sum.num2}x + ${added} = ${sum.num1 + added}` }, word('x'), equals],
       after: []
     };
   }
@@ -528,7 +533,7 @@ function klas2Layout(sum: SumToShow, words: FormWords): SumLayout | undefined {
   if (form.startsWith('invullen-')) {
     const x = lastNumberOf(form);
     return {
-      before: [{ kind: 'caption', text: `x = ${x}` }, number(sum.num1), sign('('), word('x'), sign('+'), number(sum.num2 - x), sign(')'), equals],
+      before: [{ kind: 'given', text: `x = ${x}` }, number(sum.num1), sign('('), word('x'), sign('+'), number(sum.num2 - x), sign(')'), equals],
       after: []
     };
   }
@@ -570,7 +575,8 @@ function klas34Layout(sum: SumToShow, words: FormWords): SumLayout | undefined {
   const word = (text: string): SumPart => ({ kind: 'word', text });
   const text = (value: string): SumPart => ({ kind: 'number', text: value });
   const caption = (value: string): SumPart => ({ kind: 'caption', text: value });
-  const solveX = (heading: string): SumLayout => ({ before: [caption(heading), word('x'), equals], after: [] });
+  const given = (value: string): SumPart => ({ kind: 'given', text: value });
+  const solveX = (equation: string): SumLayout => ({ before: [given(equation), word('x'), equals], after: [] });
   // 3(x + 4) = 21 over x = ?, kept as 7 − 4
   if (form.startsWith('haakvgl-')) {
     const times = lastNumberOf(form);
@@ -589,7 +595,7 @@ function klas34Layout(sum: SumToShow, words: FormWords): SumLayout | undefined {
   // x² − 5x + 6 = 0 over grootste x = ?, kept as 5 − 2
   if (form === 'kwadratisch') {
     const larger = sum.num1 - sum.num2;
-    return { before: [caption(`x² \u2212 ${sum.num1}x + ${sum.num2 * larger} = 0`), word(words.largestX)], after: [] };
+    return { before: [given(`x² \u2212 ${sum.num1}x + ${sum.num2 * larger} = 0`), word(words.largestX)], after: [] };
   }
   // (−2)³ = ?, kept as 4 × −2
   if (form.startsWith('negmacht-')) {
@@ -626,7 +632,7 @@ function klas34Layout(sum: SumToShow, words: FormWords): SumLayout | undefined {
   }
   // A = l × b, A = 36 over l = 9 → b = ?, kept as 36 : 9
   if (form === 'herleiden') {
-    return { before: [caption(`A = l × b, A = ${sum.num1}`), word('l ='), number(sum.num2), sign('→'), word('b =')], after: [] };
+    return { before: [given(`A = l × b, A = ${sum.num1}`), word('l ='), number(sum.num2), sign('→'), word('b =')], after: [] };
   }
   // De groeifactor in totaal? +10% → −10% over × ?, kept as 110 × 90 in ten-thousandths. The steps
   // in the heading: beside the box they are too wide for one line of a phone
