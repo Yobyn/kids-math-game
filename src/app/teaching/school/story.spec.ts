@@ -1,6 +1,19 @@
 import { Language } from '../../services/language.service';
 import { CURRICULUM, Moment, SchoolSum, TOPICS } from './groep';
 import { NAMES, STORIES, STORY_MOMENTS, STORY_SHARE, pickStory, storyEmoji, storyText, tells } from './story';
+import { FormWords, sumLayout } from './written-form';
+
+/** Every word a written form puts round its numbers: none has a figure in it, so only the sum's numbers are left. */
+const WORDS: FormWords = {
+  double: 'dubbel', half: 'de helft van', of: 'van', remainder: 'rest', hours: 'uur', minutes: 'minuten', toTens: 'tientallen',
+  toHundreds: 'honderdtallen', area: 'Oppervlakte', point: ',', toThousands: 'duizendtallen', packs: 'pakken', cost: 'kosten',
+  discount: 'korting', scale: 'Schaal', mean: 'gemiddelde', minutesBetween: 'minuten', degreesBetween: 'graden', perHour: 'per uur',
+  volume: 'Inhoud', toOneDecimal: 'decimaal', hypotenuse: 'schuine zijde', triangleArea: 'driehoek', largestX: 'grootste x',
+  totalFactor: 'groeifactor'
+};
+
+/** The figures in a text, in order: "8:35" is 8 and 35, "−3°" is 3, "2,5" is 2 and 5. */
+const figures = (text: string) => (text.match(/\d+/g) || []).map(Number).sort((a, b) => a - b);
 
 /** Always the same "random", so a test can be run twice the same way. */
 function seeded(seed = 7): () => number {
@@ -37,19 +50,21 @@ function answerOf(sum: Pick<SchoolSum, 'num1' | 'num2' | 'operation'>): number {
     : sum.num1 / sum.num2;
 }
 
-describe('verhaaltjessommen, groep 3 to 6 (Yobyn, 2026-10-24)', () => {
+describe('verhaaltjessommen, groep 3 to klas 2 (Yobyn, 2026-10-24)', () => {
   it('tells every sum it takes with exactly that sum\'s numbers, as a question, in all three languages', () => {
     const sums = storySums();
     let told = 0;
     sums.forEach(sum => STORIES.filter(story => tells(story, sum)).forEach(story => {
       told++;
       LANGUAGES.forEach(language => {
-        const text = storyText({ id: story.id, who: 0, other: 1 }, sum.num1, sum.num2, language);
-        const numbers = (text.match(/\d+/g) || []).map(Number);
+        const text = storyText({ id: story.id, who: 0, other: 1 }, sum.num1, sum.num2, language, sum.form);
         // Both numbers of the sum, and no other number: the answer is not given away. A
-        // measure or a part says only the first: 100 cm in a metre is what is asked
-        const said = story.onlyFirst ? [sum.num1] : [sum.num1, sum.num2];
-        expect(numbers.sort((a, b) => a - b)).toEqual(said.sort((a, b) => a - b));
+        // measure or a part says only the first: 100 cm in a metre is what is asked. A
+        // story told as written says what its form shows the child: 20% korting op €45
+        const shown = sumLayout({ num1: sum.num1, num2: sum.num2, sign: '+', form: sum.form }, WORDS);
+        const said = story.asWritten ? figures([...shown.before, ...shown.after].map(part => part.text).join(' '))
+          : figures((story.onlyFirst ? [sum.num1] : [sum.num1, sum.num2]).map(Math.abs).join(' '));
+        expect(figures(text)).withContext(`${story.id} ${language}: ${text}`).toEqual(said);
         expect(text.trim().endsWith('?')).toBeTrue();
         expect(text).not.toContain('{');
         expect(text).not.toContain('undefined');
@@ -95,7 +110,7 @@ describe('verhaaltjessommen, groep 3 to 6 (Yobyn, 2026-10-24)', () => {
     }));
   });
 
-  it('tells about one sum in five from the middle of groep 3 through groep 6, and none before or after', () => {
+  it('tells about one sum in five from the middle of groep 3 through klas 2, and none before or after', () => {
     const random = seeded(11);
     const share = (groep: number, moment: Moment) => {
       const topics = Object.keys(CURRICULUM[groep][moment]).filter(topic => topic !== 'honderdtallen');
@@ -115,13 +130,16 @@ describe('verhaaltjessommen, groep 3 to 6 (Yobyn, 2026-10-24)', () => {
       return tellable ? stories / tellable : 0;
     };
     expect(share(3, 'B')).toBe(0);
-    [[3, 'M'], [3, 'E'], [4, 'B'], [4, 'M'], [4, 'E'], [5, 'B'], [5, 'M'], [5, 'E'], [6, 'B'], [6, 'M'], [6, 'E']]
+    [[3, 'M'], [3, 'E'], [4, 'B'], [4, 'M'], [4, 'E'], [5, 'B'], [5, 'M'], [5, 'E'], [6, 'B'], [6, 'M'], [6, 'E'],
+     [7, 'B'], [7, 'M'], [7, 'E'], [8, 'B'], [8, 'M'], [8, 'E'], [9, 'B'], [9, 'M'], [10, 'M'], [10, 'E']]
       .forEach(([groep, moment]) => {
       const seen = share(groep as number, moment as Moment);
       expect(seen).toBeGreaterThan(STORY_SHARE - 0.05);
       expect(seen).toBeLessThan(STORY_SHARE + 0.05);
     });
-    expect(share(7, 'B')).toBe(0);
+    // Klas 1's end is brackets, the order of operations and fractions: nothing a story tells
+    expect(share(9, 'E')).toBe(0);
+    expect(share(11, 'B')).toBe(0);
   });
 
   it('never tells a story already told this round, and gives two different names', () => {
@@ -194,5 +212,46 @@ describe('verhaaltjessommen, groep 3 to 6 (Yobyn, 2026-10-24)', () => {
     expect(tells(story('keer-stoelen'), { num1: 23, num2: 14, operation: '*' })).toBeTrue();
     // "8 zakjes met elk 1 snoepje" (the 1 table)
     expect(tells(story('keer-snoep'), { num1: 8, num2: 1, operation: '*' })).toBeFalse();
+  });
+
+  it('tells what groep 7 to klas 2 learn: big sums, percentages, discounts, ratios, scale, the mean, time, speed, below nought', () => {
+    const told = ['cijferend-keer', 'staartdeling', 'procenten', 'korting', 'verhoudingen', 'procent-van', 'welk-procent', 'schaal',
+      'gemiddelde', 'inhoud', 'tijdsduur', 'snelheid', 'temperatuur', 'negatief-plus-min', 'procent-erbij-eraf', 'pythagoras'];
+    const random = seeded(23);
+    told.forEach(topic => {
+      let tellable = 0;
+      for (let i = 0; i < 60; i++) {
+        const sum = { ...TOPICS[topic](random), topic };
+        tellable += STORIES.some(story => tells(story, sum)) ? 1 : 0;
+      }
+      expect(tellable).withContext(topic).toBeGreaterThan(0);
+    });
+  });
+
+  it('tells a discount, a ratio, a time span, speed and a temperature as the workbook writes them', () => {
+    const pick = (id: string) => ({ id, who: 0, other: 1 });
+    expect(storyText(pick('korting-jas'), 45, 9, 'nl', 'korting-20'))
+      .toBe('Een jas kost €45. In de uitverkoop krijg je 20% korting. Hoeveel euro betaal je?');
+    expect(storyText(pick('verhouding-sap'), 7, 2, 'nl', 'verhouding-3'))
+      .toBe('3 pakken sap kosten samen €6. Hoeveel euro kosten 7 pakken?');
+    expect(storyText(pick('tijd-bus'), 610, 515, 'nl', 'tijdsduur'))
+      .toBe('De bus vertrekt om 8:35 en komt om 10:10 aan. Hoeveel minuten duurt de reis?');
+    expect(storyText(pick('snelheid-trein'), 5, 30, 'nl', 'snelheid')).toContain('60 km per uur');
+    expect(storyText(pick('snelheid-trein'), 5, 30, 'nl', 'snelheid')).toContain('2,5 uur');
+    expect(storyText(pick('snelheid-trein'), 5, 30, 'en', 'snelheid')).toContain('2.5 hours');
+    expect(storyText(pick('temperatuur-dag'), 5, 3, 'nl', 'temperatuur-op')).toContain("'s Nachts was het \u22123°, 's middags 5°.");
+    expect(storyText(pick('negatief-kouder'), 4, 9, 'es', 'negatief')).toBe('Hace 4°. La temperatura baja 9 grados. ¿Qué temperatura hace ahora?');
+    expect(storyText(pick('gemiddelde-basketbal'), 36, 3, 'en', 'gemiddelde-3')).toMatch(/scores \d+, \d+ and \d+ points/);
+    expect(storyText(pick('procent-medaille'), 6, 3, 'nl', 'procent-via-5')).toContain('Bij de sportdag doen 120 kinderen mee. 15% wint');
+  });
+
+  it('lets only a temperature come out below nought, and only when the degrees go one way', () => {
+    const story = (id: string) => STORIES.find(each => each.id === id)!;
+    expect(tells(story('negatief-kouder'), { num1: 4, num2: 9, operation: '-', form: 'negatief' })).toBeTrue();
+    // "it gets −5 degrees colder" does not read
+    expect(tells(story('negatief-kouder'), { num1: 4, num2: -5, operation: '-', form: 'negatief' })).toBeFalse();
+    expect(tells(story('min-fiets'), { num1: 100, num2: 180, operation: '-' })).toBeFalse();
+    expect(tells(story('welk-procent-toets'), { num1: 1800, num2: 72, operation: '/', form: 'welk-procent' })).toBeFalse();
+    expect(tells(story('welk-procent-toets'), { num1: 1800, num2: 20, operation: '/', form: 'welk-procent' })).toBeTrue();
   });
 });
