@@ -25,7 +25,6 @@
   box-sizing: border-box;
   max-width: 600px;
   margin-bottom: 2rem;
-  transition: transform 0.3s ease;
 }
 
 .question-box.shake {
@@ -67,12 +66,25 @@
   line-height: 1;
 }
 
-/* "Rond af op tientallen": a heading on a line of its own */
-.caption {
+/* "Rond af op tientallen": a heading on a line of its own. And what a klas
+   sum starts from, "3(x + 4) = 21": a line of its own too, but read as
+   maths, so as dark and bold as the sum and nearly as large. Kept whole. */
+.caption,
+.given {
   flex-basis: 100%;
   text-align: center;
+}
+
+.caption {
   color: var(--text-read-dim);
   font-size: 0.6em;
+}
+
+.given {
+  color: var(--text-read);
+  font-weight: bold;
+  font-size: 0.9em;
+  white-space: nowrap;
 }
 
 /* "dubbel", "de helft van": read as words, and never broken over lines */
@@ -180,13 +192,9 @@ input.incorrect {
   font-weight: 500;
 }
 
-.check-button:hover {
-  background-color: #1976d2;
-  transform: translateY(-2px);
-}
-
+/* A lift only: the gradient (styles.css) covers any background colour */
+.check-button:hover,
 .next-button:hover {
-  background-color: #388e3c;
   transform: translateY(-2px);
 }
 

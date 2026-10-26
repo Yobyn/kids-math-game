@@ -1345,3 +1345,27 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     });
   });
 });
+
+describe('what a klas sum starts from (2026-10-26)', () => {
+  const kinds = (form: SumForm, num1: number, num2: number) =>
+    sumLayout({ num1, num2, sign: ':', form }, WORDS).before.map(part => `${part.kind}:${part.text}`);
+
+  it('is a given, read as maths and written large, not a small grey instruction', () => {
+    expect(kinds('vergelijking-5', 15, 3)).toContain('given:3x + 5 = 20');
+    expect(kinds('invullen-2', 3, 6)).toContain('given:x = 2');
+    expect(kinds('haakvgl-3', 7, 4)).toContain('given:3(x + 4) = 21');
+    expect(kinds('beide-5', 12, 2)).toContain('given:5x = 3x + 12');
+    expect(kinds('kwadraat-vgl', 49, 7)).toContain('given:x² = 49  (x > 0)');
+    expect(kinds('kwadratisch', 5, 2)).toContain('given:x² − 5x + 6 = 0');
+    expect(kinds('herleiden', 36, 9)).toContain('given:A = l × b, A = 36');
+    expect(kinds('formule-3', 15, 4)).toContain('given:a = 3 × b + 4');
+    ['vergelijking-5', 'invullen-2', 'haakvgl-3', 'beide-5', 'kwadraat-vgl', 'kwadratisch', 'herleiden', 'formule-3']
+      .forEach(form => expect(kinds(form as SumForm, 15, 3).some(kind => kind.startsWith('caption:'))).withContext(form).toBeFalse());
+  });
+
+  it('leaves an instruction in words a caption: "Rond af op tientallen", "Oppervlakte"', () => {
+    expect(kinds('afronden', 347, 10)).toContain('caption:Rond af op tientallen');
+    expect(kinds('oppervlakte', 6, 4)).toContain('caption:Oppervlakte van de rechthoek');
+    expect(kinds('afronden', 347, 10).some(kind => kind.startsWith('given:'))).toBeFalse();
+  });
+});
