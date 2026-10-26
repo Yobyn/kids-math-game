@@ -2454,7 +2454,27 @@ describe('QuestionComponent telling a sum as a story (verhaaltjessommen, 2026-10
     expect(component.workedLine.startsWith('¼ van 20 = 5')).toBeTrue();
   });
 
-  it('tells a story now and then in groep 3 and groep 6 rounds, and never in groep 7', () => {
+  it('writes a groep 8 and klas 1 story\'s sum as the workbook does: a time span, a discount, below nought', () => {
+    build('nl', '6');
+    ask({ num1: 610, num2: 515, operation: '-', form: 'tijdsduur', story: { id: 'tijd-bus', who: 0, other: 1 } });
+    expect(component.storyLine).toBe('De bus vertrekt om 8:35 en komt om 10:10 aan. Hoeveel minuten duurt de reis?');
+    answer('1');
+    answer('2');
+    // The form asks with a heading, not an =: said on one line, it has one
+    expect(component.workedLine.startsWith('8:35 → 10:10 = 95 → ')).toBeTrue();
+
+    ask({ num1: 45, num2: 9, operation: '-', form: 'korting-20', story: { id: 'korting-jas', who: 0, other: 1 } });
+    expect(component.storyLine).toContain('20% korting');
+    answer('36');
+    expect(component.answerWasCorrect).toBeTrue();
+
+    ask({ num1: 4, num2: 9, operation: '-', form: 'negatief', story: { id: 'negatief-kouder', who: 0, other: 1 } });
+    expect(component.storyLine).toBe('Het is 4°. Het wordt 9 graden kouder. Hoeveel graden is het nu?');
+    answer('-5');
+    expect(component.answerWasCorrect).toBeTrue();
+  });
+
+  it('tells a story now and then in groep 3, groep 6 and groep 8 rounds, and never in klas 3', () => {
     const storiesIn = (grade: string) => {
       build('nl', grade, 'medium');
       let stories = 0;
@@ -2474,7 +2494,10 @@ describe('QuestionComponent telling a sum as a story (verhaaltjessommen, 2026-10
     const groep6 = storiesIn('4');
     expect(groep6).toBeGreaterThan(0);
     expect(groep6).toBeLessThan(40);
-    expect(storiesIn('5')).toBe(0);
+    const groep8 = storiesIn('6');
+    expect(groep8).toBeGreaterThan(0);
+    expect(groep8).toBeLessThan(40);
+    expect(storiesIn('9')).toBe(0);
   });
 });
 

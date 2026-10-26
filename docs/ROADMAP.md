@@ -733,6 +733,36 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Verhaaltjessommen, part 3: groep 7 to klas 2 (2026-10-26).** About one
+  sum in five is now told as a story from the middle of groep 3 through
+  klas 2. There are 27 new stories, 62 in all:
+  - cijferend vermenigvuldigen and the staartdeling: crates at the market,
+    concert tickets, buses for a school trip, a sticker book;
+  - percentages: children who come by bike, money spent on a present,
+    medals at sports day;
+  - discounts: a coat in the sale, skates;
+  - ratio tables: cartons of juice, notebooks;
+  - what percentage: sums right on a test, winning raffle tickets;
+  - scale: a playground on a map;
+  - the mean: basketball points, rain;
+  - volume: a box;
+  - time spans: a bus, a museum;
+  - speed: a train, a car;
+  - temperatures below nought;
+  - prices up and down: a theme park ticket, a games console;
+  - Pythagoras: walking across a field.
+
+  These stories say what the written form shows the child, not the
+  stored sum: "20% korting op €45" for 45 − 9, "8:35 en 10:10" for 610 −
+  515 (`asWritten`). story.spec.ts holds every such story to the figures
+  of the form's own layout (`sumLayout`), so the story can never say the
+  answer or a number the form does not show. Only a temperature may come
+  out below nought (`negative`), and the child types −5 with the minus
+  key. A story can carry a bound of its own (`fits`): no test has 200
+  sums. Klas 1's end (brackets, the order of operations, fractions)
+  and klas 3 and 4 tell none. After two tries, the worked line writes
+  the story's sum as the form does, with an = where the form asks with a
+  heading: "8:35 → 10:10 = 95 → …".
 - **Look and feel, run 2: a klas equation is what you see first (2026-10-26).**
   Rounds were played in groep 3 and 4, groep 8, and klas 1 and 3, at 320,
   360 and 390px in nl, en and es, with no errors. In klas 2–4 the equation a
@@ -759,8 +789,7 @@ middle, hard the end), one groep per run.
   calculado!"), and the same phrase never comes twice in a row. The words
   live in play-words.ts (lazy). The unused `'correct'` key left the first
   load, and an unused `@keyframes pulse` left question.component.css.
-- **Next, in order:** verhaaltjessommen for groep 7–8 and klas 1–2;
-  klokkijken for groep 3–5; then the "Not yet" gaps.
+- **Next, in order:** klokkijken for groep 3–5; then the "Not yet" gaps.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 

@@ -486,8 +486,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
 
   /** The story this question is told as, in the child's language, or '' for a sum shown as a sum. */
   get storyLine(): string {
-    const { story, money, num1, num2 } = this.currentQuestion;
-    return story && !money ? storyText(story, num1, num2, this.languageService.getLanguage()) : '';
+    const { story, money, num1, num2, form } = this.currentQuestion;
+    return story && !money ? storyText(story, num1, num2, this.languageService.getLanguage(), form) : '';
   }
 
   /** The story's picture. */
@@ -588,7 +588,9 @@ export class QuestionComponent implements OnInit, OnDestroy {
   private writtenSum(): string {
     const { before, after } = this.layout;
     const text = (parts: SumPart[]) => parts.filter(part => part.kind !== 'caption').map(part => part.text);
-    return [...text(before), this.correctAnswerText, ...text(after)].join(' ');
+    // 8:35 → 10:10 asks with its heading, not an =; said on one line it needs one
+    const asks = before.length && before[before.length - 1].kind === 'number' ? ['='] : [];
+    return [...text(before), ...asks, this.correctAnswerText, ...text(after)].join(' ').replace(/€ /g, '€');
   }
 
   /** The sign as it is written in class: × for keer, : for delen (÷ in English). */

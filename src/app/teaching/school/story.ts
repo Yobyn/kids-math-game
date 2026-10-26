@@ -1,8 +1,11 @@
 /**
- * Verhaaltjessommen (docs/CURRICULUM-NL.md, build order 8), groep 3 to 6
+ * Verhaaltjessommen (docs/CURRICULUM-NL.md, build order 8), groep 3 to klas 2
  * (Yobyn, 2026-10-24: "the questions asked to the kids, lets expand make it
  * better"). Groep 5 and 6 add the tables and bigger sums in stories, sharing
- * with something left over, euros, measures, a part of an amount and area. A story of one or two short sentences a 6- or
+ * with something left over, euros, measures, a part of an amount and area.
+ * Groep 7 to klas 2 add percentages and discounts, ratio tables, scale, the
+ * mean, volume, time spans, speed, temperatures below nought, prices going up
+ * or down, and Pythagoras. A story of one or two short sentences a 6- or
  * 7-year-old can read, with a small picture, told around exactly the sum the
  * groep's moment already asks (groep.ts): "Er zitten 7 vogels in de boom.
  * Er komen er 5 bij. Hoeveel vogels zitten er nu in de boom?" is 7 + 5.
@@ -21,7 +24,12 @@
 
 import { Language } from '../../services/language.service';
 import { StoryPick } from '../../question/story-pick';
-import { SumForm } from '../../question/sum-form';
+import {
+  DISCOUNT_FORMS, MEAN_FORMS, PERCENT_CHANGE_FORMS, PERCENT_FORMS, PERCENT_STEP_FORMS, PYTHAGORAS_FORMS, PercentForm,
+  PercentStepForm, PythagorasForm, RATIO_FORMS, RatioForm, SCALE_FORMS, ScaleForm, SumForm, TEMPERATURE_FORMS, VOLUME_FORMS,
+  VolumeForm, lastNumberOf, lengthOf, packsOf, percentOf, scaleOf, sidesOf, stepOf
+} from '../../question/sum-form';
+import { clock, degrees, meanList, tenths } from './written-form';
 import { Moment, Random, SchoolSum } from './groep';
 
 /** "7 vogels", "1 vogel": a count with its noun. */
@@ -29,7 +37,8 @@ function count(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`;
 }
 
-type Tell = (a: number, b: number, name: string, other: string) => string;
+/** The story in one language: the sum's two numbers, two names, and the sum's written form when it has one. */
+type Tell = (a: number, b: number, name: string, other: string, form?: SumForm) => string;
 
 interface Story {
   id: string;
@@ -53,6 +62,16 @@ interface Story {
    * 100 cm in a metre, or a quarter being 4 parts.
    */
   onlyFirst?: boolean;
+  /**
+   * It says exactly the numbers its written form shows, "20% korting op
+   * €45" for 45 − 9: the percentage, the times, the scale, not the sum's
+   * own two numbers (story.spec.ts holds it to the form's layout).
+   */
+  asWritten?: boolean;
+  /** The answer may be below nought: a temperature. */
+  negative?: boolean;
+  /** Any other bound it needs: no test has 200 sums. */
+  fits?: (a: number, b: number) => boolean;
   tell: { [language in Language]: Tell };
 }
 
@@ -64,6 +83,27 @@ const PART: { [language in Language]: { [parts: number]: string } } = {
 };
 
 const capital = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+
+/** "11, 15 en 10": a list as each language ends it. */
+const AND: { [language in Language]: string } = { nl: 'en', en: 'and', es: 'y' };
+function list(values: number[], language: Language): string {
+  return `${values.slice(0, -1).join(', ')} ${AND[language]} ${values[values.length - 1]}`;
+}
+
+/**
+ * The percentage and the amount it is of, as the form writes them: 25% van
+ * 60 is kept as 60 : 4, 15% van 60 as 3 × 3 (sum-form.ts).
+ */
+function percentage(a: number, b: number, form?: SumForm): [number, number] {
+  if (form && form.startsWith('procent-via-')) {
+    const step = stepOf(form as PercentStepForm);
+    return [step * b, a * 100 / step];
+  }
+  return [percentOf(form as PercentForm), a];
+}
+
+/** A number of hours with its comma, or point in English: 2,5 uur. */
+const hours = (halfHours: number, language: Language) => tenths(halfHours * 5, language === 'en' ? '.' : ',');
 
 export const STORIES: Story[] = [
   {
@@ -386,15 +426,349 @@ export const STORIES: Story[] = [
       en: (a, b) => `A floor is ${a} tiles long and ${b} tiles wide. How many tiles are on the floor?`,
       es: (a, b) => `Un suelo mide ${a} baldosas de largo y ${b} de ancho. ¿Cuántas baldosas hay en el suelo?`
     }
+  },
+
+  // Groep 7: cijferend vermenigvuldigen and the staartdeling. 345 × 23, 864 : 24
+  {
+    id: 'keer-veiling', operation: '*', emoji: '🍏', most: 25000, least: 100, fewestGroups: 2,
+    tell: {
+      nl: (a, b) => `Op de veiling staan ${a} kisten met elk ${b} appels. Hoeveel appels zijn dat samen?`,
+      en: (a, b) => `At the market there are ${a} crates with ${b} apples in each. How many apples is that in all?`,
+      es: (a, b) => `En el mercado hay ${a} cajas con ${b} manzanas cada una. ¿Cuántas manzanas son en total?`
+    }
+  },
+  {
+    id: 'keer-concert', operation: '*', emoji: '🎫', most: 25000, least: 100, fewestGroups: 2,
+    tell: {
+      nl: (a, b) => `Voor het schoolconcert worden ${a} kaartjes van €${b} verkocht. Hoeveel euro is dat samen?`,
+      en: (a, b) => `${a} tickets at €${b} each are sold for the school concert. How many euros is that in all?`,
+      es: (a, b) => `Para el concierto del colegio se venden ${a} entradas de ${b} €. ¿Cuántos euros son en total?`
+    }
+  },
+  {
+    id: 'deel-bussen', operation: '/', emoji: '🚌', most: 3000, least: 100, fewestGroups: 10,
+    tell: {
+      nl: (a, b) => `Er gaan ${a} kinderen op schoolreis, ${b} in elke bus. Alle bussen zijn vol. Hoeveel bussen zijn er nodig?`,
+      en: (a, b) => `${a} children go on a school trip, ${b} on each bus. Every bus is full. How many buses are needed?`,
+      es: (a, b) => `Van ${a} niños de excursión, ${b} en cada autobús. Todos van llenos. ¿Cuántos autobuses hacen falta?`
+    }
+  },
+  {
+    id: 'deel-stickerboek', operation: '/', emoji: '📒', most: 3000, least: 100, fewestGroups: 10,
+    tell: {
+      nl: (a, b, name) => `${name} plakt ${a} stickers in een boek, ${b} op elke bladzijde. Hoeveel bladzijden worden er vol?`,
+      en: (a, b, name) => `${name} sticks ${a} stickers into a book, ${b} on every page. How many pages are filled?`,
+      es: (a, b, name) => `${name} pega ${a} pegatinas en un álbum, ${b} en cada página. ¿Cuántas páginas llena?`
+    }
+  },
+
+  // Percentages: 25% van 60 (groep 7), 15% van 60 (groep 8 and klas 1)
+  {
+    id: 'procent-fiets', operation: '/', emoji: '🚲', most: 1000, forms: PERCENT_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => {
+        const [percent, whole] = percentage(a, b, form);
+        return `Op school zitten ${whole} kinderen. ${percent}% van hen komt op de fiets. Hoeveel kinderen komen op de fiets?`;
+      },
+      en: (a, b, name, other, form) => {
+        const [percent, whole] = percentage(a, b, form);
+        return `There are ${whole} children at school. ${percent}% of them come by bike. How many children come by bike?`;
+      },
+      es: (a, b, name, other, form) => {
+        const [percent, whole] = percentage(a, b, form);
+        return `En el colegio hay ${whole} niños. El ${percent}% viene en bici. ¿Cuántos niños vienen en bici?`;
+      }
+    }
+  },
+  {
+    id: 'procent-cadeau', operation: '*', emoji: '🎁', most: 1000, forms: PERCENT_STEP_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => {
+        const [percent, whole] = percentage(a, b, form);
+        return `${name} heeft €${whole} gespaard en geeft ${percent}% uit aan een cadeau. Hoeveel euro kost het cadeau?`;
+      },
+      en: (a, b, name, other, form) => {
+        const [percent, whole] = percentage(a, b, form);
+        return `${name} has saved €${whole} and spends ${percent}% of it on a present. How many euros does the present cost?`;
+      },
+      es: (a, b, name, other, form) => {
+        const [percent, whole] = percentage(a, b, form);
+        return `${name} ha ahorrado ${whole} € y gasta el ${percent}% en un regalo. ¿Cuántos euros cuesta el regalo?`;
+      }
+    }
+  },
+  {
+    id: 'procent-medaille', operation: '*', emoji: '🏅', most: 1000, forms: PERCENT_STEP_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => {
+        const [percent, whole] = percentage(a, b, form);
+        return `Bij de sportdag doen ${whole} kinderen mee. ${percent}% wint een medaille. Hoeveel kinderen winnen een medaille?`;
+      },
+      en: (a, b, name, other, form) => {
+        const [percent, whole] = percentage(a, b, form);
+        return `${whole} children take part in sports day. ${percent}% win a medal. How many children win a medal?`;
+      },
+      es: (a, b, name, other, form) => {
+        const [percent, whole] = percentage(a, b, form);
+        return `En la jornada deportiva participan ${whole} niños. El ${percent}% gana una medalla. ¿Cuántos niños ganan una medalla?`;
+      }
+    }
+  },
+
+  // Korting: 20% korting op €45, kept as 45 − 9
+  {
+    id: 'korting-jas', operation: '-', emoji: '🧥', most: 1000, forms: DISCOUNT_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => `Een jas kost €${a}. In de uitverkoop krijg je ${percentOf(form as PercentForm)}% korting. ` +
+        `Hoeveel euro betaal je?`,
+      en: (a, b, name, other, form) => `A coat costs €${a}. In the sale you get ${percentOf(form as PercentForm)}% off. ` +
+        `How many euros do you pay?`,
+      es: (a, b, name, other, form) => `Un abrigo cuesta ${a} €. En las rebajas tiene un ${percentOf(form as PercentForm)}% de descuento. ` +
+        `¿Cuántos euros pagas?`
+    }
+  },
+  {
+    id: 'korting-skeelers', operation: '-', emoji: '🛼', most: 1000, forms: DISCOUNT_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => `Skeelers kosten €${a}. Ze zijn ${percentOf(form as PercentForm)}% afgeprijsd. ` +
+        `Hoeveel euro kosten ze nu?`,
+      en: (a, b, name, other, form) => `Inline skates cost €${a}. They are ${percentOf(form as PercentForm)}% off. ` +
+        `How many euros do they cost now?`,
+      es: (a, b, name, other, form) => `Unos patines cuestan ${a} €. Tienen un ${percentOf(form as PercentForm)}% de descuento. ` +
+        `¿Cuántos euros cuestan ahora?`
+    }
+  },
+
+  // A ratio table: 3 pakken kosten €6, 7 pakken = €?, kept as 7 × 2
+  {
+    id: 'verhouding-sap', operation: '*', emoji: '🧃', most: 1000, forms: RATIO_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => {
+        const packs = packsOf(form as RatioForm);
+        return `${packs} pakken sap kosten samen €${packs * b}. Hoeveel euro kosten ${a} pakken?`;
+      },
+      en: (a, b, name, other, form) => {
+        const packs = packsOf(form as RatioForm);
+        return `${packs} cartons of juice cost €${packs * b} together. How many euros do ${a} cartons cost?`;
+      },
+      es: (a, b, name, other, form) => {
+        const packs = packsOf(form as RatioForm);
+        return `${packs} bricks de zumo cuestan ${packs * b} € en total. ¿Cuántos euros cuestan ${a} bricks?`;
+      }
+    }
+  },
+  {
+    id: 'verhouding-schriften', operation: '*', emoji: '📓', most: 1000, forms: RATIO_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => {
+        const packs = packsOf(form as RatioForm);
+        return `In de boekwinkel kosten ${packs} schriften €${packs * b}. Hoeveel euro betaal je voor ${a} schriften?`;
+      },
+      en: (a, b, name, other, form) => {
+        const packs = packsOf(form as RatioForm);
+        return `At the shop ${packs} notebooks cost €${packs * b}. How many euros do you pay for ${a} notebooks?`;
+      },
+      es: (a, b, name, other, form) => {
+        const packs = packsOf(form as RatioForm);
+        return `En la papelería, ${packs} cuadernos cuestan ${packs * b} €. ¿Cuántos euros pagas por ${a} cuadernos?`;
+      }
+    }
+  },
+
+  // What percentage: 18 van 72 = ?%, kept as 1800 : 72
+  {
+    id: 'welk-procent-toets', operation: '/', emoji: '📝', most: 100000, forms: ['welk-procent'], asWritten: true,
+    fits: (a, b) => b <= 50,
+    tell: {
+      nl: (a, b, name) => `${name} heeft ${a / 100} van de ${b} sommen goed. Hoeveel procent is dat?`,
+      en: (a, b, name) => `${name} gets ${a / 100} of the ${b} sums right. What percentage is that?`,
+      es: (a, b, name) => `${name} acierta ${a / 100} de las ${b} sumas. ¿Qué porcentaje es?`
+    }
+  },
+  {
+    id: 'welk-procent-loten', operation: '/', emoji: '🎟️', most: 100000, forms: ['welk-procent'], asWritten: true,
+    tell: {
+      nl: (a, b) => `Bij de loterij zijn ${b} loten verkocht. Op ${a / 100} daarvan valt een prijs. Hoeveel procent van de loten wint?`,
+      en: (a, b) => `${b} raffle tickets are sold. ${a / 100} of them win a prize. What percentage of the tickets win?`,
+      es: (a, b) => `Se venden ${b} papeletas para la rifa. ${a / 100} tienen premio. ¿Qué porcentaje de las papeletas tiene premio?`
+    }
+  },
+
+  // Scale: Schaal 1 : 500, 4 cm = ? m, kept as 4 × 5
+  {
+    id: 'schaal-plattegrond', operation: '*', emoji: '🗺️', most: 1000, forms: SCALE_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => `Op de plattegrond met schaal 1 : ${scaleOf(form as ScaleForm)} is het schoolplein ${a} cm lang. ` +
+        `Hoeveel meter is het echt?`,
+      en: (a, b, name, other, form) => `On a map with scale 1 : ${scaleOf(form as ScaleForm)}, the playground is ${a} cm long. ` +
+        `How many metres is it really?`,
+      es: (a, b, name, other, form) => `En un plano a escala 1 : ${scaleOf(form as ScaleForm)}, el patio mide ${a} cm. ` +
+        `¿Cuántos metros mide de verdad?`
+    }
+  },
+
+  // The mean: 11, 15 en 10, kept as 36 : 3
+  {
+    id: 'gemiddelde-basketbal', operation: '/', emoji: '🏀', most: 1000, forms: MEAN_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name) => `${name} scoort bij basketbal ${list(meanList(a, b), 'nl')} punten. Hoeveel punten is dat gemiddeld per wedstrijd?`,
+      en: (a, b, name) => `${name} scores ${list(meanList(a, b), 'en')} points at basketball. How many points is that on average per game?`,
+      es: (a, b, name) => `${name} marca ${list(meanList(a, b), 'es')} puntos al baloncesto. ¿Cuántos puntos son de media por partido?`
+    }
+  },
+  {
+    id: 'gemiddelde-regen', operation: '/', emoji: '🌧️', most: 1000, forms: MEAN_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b) => `De klas meet de regen: ${list(meanList(a, b), 'nl')} millimeter. Hoeveel millimeter is dat gemiddeld per dag?`,
+      en: (a, b) => `The class measures the rain: ${list(meanList(a, b), 'en')} millimetres. How many millimetres is that on average per day?`,
+      es: (a, b) => `La clase mide la lluvia: ${list(meanList(a, b), 'es')} milímetros. ¿Cuántos milímetros son de media al día?`
+    }
+  },
+
+  // Volume: 10 × 5 × 4 = ? cm³, kept as 50 × 4
+  {
+    id: 'inhoud-doos', operation: '*', emoji: '📦', most: 1000, forms: VOLUME_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => {
+        const length = lengthOf(form as VolumeForm);
+        return `Een doos is ${length} cm lang, ${a / length} cm breed en ${b} cm hoog. Hoeveel cm³ past erin?`;
+      },
+      en: (a, b, name, other, form) => {
+        const length = lengthOf(form as VolumeForm);
+        return `A box is ${length} cm long, ${a / length} cm wide and ${b} cm high. How many cm³ does it hold?`;
+      },
+      es: (a, b, name, other, form) => {
+        const length = lengthOf(form as VolumeForm);
+        return `Una caja mide ${length} cm de largo, ${a / length} cm de ancho y ${b} cm de alto. ¿Cuántos cm³ caben dentro?`;
+      }
+    }
+  },
+
+  // Time spans: 8:35 → 10:10 = ? minuten, kept as 610 − 515
+  {
+    id: 'tijd-bus', operation: '-', emoji: '🚍', most: 1440, forms: ['tijdsduur'], asWritten: true,
+    tell: {
+      nl: (a, b) => `De bus vertrekt om ${clock(b)} en komt om ${clock(a)} aan. Hoeveel minuten duurt de reis?`,
+      en: (a, b) => `The bus leaves at ${clock(b)} and arrives at ${clock(a)}. How many minutes does the journey take?`,
+      es: (a, b) => `El autobús sale a las ${clock(b)} y llega a las ${clock(a)}. ¿Cuántos minutos dura el viaje?`
+    }
+  },
+  {
+    id: 'tijd-museum', operation: '-', emoji: '🏛️', most: 1440, forms: ['tijdsduur'], asWritten: true,
+    tell: {
+      nl: (a, b, name) => `${name} gaat om ${clock(b)} het museum in en komt er om ${clock(a)} weer uit. Hoeveel minuten was ${name} binnen?`,
+      en: (a, b, name) => `${name} goes into the museum at ${clock(b)} and comes out at ${clock(a)}. How many minutes was ${name} inside?`,
+      es: (a, b, name) => `${name} entra en el museo a las ${clock(b)} y sale a las ${clock(a)}. ¿Cuántos minutos ha estado dentro?`
+    }
+  },
+
+  // Speed: 60 km per uur, 2,5 uur = ? km, kept as 5 × 30
+  {
+    id: 'snelheid-trein', operation: '*', emoji: '🚆', most: 1000, forms: ['snelheid'], asWritten: true,
+    tell: {
+      nl: (a, b) => `Een trein rijdt ${b * 2} km per uur. Hoeveel km rijdt de trein in ${hours(a, 'nl')} uur?`,
+      en: (a, b) => `A train goes ${b * 2} km an hour. How many km does it go in ${hours(a, 'en')} hours?`,
+      es: (a, b) => `Un tren va a ${b * 2} km por hora. ¿Cuántos km recorre en ${hours(a, 'es')} horas?`
+    }
+  },
+  {
+    id: 'snelheid-auto', operation: '*', emoji: '🚗', most: 1000, forms: ['snelheid'], asWritten: true,
+    tell: {
+      nl: (a, b) => `Op weg naar de camping rijdt de auto ${b * 2} km per uur. Hoeveel km is dat in ${hours(a, 'nl')} uur?`,
+      en: (a, b) => `On the way to the campsite the car drives ${b * 2} km an hour. How many km is that in ${hours(a, 'en')} hours?`,
+      es: (a, b) => `De camino al camping, el coche va a ${b * 2} km por hora. ¿Cuántos km son en ${hours(a, 'es')} horas?`
+    }
+  },
+
+  // Below nought: −3° → 5° = ? graden verschil, kept as 5 + 3
+  {
+    id: 'temperatuur-dag', operation: '+', emoji: '🌡️', most: 100, forms: TEMPERATURE_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => form === 'temperatuur-af'
+        ? `'s Middags was het ${degrees(a)}, 's nachts ${degrees(-b)}. Hoeveel graden is het kouder geworden?`
+        : `'s Nachts was het ${degrees(-b)}, 's middags ${degrees(a)}. Hoeveel graden is het warmer geworden?`,
+      en: (a, b, name, other, form) => form === 'temperatuur-af'
+        ? `In the afternoon it was ${degrees(a)}, at night ${degrees(-b)}. How many degrees colder did it get?`
+        : `At night it was ${degrees(-b)}, in the afternoon ${degrees(a)}. How many degrees warmer did it get?`,
+      es: (a, b, name, other, form) => form === 'temperatuur-af'
+        ? `Por la tarde hacía ${degrees(a)} y por la noche ${degrees(-b)}. ¿Cuántos grados ha bajado la temperatura?`
+        : `Por la noche hacía ${degrees(-b)} y por la tarde ${degrees(a)}. ¿Cuántos grados ha subido la temperatura?`
+    }
+  },
+  {
+    id: 'negatief-warmer', operation: '+', emoji: '☀️', most: 100, forms: ['negatief'], asWritten: true, negative: true,
+    fits: (a, b) => b > 0,
+    tell: {
+      nl: (a, b) => `Het is ${degrees(a)}. Het wordt ${count(b, 'graad', 'graden')} warmer. Hoeveel graden is het nu?`,
+      en: (a, b) => `It is ${degrees(a)}. It gets ${count(b, 'degree', 'degrees')} warmer. What is the temperature now?`,
+      es: (a, b) => `Hace ${degrees(a)}. La temperatura sube ${count(b, 'grado', 'grados')}. ¿Qué temperatura hace ahora?`
+    }
+  },
+  {
+    id: 'negatief-kouder', operation: '-', emoji: '❄️', most: 100, forms: ['negatief'], asWritten: true, negative: true,
+    fits: (a, b) => b > 0,
+    tell: {
+      nl: (a, b) => `Het is ${degrees(a)}. Het wordt ${count(b, 'graad', 'graden')} kouder. Hoeveel graden is het nu?`,
+      en: (a, b) => `It is ${degrees(a)}. It gets ${count(b, 'degree', 'degrees')} colder. What is the temperature now?`,
+      es: (a, b) => `Hace ${degrees(a)}. La temperatura baja ${count(b, 'grado', 'grados')}. ¿Qué temperatura hace ahora?`
+    }
+  },
+
+  // Prices up and down: €80 + 15% = €?, kept as 80 + 12 (klas 2)
+  {
+    id: 'prijs-omhoog', operation: '+', emoji: '🎢', most: 1000, asWritten: true,
+    forms: PERCENT_CHANGE_FORMS.filter(form => form.startsWith('toename-')),
+    tell: {
+      nl: (a, b, name, other, form) => `Een kaartje voor het pretpark kost €${a}. Volgend jaar wordt het ${lastNumberOf(form!)}% duurder. ` +
+        `Hoeveel euro kost het dan?`,
+      en: (a, b, name, other, form) => `A theme park ticket costs €${a}. Next year it goes up by ${lastNumberOf(form!)}%. ` +
+        `How many euros will it cost then?`,
+      es: (a, b, name, other, form) => `Una entrada al parque cuesta ${a} €. El año que viene sube un ${lastNumberOf(form!)}%. ` +
+        `¿Cuántos euros costará?`
+    }
+  },
+  {
+    id: 'prijs-omlaag', operation: '-', emoji: '🎮', most: 1000, asWritten: true,
+    forms: PERCENT_CHANGE_FORMS.filter(form => form.startsWith('afname-')),
+    tell: {
+      nl: (a, b, name, other, form) => `Een spelcomputer kost €${a}. De prijs gaat ${lastNumberOf(form!)}% omlaag. ` +
+        `Hoeveel euro kost de spelcomputer nu?`,
+      en: (a, b, name, other, form) => `A games console costs €${a}. The price goes down by ${lastNumberOf(form!)}%. ` +
+        `How many euros does it cost now?`,
+      es: (a, b, name, other, form) => `Una consola cuesta ${a} €. El precio baja un ${lastNumberOf(form!)}%. ` +
+        `¿Cuántos euros cuesta ahora?`
+    }
+  },
+
+  // Pythagoras: a = 6, b = 8 → ?, kept as 100 : 10 (klas 2)
+  {
+    id: 'pythagoras-veld', operation: '/', emoji: '⚽', most: 100000, forms: PYTHAGORAS_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => {
+        const [wide, long] = sidesOf(form as PythagorasForm, b);
+        return `Een grasveld is ${long} m lang en ${wide} m breed. ${name} loopt schuin van hoek naar hoek. Hoeveel meter loopt ${name}?`;
+      },
+      en: (a, b, name, other, form) => {
+        const [wide, long] = sidesOf(form as PythagorasForm, b);
+        return `A field is ${long} m long and ${wide} m wide. ${name} walks straight across from corner to corner. ` +
+          `How many metres does ${name} walk?`;
+      },
+      es: (a, b, name, other, form) => {
+        const [wide, long] = sidesOf(form as PythagorasForm, b);
+        return `Un campo mide ${long} m de largo y ${wide} m de ancho. ${name} lo cruza en diagonal de esquina a esquina. ` +
+          `¿Cuántos metros camina?`;
+      }
+    }
   }
 ];
 
 /** Names from a child's class, girls' and boys' alike, that read the same in all three languages. */
 export const NAMES = ['Noor', 'Daan', 'Emma', 'Sam', 'Lotte', 'Milan', 'Sara', 'Yusuf', 'Julia', 'Finn', 'Lina', 'Luca'];
 
-/** The groepen and moments that get stories: from the middle of groep 3, through groep 6. */
+/** The groepen and moments that get stories: from the middle of groep 3 through klas 2 (groep 10 in groep.ts). */
 export const STORY_MOMENTS: { [groep: number]: Moment[] } = {
-  3: ['M', 'E'], 4: ['B', 'M', 'E'], 5: ['B', 'M', 'E'], 6: ['B', 'M', 'E']
+  3: ['M', 'E'], 4: ['B', 'M', 'E'], 5: ['B', 'M', 'E'], 6: ['B', 'M', 'E'], 7: ['B', 'M', 'E'], 8: ['B', 'M', 'E'],
+  9: ['B', 'M', 'E'], 10: ['B', 'M', 'E']
 };
 
 /** About one question in five is a story. */
@@ -414,7 +788,7 @@ export function tells(story: Story, sum: Pick<SchoolSum, 'num1' | 'num2' | 'oper
     : sum.operation === '%' ? sum.num1 % sum.num2
     : sum.num1 / sum.num2;
   if (Math.max(sum.num1, sum.num2, answer) > story.most || sum.num1 < (story.least || 0)
-      || answer < 0 || !Number.isInteger(answer)) {
+      || (answer < 0 && !story.negative) || !Number.isInteger(answer) || (story.fits && !story.fits(sum.num1, sum.num2))) {
     return false;
   }
   // The groups: the first number of a times sum, the second of a share
@@ -447,13 +821,13 @@ function storyOf(pick: StoryPick): Story | undefined {
 }
 
 /** The story in the child's language, or '' for one this version does not know (an old saved round). */
-export function storyText(pick: StoryPick, num1: number, num2: number, language: Language): string {
+export function storyText(pick: StoryPick, num1: number, num2: number, language: Language, form?: SumForm): string {
   const story = storyOf(pick);
   if (!story) {
     return '';
   }
   const tell = story.tell[language] || story.tell.en;
-  return tell(num1, num2, NAMES[pick.who % NAMES.length], NAMES[pick.other % NAMES.length]);
+  return tell(num1, num2, NAMES[pick.who % NAMES.length], NAMES[pick.other % NAMES.length], form);
 }
 
 /** The story's picture. */

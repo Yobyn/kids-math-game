@@ -314,5 +314,7 @@ its groep:
    languages. Part 1 is built (2026-10-24): groep 3 (M, E) and groep 4
    tell about one sum in five as a story (`teaching/school/story.ts`).
    Part 2 is built (2026-10-25): groep 5 and 6, with tables, sharing with
-   a remainder, euros, measures, a part of an amount and area. Groep 7–8
-   and klas 1–2 are next.
+   a remainder, euros, measures, a part of an amount and area. Part 3 is
+   built (2026-10-26): groep 7 to klas 2, with percentages and discounts,
+   ratio tables, scale, the mean, volume, time spans, speed, temperatures
+   below nought, prices going up or down, and Pythagoras.
