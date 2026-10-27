@@ -114,6 +114,11 @@ export function clock(minutes: number): string {
   return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
 }
 
+/** The time a klok sum asks, as a digital clock writes it: 300 + 45 is 3:45 (groep.ts). */
+export function clockTime(num1: number, num2: number): string {
+  return clock(num1 / 100 * 60 + num2);
+}
+
 /** A temperature as written, with a real minus below nought: −3°. */
 export function degrees(value: number): string {
   return `${value < 0 ? '\u2212' : ''}${Math.abs(value)}°`;
@@ -410,6 +415,10 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
       const measure = VOLUME_MEASURES[sum.form];
       return { before: [number(sum.num1), { kind: 'word', text: measure.from }, equals], after: [{ kind: 'word', text: measure.to }] };
     }
+    // Hoe laat is het? The clock is drawn above the box (question/clock-face.component.ts),
+    // and the box is all the sum there is: the time typed into it, 3:45
+    case 'klok':
+      return { before: [], after: [] };
     // Hoeveel minuten? over 9:45 → 11:20 ?, kept as 680 − 585. No "=": the heading asks, and
     // two times, an arrow, an = and the box are too wide for a 320px phone
     case 'tijdsduur':
@@ -963,6 +972,15 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
     case 'l-cm3': {
       const measure = VOLUME_MEASURES[form];
       return `1 ${measure.from} = ${measure.factor} ${measure.to} → ${num1} × ${measure.factor} = ${num1 * num2}`;
+    }
+    // The big hand on the 9: nine fives are 45 minutes, past the hour the small hand has
+    // just passed. On the 12 it is the whole hour
+    case 'klok': {
+      if (!num2) {
+        return `12 → ${clockTime(num1, num2)}`;
+      }
+      const [fives, ones] = [Math.floor(num2 / 5), num2 % 5];
+      return `${fives} × 5${ones ? ` + ${ones}` : ''} = ${num2} → ${clockTime(num1, num2)}`;
     }
     // 9:45 to 11:20: up to the whole hour, then on from it
     case 'tijdsduur': {

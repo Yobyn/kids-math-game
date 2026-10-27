@@ -733,6 +733,25 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Klokkijken, groep 3 to 5 (2026-10-27).** A drawn clock, in the
+  card's own reading colours (`question/clock-face.component.ts`, in the
+  round's lazy module). It has twelve numbers, a mark for every minute, a
+  short thick hour hand that creeps on between the hours, and a long
+  magenta minute hand. The clock stands beside the answer box under
+  "Hoe laat is het?". Side by side, a clock question puts Check Answer
+  where a money question has it. Below it, it was 190px further down on a
+  360px phone. The child types the time on the keypad, 3, 4, 5, and the
+  box writes it 3:45. It is kept as 300 + 45 (form `klok`), so marking, a
+  saved round, a missed fact and the practice plan work as for any sum,
+  and 15:45 counts too.
+  - Groep 3 E: whole and half hours.
+  - Groep 4 M: kwart over and kwart voor.
+  - Groep 4 E: every five minutes.
+  - Groep 5 M: to the minute.
+
+  After two tries the answer is given as 3:45, worked from the big hand:
+  "9 × 5 = 45 → 3:45". The grown-ups' plan says "🕒 3:45": a clock to
+  set and read together. A clock is never told as a story.
 - **Look and feel, run 3: brackets on their numbers (2026-10-27).** Rounds
   were played in groep 3 and 4, groep 7 and 8, and klas 1 and 3, at 320,
   360 and 390px in nl, en and es, with no errors. Klas 1's bracket sums
@@ -799,7 +818,8 @@ middle, hard the end), one groep per run.
   calculado!"), and the same phrase never comes twice in a row. The words
   live in play-words.ts (lazy). The unused `'correct'` key left the first
   load, and an unused `@keyframes pulse` left question.component.css.
-- **Next, in order:** klokkijken for groep 3–5; then the "Not yet" gaps.
+- **Next, in order:** the "Not yet" gaps (aanvullen tot 20, tenths in
+  groep 7, unlike denominators in groep 8, Pythagoras to one decimal).
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 

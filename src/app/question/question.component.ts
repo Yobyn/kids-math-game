@@ -20,7 +20,7 @@ import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/
 import { momentFor, schoolSum } from '../teaching/school/groep';
 import { pickStory, storyEmoji, storyText } from '../teaching/school/story';
 import { StoryPick } from './story-pick';
-import { SumLayout, SumPart, decimal, formWorkedStep, grouped, roundTo, signed, sumLayout, typedDecimal } from '../teaching/school/written-form';
+import { SumLayout, SumPart, clockTime, decimal, formWorkedStep, grouped, roundTo, signed, sumLayout, typedDecimal } from '../teaching/school/written-form';
 import { SumForm, placesOf } from './sum-form';
 import {
   QUESTIONS_IN_ROUND,
@@ -634,7 +634,21 @@ export class QuestionComponent implements OnInit, OnDestroy {
    * decimal sign; money keeps the point its card is written with (€3.40).
    */
   get shownAnswer(): string {
+    // 3, 4, 5 typed for a clock reads back as the time: 3:45
+    if (this.isClock) {
+      const typed = String(this.userAnswer || '');
+      return typed.length > 2 ? `${typed.slice(0, -2)}:${typed.slice(-2)}` : typed;
+    }
     return this.inDecimals ? String(this.userAnswer).replace('.', this.decimalSign) : this.userAnswer;
+  }
+
+  /** A clock to read (klokkijken, groep 3 to 5): the time is kept as 300 + 45 for 3:45 (groep.ts). */
+  get isClock(): boolean {
+    return this.currentQuestion.form === 'klok';
+  }
+
+  get clockHours(): number {
+    return this.currentQuestion.num1 / 100;
   }
 
   generateQuestion() {
@@ -798,8 +812,12 @@ export class QuestionComponent implements OnInit, OnDestroy {
         break;
     }
 
-    this.correctAnswerText = this.inDecimals
-      ? decimal(this.correctAnswer, this.decimalPlaces, this.decimalSign) : signed(this.correctAnswer);
+    // A clock is read as 3:45, and 15:45 is the same time on a digital clock in the afternoon
+    if (this.isClock && this.correctAnswer < 1200 && answer === this.correctAnswer + 1200) {
+      isCorrect = true;
+    }
+    this.correctAnswerText = this.isClock ? clockTime(this.currentQuestion.num1, this.currentQuestion.num2)
+      : this.inDecimals ? decimal(this.correctAnswer, this.decimalPlaces, this.decimalSign) : signed(this.correctAnswer);
 
     if (isCorrect) {
       this.handleCorrectAnswer();

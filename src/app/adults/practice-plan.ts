@@ -1,6 +1,6 @@
 import {
-  DECIMAL_MEASURES, FRACTIONS, MEASURES, SUPERSCRIPTS, TRIG_NAMES, UNIT_FRACTIONS, VOLUME_MEASURES, clock, decimal, degrees, formWorkedStep,
-  meanList, roundTo, signed, tenths
+  DECIMAL_MEASURES, FRACTIONS, MEASURES, SUPERSCRIPTS, TRIG_NAMES, UNIT_FRACTIONS, VOLUME_MEASURES, clock, clockTime, decimal, degrees,
+  formWorkedStep, meanList, roundTo, signed, tenths
 } from '../teaching/school/written-form';
 import {
   PythagorasForm, TrigForm, UnlikeFractionForm, denominatorOf, denominatorsOf, lastNumberOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, sidesOf,
@@ -283,6 +283,9 @@ export function factText(fact: MissedFact): string {
       const measure = VOLUME_MEASURES[fact.form];
       return `${fact.num1} ${measure.from} = ? ${measure.to}`;
     }
+    // A clock to read, set to 3:45 for the child: kept as 300 + 45
+    case 'klok':
+      return `🕒 ${clockTime(fact.num1, fact.num2)}`;
     // 9:45 → 11:20, kept as 680 − 585 minutes
     case 'tijdsduur':
       return `${clock(fact.num2)} → ${clock(fact.num1)} = ? min`;
@@ -439,7 +442,9 @@ function toItem(fact: MissedFact): PracticeItem {
 
   const item: PracticeItem = {
     question: factText(fact),
-    answer: placesOf(fact.form) ? decimal(answer, placesOf(fact.form)) : /^(negatief|negmacht|minkwadraat)/.test(fact.form || '') ? signed(answer) : String(answer),
+    answer: placesOf(fact.form) ? decimal(answer, placesOf(fact.form))
+      : fact.form === 'klok' ? clockTime(fact.num1, fact.num2)
+      : /^(negatief|negmacht|minkwadraat)/.test(fact.form || '') ? signed(answer) : String(answer),
     reviews,
     toGraduate
   };

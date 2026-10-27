@@ -228,6 +228,29 @@ export const TABLES_GROEP_5 = [6, 7, 8, 9];
 TOPICS['tafels-6-7-8-9'] = times(TABLES_GROEP_5);
 TOPICS['deeltafels-6-7-8-9'] = shareOut(TABLES_GROEP_5);
 
+/**
+ * Klokkijken (groep 3 to 5): the time a drawn clock shows, typed as a
+ * digital clock writes it. 3:45 is kept as 300 + 45, so 3, 4, 5 on the
+ * keypad is the answer, and the answer box writes it 3:45. On the clock face:
+ * 1 to 12 o'clock.
+ */
+const clockSum = (hours: number, minutes: number): Omit<SchoolSum, 'topic'> =>
+  ({ num1: 100 * hours, num2: minutes, operation: '+', form: 'klok' });
+// Groep 3, the end: hele en halve uren. 4:00, 3:30 ("half 4")
+TOPICS['klok-uren'] = random => clockSum(between(random, 1, 12), pick(random, [0, 30]));
+// Groep 4: kwart over en kwart voor, with the whole and half hours still about
+TOPICS['klok-kwartier'] = random => clockSum(between(random, 1, 12), pick(random, [15, 45, 15, 45, 0, 30]));
+// Groep 4, the end: every five minutes. 3:25 ("vijf voor half 4")
+TOPICS['klok-5-minuten'] = random => clockSum(between(random, 1, 12), 5 * between(random, 1, 11));
+// Groep 5: to the minute. 3:37
+TOPICS['klok-minuten'] = random => {
+  let minutes = between(random, 1, 59);
+  if (minutes % 5 === 0) {
+    minutes += between(random, 1, 4) * (minutes === 55 ? -1 : 1);
+  }
+  return clockSum(between(random, 1, 12), minutes);
+};
+
 /** The digits of a number below 10 000: thousands, hundreds, tens, ones. */
 const digits = (n: number) => [Math.floor(n / 1000), Math.floor(n / 100) % 10, Math.floor(n / 10) % 10, n % 10];
 
@@ -774,36 +797,38 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     E: {
       'plus-tot-20-over': NEW, 'min-tot-20-over': NEW, 'dubbel-tot-20': NEW, 'sprong-van-10': NEW,
       'splitsen-tot-10': NEW, 'dubbel-van-tot-20': NEW, 'helft-van-tot-20': NEW,
-      'plus-tot-20-zonder': REVIEW, 'min-tot-20-zonder': REVIEW, 'aanvullen-tot-10': REVIEW
+      'plus-tot-20-zonder': REVIEW, 'min-tot-20-zonder': REVIEW, 'aanvullen-tot-10': REVIEW, 'klok-uren': NEW
     }
   },
   4: {
     B: {
       'plus-tot-20-over': NEW, 'min-tot-20-over': NEW, 'sprong-van-10': REVIEW, 'dubbel-tot-20': REVIEW,
-      'helft-van-tot-20': REVIEW, 'splitsen-tot-10': REVIEW
+      'helft-van-tot-20': REVIEW, 'splitsen-tot-10': REVIEW, 'klok-uren': REVIEW
     },
     M: {
       'tientallen': NEW, 'te-e-zonder': NEW, 'te-e-over': NEW, 'te-t': NEW,
-      'tafels-1-2-5-10': NEW, 'deeltafels-2-5-10': NEW, 'plus-tot-20-over': REVIEW, 'min-tot-20-over': REVIEW
+      'tafels-1-2-5-10': NEW, 'deeltafels-2-5-10': NEW, 'plus-tot-20-over': REVIEW, 'min-tot-20-over': REVIEW,
+      'klok-kwartier': NEW
     },
     E: {
       'te-te-zonder': NEW, 'te-te-over': NEW, 'tafels-1-5-10': NEW, 'deeltafels-1-5-10': NEW,
-      'honderdtallen': NEW, 'dubbel-van-tot-100': NEW, 'helft-van-tot-100': NEW,
-      'te-e-over': REVIEW, 'te-t': REVIEW
+      'honderdtallen': NEW, 'dubbel-van-tot-100': NEW, 'helft-van-tot-100': NEW, 'klok-5-minuten': NEW,
+      'te-e-over': REVIEW, 'te-t': REVIEW, 'klok-kwartier': REVIEW
     }
   },
   5: {
     B: {
       'tafels-1-5-10': NEW, 'deeltafels-1-5-10': NEW, 'te-te-over': NEW,
-      'honderdtallen': REVIEW, 'dubbel-van-tot-100': REVIEW, 'helft-van-tot-100': REVIEW
+      'honderdtallen': REVIEW, 'dubbel-van-tot-100': REVIEW, 'helft-van-tot-100': REVIEW, 'klok-5-minuten': REVIEW
     },
     M: {
       'tafels-6-7-8-9': NEW, 'deeltafels-6-7-8-9': NEW, 'tot-1000-zonder': NEW, 'keer-tiental': NEW,
-      'deel-van': NEW, 'tafels-1-5-10': REVIEW, 'helft-van-tot-100': REVIEW
+      'deel-van': NEW, 'klok-minuten': NEW, 'tafels-1-5-10': REVIEW, 'helft-van-tot-100': REVIEW
     },
     E: {
       'tot-1000-over': NEW, 'te-keer-e': NEW, 'delen-met-rest': NEW, 'maten': NEW,
-      'tafels-6-7-8-9': REVIEW, 'deeltafels-6-7-8-9': REVIEW, 'tot-1000-zonder': REVIEW, 'deel-van': REVIEW
+      'tafels-6-7-8-9': REVIEW, 'deeltafels-6-7-8-9': REVIEW, 'tot-1000-zonder': REVIEW, 'deel-van': REVIEW,
+      'klok-minuten': REVIEW
     }
   },
   6: {

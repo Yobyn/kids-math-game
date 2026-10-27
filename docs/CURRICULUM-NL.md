@@ -49,6 +49,7 @@ the setting of a sum, not the sum: "20% korting op €45", "3 pakken kosten
 | E | Splitsen of numbers to 10 | 8 = 5 + ? |
 | E | Doubles and halves within 20 | dubbel 7, de helft van 16 |
 | E | Jumps of ten within 100 | 30 + 10, 57 − 10 |
+| E | Klokkijken: whole and half hours | 4:00, half 4 = 3:30 |
 
 ## Groep 4 (age 7–8)
 
@@ -60,11 +61,13 @@ the setting of a sum, not the sum: "20% korting op €45", "3 pakken kosten
 | M | TE ± T | 45 + 30, 68 − 40 |
 | M | Tables of 1, 2, 5 and 10 | 7 × 2, 6 × 5 |
 | M | Dividing within those tables | 20 : 5, 14 : 2 |
+| M | Klokkijken: kwart over, kwart voor | 3:15, 3:45 |
 | E | TE ± TE without and with crossing | 36 + 27, 74 − 38 |
 | E | Tables of 3 and 4 added (1–5 and 10) | 6 × 3, 8 × 4 |
 | E | Dividing within tables 1–5 and 10 | 24 : 4, 18 : 3 |
 | E | Hundreds within 1000 | 300 + 400, 600 − 200 |
 | E | Doubles and halves within 100 | dubbel 35, de helft van 60 |
+| E | Klokkijken: every five minutes | 3:25, 10:50 |
 
 ## Groep 5 (age 8–9)
 
@@ -76,6 +79,7 @@ the setting of a sum, not the sum: "20% korting op €45", "3 pakken kosten
 | M | +/− within 1000 without crossing | 340 + 250, 563 − 30 |
 | M | Times a ten | 4 × 30, 6 × 40 |
 | M | A part of an amount | de helft van 18, ¼ van 20 |
+| M | Klokkijken: to the minute | 3:37, 11:02 |
 | E | +/− within 1000 crossing (kolomsgewijs) | 367 + 258, 512 − 347 |
 | E | TE × E | 4 × 23, 6 × 15 |
 | E | Dividing with a remainder | 23 : 4 = 5 rest ? |
@@ -318,3 +322,13 @@ its groep:
    built (2026-10-26): groep 7 to klas 2, with percentages and discounts,
    ratio tables, scale, the mean, volume, time spans, speed, temperatures
    below nought, prices going up or down, and Pythagoras.
+9. **Klokkijken** (telling the time), groep 3 to 5, built 2026-10-27. A drawn
+   analogue clock (`question/clock-face.component.ts`) sits beside the
+   answer box. Its hour hand creeps on between the hours, as a real one
+   does, so half 4 stands halfway to the 4. The time is typed on the
+   keypad as a digital clock writes it: 3, 4, 5 shows as 3:45, kept as
+   300 + 45. The afternoon (15:45) counts too. The order: whole and half
+   hours at groep 3's end, kwart over and kwart voor in the middle of
+   groep 4, every five minutes at its end, and to the minute in the middle
+   of groep 5. After two tries the worked line counts the big hand's
+   fives: "9 × 5 = 45 → 3:45".

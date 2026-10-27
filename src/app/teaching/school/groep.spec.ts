@@ -56,7 +56,9 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       const result = answer(sum);
       // klas 1's negative numbers are the one kind kept below nought (sum-form.ts, negatief): typed with the minus key
       const below = /^(negatief|negmacht|minkwadraat)/.test(sum.form || '');
-      if (!isWhole(sum.num1) || !isWhole(sum.num2) || !isWhole(result) || (!below && (result < 0 || sum.num1 <= 0 || sum.num2 <= 0))
+      // a clock at the whole hour is kept as 300 + 0
+      const clock = sum.form === 'klok';
+      if (!isWhole(sum.num1) || !isWhole(sum.num2) || !isWhole(result) || (!below && (result < 0 || sum.num1 <= 0 || (sum.num2 <= 0 && !clock)))
           || (below && (sum.num1 === 0 || sum.num2 === 0))) {
         misses.push(`${topic}: ${sum.num1} ${sum.operation} ${sum.num2}`);
       }
@@ -109,6 +111,10 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
 
     it('never asks a times or share sum, and never goes past 100', () => {
       (['B', 'M', 'E'] as Moment[]).forEach(moment => Object.keys(CURRICULUM[3][moment]).forEach(topic => made(topic, 100).forEach(sum => {
+        // A clock is read, and kept as 300 + 30 for half 4: a time, not a sum past 100 (clock-face.spec.ts)
+        if (sum.form === 'klok') {
+          return;
+        }
         // A half is kept as a share by 2, but asked as "de helft van": never written with :
         expect(sum.form === 'helft' ? '-' : sum.operation).withContext(topic).toMatch(/^[+-]$/);
         expect(Math.max(sum.num1, sum.num2, answer(sum))).withContext(topic).toBeLessThanOrEqual(100);
