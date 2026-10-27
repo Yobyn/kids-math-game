@@ -1,0 +1,11 @@
+<svg class="clock-face" viewBox="0 0 100 100" role="img" [attr.aria-label]="label">
+  <circle class="rim" cx="50" cy="50" r="48"></circle>
+  <line *ngFor="let mark of marks" class="mark" [class.hour]="mark.hour"
+        [attr.x1]="mark.x1" [attr.y1]="mark.y1" [attr.x2]="mark.x2" [attr.y2]="mark.y2"></line>
+  <text *ngFor="let number of numbers" class="number" [attr.x]="number.x" [attr.y]="number.y"
+        text-anchor="middle" dominant-baseline="central">{{ number.n }}</text>
+  <!-- The short hand under the long one, both turning about the middle -->
+  <line class="hand hour-hand" x1="50" y1="50" x2="50" y2="32" [attr.transform]="'rotate(' + hourAngle + ' 50 50)'"></line>
+  <line class="hand minute-hand" x1="50" y1="50" x2="50" y2="20" [attr.transform]="'rotate(' + minuteAngle + ' 50 50)'"></line>
+  <circle class="pin" cx="50" cy="50" r="3"></circle>
+</svg>

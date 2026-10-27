@@ -1,0 +1,56 @@
+/* In the sum's row, beside the answer box: as wide as a phone leaves next
+   to it, so on 320 to 390px the clock and the box share one line and Check
+   Answer is no further down than for a money question. */
+:host {
+  display: block;
+  width: min(44vw, 170px);
+}
+
+.clock-face {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* The face is the card's own reading surface, the rim its sum colour */
+.rim {
+  fill: var(--surface-read);
+  stroke: var(--accent-blue-read);
+  stroke-width: 3;
+}
+
+.mark {
+  stroke: var(--text-read-dim);
+  stroke-width: 0.8;
+}
+
+.mark.hour {
+  stroke: var(--text-read);
+  stroke-width: 1.8;
+}
+
+.number {
+  fill: var(--text-read);
+  font-size: 9.5px;
+  font-weight: bold;
+}
+
+/* The hour hand short and thick, the minute hand long and thinner, as on a
+   school clock: telling them apart is half of reading one */
+.hand {
+  stroke-linecap: round;
+}
+
+.hour-hand {
+  stroke: var(--text-read);
+  stroke-width: 5;
+}
+
+.minute-hand {
+  stroke: var(--accent-magenta-read);
+  stroke-width: 3;
+}
+
+.pin {
+  fill: var(--text-read);
+}

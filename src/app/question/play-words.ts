@@ -45,6 +45,8 @@ export type PlayKey =
   | 'money-total'
   | 'money-change'
   | 'money-count'
+  | 'clock-ask'
+  | 'clock-face'
   | 'money-make'
   | 'money-pick'
   | 'money-purse'
@@ -120,6 +122,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'money-total': 'You buy a toy for {first} and a book for {second}. How much altogether?',
     'money-change': 'A toy costs {price}. You pay with {paid}. How much change do you get?',
     'money-count': 'How much money is this?',
+    'clock-ask': 'What time is it?',
+    'clock-face': 'A clock',
     'money-make': 'How many {coin} coins make {target}?',
     'money-pick': 'Put down coins to make {target}.',
     'money-purse': 'Your coins',
@@ -194,6 +198,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'money-total': 'Je koopt speelgoed voor {first} en een boek voor {second}. Hoeveel is dat samen?',
     'money-change': 'Speelgoed kost {price}. Je betaalt met {paid}. Hoeveel krijg je terug?',
     'money-count': 'Hoeveel geld is dit?',
+    'clock-ask': 'Hoe laat is het?',
+    'clock-face': 'Een klok',
     'money-make': 'Hoeveel munten van {coin} maken {target}?',
     'money-pick': 'Leg munten neer om {target} te maken.',
     'money-purse': 'Jouw munten',
@@ -268,6 +274,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'money-total': 'Compras un juguete por {first} y un libro por {second}. ¿Cuánto es en total?',
     'money-change': 'Un juguete cuesta {price}. Pagas con {paid}. ¿Cuánto cambio recibes?',
     'money-count': '¿Cuánto dinero hay aquí?',
+    'clock-ask': '¿Qué hora es?',
+    'clock-face': 'Un reloj',
     'money-make': '¿Cuántas monedas de {coin} hacen {target}?',
     'money-pick': 'Pon monedas para hacer {target}.',
     'money-purse': 'Tus monedas',

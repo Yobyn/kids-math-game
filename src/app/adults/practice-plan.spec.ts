@@ -270,6 +270,12 @@ describe('the facts an adult is asked to practise', () => {
     expect(items.map(item => item.answer)).toEqual(['\u22125', '23', '5', '19', '35', '3,5']);
   });
 
+  it('gives the grown-ups a clock to set and read, never 300 + 45', () => {
+    const item = practicePlan([], [{ ...fact(300, 45, '+'), form: 'klok' }] as MissedFact[]).facts[0];
+    expect(item.question).toBe('🕒 3:45');
+    expect(item.answer).toBe('3:45');
+  });
+
   it('gives the grown-ups klas 2 as it was asked', () => {
     const facts = [
       { ...fact(4, 2, '*'), form: 'macht-3' },

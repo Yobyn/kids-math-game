@@ -454,6 +454,10 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       const sign = ({ '%': ':', '-': '−', '*': '×', '/': ':' } as { [op: string]: string })[sum.operation] || sum.operation;
       const written = read(sumLayout({ num1: sum.num1, num2: sum.num2, sign, form: sum.form }, WORDS));
       const right = answer(sum);
+      // A clock is drawn, not written: clock-face.spec.ts holds it to what it shows
+      if (sum.form === 'klok') {
+        return;
+      }
       // a sum with a comma is answered with one: 7 tenths is written 0,7
       const filled = (value: number) => placesOf(sum.form) ? decimal(value, placesOf(sum.form)) : value;
       if (!holds(written, filled(right)) || holds(written, filled(right + 1))) {
@@ -537,12 +541,17 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('sin-30', 50, 10, '*')).toBe('sin 30° = 0,5 → 0,5 × 10 = 5');
     expect(formWorkedStep('herleiden', 36, 9, '/')).toBe('b = A : l → 36 : 9 = 4');
     expect(formWorkedStep('procent-stappen', 110, 90, '*')).toBe('1,1 × 0,9 = 0,99');
+    // The big hand's fives: on the 9 it is 45 minutes past; on the 12 the whole hour
+    expect(formWorkedStep('klok', 300, 45)).toBe('9 × 5 = 45 → 3:45');
+    expect(formWorkedStep('klok', 300, 37)).toBe('7 × 5 + 2 = 37 → 3:37');
+    expect(formWorkedStep('klok', 1200, 0)).toBe('12 → 12:00');
     expect(formWorkedStep(undefined, 7, 5)).toBeUndefined();
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
-      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur|negatief|ongelijk|macht|pythagoras|beide|kwadratisch|kwadraat-vgl|negmacht|minkwadraat|wortel-vereenvoudig|herleiden)/.test(sum.form!)) {
-        return;  // read as rounding, as decimals, as percentages, as fractions, as scales and as means below
+      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur|negatief|ongelijk|macht|pythagoras|beide|kwadratisch|kwadraat-vgl|negmacht|minkwadraat|wortel-vereenvoudig|herleiden|klok)/.test(sum.form!)) {
+        // read as rounding, as decimals, as percentages, as fractions, as scales and as means below; a clock in clock-face.spec.ts
+        return;
       }
       // Every step is true, and the answer is in it (last for most; a half is worked as 8 + 8 = 16)
       const steps = line.split(' → ');

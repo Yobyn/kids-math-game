@@ -9,6 +9,7 @@ import { PLAY_WORDS } from './play-words';
 import { ProgressService } from '../services/progress.service';
 import { MAX_PICKED, fewestPieces } from '../teaching/coin-pick';
 import { KeypadComponent } from '../keypad/keypad.component';
+import { ClockFaceComponent } from './clock-face.component';
 
 describe('QuestionComponent', () => {
   let component: QuestionComponent;
@@ -58,8 +59,8 @@ describe('QuestionComponent', () => {
   it('asks a grade 3 child what groep 5 is taught in the middle of the year: to 1000, the tables to 10 and sharing out inside them', () => {
     for (let i = 0; i < 40; i++) {
       component.generateQuestion();
-      // Money is its own strand, at every grade
-      if (component.currentQuestion.money) {
+      // Money is its own strand, at every grade; a clock is read, not summed (klok)
+      if (component.currentQuestion.money || component.currentQuestion.form === 'klok') {
         continue;
       }
       const { num1, num2, operation } = component.currentQuestion;
@@ -838,7 +839,8 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     const asked = [];
     for (let i = 0; i < count; i++) {
       component.generateQuestion();
-      if (!component.currentQuestion.money) {
+      // A clock to read is kept as 300 + 45 for 3:45: a time, not a sum to 100
+      if (!component.currentQuestion.money && component.currentQuestion.form !== 'klok') {
         asked.push({ ...component.currentQuestion });
       }
     }
@@ -2587,5 +2589,105 @@ describe('QuestionComponent when an answer is right (2026-10-25)', () => {
     component.checkAnswer();
     fixture.detectChanges();
     expect(verdict().textContent).not.toContain('✓');
+  });
+});
+
+describe('QuestionComponent asking the time on a clock (klokkijken, 2026-10-27)', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  function build(grade = '2') {
+    localStorage.clear();
+    localStorage.setItem('grade', grade);
+    localStorage.setItem('difficulty', 'medium');
+    localStorage.setItem('language', 'nl');
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  function askTime(hours: number, minutes: number) {
+    component.currentQuestion = { num1: hours * 100, num2: minutes, operation: '+', form: 'klok' };
+    component.userAnswer = '';
+    component.showOkButton = false;
+    component.wrongAttempts = 0;
+    component.isSecondAttempt = false;
+    component.workedLine = '';
+    fixture.detectChanges();
+  }
+
+  function type(keys: string) {
+    keys.split('').forEach(key => component.onKeypadPress(key));
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [QuestionComponent, KeypadComponent, ClockFaceComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('draws the clock at the time, asks "Hoe laat is het?", and shows no sum', () => {
+    build();
+    askTime(3, 45);
+    const page = fixture.nativeElement as HTMLElement;
+    expect(page.textContent).toContain('Hoe laat is het?');
+    const clock = page.querySelector('app-clock-face svg') as SVGElement;
+    expect(clock.querySelector('.minute-hand')!.getAttribute('transform')).toBe('rotate(270 50 50)');
+    // Not 300 + 45: the clock and the box are all there is in the sum's row
+    const row = page.querySelector('.math-problem') as HTMLElement;
+    expect(row.querySelector('app-clock-face')).not.toBeNull();
+    expect(Array.from(row.children).filter(child => child.tagName === 'SPAN').map(span => span.textContent!.trim()).join(''))
+      .toBe('');
+    expect(row.textContent).not.toContain('300');
+    expect(row.textContent).not.toContain('+');
+  });
+
+  it('writes 3, 4, 5 typed on the keypad as 3:45, and marks it right', () => {
+    build();
+    askTime(3, 45);
+    type('345');
+    const box = fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement;
+    expect(box.type).toBe('text');
+    expect(box.value).toBe('3:45');
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+  });
+
+  it('takes the afternoon too, 15:45, as a digital clock may show it', () => {
+    build();
+    askTime(3, 45);
+    type('1545');
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+  });
+
+  it('gives the answer as a time after two tries, worked from the big hand', () => {
+    build();
+    askTime(3, 45);
+    type('9');
+    component.checkAnswer();
+    type('315');
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeFalse();
+    expect(component.feedback).toContain('3:45');
+    expect(component.workedLine).toBe('9 × 5 = 45 → 3:45');
+  });
+
+  it('puts a clock in a groep 4 round now and then, and never tells it as a story', () => {
+    build('2');
+    let clocks = 0;
+    for (let i = 0; i < 200; i++) {
+      component.generateQuestion();
+      if (component.currentQuestion.form === 'klok') {
+        clocks++;
+        expect(component.currentQuestion.story).toBeUndefined();
+      }
+    }
+    expect(clocks).toBeGreaterThan(0);
   });
 });

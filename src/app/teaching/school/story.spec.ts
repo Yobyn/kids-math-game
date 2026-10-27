@@ -171,7 +171,7 @@ describe('verhaaltjessommen, groep 3 to klas 2 (Yobyn, 2026-10-24)', () => {
   it('tells what groep 5 and 6 learn: tables, bigger sums, a remainder, euros, measures, a part and area', () => {
     // Not stories: a double, a half, rounding, tenths and fractions as such are written sums
     const notStories = ['honderdtallen', 'dubbel-van-tot-100', 'helft-van-tot-100', 'afronden', 'tienden', 'breuk-van',
-      'gelijke-breuken'];
+      'gelijke-breuken', 'klok-5-minuten', 'klok-minuten'];
     const random = seeded(17);
     [5, 6].forEach(groep => (['B', 'M', 'E'] as Moment[]).forEach(moment => {
       Object.keys(CURRICULUM[groep][moment]).filter(topic => !notStories.includes(topic)).forEach(topic => {

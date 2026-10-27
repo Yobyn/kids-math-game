@@ -43,7 +43,13 @@
                      (take)="takeFromTray($event)"
                      (putBack)="putBack($event)"></app-coin-picker>
 
+    <!-- Klokkijken: the question above, the clock in the sum's row beside the box, which takes the
+         time as a digital clock writes it. Side by side, so a clock costs a phone no more than coins do -->
+    <p class="money-prompt" *ngIf="isClock">{{ languageService.translate('clock-ask') }}</p>
+
     <div class="math-problem" *ngIf="!isPicking">
+      <app-clock-face *ngIf="isClock" [hours]="clockHours" [minutes]="currentQuestion.num2"
+                      [label]="languageService.translate('clock-face')"></app-clock-face>
       <!-- The box goes where the "?" is in the workbook: last for 7 + 5 = ?,
            in the middle for 7 + ? = 10 (sum-form.ts) -->
       <ng-container *ngIf="!currentQuestion.money && !storyLine">
@@ -59,8 +65,8 @@
       <!-- A box that takes a decimal is a text box: a number box empties itself
            on "0." halfway through typing 0.7, and cannot show 0,7 -->
       <input #answerInput
-             [type]="needsDecimalKey ? 'text' : 'number'"
-             [attr.inputmode]="needsDecimalKey ? 'decimal' : null"
+             [type]="needsDecimalKey || isClock ? 'text' : 'number'"
+             [attr.inputmode]="needsDecimalKey ? 'decimal' : isClock ? 'numeric' : null"
              [value]="shownAnswer"
              (input)="userAnswer = $any($event.target).value"
              [placeholder]="inputPlaceholder"
