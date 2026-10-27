@@ -2068,6 +2068,16 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(size(caption) / size(problem)).toBeLessThan(0.7);
   });
 
+  it('writes a bracket on its number, (9 + 4) × 3 and 3(x + 4), never a sign standing apart', () => {
+    build('nl');
+    const parts = () => Array.from(fixture.nativeElement.querySelectorAll('.math-problem span') as NodeListOf<HTMLElement>)
+      .map(span => span.textContent!.trim()).filter(Boolean);
+    ask({ num1: 13, num2: 3, operation: '*', form: 'haakjes-9' });
+    expect(parts()).toEqual(['(9', '+', '4)', '×', '3', '=']);
+    ask({ num1: 3, num2: 6, operation: '*', form: 'invullen-2' });
+    expect(parts()).toEqual(['x = 2', '3(x', '+', '4)', '=']);
+  });
+
   it('stands the box over the 12 for ¾ = ?/12, with a fraction bar between, as the workbook writes it', () => {
     build('nl');
     ask({ num1: 3, num2: 3, operation: '*', form: 'gelijk-4' });

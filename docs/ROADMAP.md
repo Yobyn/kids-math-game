@@ -733,6 +733,16 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 3: brackets on their numbers (2026-10-27).** Rounds
+  were played in groep 3 and 4, groep 7 and 8, and klas 1 and 3, at 320,
+  360 and 390px in nl, en and es, with no errors. Klas 1's bracket sums
+  were drawn "( 9 + 4 ) × 3": each bracket was a sign of its own, a flex
+  gap away and coloured as a sign. Klas 2's "3 ( x + 4 )" had a small grey
+  x. Each bracket now holds on to its number, "(9 + 4) × 3" and "3(x + 4)",
+  as the workbook prints them and as the grown-ups' practice plan already
+  wrote them. This is a change in written-form.ts (`opens`, `closes`) with
+  no CSS. Noted for a 22:00 run: an equation with x on its own worked as
+  "24 − 12 = 12 → 12 : 1 = 12", where the second step says nothing.
 - **Verhaaltjessommen, part 3: groep 7 to klas 2 (2026-10-26).** About one
   sum in five is now told as a story from the middle of groep 3 through
   klas 2. There are 27 new stories, 62 in all:

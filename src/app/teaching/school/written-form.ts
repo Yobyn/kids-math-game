@@ -221,6 +221,9 @@ export function grouped(value: number): string {
 }
 
 const number = (value: number): SumPart => ({ kind: 'number', text: grouped(value) });
+/** A bracket on the number it belongs to: (3 and 4), not ( 3 and 4 ) */
+const opens = (part: SumPart): SumPart => ({ ...part, text: `(${part.text}` });
+const closes = (part: SumPart): SumPart => ({ ...part, text: `${part.text})` });
 const operation = (text: string): SumPart => ({ kind: 'operation', text });
 const equals: SumPart = { kind: 'equals', text: '=' };
 
@@ -469,11 +472,12 @@ function klasLayout(sum: SumToShow, words: FormWords): SumLayout | undefined {
     const by = lastNumberOf(form);
     return { before: [number(sum.num1), sign(sum.sign), number(sum.num2 / by), sign('×'), number(by), equals], after: [] };
   }
-  // (3 + 4) × 5 = ?, kept as 7 × 5
+  // (3 + 4) × 5 = ?, kept as 7 × 5. A bracket holds on to the number inside it, as the
+  // workbook prints it: on its own it stood a gap away, "( 3 + 4 )", like a sign of its own
   if (form.startsWith('haakjes-')) {
     const first = lastNumberOf(form);
     return {
-      before: [sign('('), number(first), sign('+'), number(sum.num1 - first), sign(')'), sign('×'), number(sum.num2), equals],
+      before: [opens(number(first)), sign('+'), closes(number(sum.num1 - first)), sign('×'), number(sum.num2), equals],
       after: []
     };
   }
@@ -533,7 +537,7 @@ function klas2Layout(sum: SumToShow, words: FormWords): SumLayout | undefined {
   if (form.startsWith('invullen-')) {
     const x = lastNumberOf(form);
     return {
-      before: [{ kind: 'given', text: `x = ${x}` }, number(sum.num1), sign('('), word('x'), sign('+'), number(sum.num2 - x), sign(')'), equals],
+      before: [{ kind: 'given', text: `x = ${x}` }, { kind: 'number', text: `${sum.num1}(x` }, sign('+'), closes(number(sum.num2 - x)), equals],
       after: []
     };
   }

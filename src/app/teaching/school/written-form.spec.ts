@@ -161,8 +161,8 @@ function holds(written: string, filled: number | string): boolean {
     const [a, b, c, d] = [1, 3, 4, 5].map(i => +precedence[i]);
     return (precedence[2] === '+' ? a + b * c : a - b * c) === d;
   }
-  // ( 3 + 4 ) × 5 = 35: the brackets first
-  const brackets = text.match(/^\( (\d+) \+ (\d+) \) × (\d+) = (\d+)$/);
+  // (3 + 4) × 5 = 35: the brackets first
+  const brackets = text.match(/^\((\d+) \+ (\d+)\) × (\d+) = (\d+)$/);
   if (brackets) {
     return (+brackets[1] + +brackets[2]) * +brackets[3] === +brackets[4];
   }
@@ -199,8 +199,8 @@ function holds(written: string, filled: number | string): boolean {
   if (equation) {
     return (+(equation[1] || 1)) * +equation[4] + +equation[2] === +equation[3];
   }
-  // x = 2 3 ( x + 4 ) = 18
-  const fillIn = text.match(/^x = (\d+) (\d+) \( x \+ (\d+) \) = (\d+)$/);
+  // x = 2 3(x + 4) = 18
+  const fillIn = text.match(/^x = (\d+) (\d+)\(x \+ (\d+)\) = (\d+)$/);
   if (fillIn) {
     return +fillIn[2] * (+fillIn[1] + +fillIn[3]) === +fillIn[4];
   }
@@ -410,7 +410,8 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('negatief', -3, 8, '+')).toBe('\u22123 + 8 = ?');
     expect(shown('negatief', -24, -3, ':')).toBe('\u221224 : \u22123 = ?');
     expect(shown('voorrang-5', 3, 20, '+')).toBe('3 + 4 × 5 = ?');
-    expect(shown('haakjes-3', 7, 5, '*')).toBe('( 3 + 4 ) × 5 = ?');
+    // The brackets on their numbers, as printed: not "( 3 + 4 )"
+    expect(shown('haakjes-3', 7, 5, '*')).toBe('(3 + 4) × 5 = ?');
     expect(shown('ongelijk-2-3', 3, 2, '+')).toBe('1/2 + 1/3 = ? / 6');
     expect(shown('ongelijk-4-8', 6, 3, '−')).toBe('3/4 − 3/8 = ? / 8');
     expect(shown('keer-3', 4, 2, '*')).toBe('⅔ × 12 = ?');
@@ -420,7 +421,7 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(shown('wortel', 144, 12, '/')).toBe('√144 = ?');
     expect(shown('vergelijking-5', 15, 3, '/')).toBe('3x + 5 = 20 x = ?');
     expect(shown('vergelijking-7', 8, 1, '/')).toBe('x + 7 = 15 x = ?');
-    expect(shown('invullen-2', 3, 6, '*')).toBe('x = 2 3 ( x + 4 ) = ?');
+    expect(shown('invullen-2', 3, 6, '*')).toBe('x = 2 3(x + 4) = ?');
     expect(shown('toename-15', 80, 12, '+')).toBe('€ 80 + 15% = € ?');
     expect(shown('afname-20', 80, 16, '−')).toBe('€ 80 \u2212 20% = € ?'.replace('\u2212', '−'));
     expect(shown('pythagoras-1', 100, 10, '/')).toBe('Rechthoekige driehoek: de schuine zijde? a = 6 b = 8 → ?');
