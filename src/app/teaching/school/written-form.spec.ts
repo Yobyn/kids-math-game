@@ -210,6 +210,16 @@ function holds(written: string, filled: number | string): boolean {
     const [price, percent, paid] = [+change[1], +change[3], +change[4]];
     return 100 * paid === price * (change[2] === '+' ? 100 + percent : 100 - percent);
   }
+  // Rechthoekige driehoek: de schuine zijde? a = 3 b = 5 ≈ 5,8: √34 is 5,83, to one decimal, and no other
+  const side = text.match(/^Rechthoekige driehoek: de schuine zijde\? a = (\d+) b = (\d+) ≈ (\d+)(?:,(\d))?$/);
+  if (side) {
+    // 12,0 is written 12: √145 = 12,04…
+    const tenths = 10 * +side[3] + +(side[4] || 0);
+    return Math.abs(10 * Math.sqrt((+side[1]) ** 2 + (+side[2]) ** 2) - tenths) <= 0.5;
+  }
+  if (/schuine zijde\? a = \d+ b = \d+ ≈/.test(text)) {
+    return false;
+  }
   // Rechthoekige driehoek: de schuine zijde? a = 6 b = 8 → c = 10
   const pythagoras = text.match(/^Rechthoekige driehoek: de schuine zijde\? a = (\d+) b = (\d+) → (\d+)$/);
   if (pythagoras) {
@@ -1039,8 +1049,10 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
         expect(answer(sum)).withContext(at).toBeLessThan(under);
       });
       expect(new Set(sums.map(sum => sum.operation))).toEqual(new Set(['+', '-']));
-      // one figure under the line, so the sum fits one line of a 320px phone
-      expect(new Set(sums.map(sum => Number(sum.form!.split('-')[1])))).toEqual(new Set([4, 5, 6, 8]));
+      // tenths and twelfths too, the box then standing over the 10 or 12 so the sum fits a 320px phone
+      expect(new Set(sums.map(sum => Number(sum.form!.split('-')[1])))).toEqual(new Set([4, 5, 6, 8, 10, 12]));
+      sums.filter(sum => /-1[02]$/.test(sum.form!)).forEach(sum =>
+        expect(sumLayout({ num1: sum.num1, num2: sum.num2, sign: '+', form: sum.form }, WORDS).over).toBeTrue());
     });
 
     it('writes the fractions school knows as decimals in groep 7: halves, quarters, fifths and a tenth, in hundredths', () => {
@@ -1327,7 +1339,8 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       expect(first['negatief']).toBe('9B');
       expect(first['voorrang']).toBe('9M');
       expect(first['haakjes']).toBe('9M');
-      expect(first['ongelijk-2']).toBe('9M');
+      // groep 8's end, written as klas 1 has them: 1/2 + 1/3 = ?/6
+      expect(first['ongelijk-2']).toBe('8E');
       expect(first['keer']).toBe('9E');
       expect(first['formule']).toBe('9E');
       expect(first['afronden-decimaal']).toBe('9E');

@@ -733,6 +733,25 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **The "Not yet" gaps (step T, 2026-10-28).**
+  - Groep 4: aanvullen tot 20 (13 + ? = 20 and through the ten, 8 + ? =
+    15) and splitsen above 10 (15 = 8 + ?) in the middle of the year, and
+    on to the next ten (34 + ? = 40) at its end. All are in the forms
+    groep 3 already had.
+  - Groep 7: tenths and twelfths, "7/12 + 4/12 =". The box now stands over
+    the 12, as ¾ = ?/12 already did, so the sum fits a 320px phone.
+  - Groep 8 E: unlike denominators, "1/2 + 1/3 = ?/6", as klas 1 then keeps
+    asking them.
+  - Klas 3 E: the long side to one decimal, "a = 3 b = 5 ≈ ?" → 5,8, typed
+    with the comma. Only short sides 2 to 9 whose long side is not whole,
+    and whose a² + b² no other pair makes, so the sides are read back from
+    the kept sum (`ROUNDED_SIDES`, `roundedSides`). Writing the tests found
+    a double rounding: √68 = 8,246 kept rounded as 8,25 rounded on to 8,3.
+    It is now cut off at the hundredths, so it rounds once, to 8,2. Worked
+    as "3² + 5² = 9 + 25 = 34 → √34 = 5,83… → 5,8".
+
+  Still "Not yet" in CURRICULUM-NL.md: mixed numbers, measures the other
+  way (300 cm = ? m), estimating, and doubling times (klas 4).
 - **Look and feel, run 4: the minus is a minus (2026-10-28).** Rounds were
   played in groep 3 to 5, groep 8, and klas 1 and 3, at 320, 360 and 390px
   in nl, en and es, with no errors. Klas 1 types answers below nought all
@@ -829,8 +848,10 @@ middle, hard the end), one groep per run.
   calculado!"), and the same phrase never comes twice in a row. The words
   live in play-words.ts (lazy). The unused `'correct'` key left the first
   load, and an unused `@keyframes pulse` left question.component.css.
-- **Next, in order:** the "Not yet" gaps (aanvullen tot 20, tenths in
-  groep 7, unlike denominators in groep 8, Pythagoras to one decimal).
+- **Next:** the 22:00 runs play rounds as a child in a low groep, a middle
+  groep and a klas, and pick one improvement to the questions each time.
+  First on the list: an equation with x on its own is worked as "24 − 12
+  = 12 → 12 : 1 = 12", and its second step says nothing.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 
