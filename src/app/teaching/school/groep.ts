@@ -30,7 +30,7 @@ import {
   denominatorsOf, lastNumberOf, EQUATION_FORMS, FILL_IN_FORMS, PERCENT_CHANGE_FORMS, POWER_FORMS, PYTHAGORAS_FORMS, TRIANGLES,
   BOTH_SIDES_FORMS, BRACKET_EQUATION_FORMS, NEGATIVE_POWER_FORMS, TRIG_FORMS, TRIG_VALUES
 } from '../../question/sum-form';
-import { DECIMAL_MEASURES, MEASURES, numeratorsOf } from './written-form';
+import { DECIMAL_MEASURES, MEASURES, ROUNDED_SIDES, numeratorsOf } from './written-form';
 
 export type Moment = 'B' | 'M' | 'E';
 /**
@@ -182,6 +182,24 @@ export const TOPICS: { [id: string]: Maker } = {
 Object.assign(TOPICS, {
   // Groep 3, the middle: what goes with a number to make 10. 7 + ? = 10
   'aanvullen-tot-10': random => ({ num1: 10, num2: between(random, 1, 9), operation: '-', form: 'aanvullen' }),
+  // Groep 4, the middle: aanvullen to 20, up to 20 itself (13 + ? = 20) or through the ten (8 + ? = 15)
+  'aanvullen-tot-20': random => {
+    if (random() < 0.5) {
+      return { num1: 20, num2: between(random, 11, 19), operation: '-', form: 'aanvullen' };
+    }
+    const num1 = between(random, 11, 18);
+    return { num1, num2: between(random, num1 - 9, 9), operation: '-', form: 'aanvullen' };
+  },
+  // Groep 4, the end: on to the next ten. 34 + ? = 40
+  'aanvullen-tot-tiental': random => {
+    const num1 = 10 * between(random, 2, 10);
+    return { num1, num2: num1 - between(random, 1, 9), operation: '-', form: 'aanvullen' };
+  },
+  // Groep 4, the middle: a number from 11 to 20 split in two. 15 = 8 + ?
+  'splitsen-tot-20': random => {
+    const num1 = between(random, 11, 20);
+    return { num1, num2: between(random, 2, num1 - 2), operation: '-', form: 'splitsen' };
+  },
   // Groep 3, the end: a number up to 10 split in two. 8 = 5 + ?
   'splitsen-tot-10': random => {
     const num1 = between(random, 3, 10);
@@ -691,6 +709,13 @@ Object.assign(TOPICS, {
     const price = step * between(random, Math.ceil(20 / step), Math.floor(99 / step));
     return { num1: price, num2: price * percent / 100, operation: form.startsWith('toename-') ? '+' : '-', form };
   },
+  // Klas 3: Pythagoras rounded to one decimal. a = 3, b = 5 → c ≈ ?, kept as √34 = 5,83… ≈ 10 in hundredths, as
+  // afronden-decimaal is: the answer 5,8 is typed with the comma (written-form.ts, ROUNDED_SIDES). Cut off at the
+  // hundredths, never rounded to them: √68 = 8,246 rounded is 8,25, which would round on to 8,3 and not 8,2
+  'pythagoras-decimaal': random => {
+    const [a, b] = pick(random, ROUNDED_SIDES);
+    return { num1: Math.floor(100 * Math.sqrt(a * a + b * b)), num2: 10, operation: '≈', form: 'schuine-zijde' };
+  },
   // Pythagoras with a whole answer: a multiple of 3-4-5, 5-12-13, 8-15-17 or 7-24-25. a = 6, b = 8 → c = ?, kept as 100 : 10
   'pythagoras': random => {
     const form = pick(random, PYTHAGORAS_FORMS);
@@ -808,12 +833,12 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     M: {
       'tientallen': NEW, 'te-e-zonder': NEW, 'te-e-over': NEW, 'te-t': NEW,
       'tafels-1-2-5-10': NEW, 'deeltafels-2-5-10': NEW, 'plus-tot-20-over': REVIEW, 'min-tot-20-over': REVIEW,
-      'klok-kwartier': NEW
+      'klok-kwartier': NEW, 'aanvullen-tot-20': NEW, 'splitsen-tot-20': NEW
     },
     E: {
       'te-te-zonder': NEW, 'te-te-over': NEW, 'tafels-1-5-10': NEW, 'deeltafels-1-5-10': NEW,
       'honderdtallen': NEW, 'dubbel-van-tot-100': NEW, 'helft-van-tot-100': NEW, 'klok-5-minuten': NEW,
-      'te-e-over': REVIEW, 'te-t': REVIEW, 'klok-kwartier': REVIEW
+      'aanvullen-tot-tiental': NEW, 'te-e-over': REVIEW, 'te-t': REVIEW, 'klok-kwartier': REVIEW
     }
   },
   5: {
@@ -871,7 +896,7 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
       'korting': REVIEW, 'verhoudingen': REVIEW, 'metriek': REVIEW
     },
     E: {
-      'inhoud': NEW, 'liters': NEW, 'tijdsduur': NEW, 'snelheid': NEW, 'temperatuur': NEW,
+      'inhoud': NEW, 'liters': NEW, 'tijdsduur': NEW, 'snelheid': NEW, 'temperatuur': NEW, 'ongelijknamige-breuken': NEW,
       'procent-van': REVIEW, 'welk-procent': REVIEW, 'breuk-van-groot': REVIEW, 'schaal': REVIEW, 'gemiddelde': REVIEW
     }
   },
@@ -912,7 +937,7 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
       'vergelijkingen': REVIEW
     },
     E: {
-      'groeifactor': NEW, 'kwadraat-vergelijking': NEW,
+      'groeifactor': NEW, 'kwadraat-vergelijking': NEW, 'pythagoras-decimaal': NEW,
       'haakjes-vergelijking': REVIEW, 'x-beide-kanten': REVIEW, 'negatieve-machten': REVIEW, 'wetenschappelijk': REVIEW, 'pythagoras': REVIEW
     }
   },

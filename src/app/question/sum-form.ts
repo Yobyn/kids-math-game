@@ -101,7 +101,8 @@ export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | '
   | 'negatief' | PrecedenceForm | BracketForm | UnlikeFractionForm | TimesFractionForm | FormulaForm | 'afronden-decimaal'
   | PowerForm | 'wortel' | EquationForm | FillInForm | PercentChangeForm | PythagorasForm | 'driehoek'
   | BracketEquationForm | BothSidesForm | NegativePowerForm | 'minkwadraat' | 'wetenschap' | 'wetenschap-min' | 'groeifactor'
-  | 'kwadraat-vgl' | 'kwadratisch' | 'groei-2' | 'wortel-vereenvoudig' | TrigForm | 'herleiden' | 'procent-stappen' | 'klok';
+  | 'kwadraat-vgl' | 'kwadratisch' | 'groei-2' | 'wortel-vereenvoudig' | TrigForm | 'herleiden' | 'procent-stappen' | 'klok'
+  | 'schuine-zijde';
 
 type TwoToNine = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 const TWO_TO_NINE: TwoToNine[] = [2, 3, 4, 5, 6, 7, 8, 9];
@@ -243,8 +244,10 @@ export const MEAN_FORMS: MeanForm[] = ['gemiddelde-3', 'gemiddelde-4'];
  * One figure under the line: with tenths or twelfths, 7/12 + 4/12 = ? / 12 is too wide for one line of a
  * 320px phone. They come when a fraction is drawn over its line.
  */
-export type FractionSumForm = 'gelijknamig-4' | 'gelijknamig-5' | 'gelijknamig-6' | 'gelijknamig-8';
-export const FRACTION_SUM_FORMS: FractionSumForm[] = ['gelijknamig-4', 'gelijknamig-5', 'gelijknamig-6', 'gelijknamig-8'];
+export type FractionSumForm = 'gelijknamig-4' | 'gelijknamig-5' | 'gelijknamig-6' | 'gelijknamig-8' | 'gelijknamig-10' | 'gelijknamig-12';
+export const FRACTION_SUM_FORMS: FractionSumForm[] = [
+  'gelijknamig-4', 'gelijknamig-5', 'gelijknamig-6', 'gelijknamig-8', 'gelijknamig-10', 'gelijknamig-12'
+];
 
 /** 3 pakken kosten €6, 7 pakken = €?: a ratio, worked through the price of one. The number is the packs priced. */
 export type RatioForm = 'verhouding-2' | 'verhouding-3' | 'verhouding-4' | 'verhouding-5';
@@ -283,7 +286,8 @@ export function placesOf(form: SumForm | undefined): number {
   if (form === 'wetenschap') {
     return 1;
   }
-  if (form === 'komma-2' || form === 'breuk-komma' || form === 'afronden-decimaal' || form === 'groeifactor' || form === 'groei-2'
+  if (form === 'komma-2' || form === 'breuk-komma' || form === 'afronden-decimaal' || form === 'schuine-zijde' || form === 'groeifactor'
+      || form === 'groei-2'
       || TRIG_FORMS.includes(form as TrigForm)) {
     return 2;
   }
@@ -328,7 +332,7 @@ export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft',
   'afronden-decimaal', ...POWER_FORMS, 'wortel', ...EQUATION_FORMS, ...FILL_IN_FORMS, ...PERCENT_CHANGE_FORMS, ...PYTHAGORAS_FORMS,
   'driehoek', ...BRACKET_EQUATION_FORMS, ...BOTH_SIDES_FORMS, ...NEGATIVE_POWER_FORMS, 'minkwadraat', 'wetenschap', 'wetenschap-min',
   'groeifactor', 'kwadraat-vgl', 'kwadratisch', 'groei-2', 'wortel-vereenvoudig', ...TRIG_FORMS, 'herleiden', 'procent-stappen',
-  'klok'];
+  'klok', 'schuine-zijde'];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */
 export function readForm(raw: unknown): SumForm | undefined {

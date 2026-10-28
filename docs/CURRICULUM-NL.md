@@ -211,8 +211,9 @@ its groep:
    8 = 5 + ?), dubbel and helft, with the answer box where the "?" is.
    DONE in the second school-levels PR: aanvullen tot 10 from groep 3 M,
    splitsen tot 10 and dubbel/helft tot 20 at groep 3 E (revisited at
-   groep 4 B), dubbel/helft tot 100 at groep 4 E. Not yet: aanvullen tot 20
-   and to the next ten (34 + ? = 40), splitsen above 10.
+   groep 4 B), dubbel/helft tot 100 at groep 4 E. Aanvullen tot 20 (13 +
+   ? = 20, 8 + ? = 15) and splitsen above 10 (15 = 8 + ?) DONE at groep 4 M,
+   aanvullen to the next ten (34 + ? = 40) at groep 4 E (2026-10-28).
 3. **Groep 5**: all tables, +/− within 1000, times a ten, TE × E, remainder,
    part of an amount, measures. DONE in the third and fourth school-levels
    PRs: the tables of 6–9 and dividing within them (all ten tables known by
@@ -240,9 +241,10 @@ its groep:
    the tenth: fractions with the same denominator, 2/8 + 3/8 = ?/8, and a
    fraction as a decimal, ¾ = 0,75 (M); ratios through the price of one,
    "3 pakken kosten €6, 7 pakken = €?", and discount, "20% korting: wat
-   betaal je? €45 → €?" (E). GROEP 7 IS COMPLETE. Not yet: tenths and
-   twelfths in 7/12 + 4/12 (too wide for one line of a small phone until
-   a fraction is drawn over its line), mixed numbers.
+   betaal je? €45 → €?" (E). GROEP 7 IS COMPLETE. Tenths and twelfths
+   DONE (2026-10-28): "7/12 + 4/12 =" with the box standing over the 12, a
+   fraction bar between, as ¾ = ?/12 already is, so it fits a 320px phone.
+   Not yet: mixed numbers.
 6. **Groep 8**: percentages, scale, the mean, area and volume, time spans,
    speed, negative numbers. THE START AND THE MIDDLE ARE DONE (2026-10-10):
    B is groep 7's end (2,5 × 4, 2,5 km = ? m, pakken, korting, with 25% van
@@ -258,9 +260,9 @@ its groep:
    above nothing; four numbers are small ones, as 4, 8, 6, 10, since four of
    two figures and the box do not fit one line of a 320px phone). Each is
    worked out after two tries ("5% van 60 = 3 → 3 × 3 = 9", "11 + 15 + 10 =
-   36 → 36 : 3 = 12"). Not yet: adding fractions with unlike denominators
-   (the answer is a fraction, which the keypad cannot type until a fraction
-   is drawn over its line). THE END IS DONE TOO (2026-10-10), AND GROEP 8 IS
+   36 → 36 : 3 = 12"). Adding fractions with unlike denominators DONE at
+   groep 8 E (2026-10-28), as klas 1 then keeps asking them: "1/2 + 1/3 =
+   ?/6", the common denominator given, the numerator typed. THE END IS DONE TOO (2026-10-10), AND GROEP 8 IS
    COMPLETE AND OPEN on the grade screen: the volume of a box ("Inhoud in
    cm³ / 10 × 5 × 4 = ?", kept as 50 × 4, the unit in the heading so the
    card fits a 320px phone); litres ("2 m³ = ? l", "3 l = ? cm³"); time
@@ -308,8 +310,13 @@ its groep:
    trigonometry with the nice ratios ("sin 30° × 10", cos 60°, tan 45°), a
    formula rearranged ("A = l × b, A = 36, l = 9 → b") and percentages over
    two steps as one factor ("+10% → −10% → × 0,99"). Klas 4 never asks a
-   plain sum, so never a times table or a division inside the tables. Not
-   built from the plan: Pythagoras to one decimal (klas 3), and doubling
+   plain sum, so never a times table or a division inside the tables.
+   Pythagoras to one decimal DONE at klas 3 E (2026-10-28): "a = 3 b = 5 ≈
+   ?", 5,8, the short sides 2 to 9 whose long side is not whole (form
+   `schuine-zijde`, kept as √34 = 5,83… ≈ 10 in hundredths, cut off and
+   never rounded to the hundredths so it is rounded once: √68 is 8,2, not
+   8,3). Worked as "3² + 5² = 9 + 25 = 34 → √34 = 5,83… → 5,8". Not
+   built from the plan: doubling
    times (klas 4); √12 × √3 is left for when roots get a sum of their own.
    EVERY YEAR, GROEP 3 TO KLAS 4, NOW FOLLOWS THE CURRICULUM, and the old
    generic sums (getNumberRange, getAvailableOperations) are gone: a grade

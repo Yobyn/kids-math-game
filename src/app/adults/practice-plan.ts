@@ -1,6 +1,6 @@
 import {
   DECIMAL_MEASURES, FRACTIONS, MEASURES, SUPERSCRIPTS, TRIG_NAMES, UNIT_FRACTIONS, VOLUME_MEASURES, clock, clockTime, decimal, degrees,
-  formWorkedStep, meanList, roundTo, signed, tenths
+  formWorkedStep, meanList, roundTo, roundedSides, signed, tenths
 } from '../teaching/school/written-form';
 import {
   PythagorasForm, TrigForm, UnlikeFractionForm, denominatorOf, denominatorsOf, lastNumberOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, sidesOf,
@@ -128,6 +128,10 @@ function klasFactText(fact: MissedFact): string | undefined {
   if (form === 'afronden-decimaal') {
     return `${decimal(fact.num1, 2)} ≈ ? (0,1)`;
   }
+  if (form === 'schuine-zijde') {
+    const [a, b] = roundedSides(fact.num1);
+    return `${a}² + ${b}² = c², c ≈ ? (0,1)`;
+  }
   if (form.startsWith('macht-')) {
     return `${fact.num2}${SUPERSCRIPTS[lastNumberOf(form)]}`;
   }
@@ -233,7 +237,9 @@ export function factText(fact: MissedFact): string {
     case 'gelijknamig-4':
     case 'gelijknamig-5':
     case 'gelijknamig-6':
-    case 'gelijknamig-8': {
+    case 'gelijknamig-8':
+    case 'gelijknamig-10':
+    case 'gelijknamig-12': {
       const under = denominatorOf(fact.form);
       return `${fact.num1}/${under} ${operationSymbol(fact.operation)} ${fact.num2}/${under} = ?/${under}`;
     }

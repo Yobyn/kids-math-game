@@ -114,6 +114,29 @@ export function clock(minutes: number): string {
   return `${Math.floor(minutes / 60)}:${String(minutes % 60).padStart(2, '0')}`;
 }
 
+/**
+ * Klas 3's Pythagoras to one decimal: the two short sides, 2 to 9, whose
+ * long side is not whole. Only those whose a² + b² no other pair makes, so
+ * the sides can be read back from the kept sum: √34 = 5,83 is 3 and 5.
+ */
+export const ROUNDED_SIDES: [number, number][] = (() => {
+  const pairs: [number, number][] = [];
+  for (let a = 2; a <= 9; a++) {
+    for (let b = a; b <= 9; b++) {
+      if (!Number.isInteger(Math.sqrt(a * a + b * b))) {
+        pairs.push([a, b]);
+      }
+    }
+  }
+  return pairs.filter(([a, b]) => pairs.filter(([c, d]) => c * c + d * d === a * a + b * b).length === 1);
+})();
+
+/** The short sides of a schuine-zijde sum, read back from the long side kept in hundredths: 583 is √34, so 3 and 5. */
+export function roundedSides(hundredths: number): [number, number] {
+  const squares = Math.round((hundredths / 100) ** 2);
+  return ROUNDED_SIDES.find(([a, b]) => a * a + b * b === squares) || [0, 0];
+}
+
 /** The time a klok sum asks, as a digital clock writes it: 300 + 45 is 3:45 (groep.ts). */
 export function clockTime(num1: number, num2: number): string {
   return clock(num1 / 100 * 60 + num2);
@@ -331,11 +354,16 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     case 'gelijknamig-4':
     case 'gelijknamig-5':
     case 'gelijknamig-6':
-    case 'gelijknamig-8': {
+    case 'gelijknamig-8':
+    case 'gelijknamig-10':
+    case 'gelijknamig-12': {
       const under = denominatorOf(sum.form);
       return {
         before: [{ kind: 'number', text: `${sum.num1}/${under}` }, operation(sum.sign), { kind: 'number', text: `${sum.num2}/${under}` }, equals],
-        after: [operation('/'), number(under)]
+        after: [operation('/'), number(under)],
+        // tenths and twelfths: "7/12 + 4/12 = ? / 12" is too wide for one line of a 320px phone,
+        // so the box stands over the 12 as the workbook writes the answer, a fraction bar between
+        over: under >= 10
       };
     }
     // ¾ = ?, kept as 25 × 3 in hundredths: the answer is written with a comma
@@ -510,6 +538,15 @@ function klasLayout(sum: SumToShow, words: FormWords): SumLayout | undefined {
     return {
       before: [{ kind: 'given', text: `a = ${times} × b + ${sum.num2}` }, { kind: 'word', text: 'b =' }, number(sum.num1 / times),
                sign('→'), { kind: 'word', text: 'a =' }],
+      after: []
+    };
+  }
+  // De schuine zijde op 1 decimaal over a = 3 b = 5 ≈ ?, kept as 583 ≈ 10 in hundredths (√34 = 5,83)
+  if (form === 'schuine-zijde') {
+    const [a, b] = roundedSides(sum.num1);
+    return {
+      before: [{ kind: 'caption', text: words.hypotenuse }, { kind: 'word', text: 'a =' }, number(a), { kind: 'word', text: 'b =' }, number(b),
+               sign('≈')],
       after: []
     };
   }
@@ -816,6 +853,12 @@ function klasWorkedStep(form: string, num1: number, num2: number, operation: str
     const times = lastNumberOf(form);
     return `${times} × ${num1 / times} = ${num1} → ${num1} + ${num2} = ${num1 + num2}`;
   }
+  // a = 3, b = 5: 3² + 5² = 34, √34 = 5,83…, and that to one decimal is 5,8
+  if (form === 'schuine-zijde') {
+    const [a, b] = roundedSides(num1);
+    return `${a}² + ${b}² = ${a * a} + ${b * b} = ${a * a + b * b} → √${a * a + b * b} = ${decimal(num1, 2, point)}…`
+      + ` → ${decimal(roundTo(num1, num2), 2, point)}`;
+  }
   // 3,47 op 1 decimaal: the figure after the first decimal, 7; 5 or more goes up
   if (form === 'afronden-decimaal') {
     const figure = num1 % 10;
@@ -914,7 +957,9 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
     case 'gelijknamig-4':
     case 'gelijknamig-5':
     case 'gelijknamig-6':
-    case 'gelijknamig-8': {
+    case 'gelijknamig-8':
+    case 'gelijknamig-10':
+    case 'gelijknamig-12': {
       const under = denominatorOf(form);
       const answer = operation === '-' ? num1 - num2 : num1 + num2;
       const sign = operation === '-' ? '−' : '+';

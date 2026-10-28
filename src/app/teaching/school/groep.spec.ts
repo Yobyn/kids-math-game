@@ -1,6 +1,6 @@
 import { CURRICULUM, Moment, Random, SchoolSum, TABLES_FIRST, TABLES_GROEP_4, TOPICS, carries, momentFor, schoolSum } from './groep';
 import { placesOf } from '../../question/sum-form';
-import { decimal } from './written-form';
+import { ROUNDED_SIDES, decimal, formWorkedStep, roundedSides, sumLayout } from './written-form';
 import { isGradeReady } from '../../levels/school-year';
 
 /** A repeatable source of numbers, so a failure can be found again. */
@@ -654,5 +654,64 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       }
       expect(schoolSum(13, 'M')).toBeNull();
     });
+  });
+});
+
+describe('the gaps the plan left (docs/CURRICULUM-NL.md, "Not yet"; 2026-10-28)', () => {
+  const where = (topic: string) => [3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(groep => (['B', 'M', 'E'] as Moment[])
+    .filter(moment => CURRICULUM[groep][moment][topic]).map(moment => `${groep}${moment}`)).reduce((all, at) => all.concat(at), []);
+
+  it('aanvult to 20 and splits above 10 in the middle of groep 4, and aanvult to the next ten at its end', () => {
+    made('aanvullen-tot-20').forEach(sum => {
+      const at = `${sum.num2} + ? = ${sum.num1}`;
+      expect(sum.form).toBe('aanvullen');
+      expect(sum.num1).withContext(at).toBeLessThanOrEqual(20);
+      expect(sum.num1).withContext(at).toBeGreaterThan(10);
+      expect(answer(sum)).withContext(at).toBeGreaterThan(0);
+    });
+    // to 20 itself, and through the ten: 13 + ? = 20, 8 + ? = 15
+    expect(made('aanvullen-tot-20').some(sum => sum.num1 === 20 && sum.num2 > 10)).toBeTrue();
+    expect(made('aanvullen-tot-20').some(sum => sum.num1 < 20 && sum.num2 < 10)).toBeTrue();
+    made('aanvullen-tot-tiental').forEach(sum => {
+      const at = `${sum.num2} + ? = ${sum.num1}`;
+      expect(sum.num1 % 10).withContext(at).toBe(0);
+      expect(sum.num2 % 10).withContext(at).not.toBe(0);
+      expect(answer(sum)).withContext(at).toBeLessThan(10);
+      expect(sum.num1).withContext(at).toBeLessThanOrEqual(100);
+    });
+    made('splitsen-tot-20').forEach(sum => {
+      expect(sum.form).toBe('splitsen');
+      expect(sum.num1).toBeGreaterThan(10);
+      expect(sum.num1).toBeLessThanOrEqual(20);
+      expect(Math.min(sum.num2, answer(sum))).toBeGreaterThanOrEqual(2);
+    });
+    expect(where('aanvullen-tot-20')).toEqual(['4M']);
+    expect(where('splitsen-tot-20')).toEqual(['4M']);
+    expect(where('aanvullen-tot-tiental')).toEqual(['4E']);
+  });
+
+  it('adds fractions with unlike denominators at the end of groep 8, as klas 1 then keeps doing', () => {
+    expect(where('ongelijknamige-breuken')).toEqual(['8E', '9M', '9E']);
+  });
+
+  it('asks the long side to one decimal in klas 3 when it is not whole, rounded once and right', () => {
+    expect(where('pythagoras-decimaal')).toEqual(['11E']);
+    // never a whole long side (3-4-5, 6-8-10), and each pair read back from its kept sum alone
+    ROUNDED_SIDES.forEach(([a, b]) => {
+      expect(Number.isInteger(Math.sqrt(a * a + b * b))).withContext(`${a}, ${b}`).toBeFalse();
+      expect(ROUNDED_SIDES.filter(([c, d]) => c * c + d * d === a * a + b * b).length).toBe(1);
+    });
+    expect(ROUNDED_SIDES).not.toContain([3, 4]);
+    made('pythagoras-decimaal', 600).forEach(sum => {
+      const [a, b] = roundedSides(sum.num1);
+      const right = Math.round(10 * Math.sqrt(a * a + b * b));
+      // in tenths, as the child types it: √68 = 8,246… is 8,2, never 8,3 by rounding twice
+      expect(answer(sum) / 10).withContext(`${a}, ${b}`).toBe(right);
+    });
+    expect(roundedSides(Math.floor(100 * Math.sqrt(68)))).toEqual([2, 8]);
+    expect(formWorkedStep('schuine-zijde', 583, 10)).toBe('3² + 5² = 9 + 25 = 34 → √34 = 5,83… → 5,8');
+    const words = { hypotenuse: 'Rechthoekige driehoek: de schuine zijde?' } as any;
+    expect(sumLayout({ num1: 583, num2: 10, sign: '≈', form: 'schuine-zijde' }, words).before.map(part => part.text).join(' '))
+      .toBe('Rechthoekige driehoek: de schuine zijde? a = 3 b = 5 ≈');
   });
 });
