@@ -33,8 +33,14 @@ describe('the keys there are', () => {
     expect(keyLabel(DELETE_KEY)).toMatch(/[a-z]/);
   });
 
+  it('draws the minus as the sums write it, −, and says "minus", while it still types "-"', () => {
+    expect(keyFace('-')).toBe('\u2212');
+    expect(keyLabel('-')).toBe('minus');
+    expect(applyKey('', '-')).toBe('-');
+  });
+
   it('draws every other key as itself', () => {
-    KEYPAD_KEYS.filter(key => key !== DELETE_KEY).forEach(key => {
+    KEYPAD_KEYS.filter(key => key !== DELETE_KEY && key !== '-').forEach(key => {
       expect(keyFace(key)).toBe(key);
       expect(keyLabel(key)).toBe(key);
     });

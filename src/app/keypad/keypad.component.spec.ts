@@ -109,6 +109,6 @@ describe('KeypadComponent', () => {
     const marked = keys().filter(key => key.classList.contains('key-action'));
 
     expect(marked.length).toBe(2);
-    expect(marked.map(key => key.getAttribute('aria-label')).sort()).toEqual(['-', 'delete']);
+    expect(marked.map(key => key.getAttribute('aria-label')).sort()).toEqual(['delete', 'minus']);
   });
 });

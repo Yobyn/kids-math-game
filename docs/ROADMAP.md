@@ -733,6 +733,17 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 4: the minus is a minus (2026-10-28).** Rounds were
+  played in groep 3 to 5, groep 8, and klas 1 and 3, at 320, 360 and 390px
+  in nl, en and es, with no errors. Klas 1 types answers below nought all
+  the time (−18 : 2 = −9), but its minus key showed a short hyphen "-" at
+  9px wide, next to sums written with "−". A screen reader said it as
+  "hyphen". The box showed "-9". The key is now drawn "−" (15px, as wide
+  as a digit) and says "minus" (answer-entry.ts `keyFace`, `keyLabel`). On
+  the keypad the box shows "−9" too. It is only shown there, never typed
+  in, so it turns into a text box while a minus is in it (`typedMinus`).
+  The answer kept and marked is still "-9", and typing on a keyboard is
+  unchanged.
 - **Klokkijken, groep 3 to 5 (2026-10-27).** A drawn clock, in the
   card's own reading colours (`question/clock-face.component.ts`, in the
   round's lazy module). It has twelve numbers, a mark for every minute, a

@@ -2168,7 +2168,7 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     ask({ num1: 3, num2: 4, operation: '+', form: 'tienden' });
     const keyFaces = () => Array.from(fixture.nativeElement.querySelectorAll('.key')).map((key: any) => key.textContent.trim());
     expect(keyFaces()).toContain(',');
-    expect(keyFaces()).not.toContain('-');
+    expect(keyFaces()).not.toContain('\u2212');
     component.onKeypadPress('0');
     component.onKeypadPress('.');
     fixture.detectChanges();
@@ -2689,5 +2689,59 @@ describe('QuestionComponent asking the time on a clock (klokkijken, 2026-10-27)'
       }
     }
     expect(clocks).toBeGreaterThan(0);
+  });
+});
+
+describe('QuestionComponent typing below nought on the keypad (2026-10-28)', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [QuestionComponent, KeypadComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+    localStorage.clear();
+    localStorage.setItem('grade', '7');
+    localStorage.setItem('difficulty', 'medium');
+    localStorage.setItem('language', 'nl');
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    component.useKeypad = true;
+    component.currentQuestion = { num1: -18, num2: 2, operation: '/', form: 'negatief' };
+    component.userAnswer = '';
+    component.showOkButton = false;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('draws the minus key as −, the sign the sum is written with, and says "minus"', () => {
+    const minus = (Array.from(fixture.nativeElement.querySelectorAll('.key')) as HTMLElement[])
+      .find(key => key.getAttribute('aria-label') === 'minus')!;
+    expect(minus.textContent!.trim()).toBe('\u2212');
+    expect(fixture.nativeElement.querySelector('.math-problem')!.textContent).toContain('\u221218');
+  });
+
+  it('shows −9 in the box as it is typed, and marks it as −9', () => {
+    component.onKeypadPress('-');
+    component.onKeypadPress('9');
+    fixture.detectChanges();
+    const box = fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement;
+    expect(box.value).toBe('\u22129');
+    expect(box.type).toBe('text');
+    expect(component.userAnswer).toBe('-9');
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+  });
+
+  it('keeps a number box for an answer above nought', () => {
+    component.onKeypadPress('9');
+    fixture.detectChanges();
+    const box = fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement;
+    expect(box.type).toBe('number');
+    expect(box.value).toBe('9');
   });
 });
