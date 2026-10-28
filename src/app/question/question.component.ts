@@ -639,7 +639,15 @@ export class QuestionComponent implements OnInit, OnDestroy {
       const typed = String(this.userAnswer || '');
       return typed.length > 2 ? `${typed.slice(0, -2)}:${typed.slice(-2)}` : typed;
     }
-    return this.inDecimals ? String(this.userAnswer).replace('.', this.decimalSign) : this.userAnswer;
+    const shown = this.inDecimals ? String(this.userAnswer).replace('.', this.decimalSign) : this.userAnswer;
+    // On the keypad the box is only shown, never typed in: its minus is the − the sum and the key
+    // are written with, while the answer kept and marked stays "-9"
+    return this.typedMinus ? `\u2212${String(shown).slice(1)}` : shown;
+  }
+
+  /** A minus typed on the keypad, shown as − (a number box cannot show one, so the box is then text). */
+  get typedMinus(): boolean {
+    return this.useKeypad && String(this.userAnswer || '').startsWith('-');
   }
 
   /** A clock to read (klokkijken, groep 3 to 5): the time is kept as 300 + 45 for 3:45 (groep.ts). */

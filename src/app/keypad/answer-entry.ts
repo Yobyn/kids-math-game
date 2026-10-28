@@ -70,15 +70,23 @@ export function placeholderFor(answer: string): string {
   return answer ? '' : '?';
 }
 
-/** The face of a key: the delete key is drawn rather than spelled. */
+/**
+ * The face of a key: the delete key is drawn rather than spelled, and the
+ * minus is the minus every sum on the card is written with, −, not the
+ * short hyphen a keyboard types. It still types "-", which marks as a number.
+ */
 export function keyFace(key: string): string {
-  return key === DELETE_KEY ? '⌫' : key;
+  return key === DELETE_KEY ? '⌫' : key === '-' ? '\u2212' : key;
 }
 
 /** What a screen reader should say, since "⌫" and "." are not words. */
 export function keyLabel(key: string): string {
   if (key === DELETE_KEY) {
     return 'delete';
+  }
+  // Read aloud as "hyphen" or "dash" otherwise
+  if (key === '-') {
+    return 'minus';
   }
   return key === DECIMAL_KEY ? 'point' : key;
 }
