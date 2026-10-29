@@ -733,6 +733,17 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 1: no sharing by 1 in an equation's worked line
+  (2026-10-29).** Rounds were played as a child in groep 3, groep 6,
+  klas 2 and klas 3. A scan of every topic's worked lines, 300 sums each,
+  looked for steps that say nothing. The clearest were the equations with
+  one x. In klas 2 a quarter of "x + 6 = 9" are worked as "9 − 6 = 3 →
+  3 : 1 = 3", and in klas 3 "4x = 3x + 9" as "4x − 3x = x → 9 : 1 = 9".
+  Sharing by 1 teaches nothing, and a child may think a step was missed.
+  They are now "9 − 6 = 3" and "4x − 3x = x → x = 9". A spec holds every
+  topic's worked line to never sharing by 1. Left as they are: the split
+  times sums ("2 × 1 = 2" inside 2 × 51), which are a true part of the
+  split.
 - **Look and feel, run 5: a big answer written as the card writes it
   (2026-10-29).** Rounds were played in groep 4, groep 7 and 8, and klas 1
   and 3, at 320, 360 and 390px in nl, en and es, with no errors. At groep
@@ -863,8 +874,13 @@ middle, hard the end), one groep per run.
   load, and an unused `@keyframes pulse` left question.component.css.
 - **Next:** the 22:00 runs play rounds as a child in a low groep, a middle
   groep and a klas, and pick one improvement to the questions each time.
-  First on the list: an equation with x on its own is worked as "24 − 12
-  = 12 → 12 : 1 = 12", and its second step says nothing.
+  On the list from the scan:
+  - "1 cm = 1 m → 3 × 1 = 3" at schaal 1 : 100;
+  - "1% van 100 = 1 → 102 × 1 = 102" for a growth factor on 100;
+  - the answer said twice at the end of some negatief lines, "14 − 7 = 7
+    → 7".
+  Also: groep 7's fraction answer is said as "Het antwoord is 6" where
+  6/10 is meant.
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 

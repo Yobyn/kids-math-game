@@ -704,7 +704,9 @@ function klas34WorkedStep(form: string, num1: number, num2: number, point: strin
   if (form.startsWith('beide-')) {
     const left = lastNumberOf(form);
     const right = left - num2;
-    return `${left}x \u2212 ${right === 1 ? '' : right}x = ${num2 === 1 ? '' : num2}x → ${num1} : ${num2} = ${num1 / num2}`;
+    const taken = `${left}x \u2212 ${right === 1 ? '' : right}x = ${num2 === 1 ? '' : num2}x`;
+    // 4x = 3x + 9: one x is left, so it is 9, not 9 : 1
+    return num2 === 1 ? `${taken} → x = ${num1}` : `${taken} → ${num1} : ${num2} = ${num1 / num2}`;
   }
   if (form === 'kwadraat-vgl') {
     return `${num2} × ${num2} = ${num1} → x = ${num2}`;
@@ -770,7 +772,9 @@ function klas2WorkedStep(form: string, num1: number, num2: number): string | und
   // 3x + 5 = 20: take the 5 off both sides, then share by 3
   if (form.startsWith('vergelijking-')) {
     const added = lastNumberOf(form);
-    return `${num1 + added} \u2212 ${added} = ${num1} → ${num1} : ${num2} = ${num1 / num2}`;
+    const taken = `${num1 + added} \u2212 ${added} = ${num1}`;
+    // x + 6 = 9 is done once 6 is taken away: sharing by 1 says nothing
+    return num2 === 1 ? taken : `${taken} → ${num1} : ${num2} = ${num1 / num2}`;
   }
   // 3(x + 4) with x = 2: the brackets first, 2 + 4, then times 3
   if (form.startsWith('invullen-')) {
