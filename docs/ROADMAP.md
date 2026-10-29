@@ -733,6 +733,19 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 5: a big answer written as the card writes it
+  (2026-10-29).** Rounds were played in groep 4, groep 7 and 8, and klas 1
+  and 3, at 320, 360 and 390px in nl, en and es, with no errors. At groep
+  7's "Rond af op duizendtallen: 244 065 ≈ ?", the child's 244000 filled
+  the 90px box edge to edge, ungrouped, beside a card that writes
+  "244 065". On the keypad the box now writes a typed number as the card
+  does. From five figures the thousands are set apart by the same narrow
+  space (`grouped`): "244 000", "23 863". The box grows to hold them
+  (min-width in ch, set from the template, so no CSS was added). Four
+  figures stay together, 7935, in a number box. The answer kept and
+  marked is still "244000". `boxIsText` gathers when the box has to be a
+  text box: a comma, a clock's colon, a −, or a space between the
+  thousands.
 - **The "Not yet" gaps (step T, 2026-10-28).**
   - Groep 4: aanvullen tot 20 (13 + ? = 20 and through the ten, 8 + ? =
     15) and splitsen above 10 (15 = 8 + ?) in the middle of the year, and

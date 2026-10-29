@@ -2737,6 +2737,31 @@ describe('QuestionComponent typing below nought on the keypad (2026-10-28)', () 
     expect(component.answerWasCorrect).toBeTrue();
   });
 
+  it('sets the thousands apart from five figures, as the card does, and widens the box to hold them', () => {
+    component.currentQuestion = { num1: 244065, num2: 1000, operation: '≈', form: 'afronden' };
+    fixture.detectChanges();
+    '244000'.split('').forEach(key => component.onKeypadPress(key));
+    fixture.detectChanges();
+    const box = fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement;
+    expect(box.value).toBe('244\u202f000');
+    expect(box.type).toBe('text');
+    expect(box.style.minWidth).toBe('8ch');
+    expect(component.userAnswer).toBe('244000');
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+  });
+
+  it('leaves four figures together, in the box as on the card: 7935', () => {
+    component.currentQuestion = { num1: 345, num2: 23, operation: '*' };
+    fixture.detectChanges();
+    '7935'.split('').forEach(key => component.onKeypadPress(key));
+    fixture.detectChanges();
+    const box = fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement;
+    expect(box.value).toBe('7935');
+    expect(box.type).toBe('number');
+    expect(box.style.minWidth).toBe('');
+  });
+
   it('keeps a number box for an answer above nought', () => {
     component.onKeypadPress('9');
     fixture.detectChanges();
