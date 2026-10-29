@@ -65,7 +65,8 @@
       <!-- A box that takes a decimal is a text box: a number box empties itself
            on "0." halfway through typing 0.7, and cannot show 0,7 -->
       <input #answerInput
-             [type]="needsDecimalKey || isClock || typedMinus ? 'text' : 'number'"
+             [type]="boxIsText ? 'text' : 'number'"
+             [style.min-width.ch]="boxWidth"
              [attr.inputmode]="needsDecimalKey ? 'decimal' : isClock ? 'numeric' : null"
              [value]="shownAnswer"
              (input)="userAnswer = $any($event.target).value"

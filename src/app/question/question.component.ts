@@ -640,9 +640,27 @@ export class QuestionComponent implements OnInit, OnDestroy {
       return typed.length > 2 ? `${typed.slice(0, -2)}:${typed.slice(-2)}` : typed;
     }
     const shown = this.inDecimals ? String(this.userAnswer).replace('.', this.decimalSign) : this.userAnswer;
-    // On the keypad the box is only shown, never typed in: its minus is the − the sum and the key
-    // are written with, while the answer kept and marked stays "-9"
-    return this.typedMinus ? `\u2212${String(shown).slice(1)}` : shown;
+    if (!this.useKeypad) {
+      return shown;
+    }
+    // On the keypad the box is only shown, never typed in, so it writes the answer as the card
+    // writes its numbers: the minus as −, and from five figures the thousands set apart, 244 000.
+    // The answer kept and marked stays as typed: "-9", "244000"
+    const typed = String(shown || '');
+    const figures = this.typedMinus ? typed.slice(1) : typed;
+    const written = /^\d{5,}$/.test(figures) ? grouped(Number(figures)) : figures;
+    return this.typedMinus ? `\u2212${written}` : written;
+  }
+
+  /** The box shows what a number box cannot: a comma, a clock's colon, a −, a space between the thousands. */
+  get boxIsText(): boolean {
+    return this.needsDecimalKey || this.isClock || (this.useKeypad && this.shownAnswer !== String(this.userAnswer || ''));
+  }
+
+  /** Wide enough for 244 000 as it is typed: the box's own width holds four figures. */
+  get boxWidth(): number | null {
+    const shown = String(this.shownAnswer || '');
+    return shown.length > 4 ? shown.length + 1 : null;
   }
 
   /** A minus typed on the keypad, shown as − (a number box cannot show one, so the box is then text). */
