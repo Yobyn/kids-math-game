@@ -533,6 +533,9 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('macht-5', 16, 2, '*')).toBe('2 × 2 × 2 × 2 × 2 = 32');
     expect(formWorkedStep('wortel', 144, 12, '/')).toBe('12 × 12 = 144');
     expect(formWorkedStep('vergelijking-5', 15, 3, '/')).toBe('20 \u2212 5 = 15 → 15 : 3 = 5');
+    // x + 6 = 9 and 4x = 3x + 9: one x, so no sharing by 1 after it
+    expect(formWorkedStep('vergelijking-6', 3, 1, '/')).toBe('9 \u2212 6 = 3');
+    expect(formWorkedStep('beide-4', 9, 1, '/')).toBe('4x \u2212 3x = x → x = 9');
     expect(formWorkedStep('invullen-2', 3, 6, '*')).toBe('2 + 4 = 6 → 3 × 6 = 18');
     expect(formWorkedStep('toename-15', 80, 12, '+')).toBe('15% van 80 = 12 → 80 + 12 = 92');
     expect(formWorkedStep('afname-20', 80, 16, '-')).toBe('20% van 80 = 16 → 80 \u2212 16 = 64');
@@ -1390,5 +1393,18 @@ describe('what a klas sum starts from (2026-10-26)', () => {
     expect(kinds('afronden', 347, 10)).toContain('caption:Rond af op tientallen');
     expect(kinds('oppervlakte', 6, 4)).toContain('caption:Oppervlakte van de rechthoek');
     expect(kinds('afronden', 347, 10).some(kind => kind.startsWith('given:'))).toBeFalse();
+  });
+});
+
+describe('a worked line that says something at every step (2026-10-29)', () => {
+  it('never shares by 1, in any topic of any year: x + 6 = 9 is 9 − 6 = 3, and that is all', () => {
+    const misses: string[] = [];
+    Object.keys(TOPICS).forEach(topic => made(topic, 300).forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation) || '';
+      if (/(^|\D)(\d+) : 1 = \2(\D|$)/.test(line)) {
+        misses.push(`${topic}: ${line}`);
+      }
+    }));
+    expect(misses.slice(0, 5)).toEqual([]);
   });
 });
