@@ -74,7 +74,7 @@
              (focus)="onInputFocus()"
              (blur)="onInputBlur()"
              [class.correct]="answerWasCorrect === true"
-             [class.incorrect]="answerWasCorrect === false"
+             [class.incorrect]="answerWasCorrect === false && !answerGiven"
              (keyup.enter)="showOkButton ? moveToNextQuestion() : checkAnswer()"
              [readonly]="useKeypad"
              [disabled]="showOkButton">

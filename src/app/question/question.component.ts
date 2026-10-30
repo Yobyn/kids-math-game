@@ -634,6 +634,13 @@ export class QuestionComponent implements OnInit, OnDestroy {
    * decimal sign; money keeps the point its card is written with (€3.40).
    */
   get shownAnswer(): string {
+    // Out of tries, the box holds the answer itself: the card then reads 19 − 3 = 16, the fact to
+    // remember, and not the 7 that was typed, left standing in red beside the sum
+    if (this.answerGiven) {
+      const given = this.correctAnswerText;
+      const figures = given.replace('\u2212', '');
+      return /^\d{5,}$/.test(figures) ? given.replace(figures, grouped(Number(figures))) : given;
+    }
     // 3, 4, 5 typed for a clock reads back as the time: 3:45
     if (this.isClock) {
       const typed = String(this.userAnswer || '');
@@ -652,9 +659,18 @@ export class QuestionComponent implements OnInit, OnDestroy {
     return this.typedMinus ? `\u2212${written}` : written;
   }
 
+  /**
+   * Two tries spent and the answer given (a money question writes its own, with its units round the
+   * box, and keeps what was typed). Shown in the box, in the box's own colours rather than red.
+   */
+  get answerGiven(): boolean {
+    return this.answerWasCorrect === false && this.showOkButton && !this.currentQuestion.money;
+  }
+
   /** The box shows what a number box cannot: a comma, a clock's colon, a −, a space between the thousands. */
   get boxIsText(): boolean {
-    return this.needsDecimalKey || this.isClock || (this.useKeypad && this.shownAnswer !== String(this.userAnswer || ''));
+    return this.needsDecimalKey || this.isClock || this.answerGiven
+      || (this.useKeypad && this.shownAnswer !== String(this.userAnswer || ''));
   }
 
   /** Wide enough for 244 000 as it is typed: the box's own width holds four figures. */
