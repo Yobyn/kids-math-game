@@ -733,6 +733,18 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 6: the card shows the right fact after two tries
+  (2026-10-30).** Rounds were played in groep 3 and 4, groep 5, groep 8,
+  and klas 1 and 3, at 320, 360 and 390px in nl, en and es, with no
+  errors. After two misses the box kept what was typed, in red. The card
+  read "19 − 3 = 7" in its biggest type, and the answer, 16, was only in
+  the small message below. Now the box holds the answer once it is given
+  (`answerGiven`), in the box's own colours: "19 − 3 = 16", "(7 + 8) × 3 =
+  45", a clock's "3:45", and as the card writes it, −5, 0,7 and 244 000.
+  The answer kept is still what was typed, and it was not right. A money
+  question keeps what was typed, since it writes its own answer with its
+  units round the box. This was a template and component change, with no
+  CSS.
 - **Questions, run 1: no sharing by 1 in an equation's worked line
   (2026-10-29).** Rounds were played as a child in groep 3, groep 6,
   klas 2 and klas 3. A scan of every topic's worked lines, 300 sums each,

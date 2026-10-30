@@ -2770,3 +2770,82 @@ describe('QuestionComponent typing below nought on the keypad (2026-10-28)', () 
     expect(box.value).toBe('9');
   });
 });
+
+describe('QuestionComponent once the answer is given (2026-10-30)', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  function ask(question: AskedQuestion) {
+    component.currentQuestion = question;
+    component.userAnswer = '';
+    component.showOkButton = false;
+    component.wrongAttempts = 0;
+    component.isSecondAttempt = false;
+    component.answerWasCorrect = null;
+    fixture.detectChanges();
+  }
+
+  function miss(...typed: string[]) {
+    typed.forEach(value => {
+      component.userAnswer = value;
+      component.checkAnswer();
+    });
+    fixture.detectChanges();
+  }
+
+  const box = () => fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [QuestionComponent, KeypadComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+    localStorage.clear();
+    localStorage.setItem('grade', '1');
+    localStorage.setItem('difficulty', 'medium');
+    localStorage.setItem('language', 'nl');
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('puts the right answer in the box after two tries, so the card reads 19 − 3 = 16, not 7 in red', () => {
+    ask({ num1: 19, num2: 3, operation: '-' });
+    miss('7');
+    // one miss: the 7 is wiped for a second try, the box is still the child's
+    expect(component.answerGiven).toBeFalse();
+    miss('7');
+    expect(box().value).toBe('16');
+    expect(box().classList).not.toContain('incorrect');
+    expect(component.feedback).toContain('16');
+    // the answer kept is still what was typed, and it was not right
+    expect(component.userAnswer).toBe('7');
+    expect(component.answerWasCorrect).toBeFalse();
+  });
+
+  it('gives the answer as the card writes it: −5, 0,7, 3:45, 244 000', () => {
+    ask({ num1: 4, num2: 9, operation: '-', form: 'negatief' });
+    miss('5', '13');
+    expect(box().value).toBe('\u22125');
+    ask({ num1: 3, num2: 4, operation: '+', form: 'tienden' });
+    miss('1', '2');
+    expect(box().value).toBe('0,7');
+    ask({ num1: 300, num2: 45, operation: '+', form: 'klok' });
+    miss('9', '315');
+    expect(box().value).toBe('3:45');
+    ask({ num1: 244065, num2: 1000, operation: '≈', form: 'afronden' });
+    miss('1', '2');
+    expect(box().value).toBe('244\u202f000');
+  });
+
+  it('starts the next question with an empty box again', () => {
+    ask({ num1: 19, num2: 3, operation: '-' });
+    miss('7', '7');
+    ask({ num1: 5, num2: 2, operation: '+' });
+    expect(box().value).toBe('');
+    expect(component.answerGiven).toBeFalse();
+  });
+});
