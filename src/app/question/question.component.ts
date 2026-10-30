@@ -660,6 +660,23 @@ export class QuestionComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * The answer as the card writes it round the box, for the line that gives it: 6/10 and not 6
+   * for 9/10 − 3/10 = ?/10, 300 cm, 25%, €14, 5√2. The box holds only what goes in it.
+   */
+  get answerSaid(): string {
+    if (this.currentQuestion.money) {
+      return this.correctAnswerText;
+    }
+    const words = (parts: SumPart[]) => parts.filter(part => part.kind !== 'caption').map(part => part.text);
+    const { before } = this.layout;
+    // 7 + ? = 10: the box in the middle of the sum, what follows it is the sum's, not the answer's
+    const after = this.layout.after.some(part => part.kind === 'equals') ? [] : this.layout.after;
+    const euro = before.length && before[before.length - 1].text === '€' ? '€' : '';
+    // A fraction bar, a root or a percent sign holds on to the answer; a unit stands a space away
+    return euro + [this.correctAnswerText, ...words(after)].join(' ').replace(/ \/ /g, '/').replace(/ (√|%)/g, '$1');
+  }
+
+  /**
    * Two tries spent and the answer given (a money question writes its own, with its units round the
    * box, and keeps what was typed). Shown in the box, in the box's own colours rather than red.
    */
@@ -936,7 +953,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
 
       // Out of attempts: show the answer itself. A child who only hears "wrong"
       // learns nothing from the question they just spent two tries on.
-      this.feedback = `${this.languageService.translate('answer-is')} ${this.correctAnswerText}. ` +
+      this.feedback = `${this.languageService.translate('answer-is')} ${this.answerSaid}. ` +
         this.languageService.translate('good-try');
       // The answer is being given away either way, so give the method with
       // it. Money questions used to get nothing here; they now carry their

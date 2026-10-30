@@ -733,6 +733,16 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 2: the answer said as the card writes it (2026-10-30).**
+  After two tries the line that gives the answer said only what goes in
+  the box. For "9/10 − 3/10 = ?/10" it said "Het antwoord is 6", and for
+  "3 m = ? cm" it said "300". It said "25" for "18 van 72 = ?%", "14" for
+  "€?" and "5" for "√50 = ?√2". It now says the answer with what the card
+  writes round the box (`answerSaid`): 6/10, 5/6, 9/12, 300 cm, 24 m², 25%,
+  €14, €36 and 5√2. A fraction bar, a root or a percent sign holds on to
+  the number, and a unit stands a space away. Where the box is in the
+  middle of the sum (7 + ? = 10) the answer is the number alone. The box
+  still holds only what goes in it. Money questions are unchanged.
 - **Look and feel, run 6: the card shows the right fact after two tries
   (2026-10-30).** Rounds were played in groep 3 and 4, groep 5, groep 8,
   and klas 1 and 3, at 320, 360 and 390px in nl, en and es, with no
@@ -891,8 +901,7 @@ middle, hard the end), one groep per run.
   - "1% van 100 = 1 → 102 × 1 = 102" for a growth factor on 100;
   - the answer said twice at the end of some negatief lines, "14 − 7 = 7
     → 7".
-  Also: groep 7's fraction answer is said as "Het antwoord is 6" where
-  6/10 is meant.
+
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).
 

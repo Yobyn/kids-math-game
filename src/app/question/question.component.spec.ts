@@ -2849,3 +2849,64 @@ describe('QuestionComponent once the answer is given (2026-10-30)', () => {
     expect(component.answerGiven).toBeFalse();
   });
 });
+
+describe('QuestionComponent saying the answer as the card writes it (2026-10-30)', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  function given(question: AskedQuestion): string {
+    component.currentQuestion = question;
+    component.userAnswer = '';
+    component.showOkButton = false;
+    component.wrongAttempts = 0;
+    component.isSecondAttempt = false;
+    component.answerWasCorrect = null;
+    fixture.detectChanges();
+    ['1', '2'].forEach(value => {
+      component.userAnswer = value;
+      component.checkAnswer();
+    });
+    fixture.detectChanges();
+    return component.feedback;
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [QuestionComponent, KeypadComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+    localStorage.clear();
+    localStorage.setItem('grade', '5');
+    localStorage.setItem('difficulty', 'medium');
+    localStorage.setItem('language', 'nl');
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('gives a fraction as a fraction: 6/10, not 6, while the box over the 10 holds the 6', () => {
+    expect(given({ num1: 9, num2: 3, operation: '-', form: 'gelijknamig-10' })).toContain('Het antwoord is 6/10.');
+    expect((fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement).value).toBe('6');
+    expect(given({ num1: 3, num2: 2, operation: '+', form: 'ongelijk-2-3' })).toContain('Het antwoord is 5/6.');
+    expect(given({ num1: 3, num2: 3, operation: '*', form: 'gelijk-4' })).toContain('Het antwoord is 9/12.');
+  });
+
+  it('gives a measure with its unit, a percentage with its sign, euros with the euro, a root with its root', () => {
+    expect(given({ num1: 3, num2: 100, operation: '*', form: 'm-cm' })).toContain('Het antwoord is 300 cm.');
+    expect(given({ num1: 1800, num2: 72, operation: '/', form: 'welk-procent' })).toContain('Het antwoord is 25%.');
+    expect(given({ num1: 7, num2: 2, operation: '*', form: 'verhouding-3' })).toContain('Het antwoord is €14.');
+    expect(given({ num1: 45, num2: 9, operation: '-', form: 'korting-20' })).toContain('Het antwoord is €36.');
+    expect(given({ num1: 10, num2: 2, operation: '/', form: 'wortel-vereenvoudig' })).toContain('Het antwoord is 5√2.');
+    expect(given({ num1: 6, num2: 4, operation: '*', form: 'oppervlakte' })).toContain('Het antwoord is 24 m².');
+  });
+
+  it('gives a plain sum its plain answer, as before', () => {
+    expect(given({ num1: 19, num2: 3, operation: '-' })).toContain('Het antwoord is 16.');
+    expect(given({ num1: 300, num2: 45, operation: '+', form: 'klok' })).toContain('Het antwoord is 3:45.');
+    // 7 + ? = 10: the box in the middle, so the answer is 3 and not "3 = 10"
+    expect(given({ num1: 10, num2: 7, operation: '-', form: 'aanvullen' })).toContain('Het antwoord is 3.');
+  });
+});
