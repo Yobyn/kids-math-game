@@ -2910,3 +2910,64 @@ describe('QuestionComponent saying the answer as the card writes it (2026-10-30)
     expect(given({ num1: 10, num2: 7, operation: '-', form: 'aanvullen' })).toContain('Het antwoord is 3.');
   });
 });
+
+describe('QuestionComponent keeping a settled answer readable (2026-10-31)', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+  const box = () => fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [QuestionComponent, KeypadComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+    localStorage.clear();
+    localStorage.setItem('grade', '1');
+    localStorage.setItem('difficulty', 'medium');
+    localStorage.setItem('language', 'nl');
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+    component.currentQuestion = { num1: 19, num2: 3, operation: '-' };
+    component.userAnswer = '';
+    component.showOkButton = false;
+    component.wrongAttempts = 0;
+    component.answerWasCorrect = null;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('holds a right answer in the box at full strength: settled, never typed in again, but not greyed out', () => {
+    const typing = getComputedStyle(box()).color;
+    component.userAnswer = '16';
+    component.checkAnswer();
+    fixture.detectChanges();
+    expect(component.answerWasCorrect).toBeTrue();
+    expect(box().disabled).toBeFalse();
+    expect(box().readOnly).toBeTrue();
+    expect(getComputedStyle(box()).color).toBe(typing);
+  });
+
+  it('holds the given answer at full strength too, after two tries', () => {
+    const typing = getComputedStyle(box()).color;
+    ['7', '7'].forEach(value => {
+      component.userAnswer = value;
+      component.checkAnswer();
+    });
+    fixture.detectChanges();
+    expect(box().value).toBe('16');
+    expect(box().readOnly).toBeTrue();
+    expect(getComputedStyle(box()).color).toBe(typing);
+  });
+
+  it('can be typed in again once the next question comes, on a keyboard', () => {
+    component.useKeypad = false;
+    component.userAnswer = '16';
+    component.checkAnswer();
+    component.moveToNextQuestion();
+    fixture.detectChanges();
+    expect(box().readOnly).toBeFalse();
+  });
+});

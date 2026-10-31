@@ -76,8 +76,7 @@
              [class.correct]="answerWasCorrect === true"
              [class.incorrect]="answerWasCorrect === false && !answerGiven"
              (keyup.enter)="showOkButton ? moveToNextQuestion() : checkAnswer()"
-             [readonly]="useKeypad"
-             [disabled]="showOkButton">
+             [readonly]="useKeypad || showOkButton">
       <span class="currency unit-after" *ngIf="answerSuffix">{{ answerSuffix }}</span>
       <ng-container *ngIf="!currentQuestion.money && !storyLine">
         <span *ngFor="let part of layout.after" [class]="part.kind">{{ part.text }}</span>

@@ -733,6 +733,19 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 7: a settled answer stays at full strength
+  (2026-10-31).** Rounds were played in groep 3 and 4, klas 1 and klas 3,
+  at 320, 360 and 390px in nl, en and es, with no errors. Once a question
+  was settled, the box was `disabled`, and the browser greys a disabled
+  box's text: rgb(84, 84, 84) where it was black. The number that mattered
+  most was the faintest on the card: the "10" the child just got right,
+  and the answer given after two tries. The box is now `readonly` once
+  settled instead, so it still can't be typed over, but the number stays
+  black. The green fill of a right answer is unchanged, and the next
+  question can be typed in on a keyboard again. This was a template
+  change, with no CSS.
+  Noted for a question run: "En cada caja hay 1 huevo" (keer-eieren
+  tells × 1).
 - **Questions, run 2: the answer said as the card writes it (2026-10-30).**
   After two tries the line that gives the answer said only what goes in
   the box. For "9/10 − 3/10 = ?/10" it said "Het antwoord is 6", and for
