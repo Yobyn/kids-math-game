@@ -791,6 +791,12 @@ export function tells(story: Story, sum: Pick<SchoolSum, 'num1' | 'num2' | 'oper
       || (answer < 0 && !story.negative) || !Number.isInteger(answer) || (story.fits && !story.fits(sum.num1, sum.num2))) {
     return false;
   }
+  // A times sum told as groups has two of them at least, and two in each: "1 doosje met 7 eieren"
+  // or "in elk doosje 1 ei" is no story, only the table of 1 dressed up (a measure, an area or a
+  // ratio says its numbers otherwise, and keeps them)
+  if (sum.operation === '*' && !story.forms && (sum.num1 < 2 || sum.num2 < 2)) {
+    return false;
+  }
   // The groups: the first number of a times sum, the second of a share
   const groups = sum.operation === '*' ? sum.num1 : sum.num2;
   return !(story.fewestGroups && (groups < story.fewestGroups || (sum.operation === '*' && sum.num2 < 2)));
