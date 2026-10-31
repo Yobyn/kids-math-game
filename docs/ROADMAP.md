@@ -733,6 +733,14 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 3: no story tells the table of 1 (2026-10-31).** Rounds
+  were played as a child in groep 4, groep 7 and klas 3. The egg-box story
+  could tell 7 × 1 as "En cada caja hay 1 huevo", and 1 × 6 as "Er staat 1
+  doosje op tafel". Three of the times stories already refused that; the
+  egg-box story did not. Now every times story that tells a plain sum
+  needs at least two groups with at least two in each (story.ts `tells`),
+  and 7 × 1 and 1 × 6 are asked as plain sums. A measure, an area or a
+  ratio says its numbers otherwise and keeps them.
 - **Look and feel, run 7: a settled answer stays at full strength
   (2026-10-31).** Rounds were played in groep 3 and 4, klas 1 and klas 3,
   at 320, 360 and 390px in nl, en and es, with no errors. Once a question
@@ -744,8 +752,6 @@ middle, hard the end), one groep per run.
   black. The green fill of a right answer is unchanged, and the next
   question can be typed in on a keyboard again. This was a template
   change, with no CSS.
-  Noted for a question run: "En cada caja hay 1 huevo" (keer-eieren
-  tells × 1).
 - **Questions, run 2: the answer said as the card writes it (2026-10-30).**
   After two tries the line that gives the answer said only what goes in
   the box. For "9/10 − 3/10 = ?/10" it said "Het antwoord is 6", and for

@@ -254,4 +254,17 @@ describe('verhaaltjessommen, groep 3 to klas 2 (Yobyn, 2026-10-24)', () => {
     expect(tells(story('welk-procent-toets'), { num1: 1800, num2: 72, operation: '/', form: 'welk-procent' })).toBeFalse();
     expect(tells(story('welk-procent-toets'), { num1: 1800, num2: 20, operation: '/', form: 'welk-procent' })).toBeTrue();
   });
+
+  it('never tells the table of 1 as a story: two groups at least, and two in each (2026-10-31)', () => {
+    const times = STORIES.filter(story => story.operation === '*' && !story.forms);
+    expect(times.length).toBeGreaterThanOrEqual(5);
+    times.forEach(story => {
+      // "Hay 7 cajas. En cada caja hay 1 huevo", "Er staat 1 doosje op tafel"
+      expect(tells(story, { num1: 7, num2: 1, operation: '*' })).withContext(story.id).toBeFalse();
+      expect(tells(story, { num1: 1, num2: 7, operation: '*' })).withContext(story.id).toBeFalse();
+    });
+    expect(tells(times.find(story => story.id === 'keer-eieren')!, { num1: 3, num2: 4, operation: '*' })).toBeTrue();
+    storySums().filter(sum => sum.operation === '*' && !sum.form).forEach(sum =>
+      times.filter(story => tells(story, sum)).forEach(() => expect(Math.min(sum.num1, sum.num2)).toBeGreaterThanOrEqual(2)));
+  });
 });

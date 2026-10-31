@@ -324,6 +324,8 @@ its groep:
 8. **Verhaaltjessommen** (word problems) for every groep, in all three
    languages. Part 1 is built (2026-10-24): groep 3 (M, E) and groep 4
    tell about one sum in five as a story (`teaching/school/story.ts`).
+   A times story never tells the table of 1 ("1 doosje", "1 huevo"
+   in each): at least two groups and two in each (2026-10-31).
    Part 2 is built (2026-10-25): groep 5 and 6, with tables, sharing with
    a remainder, euros, measures, a part of an amount and area. Part 3 is
    built (2026-10-26): groep 7 to klas 2, with percentages and discounts,
