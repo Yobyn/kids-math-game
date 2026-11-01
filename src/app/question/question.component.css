@@ -158,6 +158,8 @@ input.incorrect {
 }
 
 .feedback {
+  /* "probeer nog een / keer!": the lines evened out, so no word is left hanging on a line of its own */
+  text-wrap: balance;
   display: inline-block;
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
@@ -190,6 +192,8 @@ input.incorrect {
   cursor: pointer;
   transition: all 0.3s ease;
   font-weight: 500;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
+  color: #ffffff;
 }
 
 /* A lift only: the gradient (styles.css) covers any background colour */
@@ -205,10 +209,12 @@ input.incorrect {
 .back-button {
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
-  border: 2px solid;
+  border: 2px solid var(--edge);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
+  color: var(--text-dim);
+  background: rgba(27, 23, 51, 0.55);
 }
 
 .back-button:hover {
@@ -319,19 +325,6 @@ input.incorrect {
   .money-prompt {
     font-size: 1rem;
   }
-}
-
-.check-button,
-.next-button {
-  background: linear-gradient(135deg, var(--accent-blue), var(--accent-magenta));
-  border: none;
-  color: #ffffff;
-}
-
-.back-button {
-  color: var(--text-dim);
-  border-color: var(--edge);
-  background: rgba(27, 23, 51, 0.55);
 }
 
 /* The worked step sits under the verdict, on the same light face as the

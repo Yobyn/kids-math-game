@@ -2971,3 +2971,42 @@ describe('QuestionComponent keeping a settled answer readable (2026-10-31)', () 
     expect(box().readOnly).toBeFalse();
   });
 });
+
+describe('QuestionComponent message lines (2026-11-01)', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [QuestionComponent, KeypadComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+    localStorage.clear();
+    localStorage.setItem('grade', '1');
+    localStorage.setItem('language', 'nl');
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('evens out the lines of a message, so "keer!" or "je!" never hangs on a line of its own', () => {
+    component.currentQuestion = { num1: 19, num2: 3, operation: '-' };
+    component.userAnswer = '7';
+    component.checkAnswer();
+    fixture.detectChanges();
+    const message = fixture.nativeElement.querySelector('.feedback') as HTMLElement;
+    expect((getComputedStyle(message) as any).textWrap).toBe('balance');
+  });
+
+  it('still draws Check Answer in the gradient and the way back dim, with their rules in one place', () => {
+    const check = fixture.nativeElement.querySelector('.check-button') as HTMLElement;
+    const back = fixture.nativeElement.querySelector('.back-button') as HTMLElement;
+    expect(getComputedStyle(check).backgroundImage).toContain('linear-gradient');
+    expect(getComputedStyle(check).color).toBe('rgb(255, 255, 255)');
+    expect(getComputedStyle(back).backgroundColor).toBe('rgba(27, 23, 51, 0.55)');
+    expect(getComputedStyle(back).borderTopWidth).toBe('2px');
+  });
+});
