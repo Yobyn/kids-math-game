@@ -733,6 +733,18 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 8: no word left hanging in a message (2026-11-01).**
+  Rounds were played in groep 3 and 4, groep 8 and klas 3, at 320, 360
+  and 390px in nl, en and es, with no errors. On a small phone the "try
+  again" and "the answer is" messages broke with one word left over on its
+  own line: "probeer nog een / keer!" and "de volgende lukt / je!" (an
+  18px last line), and in Spanish "inténtalo de / nuevo". The message now
+  evens out its lines (`text-wrap: balance`): "Niet helemaal goed, /
+  probeer nog een keer!", "Het antwoord is 16. / Goed geprobeerd — / de
+  volgende lukt je!". The bytes came from merging the two rules each for
+  Check, Next and the way back, one of which repeated `border: none`.
+  question.component.css went from 4.86 to 4.81 kB, and the buttons look
+  the same.
 - **Questions, run 3: no story tells the table of 1 (2026-10-31).** Rounds
   were played as a child in groep 4, groep 7 and klas 3. The egg-box story
   could tell 7 × 1 as "En cada caja hay 1 huevo", and 1 × 6 as "Er staat 1
