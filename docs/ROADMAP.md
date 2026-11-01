@@ -733,6 +733,13 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 4: a negative-number line says its answer once
+  (2026-11-01).** Klas 1's + and − below nought always ended with "→" and
+  the answer: "−7 + 14" was worked as "14 − 7 = 7 → 7", and "−3 − −5" as
+  "… → 5 − 3 = 2 → 2". The last step is now there only when it brings the
+  minus ("−8 + 3": "8 − 3 = 5 → −5"), so an answer above nought is said
+  once. × and : keep their sign rule ("− × − = +"). A spec holds every
+  topic's worked line to never ending with its answer twice running.
 - **Look and feel, run 8: no word left hanging in a message (2026-11-01).**
   Rounds were played in groep 3 and 4, groep 8 and klas 3, at 320, 360
   and 390px in nl, en and es, with no errors. On a small phone the "try
@@ -930,8 +937,6 @@ middle, hard the end), one groep per run.
   On the list from the scan:
   - "1 cm = 1 m → 3 × 1 = 3" at schaal 1 : 100;
   - "1% van 100 = 1 → 102 × 1 = 102" for a growth factor on 100;
-  - the answer said twice at the end of some negatief lines, "14 − 7 = 7
-    → 7".
 
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).

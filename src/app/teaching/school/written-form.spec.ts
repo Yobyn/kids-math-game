@@ -518,7 +518,10 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('snelheid', 6, 40, '*')).toBe('3 × 80 = 240');
     expect(formWorkedStep('temperatuur-op', 5, 3, '+')).toBe('\u22123° → 0° = 3 → 0° → 5° = 5 → 3 + 5 = 8');
     expect(formWorkedStep('temperatuur-af', 5, 3, '+')).toBe('5° → 0° = 5 → 0° → \u22123° = 3 → 5 + 3 = 8');
-    expect(formWorkedStep('negatief', -3, 8, '+')).toBe('8 \u2212 3 = 5 → 5');
+    // −3 + 8: 8 − 3 = 5 is the answer, said once; below nought the last step brings the minus
+    expect(formWorkedStep('negatief', -3, 8, '+')).toBe('8 \u2212 3 = 5');
+    expect(formWorkedStep('negatief', -8, 3, '+')).toBe('8 \u2212 3 = 5 → \u22125');
+    expect(formWorkedStep('negatief', -3, -5, '-')).toBe('\u22123 \u2212 \u22125 = \u22123 + 5 → 5 \u2212 3 = 2');
     expect(formWorkedStep('negatief', 4, 9, '-')).toBe('4 \u2212 9 = 4 + \u22129 → 9 \u2212 4 = 5 → \u22125');
     expect(formWorkedStep('negatief', -24, -3, '/')).toBe('24 : 3 = 8 → \u2212 : \u2212 = + → 8');
     expect(formWorkedStep('negatief', -4, 6, '*')).toBe('4 × 6 = 24 → \u2212 × + = \u2212 → \u221224');
@@ -1397,6 +1400,17 @@ describe('what a klas sum starts from (2026-10-26)', () => {
 });
 
 describe('a worked line that says something at every step (2026-10-29)', () => {
+  it('never says the answer twice running at the end: 14 − 7 = 7, not 14 − 7 = 7 → 7 (2026-11-01)', () => {
+    const misses: string[] = [];
+    Object.keys(TOPICS).forEach(topic => made(topic, 300).forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation) || '';
+      if (/= (\d+) → \1$/.test(line)) {
+        misses.push(`${topic}: ${line}`);
+      }
+    }));
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
   it('never shares by 1, in any topic of any year: x + 6 = 9 is 9 − 6 = 3, and that is all', () => {
     const misses: string[] = [];
     Object.keys(TOPICS).forEach(topic => made(topic, 300).forEach(sum => {

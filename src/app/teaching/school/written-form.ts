@@ -820,7 +820,10 @@ function signedWorked(num1: number, num2: number, operation: string): string {
     return `${Math.abs(num1)} + ${Math.abs(num2)} = ${Math.abs(answer)} → ${signed(answer)}`;
   }
   const [big, small] = Math.abs(num1) >= Math.abs(num2) ? [num1, num2] : [num2, num1];
-  return `${Math.abs(big)} \u2212 ${Math.abs(small)} = ${Math.abs(answer)} → ${signed(answer)}`;
+  // −7 + 14: 14 − 7 = 7, and that is the answer. Below nought the last step gives the minus, −5;
+  // above it, it would only say 7 again
+  const taken = `${Math.abs(big)} \u2212 ${Math.abs(small)} = ${Math.abs(answer)}`;
+  return answer < 0 ? `${taken} → ${signed(answer)}` : taken;
 }
 
 /** The worked line of klas 1's sums; undefined for any other form. */
