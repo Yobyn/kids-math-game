@@ -666,8 +666,10 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     made('schaal').forEach(sum => {
       const [one, times] = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!.split(' → ');
       const scale = Number(sum.form!.split('-')[1]);
-      // 1 cm on the map is `scale` cm in real life: that many metres over a hundred
-      if (one !== `1 cm = ${scale / 100} m` || !holds(times, 0) || !times.endsWith(`= ${answer(sum)}`)) {
+      // 1 cm on the map is `scale` cm in real life: that many metres over a hundred. At 1 : 100
+      // a centimetre is a metre, and 12 cm is 12 m (2026-11-02)
+      const step = scale === 100 ? times === `${sum.num1} cm = ${answer(sum)} m` : holds(times, 0);
+      if (one !== `1 cm = ${scale / 100} m` || !step || !times.endsWith(`= ${answer(sum)}${scale === 100 ? ' m' : ''}`)) {
         misses.push(`${one} → ${times}`);
       }
     });
@@ -1420,5 +1422,28 @@ describe('a worked line that says something at every step (2026-10-29)', () => {
       }
     }));
     expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('never multiplies by 1, in any topic of any year: 1 cm = 1 m → 12 cm = 12 m (2026-11-02)', () => {
+    const misses: string[] = [];
+    Object.keys(TOPICS).forEach(topic => made(topic, 300).forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation) || '';
+      if (/(^|[^\d,])(\d+(,\d+)?) × 1 = \2(\D|$)/.test(line)) {
+        misses.push(`${topic}: ${line}`);
+      }
+    }));
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
+  it('works schaal 1 : 100, a growth factor on 100 and an hour and a half as steps that say something (2026-11-02)', () => {
+    // were 1 cm = 1 m → 12 × 1 = 12, 1% van 100 = 1 → 103 × 1 = 103 and 1 × 60 = 60 → 60 + 30 = 90
+    expect(formWorkedStep('schaal-100', 12, 1, '*')).toBe('1 cm = 1 m → 12 cm = 12 m');
+    expect(formWorkedStep('groeifactor', 103, 100, '*')).toBe('1,03 = 103% → 103% van 100 = 103');
+    expect(formWorkedStep('groeifactor', 95, 100, '*', '.')).toBe('0.95 = 95% → 95% van 100 = 95');
+    expect(formWorkedStep('snelheid', 3, 30, '*')).toBe('60 : 2 = 30 → 60 + 30 = 90');
+    // the others keep their steps
+    expect(formWorkedStep('schaal-500', 4, 5, '*')).toBe('1 cm = 5 m → 4 × 5 = 20');
+    expect(formWorkedStep('groeifactor', 105, 200, '*')).toBe('1% van 200 = 2 → 105 × 2 = 210');
+    expect(formWorkedStep('snelheid', 5, 30, '*')).toBe('2 × 60 = 120 → 120 + 30 = 150');
   });
 });

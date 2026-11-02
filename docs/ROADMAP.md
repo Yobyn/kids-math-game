@@ -733,6 +733,17 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 5: no worked line multiplies by 1 (2026-11-02).** Rounds
+  were played as a child in groep 3, groep 6 and klas 3 (nl, en, es), with
+  no errors. A scan of every topic's worked lines found three steps that
+  times by 1 and say nothing: schaal 1 : 100 ("1 cm = 1 m → 12 × 1 = 12"),
+  a growth factor on 100 ("1% van 100 = 1 → 103 × 1 = 103") and an hour
+  and a half ("1 × 60 = 60 → 60 + 30 = 90"). They are now "1 cm = 1 m →
+  12 cm = 12 m", "1,03 = 103% → 103% van 100 = 103" and "60 : 2 = 30 → 60
+  + 30 = 90". A spec holds every topic's worked line to never multiplying
+  by 1 (a fact's own 1, as in 1 × 5 on the clock or ⅓'s 1 × 3, stays).
+  Seen while playing, for a later run: an English or Spanish worked line
+  still says "van" ("1% van 200 = 2").
 - **Look and feel, run 9: all three climbs on the smallest phone
   (2026-11-02).** Rounds were played in a low groep and a klas at 320, 360 and
   390 in nl, en and es. On a 320 by 568 phone the "Kies je klim" screen
@@ -944,8 +955,9 @@ middle, hard the end), one groep per run.
 - **Next:** the 22:00 runs play rounds as a child in a low groep, a middle
   groep and a klas, and pick one improvement to the questions each time.
   On the list from the scan:
-  - "1 cm = 1 m → 3 × 1 = 3" at schaal 1 : 100;
-  - "1% van 100 = 1 → 102 × 1 = 102" for a growth factor on 100;
+  - DONE (run 5): "1 cm = 1 m → 3 × 1 = 3" at schaal 1 : 100 and
+    "1% van 100 = 1 → 102 × 1 = 102" for a growth factor on 100;
+  - "van" in an English or Spanish worked line ("1% van 200 = 2");
 
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).

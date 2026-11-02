@@ -732,6 +732,10 @@ function klas34WorkedStep(form: string, num1: number, num2: number, point: strin
     return `${num1 / 1000} : ${num2} = ${decimal(num1 / num2, 3, point)}`;
   }
   // 200 × 1,05: 1% of 200 is 2, and 105% is 105 of those
+  // 100 × 1,03: 1% of 100 is 1, and 103 × 1 says nothing, so 1,03 is read as 103%
+  if (form === 'groeifactor' && num2 === 100) {
+    return `${decimal(num1, 2, point)} = ${num1}% → ${num1}% van 100 = ${num1}`;
+  }
   if (form === 'groeifactor') {
     return `1% van ${num2} = ${num2 / 100} → ${num1} × ${num2 / 100} = ${decimal(num1 * num2, 2, point)}`;
   }
@@ -1006,7 +1010,8 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
     case 'schaal-200':
     case 'schaal-500':
     case 'schaal-1000':
-      return `1 cm = ${num2} m → ${num1} × ${num2} = ${num1 * num2}`;
+      // 1 : 100: a centimetre is a metre, so 12 cm is 12 m, not 12 × 1
+      return num2 === 1 ? `1 cm = 1 m → ${num1} cm = ${num1} m` : `1 cm = ${num2} m → ${num1} × ${num2} = ${num1 * num2}`;
     // the mean: add them all up, then share the total by how many there are
     case 'gemiddelde-3':
     case 'gemiddelde-4':
@@ -1046,7 +1051,12 @@ export function formWorkedStep(form: SumForm | undefined, num1: number, num2: nu
       if (num1 % 2 === 0) {
         return `${hours} × ${speed} = ${num1 * num2}`;
       }
-      return hours ? `${hours} × ${speed} = ${hours * speed} → ${hours * speed} + ${num2} = ${num1 * num2}` : `${speed} : 2 = ${num2}`;
+      if (!hours) {
+        return `${speed} : 2 = ${num2}`;
+      }
+      // an hour and a half: one hour is the speed itself, so the step is the half, not 1 × 60
+      const whole = hours === 1 ? `${speed} : 2 = ${num2}` : `${hours} × ${speed} = ${hours * speed}`;
+      return `${whole} → ${hours * speed} + ${num2} = ${num1 * num2}`;
     }
     // −3° to 5°: up to nought, then on from it
     case 'temperatuur-op':
