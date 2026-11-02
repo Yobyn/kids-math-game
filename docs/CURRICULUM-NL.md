@@ -178,7 +178,7 @@ no round asks a times table or a division inside the tables on its own.
 | M | Equations with brackets, and with x on both sides | 2(x + 3) = 14, 5x − 4 = 3x + 8 → x = ? |
 | M | Powers of negative numbers | (−2)³ = ?, −3² = ? |
 | M | Scientific notation read as a number | 3,2 · 10³ = ?, 4 · 10⁻² = ? |
-| E | Growth factors, one step | 200 × 1,05 = ?, 50 → 60: groeifactor = ? |
+| E | Growth factors, one step (worked "1% van 200 = 2 → 105 × 2 = 210"; on 100, "1,03 = 103% → 103% van 100 = 103") | 200 × 1,05 = ?, 50 → 60: groeifactor = ? |
 | E | x² = a number | x² = 49 → de positieve x = ? |
 | E | Pythagoras with one decimal | 5 en 7 → ? (op 1 decimaal) |
 
@@ -270,7 +270,9 @@ its groep:
    from midnight, never on the hour, always past one, a school morning
    starting before 10:00 so both times fit one line; no "=" for the same
    reason); speed ("60 km per uur / 2,5 uur = ? km", kept as 5 half hours ×
-   30, worked as 2 × 60 = 120 → 120 + 30 = 150); temperatures below nought
+   30, worked as 2 × 60 = 120 → 120 + 30 = 150, and an hour and a half as
+   60 : 2 = 30 → 60 + 30 = 90; at schaal 1 : 100 "1 cm = 1 m → 12 cm = 12
+   m", never 12 × 1); temperatures below nought
    ("Hoeveel graden verschil? / −3° → 5° = ?", up or down, kept as 5 + 3,
    worked through nought). The middle's topics are practised again at the
    end.
