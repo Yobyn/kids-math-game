@@ -206,4 +206,52 @@ describe('DifficultySelectComponent suggesting a setting', () => {
 
     expect(component.suggested).toBeUndefined();
   });
+
+  describe('on the smallest phone, 320 by 568 (2026-11-02)', () => {
+    /** The screen as rendered, with its styles, in a frame the size of a phone: its own media queries apply there. */
+    function onPhone(width: number, height: number): Promise<Document> {
+      const screen = TestBed.createComponent(DifficultySelectComponent);
+      screen.detectChanges();
+      const frame = document.createElement('iframe');
+      frame.style.cssText = `width:${width}px;height:${height}px;border:0;position:absolute;left:-2000px;top:0`;
+      document.body.appendChild(frame);
+      // every rule the page has, the component's own (scoped to its attributes) among them
+      const rules = Array.from(document.styleSheets).map(sheet => {
+        try {
+          return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
+        } catch {
+          return '';
+        }
+      }).join('\n');
+      const styles = `<style>${rules}</style>`;
+      const doc = frame.contentDocument!;
+      doc.open();
+      doc.write(`<!doctype html><html><head>${styles}</head><body style="margin:0">${screen.nativeElement.outerHTML}</body></html>`);
+      doc.close();
+      return new Promise(resolve => setTimeout(() => resolve(doc), 50));
+    }
+
+    afterEach(() => document.querySelectorAll('iframe').forEach(frame => frame.remove()));
+
+    it('narrows the climb and tightens the cards, so all three climbs come up on screen', async () => {
+      const doc = await onPhone(320, 568);
+      const card = doc.querySelector('.difficulty-card') as HTMLElement;
+      const climb = doc.querySelector('.climb') as Element;
+      expect(getComputedStyle(climb).width).toBe('64px');
+      expect(getComputedStyle(card).paddingTop).toBe('9.6px');
+      expect(getComputedStyle(doc.querySelector('.difficulty-cards')!).rowGap).toBe('8px');
+      // still a card a finger lands on: 96px at the least
+      Array.from(doc.querySelectorAll('.difficulty-card')).forEach(each =>
+        expect(each.getBoundingClientRect().height).toBeGreaterThanOrEqual(96));
+    });
+
+    it('leaves the phones it already fitted as they were: 360 by 740, 390 by 844', async () => {
+      for (const [width, height] of [[360, 740], [390, 844]]) {
+        const doc = await onPhone(width, height);
+        expect(getComputedStyle(doc.querySelector('.climb')!).width).withContext(`${width}`).toBe('84px');
+        expect(getComputedStyle(doc.querySelector('.difficulty-card')!).paddingTop).withContext(`${width}`).toBe('16px');
+        document.querySelectorAll('iframe').forEach(frame => frame.remove());
+      }
+    });
+  });
 });

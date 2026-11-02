@@ -733,6 +733,15 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 9: all three climbs on the smallest phone
+  (2026-11-02).** Rounds were played in a low groep and a klas at 320, 360 and
+  390 in nl, en and es. On a 320 by 568 phone the "Kies je klim" screen
+  ended its third card, Uitdaging, 46 to 70px below the screen, so a child
+  there never saw it was on offer. Below 360 wide the climb drawing is now
+  64px (was 84), and on a screen under 600 tall the heading is smaller and
+  the cards tighter, still 96px each: the third card now ends at 559. 360
+  and 390 phones are unchanged. A spec renders the screen in a 320 by 568
+  frame and one at 360 and 390.
 - **Questions, run 4: a negative-number line says its answer once
   (2026-11-01).** Klas 1's + and − below nought always ended with "→" and
   the answer: "−7 + 14" was worked as "14 − 7 = 7 → 7", and "−3 − −5" as
