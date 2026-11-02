@@ -144,3 +144,36 @@ p {
     margin: 0;
   }
 }
+
+/* The smallest phones, 320 wide: a narrower climb leaves the words room, so
+   "Een stapje verder" stays on one line instead of making its card taller */
+@media (max-width: 359px) {
+  .difficulty-card {
+    grid-template-columns: 64px 1fr;
+    column-gap: 0.75rem;
+  }
+
+  .climb {
+    width: 64px;
+    height: 48px;
+  }
+}
+
+/* And short as well, 568 tall: the third climb, Uitdaging, ended 46 to 70px
+   below the screen, so a child there never saw it was on offer. A smaller
+   heading and tighter cards bring it up; each card stays 96px at least */
+@media (max-height: 600px) and (max-width: 560px) {
+  .difficulty-container h1 {
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .difficulty-cards {
+    gap: 0.5rem;
+  }
+
+  .difficulty-card {
+    min-height: 96px;
+    padding: 0.6rem 1rem;
+  }
+}
