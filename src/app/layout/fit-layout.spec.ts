@@ -202,6 +202,39 @@ describe('the layout on a screen that is not a phone held upright', () => {
 
       expect(check()).toBe(before);
     });
+
+    it('keeps Check Answer close under the keypad on a taller phone too: 360 by 740, 390 by 844 (2026-11-03)', async () => {
+      // Above 700 tall the space under the keypad was 16 + 60 + 32 = 108px, so a story or
+      // a pile of coins put Check Answer below a 360 by 740 screen. The 60 held open for
+      // feedback stays; the 48 round it is now 12, as it already was on a phone under 700 tall
+      const rules = Array.from(document.styleSheets).map(sheet => {
+        try {
+          return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
+        } catch {
+          return '';
+        }
+      }).join('\n');
+      for (const [width, height] of [[360, 740], [390, 844], [320, 568]]) {
+        const frame = document.createElement('iframe');
+        frame.style.cssText = `width:${width}px;height:${height}px;border:0;position:absolute;left:-2000px;top:0`;
+        document.body.appendChild(frame);
+        const doc = frame.contentDocument!;
+        doc.open();
+        doc.write(`<!doctype html><html ${FIT_ATTRIBUTE}="stack"><head><style>${rules}</style>`
+          // still: the feedback rises in, and mid-way it is not where it settles
+          + `<style>* { animation: none !important; }</style></head>`
+          + `<body style="margin:0">${fixture.nativeElement.outerHTML}</body></html>`);
+        doc.close();
+        await new Promise(resolve => setTimeout(resolve, 50));
+        // the space round the feedback, not the feedback itself: that one's height is its words'
+        const feedback = doc.querySelector('.feedback-container')!.getBoundingClientRect();
+        const around = (feedback.top - doc.querySelector('.keypad')!.getBoundingClientRect().bottom)
+          + (doc.querySelector('.check-button')!.getBoundingClientRect().top - feedback.bottom);
+        expect(around).withContext(`${width} by ${height}`).toBeLessThanOrEqual(12);
+        expect(feedback.height).withContext(`${width} by ${height}`).toBeGreaterThanOrEqual(60);
+        frame.remove();
+      }
+    });
   });
 
   it('leaves no layout without a stylesheet answer', () => {

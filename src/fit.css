@@ -427,17 +427,12 @@ html[data-fit='short'] .difficulty-container h1 {
     margin-bottom: 1rem;
   }
 
-  html[data-fit='stack'] .feedback-container {
-    margin: 0.25rem 0;
-  }
+  /* The space round the feedback and over Check Answer is the question
+     screen's own now, on every phone (2026-11-03). */
 
   /* 52px still clears the 48px floor this project holds every key to. */
   html[data-fit='stack'] .question-box .keypad .key {
     min-height: 52px;
-  }
-
-  html[data-fit='stack'] .question-box .button-container {
-    margin-top: 0.5rem;
   }
 }
 

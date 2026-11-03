@@ -84,3 +84,22 @@
     transform: none;
   }
 }
+
+/* On a phone, a pile a child only reads is drawn smaller, every piece alike:
+   nine coins took three rows of 60px, and Check Answer ended 61px below a
+   360 by 740 screen. At 40px they lie in two rows. A coin a child taps
+   keeps 56px. */
+@media (max-width: 560px) {
+  .coins:not(.tappable) {
+    gap: 6px;
+  }
+  .coins:not(.tappable) .piece {
+    width: 40px;
+    height: 40px;
+    font-size: 0.85rem;
+  }
+  .coins:not(.tappable) .note {
+    width: 56px;
+    height: 34px;
+  }
+}

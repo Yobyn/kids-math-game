@@ -85,4 +85,51 @@ describe('CoinsComponent', () => {
       expect(luminance).toBeLessThan(0.4);
     });
   });
+
+  describe('on a phone (2026-11-03)', () => {
+    /** The pile as rendered, with its styles, in a frame the width of a card on a phone: its media queries apply there. */
+    function onPhone(width: number, pile: number[], tappable = false): Promise<Document> {
+      component.pieces = pile;
+      component.tappable = tappable;
+      fixture.detectChanges();
+      const frame = document.createElement('iframe');
+      frame.style.cssText = `width:${width}px;height:600px;border:0;position:absolute;left:-2000px;top:0`;
+      document.body.appendChild(frame);
+      const rules = Array.from(document.styleSheets).map(sheet => {
+        try {
+          return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
+        } catch {
+          return '';
+        }
+      }).join('\n');
+      const doc = frame.contentDocument!;
+      doc.open();
+      // the card's own width on that phone: 33px either side at 320, 29px at 360
+      const card = width === 320 ? 254 : 302;
+      doc.write(`<!doctype html><html><head><style>${rules}</style></head>`
+        + `<body style="margin:0"><div style="width:${card}px">${fixture.nativeElement.outerHTML}</div></body></html>`);
+      doc.close();
+      return new Promise(resolve => setTimeout(() => resolve(doc), 50));
+    }
+
+    afterEach(() => document.querySelectorAll('iframe').forEach(frame => frame.remove()));
+
+    it('lays nine coins to read in two rows, not three, so Check Answer comes up with them', async () => {
+      // 5c 5c 2c 2c 2c 2c 1c 1c 1c: three rows of 60px pushed Check Answer 61px below a 360 by 740 phone
+      for (const width of [320, 360]) {
+        const doc = await onPhone(width, [5, 5, 2, 2, 2, 2, 1, 1, 1]);
+        const tops = new Set(Array.from(doc.querySelectorAll('.piece')).map(piece => Math.round(piece.getBoundingClientRect().top)));
+        expect(tops.size).withContext(`${width}`).toBe(2);
+        Array.from(doc.querySelectorAll('.piece')).forEach(piece =>
+          expect(piece.getBoundingClientRect().width).withContext(`${width}`).toBeGreaterThanOrEqual(40));
+        document.querySelectorAll('iframe').forEach(frame => frame.remove());
+      }
+    });
+
+    it('keeps every coin a child taps at full size: the 44px floor is for a finger', async () => {
+      const doc = await onPhone(320, [200, 100, 50, 20, 10, 5, 2, 1], true);
+      Array.from(doc.querySelectorAll('.piece')).forEach(piece =>
+        expect(piece.getBoundingClientRect().width).toBeGreaterThanOrEqual(56));
+    });
+  });
 });

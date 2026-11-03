@@ -151,10 +151,12 @@ input.incorrect {
   background-color: var(--bad-read-surface);
 }
 
+/* Close round the 60px held open for feedback, on every screen: 1rem above
+   and 2rem below put Check Answer under a 360 by 740 phone with a story */
 .feedback-container {
   text-align: center;
   min-height: 60px;
-  margin: 1rem 0;
+  margin: 4px 0;
 }
 
 .feedback {
@@ -181,7 +183,7 @@ input.incorrect {
   display: flex;
   justify-content: center;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: 8px;
 }
 
 .check-button, .next-button {
