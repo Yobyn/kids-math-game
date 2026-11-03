@@ -733,6 +733,22 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 10: a pile of coins and Check Answer on one phone
+  screen (2026-11-03).** Rounds were played in groep 3 and 4 and in klas 2,
+  at 320, 360 and 390px in nl, en and es, with no errors. "Hoeveel geld is
+  dit?" drew every coin at 60px. Nine coins (5c 5c 2c 2c 2c 2c 1c 1c 1c)
+  took three rows, so Check Answer ended 273px below a 320 by 568 screen
+  and 197px below 360 by 740. Six notes and coins put it 25px below 390 by
+  844. On a phone, a pile a child only reads is now drawn at 40px, every
+  piece alike, notes at 56 by 34. Nine coins lie in two rows. Coins a child
+  taps keep 56px. The space round the 60px held open for feedback is 4px
+  above and 8px over Check Answer on every screen. It was 16px and 32px
+  above 700 tall, and fit.css's two rules for under 700 tall were the same
+  value, so they are gone. Check Answer comes up 102px at 320, 138px at
+  360, and 70px at 390, which brings it on screen there. Nine coins on the
+  smaller two still need a short scroll. question.component.css went from
+  4.81 to 4.81 kB (2 bytes less), and the first load from 360.27 to 360.14
+  kB.
 - **Questions, run 5: no worked line multiplies by 1 (2026-11-02).** Rounds
   were played as a child in groep 3, groep 6 and klas 3 (nl, en, es), with
   no errors. A scan of every topic's worked lines found three steps that
