@@ -887,7 +887,22 @@ function klasWorkedStep(form: string, num1: number, num2: number, operation: str
  * Undefined for a plain sum, which worked-step.ts handles.
  */
 export function formWorkedStep(form: SumForm | undefined, num1: number, num2: number,
-                               operation = '+', point = ','): string | undefined {
+                               operation = '+', point = ',', words: StepWords = DUTCH_STEP_WORDS): string | undefined {
+  const line = dutchWorkedStep(form, num1, num2, operation, point);
+  // The lines are written with the Dutch words; the card says its own, so the line does too
+  return line && line.replace(/% van /g, `% ${words.of} `).replace(/ of x = /g, ` ${words.or} x = `);
+}
+
+/** The words a worked line says, in the child's language: "van" in 10% van 460, "of" in x = 4 of x = 7. */
+export interface StepWords {
+  of: string;
+  or: string;
+}
+
+export const DUTCH_STEP_WORDS: StepWords = { of: 'van', or: 'of' };
+
+function dutchWorkedStep(form: SumForm | undefined, num1: number, num2: number,
+                         operation: string, point: string): string | undefined {
   const klas = form ? klasWorkedStep(form, num1, num2, operation, point) : undefined;
   if (klas) {
     return klas;

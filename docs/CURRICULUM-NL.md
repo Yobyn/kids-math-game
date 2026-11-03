@@ -260,7 +260,8 @@ its groep:
    above nothing; four numbers are small ones, as 4, 8, 6, 10, since four of
    two figures and the box do not fit one line of a 320px phone). Each is
    worked out after two tries ("5% van 60 = 3 → 3 × 3 = 9", "11 + 15 + 10 =
-   36 → 36 : 3 = 12"). Adding fractions with unlike denominators DONE at
+   36 → 36 : 3 = 12"; in English "5% of 60", in Spanish "5% de 60", the
+   card's own word). Adding fractions with unlike denominators DONE at
    groep 8 E (2026-10-28), as klas 1 then keeps asking them: "1/2 + 1/3 =
    ?/6", the common denominator given, the numerator typed. THE END IS DONE TOO (2026-10-10), AND GROEP 8 IS
    COMPLETE AND OPEN on the grade screen: the volume of a box ("Inhoud in

@@ -2212,6 +2212,37 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(component.workedLine).toBe('15 + 27 = 42 → 1,5 + 2,7 = 4,2');
   });
 
+  describe('a worked line in the child\'s own words (2026-11-03)', () => {
+    // were "10% van 460" and "x = 4 of x = 7" in every language
+    const missed = (question: AskedQuestion) => {
+      ask(question);
+      component.wrongAttempts = 0;
+      component.userAnswer = '1';
+      component.checkAnswer();
+      component.userAnswer = '1';
+      component.checkAnswer();
+      return component.workedLine;
+    };
+
+    it('says "of" and "or" in English', () => {
+      build('en');
+      expect(missed({ num1: 46, num2: 9, operation: '*', form: 'procent-via-10' })).toBe('10% of 460 = 46 → 9 × 46 = 414');
+      expect(missed({ num1: 11, num2: 4, operation: '-', form: 'kwadratisch' })).toContain('→ x = 4 or x = 7');
+    });
+
+    it('says "de" and "o" in Spanish', () => {
+      build('es');
+      expect(missed({ num1: 46, num2: 9, operation: '*', form: 'procent-via-10' })).toBe('10% de 460 = 46 → 9 × 46 = 414');
+      expect(missed({ num1: 11, num2: 4, operation: '-', form: 'kwadratisch' })).toContain('→ x = 4 o x = 7');
+    });
+
+    it('says "van" and "of" in Dutch, as before', () => {
+      build('nl');
+      expect(missed({ num1: 46, num2: 9, operation: '*', form: 'procent-via-10' })).toBe('10% van 460 = 46 → 9 × 46 = 414');
+      expect(missed({ num1: 11, num2: 4, operation: '-', form: 'kwadratisch' })).toContain('→ x = 4 of x = 7');
+    });
+  });
+
   it('marks 15 for 25% van 60, and gives 346 000 with its thousands set apart after two tries at rounding 345 678', () => {
     build('nl');
     ask({ num1: 60, num2: 4, operation: '/', form: 'procent-25' });
