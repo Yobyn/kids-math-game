@@ -961,7 +961,10 @@ export class QuestionComponent implements OnInit, OnDestroy {
       const step = this.currentQuestion.money
         ? this.currentQuestion.money.worked
         : formWorkedStep(this.currentQuestion.form, this.currentQuestion.num1, this.currentQuestion.num2,
-                         this.currentQuestion.operation, this.decimalSign)
+                         this.currentQuestion.operation, this.decimalSign, {
+                           of: this.languageService.translate('sum-part-of'),
+                           or: this.languageService.translate('sum-or')
+                         })
           || workedStep(this.currentQuestion.num1, this.currentQuestion.num2,
                         this.currentQuestion.operation) || '';
       // A story's sum comes first: turning the story into it was the question.

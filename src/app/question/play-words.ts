@@ -58,6 +58,7 @@ export type PlayKey =
   | 'sum-double'
   | 'sum-half'
   | 'sum-part-of'
+  | 'sum-or'
   | 'sum-remainder'
   | 'unit-hours'
   | 'unit-minutes'
@@ -136,6 +137,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-double': 'double',
     'sum-half': 'half of',
     'sum-part-of': 'of',
+    'sum-or': 'or',
     'sum-remainder': 'r',
     'unit-hours': 'hours',
     'unit-minutes': 'minutes',
@@ -212,6 +214,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-double': 'dubbel',
     'sum-half': 'de helft van',
     'sum-part-of': 'van',
+    'sum-or': 'of',
     'sum-remainder': 'rest',
     'unit-hours': 'uur',
     'unit-minutes': 'minuten',
@@ -288,6 +291,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'sum-double': 'el doble de',
     'sum-half': 'la mitad de',
     'sum-part-of': 'de',
+    'sum-or': 'o',
     'sum-remainder': 'resto',
     'unit-hours': 'horas',
     'unit-minutes': 'minutos',

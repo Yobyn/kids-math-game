@@ -733,6 +733,17 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 6: a worked line in the child's own words (2026-11-03).**
+  Rounds were played as a child in groep 3 (nl), groep 6 (en) and klas 4
+  (es), with no errors. A scan of every topic's worked lines for words
+  found two that were Dutch in every language. Every percentage line said
+  "van": "10% van 460 = 46", "1% van 200 = 2", "15% van 80 = 12". Factorising
+  said "of": "x = 4 of x = 7", which in English reads as the wrong word.
+  They now say the card's own "of" ("10% of 460", "10% de 460") and a new
+  "or" ("x = 4 or x = 7", "x = 4 o x = 7"; `sum-or` in play-words.ts,
+  lazy). Dutch is unchanged, and so is the adults' practice plan. A spec
+  holds every topic's English and Spanish worked lines to no "van", "rest",
+  "keer", "uur", or "of" between two answers.
 - **Look and feel, run 10: a pile of coins and Check Answer on one phone
   screen (2026-11-03).** Rounds were played in groep 3 and 4 and in klas 2,
   at 320, 360 and 390px in nl, en and es, with no errors. "Hoeveel geld is
@@ -973,7 +984,8 @@ middle, hard the end), one groep per run.
   On the list from the scan:
   - DONE (run 5): "1 cm = 1 m → 3 × 1 = 3" at schaal 1 : 100 and
     "1% van 100 = 1 → 102 × 1 = 102" for a growth factor on 100;
-  - "van" in an English or Spanish worked line ("1% van 200 = 2");
+  - DONE (run 6): "van" in an English or Spanish worked line ("1% van 200 =
+    2");
 
 - Money is still its own strand and still comes up at every grade; in
   groep 3–4 that is right (geld tot 20 and tot 100 are taught then).

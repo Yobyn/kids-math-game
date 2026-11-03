@@ -25,6 +25,7 @@ export type TranslationKeys =
   | 'sum-double'
   | 'sum-half'
   | 'sum-part-of'
+  | 'sum-or'
   | 'sum-remainder'
   | 'unit-hours'
   | 'unit-minutes'

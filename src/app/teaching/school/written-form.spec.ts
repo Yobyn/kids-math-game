@@ -1446,4 +1446,32 @@ describe('a worked line that says something at every step (2026-10-29)', () => {
     expect(formWorkedStep('groeifactor', 105, 200, '*')).toBe('1% van 200 = 2 → 105 × 2 = 210');
     expect(formWorkedStep('snelheid', 5, 30, '*')).toBe('2 × 60 = 120 → 120 + 30 = 150');
   });
+
+  it('says its words in the child\'s language: 10% of 460, x = 4 or x = 7 (2026-11-03)', () => {
+    // were "10% van 460" and "x = 4 of x = 7" in every language, and in English that "of" says the wrong thing
+    const english = { of: 'of', or: 'or' };
+    const spanish = { of: 'de', or: 'o' };
+    expect(formWorkedStep('procent-via-10', 46, 9, '*', '.', english)).toBe('10% of 460 = 46 → 9 × 46 = 414');
+    expect(formWorkedStep('procent-via-10', 46, 9, '*', ',', spanish)).toBe('10% de 460 = 46 → 9 × 46 = 414');
+    expect(formWorkedStep('kwadratisch', 11, 4, '*', '.', english)).toBe('4 × 7 = 28, 4 + 7 = 11 → x = 4 or x = 7');
+    expect(formWorkedStep('kwadratisch', 11, 4, '*', ',', spanish)).toBe('4 × 7 = 28, 4 + 7 = 11 → x = 4 o x = 7');
+    expect(formWorkedStep('groeifactor', 105, 200, '*', '.', english)).toBe('1% of 200 = 2 → 105 × 2 = 210');
+    expect(formWorkedStep('groeifactor', 103, 100, '*', ',', spanish)).toBe('1,03 = 103% → 103% de 100 = 103');
+    expect(formWorkedStep('toename-15', 80, 12, '+', '.', english)).toBe('15% of 80 = 12 → 80 + 12 = 92');
+    // and in Dutch as it was
+    expect(formWorkedStep('kwadratisch', 11, 4, '*')).toBe('4 × 7 = 28, 4 + 7 = 11 → x = 4 of x = 7');
+  });
+
+  it('leaves no Dutch word in an English or Spanish worked line, in any topic of any year (2026-11-03)', () => {
+    const misses: string[] = [];
+    Object.keys(TOPICS).forEach(topic => made(topic, 300).forEach(sum => {
+      [{ of: 'of', or: 'or' }, { of: 'de', or: 'o' }].forEach(words => {
+        const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation, ',', words) || '';
+        if (/\b(van|rest|keer|uur)\b|x = -?\d+ of /.test(line)) {
+          misses.push(`${topic}: ${line}`);
+        }
+      });
+    }));
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
 });
