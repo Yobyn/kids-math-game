@@ -733,6 +733,19 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 11: a big number after two tries written as the box
+  writes it (2026-11-04).** Rounds were played in groep 4 and 5 and klas 3,
+  at 320, 360 and 390px in nl, en and es, with no errors. After two tries
+  at "9,3 · 10⁵ =" the box held "930 000", but the message said "Het
+  antwoord is 930000" and the worked line "9,3 × 100000 = 930000". A
+  decimal form's answer was never grouped, and neither were the worked
+  line's big numbers. Now the message and the worked line set the
+  thousands apart from five figures with the same narrow space: "930 000",
+  "9,3 × 100 000 = 930 000", "4.7 × 10 000 = 47 000". Four figures stay
+  together (4200), and figures after the comma are left as they are
+  (0,005). This was a component change (`longGrouped`), with no CSS. Seen
+  for later: the Spanish grade screen says "Seleccione Grado", formal,
+  where every other screen says tú ("Elige tu subida").
 - **Questions, run 6: a worked line in the child's own words (2026-11-03).**
   Rounds were played as a child in groep 3 (nl), groep 6 (en) and klas 4
   (es), with no errors. A scan of every topic's worked lines for words
