@@ -2212,6 +2212,35 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(component.workedLine).toBe('15 + 27 = 42 → 1,5 + 2,7 = 4,2');
   });
 
+  describe('a big number after two tries, written as the box writes it (2026-11-04)', () => {
+    // 9,3 · 10⁵: the box held "930 000", the message "930000" and the line "9,3 × 100000 = 930000"
+    const missed = (question: AskedQuestion) => {
+      ask(question);
+      component.wrongAttempts = 0;
+      component.userAnswer = '1';
+      component.checkAnswer();
+      component.userAnswer = '1';
+      component.checkAnswer();
+    };
+
+    it('sets the thousands apart in the message and the worked line, from five figures', () => {
+      build('nl');
+      missed({ num1: 93, num2: 100000, operation: '*', form: 'wetenschap' });
+      expect(component.feedback).toContain('930\u202f000.');
+      expect(component.workedLine).toBe('9,3 × 100\u202f000 = 930\u202f000');
+      expect(component.shownAnswer).toBe('930\u202f000');
+    });
+
+    it('leaves four figures together, and the figures after the comma as they are', () => {
+      build('en');
+      missed({ num1: 42, num2: 1000, operation: '*', form: 'wetenschap' });
+      expect(component.feedback).toContain('4200.');
+      expect(component.workedLine).toBe('4.2 × 1000 = 4200');
+      missed({ num1: 5000, num2: 1000, operation: '/', form: 'wetenschap-min' });
+      expect(component.workedLine).not.toContain('\u202f');
+    });
+  });
+
   describe('a worked line in the child\'s own words (2026-11-03)', () => {
     // were "10% van 460" and "x = 4 of x = 7" in every language
     const missed = (question: AskedQuestion) => {

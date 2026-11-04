@@ -67,6 +67,14 @@ interface PendingReplay {
   reviewOf?: MissedFact;
 }
 
+/**
+ * A whole number of five figures or more with its thousands set apart, as the card and the box write
+ * it: "9,3 × 100 000 = 930 000". Figures after a comma or a point are left as they are, and so are four.
+ */
+function longGrouped(text: string): string {
+  return text.replace(/(^|[^\d,.\u202f])(\d{5,})/g, (_, before: string, figures: string) => before + grouped(Number(figures)));
+}
+
 @Component({
   selector: 'app-question',
   templateUrl: './question.component.html',
@@ -876,7 +884,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
       isCorrect = true;
     }
     this.correctAnswerText = this.isClock ? clockTime(this.currentQuestion.num1, this.currentQuestion.num2)
-      : this.inDecimals ? decimal(this.correctAnswer, this.decimalPlaces, this.decimalSign) : signed(this.correctAnswer);
+      : this.inDecimals ? longGrouped(decimal(this.correctAnswer, this.decimalPlaces, this.decimalSign)) : signed(this.correctAnswer);
 
     if (isCorrect) {
       this.handleCorrectAnswer();
@@ -970,7 +978,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
       // A story's sum comes first: turning the story into it was the question.
       // Written as the workbook writes it: 23 : 4 = 5 rest 3, 3 m = 300 cm, ¼ van 20 = 5
       const storySum = this.storyLine ? this.writtenSum() : '';
-      this.workedLine = [storySum, step].filter(Boolean).join(' → ');
+      this.workedLine = longGrouped([storySum, step].filter(Boolean).join(' → '));
       this.showOkButton = true;
       this.results.push(false);
       this.saveRound();
