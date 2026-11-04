@@ -35,7 +35,9 @@ where their school is ahead or behind.**
 amounts from groep 3, amounts with a comma by the end of groep 6;
 teaching/money.ts `teachesMoney`, done 2026-10-10). From groep 7 on money is
 the setting of a sum, not the sum: "20% korting op €45", "3 pakken kosten
-€6". Groep 7 and 8 and klas 1–4 are never asked to count coins.
+€6". Groep 7 and 8 and klas 1–4 are never asked to count coins. "Hoeveel
+munten van 20c maken €1?" skip counts, so it never asks it of the 1c or
+the €1, whose answer is the amount itself (2026-11-04).
 
 ## Groep 3 (age 6–7)
 

@@ -283,7 +283,9 @@ function countQuestion(band: MoneyBand, random: Random, words: MoneyWords): Mone
  * to make a given amount, and the one that makes skip counting pay.
  */
 function makeQuestion(band: MoneyBand, random: Random, words: MoneyWords): MoneyQuestion | null {
-  const usable = band.pieces.filter(piece => piece <= 200);
+  // Never the 1c or the €1: "how many 1c coins make 7c?" is 7 and "how many €1 coins make €5?" is 5,
+  // read off the question, with nothing to count in steps
+  const usable = band.pieces.filter(piece => piece !== 1 && piece !== 100 && piece <= 200);
   if (!usable.length) {
     return null;
   }

@@ -733,6 +733,17 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 7: no money question whose answer is in the question
+  (2026-11-04).** Rounds were played as a child in groep 3 (nl), groep 5
+  (en) and klas 2 (es), with no errors. Groep 5 was asked "How many €1
+  coins make €5?", and the same question could ask "Hoeveel munten van 1c
+  maken 7c?" of groep 4 to 6. The answer is the number in the question,
+  with nothing to count in steps, and the question is there to teach skip
+  counting. It now never asks it of the 1c or the €1: "Hoeveel munten van
+  €2 maken €8?", "How many 2c coins make 18c?", "¿Cuántas monedas de 50c
+  hacen €2?". A spec holds every grade's make-an-amount questions to an
+  answer that is not written in the amount. Counting a pile of 1c coins in
+  groep 3 is unchanged.
 - **Look and feel, run 11: a big number after two tries written as the box
   writes it (2026-11-04).** Rounds were played in groep 4 and 5 and klas 3,
   at 320, 360 and 390px in nl, en and es, with no errors. After two tries
