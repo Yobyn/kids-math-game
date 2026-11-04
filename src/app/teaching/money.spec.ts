@@ -298,6 +298,18 @@ describe('money: every question a child can be asked', () => {
     mixed.forEach(question => expect(question.answerText).toContain('and'));
   });
 
+  it('never asks how many coins make an amount when the answer is written in the amount (2026-11-04)', () => {
+    // "How many 1c coins make 7c?" is 7 and "How many €1 coins make €5?" is 5, read off the question
+    const made: MoneyQuestion[] = [];
+    GRADES.forEach(grade => sample(grade, 400).filter(question => question.shape === 'make').forEach(question => made.push(question)));
+    expect(made.length).toBeGreaterThan(0);
+    made.forEach(question => {
+      const written = Number(question.values.target.replace(/[^\d.,]/g, '').replace(',', '.'));
+      expect(question.answer).withContext(question.summary).not.toBe(written);
+    });
+    expect(made.some(question => question.values.coin === '1c' || question.values.coin === '€1')).toBeFalse();
+  });
+
   it('never asks a child for a number they cannot type', () => {
     GRADES.forEach(grade => {
       const band = bandFor(grade);
