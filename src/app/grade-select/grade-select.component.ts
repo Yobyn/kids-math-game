@@ -15,7 +15,7 @@ import {
 } from '../question/round-state';
 import { SavedResult, isUnseen } from '../result/result-state';
 import { stepColour } from '../theme/palette';
-import { LAST_READY_GRADE, dutchYear } from '../levels/school-year';
+import { LAST_READY_GRADE, dutchYear, spanishYear } from '../levels/school-year';
 import { SELECT_WORDS } from './select-words';
 
 interface GradeCard {
@@ -78,6 +78,11 @@ export class GradeSelectComponent implements OnInit {
         name: `${year.word} ${year.number}`,
         description: `${year.subject} in ${year.word.toLowerCase()} ${year.number}`
       };
+    }
+    if (this.languageService.getLanguage() === 'es') {
+      const year = spanishYear(grade);
+      const name = `${year.number}º de ${year.stage}`;
+      return { badge: year.number, name, description: `Matemáticas de ${name}` };
     }
     return {
       badge: grade,

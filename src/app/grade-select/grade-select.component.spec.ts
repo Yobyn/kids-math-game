@@ -133,6 +133,23 @@ describe('GradeSelectComponent naming the year as the school does', () => {
     expect(fixture.componentInstance.grades.map(grade => grade.badge)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   });
 
+  it('calls the cards by the Spanish school year, 1º de Primaria to 4º de ESO, not "Grado 7" (2026-11-05)', () => {
+    const fixture = build('es');
+    const names = fixture.componentInstance.grades.map(grade => grade.name);
+    expect(names).toEqual(['1º de Primaria', '2º de Primaria', '3º de Primaria', '4º de Primaria', '5º de Primaria',
+      '6º de Primaria', '1º de ESO', '2º de ESO', '3º de ESO', '4º de ESO']);
+    expect(fixture.componentInstance.grades.map(grade => grade.badge)).toEqual([1, 2, 3, 4, 5, 6, 1, 2, 3, 4]);
+    expect(fixture.componentInstance.grades[6].description).toBe('Matemáticas de 1º de ESO');
+    fixture.componentInstance.carryOnGrade = 2;
+    expect(fixture.componentInstance.carryOnLabel).toBe('Sigue en 2º de Primaria');
+  });
+
+  // In the climb screen's own voice ("Elige tu subida", "Pick your climb", "Kies je klim"): Spanish said the formal "Seleccione Grado"
+  const heading = (language: string) => build(language).nativeElement.querySelector('h1').textContent.trim();
+  it('asks "Elige tu curso" in Spanish (2026-11-05)', () => expect(heading('es')).toBe('Elige tu curso'));
+  it('asks "Pick your grade" in English (2026-11-05)', () => expect(heading('en')).toBe('Pick your grade'));
+  it('asks "Kies je groep" in Dutch (2026-11-05)', () => expect(heading('nl')).toBe('Kies je groep'));
+
   it('offers to carry on in the groep the child last played', () => {
     const fixture = build('nl');
     fixture.componentInstance.carryOnGrade = 2;

@@ -397,7 +397,7 @@ export class LanguageService {
       'update-ready': 'Hay una nueva versión del juego lista.',
       'update-now': 'Obtenerla ahora',
       'update-later': 'Más tarde',
-      'back': 'Volver a Selección de Grado',
+      'back': 'Volver a elegir curso',
       'lets-learn': '¡Aprendamos matemáticas!'
     }
   };

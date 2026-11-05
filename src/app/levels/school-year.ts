@@ -12,6 +12,14 @@ export function dutchYear(grade: number): { word: 'Groep' | 'Klas'; number: numb
 }
 
 /**
+ * What a grade is called in a Spanish school: Primaria is six years from age 6, the same years as
+ * groep 3 to 8, and ESO four from age 12, as klas 1 to 4. "Grado 7" named nothing a Spanish child knows.
+ */
+export function spanishYear(grade: number): { stage: 'Primaria' | 'ESO'; number: number } {
+  return grade <= 6 ? { stage: 'Primaria', number: grade } : { stage: 'ESO', number: grade - 6 };
+}
+
+/**
  * The grades whose sums follow the Dutch curriculum (teaching/school/groep.ts).
  * The others are locked on the grade screen until their groep or klas is
  * built (Yobyn, 2026-10-09): until then they would get the old generic sums,

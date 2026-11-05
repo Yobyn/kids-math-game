@@ -733,6 +733,20 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 12: the Spanish grade screen names a Spanish school
+  year (2026-11-05).** Rounds were played in groep 3 and 4 and in klas 1
+  and 4, at 320, 360 and 390px in nl, en and es, with no errors. The grade
+  screen asked "Seleccione Grado", the formal usted where every other
+  screen says tú ("Elige tu subida"). Its cards read "Grado 1" to "Grado
+  10", a year no Spanish child is in. Primaria is six years from age 6 and
+  ESO four from 12, the same years as groep 3 to 8 and klas 1 to 4. The
+  cards now read "1º de Primaria" to "6º de Primaria" and "1º de ESO" to
+  "4º de ESO", with their number in the badge, as the Dutch cards show
+  groep and klas (`spanishYear`, school-year.ts). "Sigue en 2º de Primaria"
+  offers the last one back. The heading is "Elige tu curso", and "Pick your
+  grade" and "Kies je groep" follow the climb screen's voice too. The way
+  back is "Volver a elegir curso". The cards keep their 113px height at 320
+  wide. The game's own grade, 1 to 10, is unchanged.
 - **Questions, run 7: no money question whose answer is in the question
   (2026-11-04).** Rounds were played as a child in groep 3 (nl), groep 5
   (en) and klas 2 (es), with no errors. Groep 5 was asked "How many €1
