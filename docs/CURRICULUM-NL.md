@@ -23,7 +23,8 @@ where their school is ahead or behind.**
 - **Difficulty is the moment in the school year.** Easy = the start of the
   year (B: last year's end, revisited). Medium = the middle (M). Hard = the
   end (E). A round mixes the topics of that moment, with the newest ones most
-  often.
+  often, and never asks the same sum twice in ten questions running (a
+  missed fact asked back on purpose aside; 2026-11-05).
 - **Notation as in the Dutch classroom:** × for keer, : for delen. Decimal
   comma (0,5) from groep 6, when decimals arrive.
 - **Every answer goes on the keypad:** a whole number, or (from groep 6) a

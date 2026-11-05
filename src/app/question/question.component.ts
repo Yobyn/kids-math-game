@@ -89,6 +89,22 @@ export class QuestionComponent implements OnInit, OnDestroy {
   private missed: PendingReplay[] = [];
   /** The stories told this round, so none is told twice. */
   private storiesTold: string[] = [];
+
+  /**
+   * The last nine questions asked, so ten running are ten different ones: 60% of groep 3's first rounds
+   * asked one sum twice. A missed fact asked back on purpose comes by another way and is not held back.
+   */
+  private recentlyAsked: string[] = [];
+
+  /** Draws again, a bounded number of times, while the draw is one of the last nine; keeps the one it has then. */
+  private freshDraw<T>(draw: () => T, keyOf: (made: T) => string): T {
+    let made = draw();
+    for (let tries = 0; tries < 20 && this.recentlyAsked.includes(keyOf(made)); tries++) {
+      made = draw();
+    }
+    this.recentlyAsked = [...this.recentlyAsked, keyOf(made)].slice(-9);
+    return made;
+  }
   /** Set while the question on screen is a review from an earlier day. */
   private reviewing?: MissedFact;
   currentQuestion: AskedQuestion = {
@@ -230,6 +246,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     }
     this.scoreService.resetScore();
     this.storiesTold = [];
+    this.recentlyAsked = [];
     // A round abandoned half way could leave this set; a new round is honest
     // about its own setting until it is not.
     this.clearEasedFlag();
@@ -470,9 +487,9 @@ export class QuestionComponent implements OnInit, OnDestroy {
   }
 
   private generateMoneyQuestion(): boolean {
-    const question = moneyQuestion(this.grade, Math.random, {
-      and: this.languageService.translate('money-and')
-    });
+    const words = { and: this.languageService.translate('money-and') };
+    const question = this.freshDraw(() => moneyQuestion(this.grade, Math.random, words),
+                                    made => made ? `${made.prompt} ${made.summary}` : '');
     if (!question) {
       return false;
     }
@@ -756,7 +773,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
     // Every grade, groep 3 to klas 4, has its own now: the old generic sums are gone. A grade from
     // outside them (a hand-edited store) gets the nearest year there is.
     const grade = Math.min(10, Math.max(1, Math.round(this.grade) || 1));
-    const school = schoolSum(grade + 2, momentFor(this.difficulty)) || schoolSum(3, 'B')!;
+    const school = this.freshDraw(() => schoolSum(grade + 2, momentFor(this.difficulty)) || schoolSum(3, 'B')!,
+                                  made => `${made.num1} ${made.operation} ${made.num2} ${made.form || ''}`);
     this.currentQuestion = { num1: school.num1, num2: school.num2, operation: school.operation };
     if (school.form) {
       this.currentQuestion.form = school.form;

@@ -733,6 +733,17 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 8: never the same sum twice in a round (2026-11-05).**
+  Rounds were played as a child in groep 4 (nl), groep 6 (en) and klas 3
+  (es), with no errors. Klas 3 asked "(−3)⁴" at question 5 after a right
+  answer at question 1. Nothing kept a round's sums apart; only stories
+  were. 2000 rounds of ten for each moment had a sum twice in 60% of groep
+  3's first rounds, 44% of its middle, 27–38% of klas 3 and 4's, and 2–10%
+  elsewhere. The question card now remembers the last nine sums and money
+  questions it asked, and draws again, at most 20 times, when a draw is one
+  of them. A missed fact asked back on purpose comes by its own way and is
+  not held back. A spec draws 300 questions running in groep 3 (easy and
+  medium), klas 3 and klas 4, and finds no ten running with one twice.
 - **Look and feel, run 12: the Spanish grade screen names a Spanish school
   year (2026-11-05).** Rounds were played in groep 3 and 4 and in klas 1
   and 4, at 320, 360 and 390px in nl, en and es, with no errors. The grade
