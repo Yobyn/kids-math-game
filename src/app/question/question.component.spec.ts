@@ -834,6 +834,27 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     fixture.detectChanges();
   }
 
+  it('never asks the same sum twice in a round: (−3)⁴ came back at question 5 after a right answer at 1 (2026-11-05)', () => {
+    // Without a missed fact to ask back, ten questions running are ten different ones. Before this, 60% of
+    // groep 3's first rounds asked one sum twice, and a third of klas 4's
+    const repeats: string[] = [];
+    [['1', 'easy'], ['1', 'medium'], ['10', 'hard'], ['9', 'medium']].forEach(([grade, difficulty]) => {
+      build(grade, difficulty);
+      const keys: string[] = [];
+      for (let i = 0; i < 300; i++) {
+        component.generateQuestion();
+        const q = component.currentQuestion;
+        keys.push(q.money ? `${q.money.prompt} ${q.money.summary}` : `${q.num1} ${q.operation} ${q.num2} ${q.form || ''}`);
+      }
+      keys.forEach((key, i) => {
+        if (keys.slice(Math.max(0, i - 9), i).includes(key)) {
+          repeats.push(`${grade} ${difficulty}: ${key}`);
+        }
+      });
+    });
+    expect(repeats.slice(0, 5)).toEqual([]);
+  });
+
   /** The plain sums of a round, money left aside (its own strand). */
   function sums(count = 200) {
     const asked = [];
