@@ -33,7 +33,8 @@ where their school is ahead or behind.**
   "25% van 60 = ?", "2 m = ? cm").
 
 **Money (geld)** is a strand of its own in groep 3 to 6 only (coins and
-amounts from groep 3, amounts with a comma by the end of groep 6;
+amounts from groep 3, amounts with a comma by the end of groep 6, written
+€3,40 as school writes them, €3.40 only in English, since 2026-11-06;
 teaching/money.ts `teachesMoney`, done 2026-10-10). From groep 7 on money is
 the setting of a sum, not the sum: "20% korting op €45", "3 pakken kosten
 €6". Groep 7 and 8 and klas 1–4 are never asked to count coins. "Hoeveel

@@ -733,6 +733,16 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 9: an amount written with a comma in Dutch and Spanish
+  (2026-11-06).** Rounds were played as a child in groep 3 and 6 (nl) and
+  klas 1 (es), with no errors. The money strand wrote every amount with a
+  point in every language: "Het antwoord is €2.02", a "." key, and "2.02"
+  in the box. Dutch and Spanish schools write €2,02, and every other sum
+  in the game already wrote 0,7 there. Now amounts in Dutch and Spanish
+  are written with a comma: the question, the message, the worked line,
+  the box, the "so far" of the coins put down, and the keypad's key ("," in
+  place of "."). English keeps €2.02. "2,02" typed on a keyboard is marked
+  right, as "2.02" is (`MoneyWords.point`, `moneyAnswerMatches`).
 - **Look and feel, run 13: a money question shows its answer after two
   tries too (2026-11-06).** Rounds were played in groep 3 and 5 and in
   klas 2 and 4, at 320, 360 and 390px in nl, en and es, with no errors.
@@ -743,8 +753,8 @@ middle, hard the end), one groep per run.
   "€ 3.40", and "3" for how many 20c coins make 60c. The red goes. Coins
   put down have no box and are unchanged, and the answer kept is still
   what was typed. This was a component change, with no CSS. Seen for later:
-  - The money strand writes amounts with a point in Dutch and Spanish too
-    ("€3.40", where school writes €3,40).
+  - DONE (run 9): the money strand writes amounts with a point in Dutch
+    and Spanish too ("€3.40", where school writes €3,40).
   - A groep 3 round at the start of the year asked "How much money is
     this?" five times in ten.
 - **Questions, run 8: never the same sum twice in a round (2026-11-05).**
