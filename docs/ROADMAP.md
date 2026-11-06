@@ -733,6 +733,20 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 13: a money question shows its answer after two
+  tries too (2026-11-06).** Rounds were played in groep 3 and 5 and in
+  klas 2 and 4, at 320, 360 and 390px in nl, en and es, with no errors.
+  Since run 6 a sum's box holds the answer once it is given, in the box's
+  own colours. A money question was left out: after two tries "2c 2c 2c =
+  [7] c" stood in red, and the right amount was only in the message below.
+  The box now holds the amount, with its unit still round the box: "6 c",
+  "€ 3.40", and "3" for how many 20c coins make 60c. The red goes. Coins
+  put down have no box and are unchanged, and the answer kept is still
+  what was typed. This was a component change, with no CSS. Seen for later:
+  - The money strand writes amounts with a point in Dutch and Spanish too
+    ("€3.40", where school writes €3,40).
+  - A groep 3 round at the start of the year asked "How much money is
+    this?" five times in ten.
 - **Questions, run 8: never the same sum twice in a round (2026-11-05).**
   Rounds were played as a child in groep 4 (nl), groep 6 (en) and klas 3
   (es), with no errors. Klas 3 asked "(−3)⁴" at question 5 after a right
