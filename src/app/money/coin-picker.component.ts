@@ -51,7 +51,8 @@ export class CoinPickerComponent {
   /** What is down so far, written the way this band writes amounts. */
   get soFar(): string {
     return formatCents(pickTotal(this.picked), this.decimal, {
-      and: this.languageService.translate('money-and')
+      and: this.languageService.translate('money-and'),
+      point: this.languageService.getLanguage() === 'en' ? '.' : ','
     });
   }
 }

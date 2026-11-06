@@ -117,6 +117,8 @@ export function bandFor(grade: number): MoneyBand {
 export interface MoneyWords {
   /** Between the euros and the cents where they are written separately. */
   and: string;
+  /** The decimal sign the child's school writes: €3,40 in Dutch and Spanish, €3.40 in English (the default). */
+  point?: string;
 }
 
 const DEFAULT_WORDS: MoneyWords = { and: 'and' };
@@ -137,7 +139,7 @@ export function formatCents(cents: number, decimal = false, words: MoneyWords = 
     return `${sign}€${whole}`;
   }
   if (decimal) {
-    return `${sign}€${whole}.${String(part).padStart(2, '0')}`;
+    return `${sign}€${whole}${words.point || '.'}${String(part).padStart(2, '0')}`;
   }
   return `${sign}€${whole} ${words.and} ${part}c`;
 }
@@ -566,7 +568,8 @@ export function unitSuffix(unit: MoneyUnit): string {
  * was right.
  */
 export function moneyAnswerMatches(typed: string, question: MoneyQuestion): boolean {
-  const value = Number(String(typed == null ? '' : typed).trim());
+  // 3,40 as a Dutch or Spanish child writes it is 3.40
+  const value = Number(String(typed == null ? '' : typed).trim().replace(',', '.'));
   if (!Number.isFinite(value) || typed === '') {
     return false;
   }

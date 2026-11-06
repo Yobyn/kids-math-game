@@ -2,6 +2,7 @@ import {
   MONEY_PIECES,
   MoneyQuestion,
   MoneyShape,
+  MoneyWords,
   bandFor,
   formatCents,
   moneyAnswerMatches,
@@ -30,11 +31,11 @@ function seeded(seed: number): () => number {
 }
 
 /** Many questions from one grade, built across a spread of draws. */
-function sample(grade: number, count = 250): MoneyQuestion[] {
+function sample(grade: number, count = 250, words?: MoneyWords): MoneyQuestion[] {
   const random = seeded(grade * 7919 + 11);
   const built: MoneyQuestion[] = [];
   for (let i = 0; i < count; i++) {
-    const question = moneyQuestion(grade, random);
+    const question = moneyQuestion(grade, random, words);
     if (question) {
       built.push(question);
     }
@@ -73,6 +74,20 @@ describe('money: how an amount is written', () => {
     expect(formatCents(5)).toBe('5c');
     expect(formatCents(75)).toBe('75c');
     expect(formatCents(99)).toBe('99c');
+  });
+
+  it('writes the decimal sign the child\'s school writes: €3,40 in Dutch and Spanish, €3.40 in English (2026-11-06)', () => {
+    expect(formatCents(340, true, { and: 'en', point: ',' })).toBe('€3,40');
+    expect(formatCents(1205, true, { and: 'y', point: ',' })).toBe('€12,05');
+    expect(formatCents(340, true, { and: 'and', point: '.' })).toBe('€3.40');
+    expect(formatCents(340, true)).toBe('€3.40');
+    // and every amount a Dutch round writes, the question, its answer and its worked line
+    const dutch = { and: 'en', point: ',' };
+    const written: string[] = [];
+    [4, 5, 6].forEach(grade => sample(grade, 300, dutch).forEach(question => written.push(
+      question.answerText, question.worked, ...Object.keys(question.values).map(name => question.values[name]))));
+    expect(written.filter(text => /€\d+\.\d/.test(text)).slice(0, 3)).toEqual([]);
+    expect(written.some(text => /€\d+,\d\d/.test(text))).toBeTrue();
   });
 
   it('writes a whole number of euros without any cents', () => {
@@ -151,6 +166,14 @@ describe('money: marking the answer', () => {
 
   it('marks the exact number right', () => {
     expect(moneyAnswerMatches('75', question({}))).toBe(true);
+  });
+
+  it('marks €3,40 typed with a comma right, as €3.40 with a point (2026-11-06)', () => {
+    const decimal = question({ answer: 3.4, unit: 'decimal', answerCents: 340, answerText: '€3,40' });
+    expect(moneyAnswerMatches('3,40', decimal)).toBe(true);
+    expect(moneyAnswerMatches('3,4', decimal)).toBe(true);
+    expect(moneyAnswerMatches('3.40', decimal)).toBe(true);
+    expect(moneyAnswerMatches('3,50', decimal)).toBe(false);
   });
 
   it('marks anything else wrong', () => {

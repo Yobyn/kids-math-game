@@ -1,6 +1,7 @@
 import { RoundTrackComponent } from './round-track.component';
 import { ElementRef, NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { SoundService } from '../services/sound.service';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -598,6 +599,29 @@ describe('QuestionComponent', () => {
       }
 
       expect(component.needsDecimalKey).toBe(true);
+    });
+
+    it('writes an amount with a comma in Dutch and Spanish: €3,40 on the card, the keypad and in the box (2026-11-06)', () => {
+      ['nl', 'es'].forEach(language => {
+        component.languageService.setLanguage(language as any);
+        let money = askMoney(6);
+        for (let i = 0; i < 200 && (money.unit !== 'decimal' || money.answerCents % 100 === 0); i++) {
+          money = askMoney(6);
+        }
+        expect(money.unit).withContext(language).toBe('decimal');
+        expect(money.answerText).withContext(language).toMatch(/^€\d+,\d\d$/);
+        expect(component.moneyText + money.worked).withContext(language).not.toMatch(/\d\.\d/);
+        component.userAnswer = '';
+        component.showOkButton = false;
+        component.useKeypad = true;
+        component.onKeypadPress('3');
+        component.onKeypadPress('.');
+        component.onKeypadPress('4');
+        fixture.detectChanges();
+        expect((fixture.nativeElement.querySelector('.math-problem input') as HTMLInputElement).value).withContext(language).toBe('3,4');
+        expect(fixture.debugElement.query(By.directive(KeypadComponent)).componentInstance.comma).withContext(language).toBeTrue();
+      });
+      component.languageService.setLanguage('en');
     });
 
     it('keeps "3." in the box while €3.40 is being typed: a number box would empty itself', () => {
@@ -2937,7 +2961,7 @@ describe('QuestionComponent once the answer is given (2026-10-30)', () => {
     expect(component.userAnswer).toBe('7');
     ask(counted([200, 100, 20, 20], 3.4, 'decimal', 340, '€3.40'));
     miss('3', '4');
-    expect(box().value).toBe('3.40');
+    expect(box().value).toBe('3,40');
     ask(counted([100, 100, 200], 4, 'euros', 400, '€4'));
     miss('3', '5');
     expect(box().value).toBe('4');

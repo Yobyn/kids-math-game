@@ -488,7 +488,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
   }
 
   private generateMoneyQuestion(): boolean {
-    const words = { and: this.languageService.translate('money-and') };
+    const words = { and: this.languageService.translate('money-and'), point: this.decimalSign };
     const question = this.freshDraw(() => moneyQuestion(this.grade, Math.random, words),
                                     made => made ? `${made.prompt} ${made.summary}` : '');
     if (!question) {
@@ -656,8 +656,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * The answer as the box shows it. A sum in tenths shows the child's own
-   * decimal sign; money keeps the point its card is written with (€3.40).
+   * The answer as the box shows it, with the child's own decimal sign: 0,7 and €3,40 in Dutch and
+   * Spanish, as the card writes them (money kept the point in every language until 2026-11-06).
    */
   get shownAnswer(): string {
     // Out of tries, the box holds the answer itself: the card then reads 19 − 3 = 16, the fact to
@@ -665,7 +665,8 @@ export class QuestionComponent implements OnInit, OnDestroy {
     if (this.answerGiven && this.currentQuestion.money) {
       // What goes in the box, the € or c round it left out: 6 for 6c, 3.40 for €3.40
       const money = this.currentQuestion.money;
-      return money.unit === 'decimal' ? formatCents(money.answerCents, true).replace('€', '') : String(money.answer);
+      return money.unit === 'decimal'
+        ? formatCents(money.answerCents, true, { and: '', point: this.decimalSign }).replace('€', '') : String(money.answer);
     }
     if (this.answerGiven) {
       const given = this.correctAnswerText;
@@ -677,7 +678,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
       const typed = String(this.userAnswer || '');
       return typed.length > 2 ? `${typed.slice(0, -2)}:${typed.slice(-2)}` : typed;
     }
-    const shown = this.inDecimals ? String(this.userAnswer).replace('.', this.decimalSign) : this.userAnswer;
+    const shown = this.needsDecimalKey ? String(this.userAnswer).replace('.', this.decimalSign) : this.userAnswer;
     if (!this.useKeypad) {
       return shown;
     }
