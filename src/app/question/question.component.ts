@@ -8,6 +8,7 @@ import { FieldPulseService } from '../services/field-pulse.service';
 import { workedStep } from '../teaching/worked-step';
 import {
   MoneyQuestion,
+  formatCents,
   moneyAnswerMatches,
   moneyQuestion,
   teachesMoney,
@@ -661,6 +662,11 @@ export class QuestionComponent implements OnInit, OnDestroy {
   get shownAnswer(): string {
     // Out of tries, the box holds the answer itself: the card then reads 19 − 3 = 16, the fact to
     // remember, and not the 7 that was typed, left standing in red beside the sum
+    if (this.answerGiven && this.currentQuestion.money) {
+      // What goes in the box, the € or c round it left out: 6 for 6c, 3.40 for €3.40
+      const money = this.currentQuestion.money;
+      return money.unit === 'decimal' ? formatCents(money.answerCents, true).replace('€', '') : String(money.answer);
+    }
     if (this.answerGiven) {
       const given = this.correctAnswerText;
       const figures = given.replace('\u2212', '');
@@ -702,11 +708,11 @@ export class QuestionComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Two tries spent and the answer given (a money question writes its own, with its units round the
-   * box, and keeps what was typed). Shown in the box, in the box's own colours rather than red.
+   * Two tries spent and the answer given. Shown in the box, in the box's own colours rather than red:
+   * a money question's too, its unit staying round the box (2c 2c 2c = 6 c). Coins put down have no box.
    */
   get answerGiven(): boolean {
-    return this.answerWasCorrect === false && this.showOkButton && !this.currentQuestion.money;
+    return this.answerWasCorrect === false && this.showOkButton && !this.isPicking;
   }
 
   /** The box shows what a number box cannot: a comma, a clock's colon, a −, a space between the thousands. */

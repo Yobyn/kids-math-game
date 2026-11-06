@@ -5,6 +5,7 @@ import { SoundService } from '../services/sound.service';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AskedQuestion, QuestionComponent, RIGHT_ANSWER } from './question.component';
+import { MoneyQuestion } from '../teaching/money';
 import { PLAY_WORDS } from './play-words';
 import { ProgressService } from '../services/progress.service';
 import { MAX_PICKED, fewestPieces } from '../teaching/coin-pick';
@@ -2920,6 +2921,26 @@ describe('QuestionComponent once the answer is given (2026-10-30)', () => {
     ask({ num1: 244065, num2: 1000, operation: '≈', form: 'afronden' });
     miss('1', '2');
     expect(box().value).toBe('244\u202f000');
+  });
+
+  it('puts the right amount in a money question\'s box too: 2c 2c 2c = 6 c, not 7 in red (2026-11-06)', () => {
+    const counted = (pile: number[], answer: number, unit: MoneyQuestion['unit'], answerCents: number, answerText: string) => ({
+      num1: 0, num2: 0, operation: 'money',
+      money: { shape: 'count', prompt: 'money-count', values: {}, pile, answer, unit, answerCents, worked: '', answerText, summary: '' }
+    } as AskedQuestion);
+    ask(counted([2, 2, 2], 6, 'cents', 6, '6c'));
+    miss('7', '7');
+    // the c stands after the box, so the box holds the 6
+    expect(box().value).toBe('6');
+    expect(box().classList).not.toContain('incorrect');
+    expect(component.feedback).toContain('6c');
+    expect(component.userAnswer).toBe('7');
+    ask(counted([200, 100, 20, 20], 3.4, 'decimal', 340, '€3.40'));
+    miss('3', '4');
+    expect(box().value).toBe('3.40');
+    ask(counted([100, 100, 200], 4, 'euros', 400, '€4'));
+    miss('3', '5');
+    expect(box().value).toBe('4');
   });
 
   it('starts the next question with an empty box again', () => {
