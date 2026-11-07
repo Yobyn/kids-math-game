@@ -62,6 +62,28 @@ describe('DifficultySelectComponent', () => {
     names.forEach(name => expect(name).not.toContain(t('level')));
   });
 
+  it('says which part of the school year each climb asks, not "small numbers" it does not keep to (2026-11-07)', () => {
+    // A climb is the start, middle or end of the year (docs/CURRICULUM-NL.md); "Basic operations with
+    // small numbers" told a klas 4 child the warm-up was something it is not
+    const said = (language: string) => {
+      component.languageService.setLanguage(language as any);
+      fixture.detectChanges();
+      return Array.from(fixture.nativeElement.querySelectorAll('.difficulty-card p') as NodeListOf<HTMLElement>)
+        .map(p => p.textContent!.trim());
+    };
+    const years: { [language: string]: RegExp[] } = {
+      en: [/start of the year/, /middle of the year/, /end of the year/],
+      nl: [/begin van het jaar/, /midden in het jaar/i, /eind van het jaar/],
+      es: [/principio del curso/, /mitad del curso/, /final del curso/]
+    };
+    Object.keys(years).forEach(language => {
+      const lines = said(language);
+      lines.forEach((line, i) => expect(line).withContext(language).toMatch(years[language][i]));
+      lines.forEach(line => expect(line).withContext(language).not.toMatch(/small|kleine|pequeños|steps|stappen|pasos/i));
+    });
+    component.languageService.setLanguage('en');
+  });
+
   it('can be chosen with the keyboard, not just a tap', () => {
     const card = fixture.nativeElement.querySelector('.difficulty-card');
     card.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));

@@ -733,6 +733,27 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 14: the climb screen says which part of the year it
+  asks (2026-11-07).** Rounds were played in groep 3 and 4 and in klas 3
+  and 4, at 320, 360 and 390px in nl, en and es, with no errors. The three
+  climbs still described the old generic sums: "Basic operations with
+  small numbers", "Mixed operations with larger numbers", "Complex problems
+  with multiple steps" ("Basis bewerkingen met kleine getallen"). Since the
+  curriculum, a climb is the start, middle or end of the school year
+  (CURRICULUM-NL.md), so a klas 4 child's warm-up was neither basic nor
+  small. They now say so:
+  - "The start of the year: what you already know";
+  - "The middle of the year: what you are learning now";
+  - "The end of the year: the newest sums".
+
+  In Dutch they read "Het begin van het jaar: wat je al kent", "Midden in
+  het jaar: wat je nu leert" and "Het eind van het jaar: de nieuwste
+  sommen". In Spanish: "El principio del curso: lo que ya sabes", "La mitad
+  del curso: lo que aprendes ahora" and "El final del curso: lo más nuevo".
+  The cards keep their place: the third still ends at 559 on a 320 by 568
+  phone. Seen for later: the title screen says "Laten we wat wiskunde
+  leren!", where groep 3 to 8 do rekenen, and keeps "Math Game" in every
+  language.
 - **Questions, run 9: an amount written with a comma in Dutch and Spanish
   (2026-11-06).** Rounds were played as a child in groep 3 and 6 (nl) and
   klas 1 (es), with no errors. The money strand wrote every amount with a
