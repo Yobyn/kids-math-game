@@ -859,6 +859,26 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     fixture.detectChanges();
   }
 
+  it('spreads money through a round: never twice running, three in ten at most, about one in four (2026-11-07)', () => {
+    // A flat 1 in 4 a question gave some rounds none and one in thirteen five or more: groep 3 was asked
+    // "How much money is this?" at questions 2, 4, 6, 8 and 9
+    [['1', 'easy'], ['2', 'medium'], ['4', 'hard']].forEach(([grade, difficulty]) => {
+      build(grade, difficulty);
+      const money: boolean[] = [];
+      for (let i = 0; i < 600; i++) {
+        component.generateQuestion();
+        money.push(!!component.currentQuestion.money);
+      }
+      const running = money.filter((isMoney, i) => isMoney && money[i - 1]).length;
+      const crowded = money.filter((_, i) => i >= 9 && money.slice(i - 9, i + 1).filter(Boolean).length > 3).length;
+      const share = money.filter(Boolean).length / money.length;
+      expect(running).withContext(`${grade} twice running`).toBe(0);
+      expect(crowded).withContext(`${grade} more than three in ten`).toBe(0);
+      expect(share).withContext(`${grade} share`).toBeGreaterThan(0.18);
+      expect(share).withContext(`${grade} share`).toBeLessThan(0.32);
+    });
+  });
+
   it('never asks the same sum twice in a round: (−3)⁴ came back at question 5 after a right answer at 1 (2026-11-05)', () => {
     // Without a missed fact to ask back, ten questions running are ten different ones. Before this, 60% of
     // groep 3's first rounds asked one sum twice, and a third of klas 4's

@@ -248,6 +248,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     this.scoreService.resetScore();
     this.storiesTold = [];
     this.recentlyAsked = [];
+    this.moneyLately = [];
     // A round abandoned half way could leave this set; a new round is honest
     // about its own setting until it is not.
     this.clearEasedFlag();
@@ -484,7 +485,22 @@ export class QuestionComponent implements OnInit, OnDestroy {
    * of a sum, korting and pakken, not coins to count.
    */
   private shouldAskAboutMoney(): boolean {
-    return teachesMoney(this.grade) && Math.random() < 0.25;
+    // Spread through the round: never twice running and three in ten at most. A flat 1 in 4 gave some
+    // rounds none and one in thirteen five or more. A third of the questions that may be money are,
+    // which keeps it about one in four
+    const lately = this.moneyLately;
+    if (!teachesMoney(this.grade) || lately[lately.length - 1] || lately.filter(Boolean).length >= 3) {
+      return false;
+    }
+    return Math.random() < 1 / 3;
+  }
+
+  /** Whether each of the last nine questions was a money one (shouldAskAboutMoney). */
+  private moneyLately: boolean[] = [];
+
+  /** Notes the question just set, money or not. */
+  private noteMoney() {
+    this.moneyLately = [...this.moneyLately, !!this.currentQuestion.money].slice(-9);
   }
 
   private generateMoneyQuestion(): boolean {
@@ -755,6 +771,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     if (dueIndex !== -1) {
       const [due] = this.missed.splice(dueIndex, 1);
       this.currentQuestion = { ...due.question };
+      this.noteMoney();
       this.isReplay = true;
       this.reviewing = due.reviewOf;
       this.userAnswer = '';
@@ -767,6 +784,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     }
 
     if (this.shouldAskAboutMoney() && this.generateMoneyQuestion()) {
+      this.noteMoney();
       this.userAnswer = '';
       this.picked = [];
       this.feedback = '';
@@ -783,6 +801,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
     const school = this.freshDraw(() => schoolSum(grade + 2, momentFor(this.difficulty)) || schoolSum(3, 'B')!,
                                   made => `${made.num1} ${made.operation} ${made.num2} ${made.form || ''}`);
     this.currentQuestion = { num1: school.num1, num2: school.num2, operation: school.operation };
+    this.noteMoney();
     if (school.form) {
       this.currentQuestion.form = school.form;
     }
