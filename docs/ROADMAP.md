@@ -733,6 +733,17 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 10: money spread through a round (2026-11-07).** Rounds
+  were played as a child in groep 3 (en), groep 5 (nl) and klas 2 (es),
+  with no errors. Each question was money with a flat 1 in 4, so rounds
+  came out uneven. Some had none, and about one in thirteen had five or
+  more: a groep 3 round asked "How much money is this?" at questions 2, 4,
+  6, 8 and 9. In 600 questions running, 35 money questions followed
+  another. Money now never comes twice running and at most three in ten
+  questions (`moneyLately`). A third of the questions that may be money
+  are, which keeps it about one in four. A spec draws 600 questions running
+  in groep 3, 4 and 6 and finds none twice running, none more than three in
+  ten, and a share between 18% and 32%.
 - **Look and feel, run 14: the climb screen says which part of the year it
   asks (2026-11-07).** Rounds were played in groep 3 and 4 and in klas 3
   and 4, at 320, 360 and 390px in nl, en and es, with no errors. The three
@@ -776,8 +787,8 @@ middle, hard the end), one groep per run.
   what was typed. This was a component change, with no CSS. Seen for later:
   - DONE (run 9): the money strand writes amounts with a point in Dutch
     and Spanish too ("€3.40", where school writes €3,40).
-  - A groep 3 round at the start of the year asked "How much money is
-    this?" five times in ten.
+  - DONE (run 10): a groep 3 round at the start of the year asked "How
+    much money is this?" five times in ten.
 - **Questions, run 8: never the same sum twice in a round (2026-11-05).**
   Rounds were played as a child in groep 4 (nl), groep 6 (en) and klas 3
   (es), with no errors. Klas 3 asked "(−3)⁴" at question 5 after a right

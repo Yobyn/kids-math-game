@@ -37,7 +37,9 @@ amounts from groep 3, amounts with a comma by the end of groep 6, written
 €3,40 as school writes them, €3.40 only in English, since 2026-11-06;
 teaching/money.ts `teachesMoney`, done 2026-10-10). From groep 7 on money is
 the setting of a sum, not the sum: "20% korting op €45", "3 pakken kosten
-€6". Groep 7 and 8 and klas 1–4 are never asked to count coins. "Hoeveel
+€6". Groep 7 and 8 and klas 1–4 are never asked to count coins. In groep
+3 to 6 about one question in four is money, spread through the round: never
+two running and three in ten at most (2026-11-07). "Hoeveel
 munten van 20c maken €1?" skip counts, so it never asks it of the 1c or
 the €1, whose answer is the amount itself (2026-11-04).
 
