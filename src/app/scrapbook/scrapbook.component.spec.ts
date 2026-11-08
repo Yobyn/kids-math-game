@@ -235,7 +235,7 @@ describe('ScrapbookComponent: saying what it means', () => {
   });
 
   it('names the way out for where it actually goes', () => {
-    // The shared 'back' string reads "Back to Grade Selection" and this
+    // The shared 'back' string reads "Pick another grade" and this
     // button goes to the progress page
     open();
 
