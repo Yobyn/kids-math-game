@@ -715,3 +715,31 @@ describe('the gaps the plan left (docs/CURRICULUM-NL.md, "Not yet"; 2026-10-28)'
       .toBe('Rechthoekige driehoek: de schuine zijde? a = 3 b = 5 ≈');
   });
 });
+
+describe('a table revisited from groep 5 (2026-11-08)', () => {
+  // 4 × 1, 1 × 7 and 9 : 9 are groep 4's to learn; at the start of groep 5 they were 0,7 of every ten questions
+  const withOne = (sum: SchoolSum) => (sum.operation === '*' && (sum.num1 === 1 || sum.num2 === 1))
+    || (sum.operation === '/' && (sum.num2 === 1 || sum.num1 === sum.num2));
+
+  it('never asks a table fact with a 1 in it in groep 5 or 6', () => {
+    const asked: string[] = [];
+    [5, 6].forEach(groep => (['B', 'M', 'E'] as Moment[]).forEach(moment => {
+      for (let i = 0; i < 3000; i++) {
+        const sum = schoolSum(groep, moment)!;
+        if (/^(deel)?tafels/.test(sum.topic) && withOne(sum)) {
+          asked.push(`${groep}${moment} ${sum.num1} ${sum.operation} ${sum.num2}`);
+        }
+      }
+    }));
+    expect(asked.slice(0, 5)).toEqual([]);
+  });
+
+  it('still learns them in groep 4: the table of 1, and 1 × 5', () => {
+    let ones = 0;
+    for (let i = 0; i < 3000; i++) {
+      const sum = schoolSum(4, 'M')!;
+      ones += /^(deel)?tafels/.test(sum.topic) && withOne(sum) ? 1 : 0;
+    }
+    expect(ones).toBeGreaterThan(0);
+  });
+});

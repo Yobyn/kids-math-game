@@ -970,5 +970,17 @@ export function schoolSum(groep: number, moment: Moment, random: Random = Math.r
   const ids = Object.keys(topics);
   let left = random() * ids.reduce((sum, id) => sum + topics[id], 0);
   const topic = ids.find(id => (left -= topics[id]) < 0) || ids[ids.length - 1];
-  return { ...TOPICS[topic](random), topic };
+  let sum: SchoolSum = { ...TOPICS[topic](random), topic };
+  // From groep 5 a table is revisited, not learnt: 4 × 1, 1 × 7 and 9 : 9 are groep 4's, and were 0,7 of
+  // every ten questions at the start of groep 5. The same topic is drawn again, a bounded number of times
+  for (let tries = 0; groep >= 5 && tries < 20 && tableWithOne(sum); tries++) {
+    sum = { ...TOPICS[topic](random), topic };
+  }
+  return sum;
+}
+
+/** A table fact with a 1 in it: 4 × 1, 1 × 7, 9 : 9. */
+function tableWithOne(sum: SchoolSum): boolean {
+  return /^(deel)?tafels/.test(sum.topic) && (sum.operation === '*' ? sum.num1 === 1 || sum.num2 === 1
+    : sum.operation === '/' && (sum.num2 === 1 || sum.num1 === sum.num2));
 }
