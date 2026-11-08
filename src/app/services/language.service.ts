@@ -345,7 +345,7 @@ export class LanguageService {
       'update-ready': 'A new version of the game is ready.',
       'update-now': 'Get it now',
       'update-later': 'Later',
-      'back': 'Back to Grade Selection',
+      'back': 'Pick another grade',
       'lets-learn': 'Let\'s learn some math!'
     },
     nl: {
@@ -371,7 +371,7 @@ export class LanguageService {
       'update-ready': 'Er is een nieuwe versie van het spel klaar.',
       'update-now': 'Nu ophalen',
       'update-later': 'Later',
-      'back': 'Terug naar groep selectie',
+      'back': 'Kies een andere groep',
       'lets-learn': 'Laten we wat wiskunde leren!'
     },
     es: {
@@ -397,7 +397,7 @@ export class LanguageService {
       'update-ready': 'Hay una nueva versión del juego lista.',
       'update-now': 'Obtenerla ahora',
       'update-later': 'Más tarde',
-      'back': 'Volver a elegir curso',
+      'back': 'Elige otro curso',
       'lets-learn': '¡Aprendamos matemáticas!'
     }
   };

@@ -733,6 +733,17 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 15: the way back and the way on in plain words
+  (2026-11-08).** Rounds were played in groep 3 and 4 and in klas 2 and 4,
+  at 320, 360 and 390px in nl, en and es, with no errors. Every round ends
+  with "Opnieuw Spelen", capitalised mid-phrase. The way back from a
+  question, the progress page and the adults' page read "Terug naar groep
+  selectie" (a Dutch word split in two), "Back to Grade Selection" in
+  title case, and "Volver a elegir curso". They are now "Opnieuw spelen"
+  and "Play again", and "Kies een andere groep", "Pick another grade" and
+  "Elige otro curso". These are in the grade screen's own voice ("Kies je
+  groep", "Pick your grade", "Elige tu curso"), which is where the button
+  goes. Words only: the first load went from 360.13 to 360.12 kB.
 - **Questions, run 10: money spread through a round (2026-11-07).** Rounds
   were played as a child in groep 3 (en), groep 5 (nl) and klas 2 (es),
   with no errors. Each question was money with a flat 1 in 4, so rounds

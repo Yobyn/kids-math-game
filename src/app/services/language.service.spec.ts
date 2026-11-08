@@ -137,3 +137,26 @@ describe('LanguageService: a lazy screen\u2019s own words', () => {
     expect(service.translate('logout')).toBe(before);
   });
 });
+
+describe('the way back and the way on, in the grade screen\'s own words (2026-11-08)', () => {
+  // "Back to Grade Selection" and "Opnieuw Spelen" capitalised mid-phrase, and "Terug naar groep
+  // selectie" split a Dutch word in two; the grade screen asks "Pick your grade", "Kies je groep"
+  const said = (language: 'en' | 'nl' | 'es') => {
+    const service = new LanguageService();
+    service.extend(PLAY_WORDS);
+    service.setLanguage(language);
+    return { back: service.translate('back'), again: service.translate('play-again') };
+  };
+
+  it('names the grade screen the way back goes to, as its heading does', () => {
+    expect(said('en').back).toBe('Pick another grade');
+    expect(said('nl').back).toBe('Kies een andere groep');
+    expect(said('es').back).toBe('Elige otro curso');
+  });
+
+  it('writes "play again" as a phrase, not a title', () => {
+    expect(said('en').again).toBe('Play again');
+    expect(said('nl').again).toBe('Opnieuw spelen');
+    expect(said('es').again).toBe('Jugar de nuevo');
+  });
+});
