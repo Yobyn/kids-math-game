@@ -86,6 +86,9 @@ the €1, whose answer is the amount itself (2026-11-04).
 | M | Times a ten | 4 × 30, 6 × 40 |
 | M | A part of an amount | de helft van 18, ¼ van 20 |
 | M | Klokkijken: to the minute | 3:37, 11:02 |
+
+From groep 5 a table is revisited, not learnt: a table fact never has a 1 in
+it (4 × 1, 1 × 7, 9 : 9 are groep 4's; 2026-11-08).
 | E | +/− within 1000 crossing (kolomsgewijs) | 367 + 258, 512 − 347 |
 | E | TE × E | 4 × 23, 6 × 15 |
 | E | Dividing with a remainder | 23 : 4 = 5 rest ? |

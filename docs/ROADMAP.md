@@ -733,6 +733,17 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 11: no table fact with a 1 in it from groep 5
+  (2026-11-08).** Rounds were played as a child in groep 4 (nl), groep 5
+  (en), groep 7 (es) and klas 1 (nl), with no errors. Groep 5 starts by
+  revisiting groep 4's tables, and drew "4 × 1", "1 × 3" and "4 : 4" from
+  them. That was 0,7 of every ten questions at its start, 0,4 in its middle
+  and 0,2 at the start of groep 6 (the tables of 6 to 9 gave "1 × 7" and
+  "9 : 9"). Those are groep 4's to learn, and it still asks them there.
+  From groep 5 on, a table topic that draws one draws again from the same
+  topic, so every topic keeps its weight (`tableWithOne` in `schoolSum`).
+  A spec draws 3000 sums for each moment of groep 5 and 6 and finds none;
+  another checks groep 4 still asks the table of 1.
 - **Look and feel, run 15: the way back and the way on in plain words
   (2026-11-08).** Rounds were played in groep 3 and 4 and in klas 2 and 4,
   at 320, 360 and 390px in nl, en and es, with no errors. Every round ends
