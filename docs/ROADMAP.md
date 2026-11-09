@@ -733,6 +733,15 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 16: the title screen welcomes a Dutch child in Dutch
+  (2026-11-09).** Rounds were played in groep 3, groep 8 and klas 4, at
+  320, 360 and 390px in nl, en and es, with no errors. The first words a
+  Dutch child reads, under the game's name, were "Laten we wat wiskunde
+  leren!". That is "let's learn some math" put word for word into Dutch,
+  and groep 3 to 8 call it rekenen. It is now "Laten we gaan rekenen!".
+  English and Spanish are unchanged, and "Math Game" stays the game's name
+  (GAME_NAME, the page title). A spec holds the Dutch line. It is one
+  word string; the first load went from 360.12 to 360.11 kB.
 - **Questions, run 11: no table fact with a 1 in it from groep 5
   (2026-11-08).** Rounds were played as a child in groep 4 (nl), groep 5
   (en), groep 7 (es) and klas 1 (nl), with no errors. Groep 5 starts by
@@ -785,8 +794,8 @@ middle, hard the end), one groep per run.
   del curso: lo que aprendes ahora" and "El final del curso: lo más nuevo".
   The cards keep their place: the third still ends at 559 on a 320 by 568
   phone. Seen for later: the title screen says "Laten we wat wiskunde
-  leren!", where groep 3 to 8 do rekenen, and keeps "Math Game" in every
-  language.
+  leren!", where groep 3 to 8 do rekenen (DONE, run 16), and keeps "Math
+  Game" in every language.
 - **Questions, run 9: an amount written with a comma in Dutch and Spanish
   (2026-11-06).** Rounds were played as a child in groep 3 and 6 (nl) and
   klas 1 (es), with no errors. The money strand wrote every amount with a
