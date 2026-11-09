@@ -63,7 +63,7 @@ the €1, whose answer is the amount itself (2026-11-04).
 | --- | --- | --- |
 | B | Groep 3's end: +/− within 20 crossing the ten | 8 + 5, 15 − 7 |
 | M | Tens: T ± T within 100 | 40 + 30, 70 − 20 |
-| M | TE ± E without and with crossing the ten | 34 + 5, 36 + 8, 42 − 7 |
+| M | TE ± E without and with crossing the ten (worked through the ten after two tries: 36 + 4 = 40 → 40 + 4 = 44, 42 − 2 = 40 → 40 − 5 = 35) | 34 + 5, 36 + 8, 42 − 7 |
 | M | TE ± T | 45 + 30, 68 − 40 |
 | M | Tables of 1, 2, 5 and 10 | 7 × 2, 6 × 5 |
 | M | Dividing within those tables | 20 : 5, 14 : 2 |

@@ -733,6 +733,22 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 12: groep 4's sums through the ten get their worked line
+  (2026-11-09).** Rounds were played as a child in groep 3 (nl), groep 4
+  (en) and klas 2 (es), with no errors. A scan of every topic for sums with
+  no worked line after two tries found groep 4's crossing sums ("te-e-over":
+  59 + 5, 37 + 7, 43 − 7) with none at all. The bridge through the ten was
+  written only for single digits (8 + 7 → 8 + 2 = 10 → 10 + 5), and a
+  two-figure number with a one fell through. That bridge is the method
+  groep 4 is taught for exactly these sums. They now get it:
+  - "59 + 1 = 60 → 60 + 4 = 64";
+  - "43 - 3 = 40 → 40 - 4 = 36";
+  - from a whole ten, "10 - 7 = 3 → 30 + 3 = 33".
+
+  Landing on the ten (37 + 3) or not reaching it (34 + 2) still needs no
+  step. A spec holds every te-e-over sum to a worked line, and the existing
+  one holds every step true. Seen for later: a plain sum's worked line
+  writes its minus as "-" where the card writes "−".
 - **Look and feel, run 16: the title screen welcomes a Dutch child in Dutch
   (2026-11-09).** Rounds were played in groep 3, groep 8 and klas 4, at
   320, 360 and 390px in nl, en and es, with no errors. The first words a

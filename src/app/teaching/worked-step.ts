@@ -61,6 +61,13 @@ function addition(num1: number, num2: number): string | undefined {
     return `${num1} + ${bridge} = 10${THEN}10 + ${rest} = ${total}`;
   }
 
+  // Groep 4: a two-figure number and a one crossing the next ten, the same bridge. 59 + 5 as 59 + 1
+  // then 60 + 4. Landing on the ten (37 + 3) or not reaching it (34 + 2) needs no step
+  if (num1 > 10 && num2 < 10 && num1 % 10 + num2 > 10) {
+    const bridge = 10 - num1 % 10;
+    return `${num1} + ${bridge} = ${num1 + bridge}${THEN}${num1 + bridge} + ${num2 - bridge} = ${total}`;
+  }
+
   const tens = Math.floor(num2 / 10) * 10;
   const ones = num2 - tens;
   if (!tens || !ones) {
@@ -86,6 +93,16 @@ function subtraction(num1: number, num2: number): string | undefined {
       return undefined;
     }
     return `${num1} - ${toTen} = 10${THEN}10 - ${rest} = ${answer}`;
+  }
+
+  // Groep 4, downward: 43 - 7 as 43 - 3 then 40 - 4. From a whole ten, 40 - 7, the ten is broken:
+  // 10 - 7 = 3, and the 30 left
+  if (num1 >= 20 && num2 < 10 && num1 % 10 < num2) {
+    const down = num1 % 10;
+    if (!down) {
+      return `10 - ${num2} = ${10 - num2}${THEN}${num1 - 10} + ${10 - num2} = ${answer}`;
+    }
+    return `${num1} - ${down} = ${num1 - down}${THEN}${num1 - down} - ${num2 - down} = ${answer}`;
   }
 
   const tens = Math.floor(num2 / 10) * 10;
