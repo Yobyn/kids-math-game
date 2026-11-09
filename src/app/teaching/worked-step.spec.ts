@@ -117,6 +117,27 @@ describe('the method it chooses', () => {
     expect(workedStep(15, 8, '-')).toBe('15 - 5 = 10 → 10 - 3 = 7');
   });
 
+  it('bridges the next ten for a two-figure number and a one that cross it, as groep 4 is taught (2026-11-09)', () => {
+    // 59 + 5 had no worked line at all: only single digits were bridged
+    expect(workedStep(59, 5, '+')).toBe('59 + 1 = 60 → 60 + 4 = 64');
+    expect(workedStep(37, 7, '+')).toBe('37 + 3 = 40 → 40 + 4 = 44');
+    expect(workedStep(43, 7, '-')).toBe('43 - 3 = 40 → 40 - 4 = 36');
+    // from a whole ten: ten take seven, and the tens left
+    expect(workedStep(40, 7, '-')).toBe('10 - 7 = 3 → 30 + 3 = 33');
+    // landing on the ten, or not crossing it, needs no step
+    expect(workedStep(37, 3, '+')).toBeUndefined();
+    expect(workedStep(34, 2, '+')).toBeUndefined();
+    expect(workedStep(28, 7, '-')).toBeUndefined();
+  });
+
+  it('works every crossing sum groep 4 is asked out through the ten (2026-11-09)', () => {
+    const random = (() => { let seed = 7; return () => (seed = (seed * 16807) % 2147483647) / 2147483647; })();
+    for (let i = 0; i < 300; i++) {
+      const sum = TOPICS['te-e-over'](random);
+      expect(workedStep(sum.num1, sum.num2, sum.operation)).withContext(`${sum.num1} ${sum.operation} ${sum.num2}`).toBeDefined();
+    }
+  });
+
   it('splits tens from ones when the numbers are bigger', () => {
     expect(workedStep(23, 45, '+')).toBe('23 + 40 = 63 → 63 + 5 = 68');
     expect(workedStep(56, 23, '-')).toBe('56 - 20 = 36 → 36 - 3 = 33');
