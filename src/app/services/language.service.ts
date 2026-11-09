@@ -372,7 +372,7 @@ export class LanguageService {
       'update-now': 'Nu ophalen',
       'update-later': 'Later',
       'back': 'Kies een andere groep',
-      'lets-learn': 'Laten we wat wiskunde leren!'
+      'lets-learn': 'Laten we gaan rekenen!'
     },
     es: {
       'username': 'Nombre de usuario',

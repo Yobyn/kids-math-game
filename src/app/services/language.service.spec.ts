@@ -160,3 +160,12 @@ describe('the way back and the way on, in the grade screen\'s own words (2026-11
     expect(said('es').again).toBe('Jugar de nuevo');
   });
 });
+
+describe('the title screen\'s welcome in Dutch (2026-11-09)', () => {
+  it('asks to do rekenen, as groep 3 to 8 call it, in Dutch rather than English put into Dutch', () => {
+    // was "Laten we wat wiskunde leren!", "let's learn some math" word for word
+    const service = new LanguageService();
+    service.setLanguage('nl');
+    expect(service.translate('lets-learn')).toBe('Laten we gaan rekenen!');
+  });
+});
