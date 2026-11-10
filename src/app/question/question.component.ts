@@ -635,6 +635,16 @@ export class QuestionComponent implements OnInit, OnDestroy {
     return [...text(before), ...asks, this.correctAnswerText, ...text(after)].join(' ').replace(/€ /g, '€');
   }
 
+  /**
+   * A worked line in the card's own signs: − for the minus, not "-", and the card's sign for sharing,
+   * : in Dutch and Spanish, ÷ in English. The lines are written with "-", and with ÷ or : as each
+   * kind of sum came, so "20 ÷ 5 = 4" stood under a Dutch card that writes 20 : 5.
+   */
+  private inCardSigns(line: string): string {
+    const share = this.languageService.getLanguage() === 'en' ? ' ÷ ' : ' : ';
+    return line.replace(/ - /g, ' \u2212 ').replace(/ [÷:] /g, share);
+  }
+
   /** The sign as it is written in class: × for keer, : for delen (÷ in English). */
   get sign(): string {
     const operation = this.currentQuestion.operation;
@@ -1022,7 +1032,7 @@ export class QuestionComponent implements OnInit, OnDestroy {
       // A story's sum comes first: turning the story into it was the question.
       // Written as the workbook writes it: 23 : 4 = 5 rest 3, 3 m = 300 cm, ¼ van 20 = 5
       const storySum = this.storyLine ? this.writtenSum() : '';
-      this.workedLine = longGrouped([storySum, step].filter(Boolean).join(' → '));
+      this.workedLine = longGrouped(this.inCardSigns([storySum, step].filter(Boolean).join(' → ')));
       this.showOkButton = true;
       this.results.push(false);
       this.saveRound();

@@ -733,6 +733,22 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 17: a worked line in the card's own signs
+  (2026-11-10).** Rounds were played in groep 4, groep 6 and klas 3, at
+  320, 360 and 390px in nl, en and es, with no errors. A worked line wrote
+  its signs differently from the card above it:
+  - The plain sums' lines wrote a minus as a hyphen: "43 - 3 = 40" under
+    "43 − 7".
+  - Table divisions wrote ÷ in every language: "42 ÷ 6 = 7" under a Dutch
+    or Spanish "42 : 6".
+  - The written forms wrote : in every language: "16 : 4 = 4" under an
+    English card that writes ÷.
+
+  The worked line now takes the card's signs (`inCardSigns`): − for a
+  minus, and : in Dutch and Spanish or ÷ in English for sharing. A spec
+  plays 240 questions missed twice, across four years in each language,
+  and finds no hyphen and no other language's sign. This was a component
+  change, with no CSS.
 - **Questions, run 12: groep 4's sums through the ten get their worked line
   (2026-11-09).** Rounds were played as a child in groep 3 (nl), groep 4
   (en) and klas 2 (es), with no errors. A scan of every topic for sums with
@@ -748,7 +764,8 @@ middle, hard the end), one groep per run.
   Landing on the ten (37 + 3) or not reaching it (34 + 2) still needs no
   step. A spec holds every te-e-over sum to a worked line, and the existing
   one holds every step true. Seen for later: a plain sum's worked line
-  writes its minus as "-" where the card writes "−".
+  writes its minus as "-" where the card writes "−" (DONE, look and feel
+  run 17).
 - **Look and feel, run 16: the title screen welcomes a Dutch child in Dutch
   (2026-11-09).** Rounds were played in groep 3, groep 8 and klas 4, at
   320, 360 and 390px in nl, en and es, with no errors. The first words a
