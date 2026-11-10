@@ -134,6 +134,13 @@ function multiplication(num1: number, num2: number): string | undefined {
       `${THEN}${tens * num2} + ${ones * num2} = ${product}`;
   }
 
+  // The tables of 3 and 4 (groep 4's end) from the table of 2: three times is twice and one more,
+  // four times is twice doubled. 7 × 3 as 7 × 2 = 14 and 7 more; 6 × 4 as 6 × 2 = 12 and 12 more
+  if ((num2 === 3 || num2 === 4) && num1 > 1 && num1 < 10) {
+    const twice = num1 * 2;
+    return `${num1} × 2 = ${twice}${THEN}${twice} + ${num2 === 3 ? num1 : twice} = ${product}`;
+  }
+
   // Only six through nine: below that the fives anchor is no shortcut, and
   // the ten times table is "add a nought", which needs no working out
   if (num2 < 6 || num2 > 9 || num1 < 2 || num1 > 10) {

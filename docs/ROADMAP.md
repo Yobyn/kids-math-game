@@ -733,6 +733,20 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 13: the tables of 3 and 4 worked out from the table of 2
+  (2026-11-10).** Rounds were played as a child in groep 3 (nl), groep 5
+  (en) and klas 3 (es), with no errors. The scan for sums with no worked
+  line after two tries found the tables of 3 and 4 with none. Groep 4
+  learns them at its end and groep 5 revisits them, but only the tables of
+  6 to 9 were worked out (through the fives). They are now worked out from
+  the table of 2:
+  - three times is twice and one more: "7 × 2 = 14 → 14 + 7 = 21";
+  - four times is twice doubled: "6 × 2 = 12 → 12 + 12 = 24".
+
+  Ten times (a nought) and once still need no step, and the tables of 2, 5
+  and 10 stay quiet as before. A spec holds every fact of those tables that
+  groep 4 and 5 are asked to a worked line, and the existing one holds
+  every step true.
 - **Look and feel, run 17: a worked line in the card's own signs
   (2026-11-10).** Rounds were played in groep 4, groep 6 and klas 3, at
   320, 360 and 390px in nl, en and es, with no errors. A worked line wrote

@@ -148,6 +148,26 @@ describe('the method it chooses', () => {
     expect(workedStep(4, 8, '*')).toBe('4 × 5 = 20 → 20 + 12 = 32');
   });
 
+  it('works the tables of 3 and 4 out from the table of 2: one more, and twice it (2026-11-10)', () => {
+    // 7 × 3 and 6 × 4 had no worked line at all: only the tables of 6 to 9 were worked, through the fives
+    expect(workedStep(7, 3, '*')).toBe('7 × 2 = 14 → 14 + 7 = 21');
+    expect(workedStep(6, 4, '*')).toBe('6 × 2 = 12 → 12 + 12 = 24');
+    expect(workedStep(9, 3, '*')).toBe('9 × 2 = 18 → 18 + 9 = 27');
+    // ten times is a nought, and one or two times needs no working
+    expect(workedStep(10, 3, '*')).toBeUndefined();
+    expect(workedStep(1, 4, '*')).toBeUndefined();
+  });
+
+  it('gives every fact of the tables of 3 and 4 that groep 4 and 5 are asked a worked line (2026-11-10)', () => {
+    const random = (() => { let seed = 11; return () => (seed = (seed * 16807) % 2147483647) / 2147483647; })();
+    for (let i = 0; i < 400; i++) {
+      const sum = TOPICS['tafels-1-5-10'](random);
+      if ((sum.num2 === 3 || sum.num2 === 4) && sum.num1 > 1 && sum.num1 < 10) {
+        expect(workedStep(sum.num1, sum.num2, sum.operation)).withContext(`${sum.num1} × ${sum.num2}`).toBeDefined();
+      }
+    }
+  });
+
   it('reads division back as the multiplication behind it', () => {
     expect(workedStep(42, 6, '/')).toBe('6 × 7 = 42 → 42 ÷ 6 = 7');
   });
