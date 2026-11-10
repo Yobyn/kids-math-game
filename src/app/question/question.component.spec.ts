@@ -2307,6 +2307,59 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     });
   });
 
+  describe('a worked line in the card\'s own signs (2026-11-10)', () => {
+    // "43 - 3 = 40" under a card that writes 43 − 7, and "20 ÷ 5 = 4" under a Dutch card that writes 20 : 5
+    const missed = (question: AskedQuestion) => {
+      ask(question);
+      component.wrongAttempts = 0;
+      component.userAnswer = '1';
+      component.checkAnswer();
+      component.userAnswer = '1';
+      component.checkAnswer();
+      return component.workedLine;
+    };
+
+    it('writes − and : in Dutch, as the card does', () => {
+      build('nl');
+      expect(missed({ num1: 43, num2: 7, operation: '-' })).toBe('43 − 3 = 40 → 40 − 4 = 36');
+      expect(missed({ num1: 42, num2: 6, operation: '/' })).toBe('6 × 7 = 42 → 42 : 6 = 7');
+      expect(missed({ num1: 96, num2: 4, operation: '/' })).toBe('80 : 4 = 20 → 16 : 4 = 4 → 20 + 4 = 24');
+    });
+
+    it('writes − and ÷ in English, as the card does, in a written form\'s line too', () => {
+      build('en');
+      expect(missed({ num1: 43, num2: 7, operation: '-' })).toBe('43 − 3 = 40 → 40 − 4 = 36');
+      expect(missed({ num1: 42, num2: 6, operation: '/' })).toBe('6 × 7 = 42 → 42 ÷ 6 = 7');
+      expect(missed({ num1: 16, num2: 4, operation: '/', form: 'gemiddelde-4' })).toContain('→ 16 ÷ 4 = 4');
+    });
+
+    // A whole round of four years: a card built again keeps its first language, so one language a test
+    const roundsIn = (language: string, sign: RegExp) => {
+      const wrong: string[] = [];
+      build(language);
+      ['2', '4', '6', '8'].forEach(grade => {
+        component.grade = Number(grade);
+        for (let i = 0; i < 60; i++) {
+          // a round of ten would end and leave for the result screen
+          (component as any).scoreService.resetScore();
+          component.generateQuestion();
+          if (component.currentQuestion.money) {
+            continue;
+          }
+          const line = missed({ ...component.currentQuestion });
+          if (sign.test(line)) {
+            wrong.push(`${language} ${grade}: ${line}`);
+          }
+        }
+      });
+      return wrong.slice(0, 5);
+    };
+
+    it('never writes a hyphen for a minus, or ÷, in a Dutch round of any year', () => expect(roundsIn('nl', / - | ÷ /)).toEqual([]));
+    it('never writes a hyphen for a minus, or ÷, in a Spanish round of any year', () => expect(roundsIn('es', / - | ÷ /)).toEqual([]));
+    it('never writes a hyphen for a minus, or :, in an English round of any year', () => expect(roundsIn('en', / - | : /)).toEqual([]));
+  });
+
   describe('a worked line in the child\'s own words (2026-11-03)', () => {
     // were "10% van 460" and "x = 4 of x = 7" in every language
     const missed = (question: AskedQuestion) => {
