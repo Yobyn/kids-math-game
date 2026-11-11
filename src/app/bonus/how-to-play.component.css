@@ -52,6 +52,15 @@
   fill: var(--accent-blue);
 }
 
+/* A star with a number, in the games' gold; its number is dark on it, as on the board */
+.star {
+  fill: var(--star-gold, #ffd86b);
+}
+
+.number.on-star {
+  fill: var(--text-read);
+}
+
 .slide { animation: slide 1.6s ease-in-out infinite alternate; }
 .bounce { animation: bounce 0.8s ease-in infinite alternate; }
 .hop { animation: hop 1.6s ease-in-out infinite; }

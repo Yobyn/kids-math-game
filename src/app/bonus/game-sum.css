@@ -33,6 +33,28 @@
   color: var(--bad);
 }
 
+/* In the title's place, above the board (Springbal, Balspel): the title and
+   the sum share one cell, so nothing moves when one gives way to the other,
+   and no star, block or tile is ever covered */
+.bonus-head {
+  display: grid;
+  place-items: center;
+  min-height: 2.75rem;
+}
+
+.bonus-head > * {
+  grid-area: 1 / 1;
+}
+
+.bonus-head h1.away {
+  visibility: hidden;
+}
+
+.bonus-sum.in-head {
+  position: static;
+  margin: 0;
+}
+
 /* The sums answered, on the end card */
 .bonus-solved {
   margin: 0.25rem 0;

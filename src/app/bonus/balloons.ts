@@ -22,7 +22,9 @@
  *
  * Free of the DOM, in CSS pixels, y downwards, so it can be tested straight.
  */
-import { GameLevel, GameSum, choices, gameSum, written } from './game-sums';
+import { GameLevel, GameSum, REVEAL_MISSED, REVEAL_RIGHT, Reveal, ageReveal, answered, choices, gameSum, rightPoints } from './game-sums';
+
+export { REVEAL_MISSED, REVEAL_RIGHT, RIGHT_POINTS, RIGHT_TOP, Reveal, answered, rightPoints } from './game-sums';
 
 export interface Balloon {
   id: number;
@@ -46,14 +48,6 @@ export interface BalloonTask {
   deal: number[];
 }
 
-/** The sum just settled, written out with its answer for a moment: "7 + 5 = 12". */
-export interface Reveal {
-  text: string;
-  /** Popped (true), or its answer floated away (false). */
-  right: boolean;
-  /** Seconds it still shows. */
-  left: number;
-}
 
 export type BalloonsEnding = 'missed' | 'finished';
 
@@ -152,17 +146,6 @@ export const SUM_FIRST_GAP = 1.5;
 export const SUM_LAST_GAP = 1;
 /** The numbers that come up for a sum: its answer and two wrong ones, then dealt again. */
 export const CHOICES = 3;
-/** A right answer scores this, and one more for each right one in a row before it, up to the top. */
-export const RIGHT_POINTS = 2;
-export const RIGHT_TOP = 5;
-/** How long the sum stands answered before the next one's balloons come: popped, or its answer away. */
-export const REVEAL_RIGHT = 0.8;
-export const REVEAL_MISSED = 1.8;
-
-/** What popping the answer scores after this many right in a row. */
-export function rightPoints(streak: number): number {
-  return Math.min(RIGHT_TOP, RIGHT_POINTS + Math.max(0, streak));
-}
 
 export function balloonRadius(width: number, sums = false): number {
   return sums ? Math.max(SUM_MIN_RADIUS, Math.round(width * SUM_RADIUS_SHARE)) : Math.max(MIN_RADIUS, Math.round(width * RADIUS_SHARE));
@@ -187,10 +170,6 @@ export function newTask(level: GameLevel, random: () => number, last?: GameSum):
   return { sum, deal: choices(sum, CHOICES, random) };
 }
 
-/** The sum written out with its answer: "7 + 5 = 12". */
-export function answered(sum: GameSum): string {
-  return `${sum.text} = ${written(sum.answer)}`;
-}
 
 /** Where a balloon is drawn, and can be tapped, across the board: its middle and its sway. */
 export function swayedX(balloon: Balloon, elapsed: number, calm: boolean): number {
@@ -354,7 +333,7 @@ function tick(game: Balloons, dt: number, random: () => number, events: BalloonE
   const rise = riseSpeed(game.height, game.calm, sums) * dt;
   let task = game.task || null;
   let streak = game.streak || 0;
-  let reveal = game.reveal && game.reveal.left > dt ? { ...game.reveal, left: game.reveal.left - dt } : null;
+  let reveal = ageReveal(game.reveal, dt);
 
   // Up they go. A plain or a star balloon wholly off the top is missed; with
   // sums only the answer is, and a wrong number just floats away

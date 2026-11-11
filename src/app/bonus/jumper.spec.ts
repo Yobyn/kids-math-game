@@ -1,7 +1,9 @@
 import {
   AIRTIME, BALL_RADIUS, BUMPS_ALLOWED, FINISH_EARLIEST, FINISH_LATEST, GROUND_TALL, Jumper, JUMP_RISE, MIDDLE_TO, Place, STAR_EVERY, STAR_HEIGHT,
+  STAR_CHOICES, STAR_RADIUS, SUM_STAR_RADIUS,
   gapAfter, jump, makeObstacle, makeStar, newJumper, onGround, pickPlace, reachesStar, step, touches, worldSpeed
 } from './jumper';
+import { REVEAL_RIGHT, RIGHT_POINTS } from './game-sums';
 
 const W = 360;
 const H = 360;
@@ -289,5 +291,121 @@ describe('the second bonus game: a rolling ball bounced over obstacles (bonus/ju
     const block = makeObstacle(game, 'ground', game.ball.x + BALL_RADIUS - 2);
     expect(touches(game.ball, block)).toBeFalse();
     expect(touches(game.ball, { ...block, x: game.ball.x })).toBeTrue();
+  });
+});
+
+describe('Springbal with sums: bounce up to the answer (Yobyn, 2026-11-10)', () => {
+  const LEVEL = { grade: 1 };
+
+  /** A game on 7 + 5 with one star carrying this number, where a bounce now reaches it, and nothing else coming. */
+  function facingStar(value: number | undefined, streak = 0): Jumper {
+    const game = newJumper(W, H, false, seeded(), LEVEL);
+    const star = makeStar(game, game.ball.x + worldSpeed(W, false) * AIRTIME / 2, value);
+    return { ...game, task: { sum: { text: '7 + 5', answer: 12 }, deal: [11, 12] }, stars: [star], streak, untilNext: 1e9 };
+  }
+
+  it('starts with a sum of the child\'s own year, its answer among the numbers to come, and none without a level', () => {
+    const game = newJumper(W, H, false, seeded(), LEVEL);
+    expect(game.task!.sum.text).toMatch(/^\d+ [+\u2212] \d+$/);
+    expect(game.task!.deal.length).toBe(STAR_CHOICES);
+    expect(game.task!.deal).toContain(game.task!.sum.answer);
+    expect(newJumper(W, H).task).toBeNull();
+  });
+
+  it('hangs a star with a number in every gap, the answer among every two, bigger so it can be read', () => {
+    let game: Jumper = { ...newJumper(W, H, false, seeded(), LEVEL), finishAt: 1e9 };
+    const answer = game.task!.sum.answer;
+    const values: number[] = [];
+    const seen = new Set<number>();
+    const random = seeded(4);
+    for (let i = 0; i < 4000 && values.length < 4; i++) {
+      game = step(game, 1 / 60, random).game;
+      game = { ...game, bumps: 0 };
+      game.stars.forEach(star => {
+        const key = Math.round(star.x + game.elapsed * worldSpeed(W, false));
+        if (!seen.has(key)) {
+          seen.add(key);
+          values.push(star.value!);
+          expect(star.radius).toBe(SUM_STAR_RADIUS);
+        }
+      });
+    }
+    expect(values.length).toBe(4);
+    expect(values.slice(0, 2)).toContain(answer);
+    expect(values.slice(2, 4)).toContain(answer);
+    // one for every obstacle that has come in, not every second one
+    expect(game.made).toBeLessThanOrEqual(values.length + 1);
+    expect(SUM_STAR_RADIUS).toBeGreaterThan(STAR_RADIUS);
+  });
+
+  it('scores the answer a bounce takes, says so, shows the sum answered and asks the next', () => {
+    const { game: after, events } = step(jump(facingStar(12)), AIRTIME, seeded());
+    const taken = events.find(event => event.kind === 'star')!;
+    expect(taken).toEqual(jasmine.objectContaining({ right: true, points: RIGHT_POINTS }));
+    expect(after.points).toBe(RIGHT_POINTS);
+    expect(after.solved).toBe(1);
+    expect(after.streak).toBe(1);
+    expect(after.task!.sum.text).not.toBe('7 + 5');
+    expect(after.stars).toEqual([]);
+    const justAfter = step(jump(facingStar(12)), AIRTIME / 2 + 0.05, seeded()).game;
+    expect(justAfter.reveal!.text).toBe('7 + 5 = 12');
+    expect(justAfter.reveal!.right).toBeTrue();
+    expect(justAfter.reveal!.left).toBeLessThanOrEqual(REVEAL_RIGHT);
+    expect(step(justAfter, REVEAL_RIGHT, seeded()).game.reveal).toBeNull();
+  });
+
+  it('scores a row of answers one more each time, and starts again after a wrong number', () => {
+    expect(step(jump(facingStar(12, 2)), AIRTIME, seeded()).game.points).toBe(RIGHT_POINTS + 2);
+    const wrong = step(jump(facingStar(11, 2)), AIRTIME, seeded()).game;
+    expect(wrong.streak).toBe(0);
+  });
+
+  it('lets a wrong number fizzle out when a bounce takes it: no point, no heart, the sum stays', () => {
+    const { game: after, events } = step(jump(facingStar(11)), AIRTIME, seeded());
+    expect(events.some(event => event.kind === 'wrong')).toBeTrue();
+    expect(events.some(event => event.kind === 'star')).toBeFalse();
+    expect(after.points).toBe(0);
+    expect(after.bumps).toBe(0);
+    expect(after.stars).toEqual([]);
+    expect(after.task!.sum.text).toBe('7 + 5');
+  });
+
+  it('costs nothing to roll on under a star, the answer too: it comes again', () => {
+    const { game: after, events } = step(facingStar(12), AIRTIME * 2, seeded());
+    expect(events.filter(event => event.kind !== 'land')).toEqual([]);
+    expect(after.points).toBe(0);
+    expect(after.bumps).toBe(0);
+    expect(after.task!.sum.text).toBe('7 + 5');
+  });
+
+  it('turns a star still on its way into a plain one when its sum is answered: a point for taking it', () => {
+    const game = facingStar(12);
+    const far = makeStar(game, game.width * 0.9, 11);
+    const after = step(jump({ ...game, stars: [...game.stars, far] }), AIRTIME, seeded()).game;
+    expect(after.stars.length).toBe(1);
+    expect(after.stars[0].value).toBeUndefined();
+    const plain = { ...after, stars: [{ ...after.stars[0], x: after.ball.x + worldSpeed(W, false) * AIRTIME / 2 }] };
+    const taken = step(jump(plain), AIRTIME, seeded());
+    expect(taken.events.find(event => event.kind === 'star')).toEqual(jasmine.objectContaining({ points: 1 }));
+    expect(taken.game.points).toBe(after.points + 1);
+  });
+
+  it('can be played to the flag bouncing only for the answers and the blocks on the ground', () => {
+    let game: Jumper = { ...newJumper(W, H, false, seeded(9), { grade: 4 }), finishAt: 30 };
+    const random = seeded(2);
+    const speed = worldSpeed(W, false);
+    for (let i = 0; i < 60 * 60 && !game.ended; i++) {
+      const lead = speed * AIRTIME / 2;
+      const block = game.obstacles.find(o => o.place === 'ground' && !o.passed && Math.abs(o.x + o.width / 2 - game.ball.x - lead) < 3);
+      const star = game.stars.find(s => (s.value === undefined || s.value === game.task!.sum.answer) && Math.abs(s.x - game.ball.x - lead) < 3);
+      if (block || star) {
+        game = jump(game);
+      }
+      game = step(game, 1 / 60, random).game;
+    }
+    expect(game.ended).toBe('finished');
+    expect(game.bumps).toBe(0);
+    expect(game.solved).toBeGreaterThan(2);
+    expect(game.streak).toBe(game.solved);
   });
 });

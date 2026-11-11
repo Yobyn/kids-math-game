@@ -1,5 +1,13 @@
 <div class="bonus bonus-wide">
-  <h1>{{ languageService.translate('jump-title') }}</h1>
+  <!-- While the game is on, the sum to bounce up to the answer of stands where the title was: above the board, so it
+       never covers a star or a block. It stands answered for a moment when it is settled (game-sum.css) -->
+  <div class="bonus-head">
+    <h1 [class.away]="sumOnTitle">{{ languageService.translate('jump-title') }}</h1>
+    <ng-container *ngIf="sumOnTitle">
+      <div class="bonus-sum in-head" *ngFor="let shown of sumsShown"
+           [class.right]="sumState === 'right'" [class.missed]="sumState === 'missed'" aria-live="polite">{{ shown }}</div>
+    </ng-container>
+  </div>
 
   <!-- The points, big, and the bumps still to spare. No clock: the finish flag comes when it comes (jumper.ts) -->
   <div class="bonus-bar">
@@ -36,6 +44,8 @@
       <p class="bonus-well-played" *ngIf="!finished">{{ languageService.translate('bonus-well-played') }}</p>
       <!-- One point is a point, not "points" -->
       <p class="bonus-won"><span class="bonus-won-number">{{ points }}</span> {{ languageService.translate(points === 1 ? 'bonus-point-won' : 'bonus-points-won') }}</p>
+      <!-- The sums answered: what the points were made of -->
+      <p class="bonus-solved" *ngIf="solved > 0">✓ {{ solved }} {{ languageService.translate(solved === 1 ? 'bonus-sum-right' : 'bonus-sums-right') }}</p>
       <p class="bonus-xp">+{{ xpWon }} {{ languageService.translate('xp') }}</p>
       <p class="bonus-best" *ngIf="best > 0">
         <span class="bonus-new-best" *ngIf="newBest">🏆 {{ languageService.translate('bonus-new-best') }}</span>
