@@ -22,7 +22,9 @@ export type BonusKey =
   | 'balloons-hearts'
   | 'balloons-finished'
   | 'bonus-best'
-  | 'bonus-new-best';
+  | 'bonus-new-best'
+  | 'bonus-sums-right'
+  | 'bonus-sum-right';
 
 export const BONUS_WORDS: Words<BonusKey> = {
   en: {
@@ -39,14 +41,16 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'jump-board': 'A ball rolling past blocks on the ground and in the air',
     'jump-finished': 'You reached the flag!',
     'balloons-title': 'Balloons',
-    'balloons-how': 'Tap the balloons to pop them. Do not let three float away!',
+    'balloons-how': 'Pop the balloon with the answer to the sum. Do not let three answers float away!',
     'balloons-board': 'Balloons floating up to be popped',
-    'balloons-hearts': 'balloons may still float away',
+    'balloons-hearts': 'answers may still float away',
     'jump-hearts': 'bumps to spare',
     'pong-hearts': 'misses to spare',
     'balloons-finished': 'That was the last balloon!',
     'bonus-best': 'Best so far',
-    'bonus-new-best': 'New best!'
+    'bonus-new-best': 'New best!',
+    'bonus-sums-right': 'sums right',
+    'bonus-sum-right': 'sum right'
   },
   nl: {
     'bonus-title': 'Balspel',
@@ -62,14 +66,16 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'jump-board': 'Een rollende bal langs blokken op de grond en in de lucht',
     'jump-finished': 'Je hebt de vlag gehaald!',
     'balloons-title': 'Ballonnen',
-    'balloons-how': 'Tik op de ballonnen om ze te laten knallen. Laat er geen drie wegvliegen!',
+    'balloons-how': 'Knal de ballon met het antwoord van de som. Laat geen drie antwoorden wegvliegen!',
     'balloons-board': 'Ballonnen die omhoog zweven om te knallen',
-    'balloons-hearts': 'ballonnen mogen nog wegvliegen',
+    'balloons-hearts': 'antwoorden mogen nog wegvliegen',
     'jump-hearts': 'keer botsen mag nog',
     'pong-hearts': 'keer missen mag nog',
     'balloons-finished': 'Dat was de laatste ballon!',
     'bonus-best': 'Beste tot nu toe',
-    'bonus-new-best': 'Nieuw record!'
+    'bonus-new-best': 'Nieuw record!',
+    'bonus-sums-right': 'sommen goed',
+    'bonus-sum-right': 'som goed'
   },
   es: {
     'bonus-title': 'Juego de pelota',
@@ -85,13 +91,15 @@ export const BONUS_WORDS: Words<BonusKey> = {
     'jump-board': 'Una pelota que rueda entre bloques en el suelo y en el aire',
     'jump-finished': '¡Llegaste a la bandera!',
     'balloons-title': 'Globos',
-    'balloons-how': 'Toca los globos para reventarlos. ¡Que no se escapen tres!',
+    'balloons-how': 'Revienta el globo con la respuesta de la suma. ¡Que no se escapen tres respuestas!',
     'balloons-board': 'Globos que suben para reventarlos',
-    'balloons-hearts': 'globos pueden escaparse todavía',
+    'balloons-hearts': 'respuestas pueden escaparse todavía',
     'jump-hearts': 'choques de sobra',
     'pong-hearts': 'fallos de sobra',
     'balloons-finished': '¡Era el último globo!',
     'bonus-best': 'Mejor hasta ahora',
-    'bonus-new-best': '¡Nuevo récord!'
+    'bonus-new-best': '¡Nuevo récord!',
+    'bonus-sums-right': 'sumas bien',
+    'bonus-sum-right': 'suma bien'
   }
 };

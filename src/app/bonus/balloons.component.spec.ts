@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { BOARD_SHAPE, BalloonsComponent, END_RINGS, ESCAPE_LIFE, MISS_PULSE } from './balloons.component';
+import { BOARD_SHAPE, BalloonsComponent, DUD_GREY, END_RINGS, ESCAPE_LIFE, MISS_PULSE } from './balloons.component';
 import { BURST_LIFE } from './pop-burst';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
@@ -10,7 +10,7 @@ import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
 import { COUNTDOWN, END_BUZZ, MISS_BUZZ, POINT_BUZZ, RECORD_PULSE, RECORD_SHOW_MS } from './game-feel';
 import { BONUS_XP_CAP, bonusXp } from '../levels/level-curve';
-import { Balloon, MISSES_ALLOWED, STAR_POINTS, balloonRadius, swayedX } from './balloons';
+import { Balloon, MISSES_ALLOWED, REVEAL_MISSED, REVEAL_RIGHT, RIGHT_POINTS, STAR_POINTS, balloonRadius, swayedX } from './balloons';
 import { HowToPlayComponent } from './how-to-play.component';
 import { recordBonusBest } from './bonus-best';
 
@@ -59,7 +59,7 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
   it('says how to play and waits for Start, with nothing rising yet', () => {
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Ballonnen');
-    expect(text).toContain('Tik op de ballonnen');
+    expect(text).toContain('Knal de ballon met het antwoord van de som');
     const before = component.game;
     component.advance(1);
     expect(component.game).toBe(before);
@@ -314,7 +314,7 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
     jasmine.clock().install();
     try {
       spyOn(window, 'requestAnimationFrame').and.returnValue(0);
-      recordBonusBest('bonusBest:guest', 'balloons', 3);
+      recordBonusBest('bonusBestSums:guest', 'balloons', 3);
       const chime = spyOn(TestBed.inject(SoundService), 'playStar');
       component.start();
       component.advance(COUNTDOWN);
@@ -449,5 +449,145 @@ describe('BalloonsComponent, the balloon game (Yobyn, 2026-10-13)', () => {
   it('goes back to choosing what to play next', () => {
     component.done();
     expect(router.navigate).toHaveBeenCalledWith(['/grade']);
+  });
+
+  describe('played with sums: pop the answer (Yobyn, 2026-11-10)', () => {
+    /** Started by hand on 7 + 5, with these numbers up side by side and nothing else coming. */
+    function asking(values: number[]) {
+      component.started = true;
+      const game = component.game;
+      const radius = balloonRadius(game.width, true);
+      const balloons: Balloon[] = values.map((value, i) => ({ id: 60 + i, x: 50 + i * 80, y: game.height / 2, radius, hue: 0.3, phase: 0, value }));
+      component.game = { ...game, task: { sum: { text: '7 + 5', answer: 12 }, deal: [11, 12, 13] }, reveal: null, balloons, untilNext: 1e9, made: 3 };
+      component.advance(0);
+      fixture.detectChanges();
+    }
+    const tapOn = (i: number) => {
+      const balloon = component.game.balloons.find(b => b.id === 60 + i)!;
+      component.popAt(swayedX(balloon, component.game.elapsed, component.calm), balloon.y);
+      fixture.detectChanges();
+    };
+    const sum = () => fixture.nativeElement.querySelector('.bonus-sum') as HTMLElement | null;
+
+    it('plays the sums of the year and climb of the round that earned the game', () => {
+      new ProgressService().record({ correctAnswers: 9, total: 10, percentage: 90, score: 18, grade: 7, difficulty: 'medium' });
+      const klas = TestBed.createComponent(BalloonsComponent);
+      klas.detectChanges();
+      expect(klas.componentInstance.level).toEqual({ grade: 7, warmUp: false, divide: ':' });
+      expect(klas.componentInstance.game.level).toEqual(klas.componentInstance.level);
+      klas.componentInstance.ngOnDestroy();
+      // with no round to go by, groep 3's sums
+      expect(component.level.grade).toBe(1);
+      expect(component.game.task!.sum.text).toMatch(/^\d+ [+\u2212] \d+$/);
+    });
+
+    it('shows the sum at the top of the board once the game is going, and not on the start card', () => {
+      expect(sum()).toBeNull();
+      asking([11, 12, 13]);
+      expect(sum()!.textContent!.trim()).toBe('7 + 5 = ?');
+      expect(sum()!.getAttribute('aria-live')).toBe('polite');
+    });
+
+    it('pops the answer for points with a chime, bursts its whole bunch, and shows the sum answered', () => {
+      const chime = spyOn(TestBed.inject(SoundService), 'playStar');
+      asking([11, 12, 13]);
+      tapOn(1);
+      expect(component.points).toBe(RIGHT_POINTS);
+      expect(chime).toHaveBeenCalledWith(0);
+      expect(component.floats.map(float => float.text)).toEqual([`+${RIGHT_POINTS}`]);
+      expect(component.game.balloons).toEqual([]);
+      if (!component.calm) {
+        expect(component.bursts.length).toBe(3);
+      }
+      expect(sum()!.textContent!.trim()).toBe('7 + 5 = 12');
+      expect(sum()!.classList).toContain('right');
+      // and then the next sum, asked
+      component.advance(REVEAL_RIGHT + 0.1);
+      fixture.detectChanges();
+      expect(sum()!.textContent!.trim()).toMatch(/ = \?$/);
+      expect(sum()!.classList).not.toContain('right');
+    });
+
+    it('chimes a step higher for each right answer in a row', () => {
+      const chime = spyOn(TestBed.inject(SoundService), 'playStar');
+      asking([12]);
+      component.game = { ...component.game, streak: 2 };
+      tapOn(0);
+      expect(chime).toHaveBeenCalledWith(2);
+      expect(component.points).toBe(RIGHT_POINTS + 2);
+    });
+
+    it('lets a wrong number fizzle out, small and grey with a soft tick: no point, no heart, no buzz', () => {
+      const sounds = TestBed.inject(SoundService);
+      const tick = spyOn(sounds, 'playTap');
+      const buzz = spyOn(sounds, 'vibrate');
+      const pop = spyOn(sounds, 'playPop');
+      asking([11, 12, 13]);
+      tapOn(0);
+      expect(component.points).toBe(0);
+      expect(component.heartsLeft).toBe(MISSES_ALLOWED);
+      expect(tick).toHaveBeenCalled();
+      expect(buzz).not.toHaveBeenCalled();
+      expect(pop).not.toHaveBeenCalled();
+      expect(component.game.balloons.map(balloon => balloon.value)).toEqual([12, 13]);
+      expect(sum()!.textContent!.trim()).toBe('7 + 5 = ?');
+      if (!component.calm) {
+        expect(component.bursts[0].dud).toBeTrue();
+        expect(component.bursts[0].radius).toBeLessThan(balloonRadius(component.game.width, true));
+      }
+      expect(DUD_GREY.r).toBe(DUD_GREY.g);
+    });
+
+    it('says what the answer was when it floats away, in the sum at the top, and takes the heart', () => {
+      asking([12, 11]);
+      component.game = { ...component.game, balloons: component.game.balloons.map(balloon => balloon.value === 12 ? { ...balloon, y: 1 - balloon.radius } : balloon) };
+      component.advance(0.1);
+      fixture.detectChanges();
+      expect(component.heartsLeft).toBe(MISSES_ALLOWED - 1);
+      expect(sum()!.textContent!.trim()).toBe('7 + 5 = 12');
+      expect(sum()!.classList).toContain('missed');
+      expect(component.game.balloons).toEqual([]);
+      component.advance(REVEAL_MISSED);
+      fixture.detectChanges();
+      expect(sum()!.classList).not.toContain('missed');
+    });
+
+    it('writes the number on each balloon it draws, and none on a star balloon', () => {
+      asking([11, 12]);
+      const context = (component as any).context as CanvasRenderingContext2D;
+      const written = spyOn(context, 'fillText').and.callThrough();
+      component.game = { ...component.game, balloons: [...component.game.balloons, { id: 70, x: 200, y: 100, radius: 28, hue: 0.5, phase: 0, star: true }] };
+      component.draw();
+      expect(written.calls.allArgs().map(args => args[0])).toEqual(['11', '12']);
+    });
+
+    it('says how many sums were answered on the end card: one sum, more sums', () => {
+      asking([12]);
+      tapOn(0);
+      component.game = { ...component.game, missed: MISSES_ALLOWED - 1, balloons: [{ id: 80, x: 100, y: -27, radius: 28, hue: 0.5, phase: 0 }] };
+      component.advance(0.1);
+      fixture.detectChanges();
+      expect(component.ended).toBeTrue();
+      expect(fixture.nativeElement.querySelector('.bonus-solved').textContent).toContain('1 som goed');
+      expect(sum()).toBeNull();
+      component.solved = 4;
+      fixture.detectChanges();
+      expect(fixture.nativeElement.querySelector('.bonus-solved').textContent).toContain('4 sommen goed');
+    });
+
+    it('keeps its best apart from the bests of the game before the sums, which scored differently', () => {
+      recordBonusBest('bonusBest:guest', 'balloons', 80);
+      asking([12]);
+      tapOn(0);
+      component.game = { ...component.game, missed: MISSES_ALLOWED - 1, balloons: [{ id: 80, x: 100, y: -27, radius: 28, hue: 0.5, phase: 0 }] };
+      component.advance(0.1);
+      expect(component.best).toBe(RIGHT_POINTS);
+    });
+
+    it('shows the sum and its numbers in the picture on the start card', () => {
+      const how = fixture.nativeElement.querySelector('app-how-to-play');
+      expect(how.querySelector('.sum').textContent).toBe('2 + 3');
+      expect(Array.from(how.querySelectorAll('.number') as NodeListOf<Element>).map(n => n.textContent)).toEqual(['4', '5']);
+    });
   });
 });

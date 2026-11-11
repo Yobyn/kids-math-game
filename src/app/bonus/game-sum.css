@@ -1,0 +1,45 @@
+/* The sum a bonus game is played with (2026-11-10), at the top of its board
+   where the eyes are: a light reading surface like the question card's, so
+   it reads against the field. It pops in afresh with each new sum. */
+.bonus-sum {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  width: fit-content;
+  max-width: 92%;
+  margin: 0 auto;
+  padding: 0.25rem 0.9rem;
+  border-radius: 999px;
+  background: var(--surface-read);
+  color: var(--text-read);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.3;
+  white-space: nowrap;
+  box-shadow: var(--glow);
+  pointer-events: none;
+  animation: pop-in 200ms ease-out;
+}
+
+/* Answered for a moment: popped, or its answer got away (no telling off: it says what it was) */
+.bonus-sum.right {
+  background: var(--good-read-surface);
+  color: var(--good);
+}
+
+.bonus-sum.missed {
+  background: var(--bad-read-surface);
+  color: var(--bad);
+}
+
+/* The sums answered, on the end card */
+.bonus-solved {
+  margin: 0.25rem 0;
+  font-weight: 700;
+  color: var(--good-on-dark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bonus-sum { animation: none; }
+}

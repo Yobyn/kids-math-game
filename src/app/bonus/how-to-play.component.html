@@ -10,12 +10,17 @@
     <rect class="block" x="54" y="44" width="12" height="14" rx="3"></rect>
     <circle class="ball hop" cx="24" cy="52" r="6"></circle>
   </g>
-  <!-- Ballonnen: a balloon floats up and a finger taps it -->
+  <!-- Ballonnen: a sum, two balloons with numbers floating up, and a finger tapping the one with its answer -->
   <g *ngSwitchCase="'balloons'">
+    <text class="sum" x="60" y="9">2 + 3</text>
     <g class="rise">
-      <ellipse class="balloon" cx="60" cy="30" rx="11" ry="13"></ellipse>
-      <path class="string" d="M60 43 q-3 6 0 12"></path>
+      <ellipse class="balloon other" cx="30" cy="34" rx="11" ry="13"></ellipse>
+      <text class="number" x="30" y="38">4</text>
+      <ellipse class="balloon" cx="62" cy="34" rx="11" ry="13"></ellipse>
+      <text class="number" x="62" y="38">5</text>
+      <path class="string" d="M30 47 q-3 6 0 12"></path>
+      <path class="string" d="M62 47 q-3 6 0 12"></path>
     </g>
-    <text class="finger tapping" x="74" y="40">👆</text>
+    <text class="finger tapping" x="76" y="44">👆</text>
   </g>
 </svg>

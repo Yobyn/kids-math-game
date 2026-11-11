@@ -13,9 +13,11 @@ import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_B
 import { drawClouds, drawFloats, prefersReducedMotion, rgb, starPath } from './drawing';
 import { cloudsAt } from './backdrops';
 import { COUNTDOWN, END_BUZZ, Flash, FloatUp, MISS_BUZZ, POINT_BUZZ, RECORD_PULSE, RECORD_SHOW_MS, ageFlashes, ageFloats, countdownShown, newFloat, passesBest, soundCount } from './game-feel';
-import { BONUS_BEST_KEY, bonusBest, recordBonusBest } from './bonus-best';
+import { SUMS_BEST_KEY, bonusBest, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
 import { Balloon, BalloonEvent, Balloons, MISSES_ALLOWED, SWAY_SPEED, newBalloons, pop, step, swayedX } from './balloons';
+import { GameLevel, written } from './game-sums';
+import { levelFor } from './game-level';
 import { Burst, ageBursts, newBurst, piecesOf } from './pop-burst';
 
 /**
@@ -35,12 +37,16 @@ export const MISS_PULSE = 0.12;
  * on the board to say so, and the heart above it faded quietly).
  */
 export const ESCAPE_LIFE = 0.9;
+/** A wrong number fizzling out is drawn in this grey, smaller and quieter than a pop: no telling off. */
+export const DUD_GREY = { r: 150, g: 150, b: 170 };
 /** The end is the biggest burst of the three games: two rings of sparks, and every balloon still up pops. */
 export const END_RINGS = 2;
 
 /**
  * The third bonus game (Yobyn, 2026-10-13): balloons float up and a tap
- * pops them. Its rules are in balloons.ts; this screen draws them and
+ * pops them. Since 2026-11-10 it is played with sums: a sum stands at the
+ * top of the board, the balloons carry numbers, and the one to pop is its
+ * answer. Its rules are in balloons.ts; this screen draws them and
  * passes on the taps. Three balloons getting away ends it, and so does its
  * finish, which comes at a random moment: no clock is shown, only the points
  * and three hearts for the balloons that may still get away.
@@ -53,7 +59,7 @@ export const END_RINGS = 2;
 @Component({
   selector: 'app-balloons',
   templateUrl: './balloons.component.html',
-  styleUrls: ['./bonus.component.css']
+  styleUrls: ['./bonus.component.css', './game-sum.css']
 })
 export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
@@ -73,6 +79,16 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   /** Ended at its finish rather than on the third balloon away. */
   finished = false;
+  /** The sum at the top of the board: "7 + 5 = ?", or answered for a moment, "7 + 5 = 12". */
+  sumShown = '';
+  /** The same as a list of one, so the template draws a fresh one, popping in, for each new sum. */
+  sumsShown: string[] = [];
+  /** How the sum shown was settled, while it stands answered: popped ('right') or its answer away ('missed'). */
+  sumState: '' | 'right' | 'missed' = '';
+  /** Sums answered, for the end card. */
+  solved = 0;
+  /** Whose sums: the year and climb of the round that earned the game. */
+  level: GameLevel = { grade: 1 };
   /** The 3-2-1 after Start, as shown; 0 once the game is going (game-feel.ts). */
   countdown = 0;
   /** "New best!" on the board, the moment the game passes this child's best. */
@@ -112,6 +128,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Only a finished round opens the game: without one there is nothing to play for. */
   ngOnInit() {
+    this.level = levelFor(this.progressService.getHistory(), this.languageService.getLanguage());
     if (!this.progressService.hasBonus()) {
       this.router.navigate(['/grade']);
     }
@@ -146,8 +163,20 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
     canvas.height = Math.round(height * this.ratio);
     canvas.style.height = `${height}px`;
     if (!this.started) {
-      this.game = newBalloons(width, height, this.calm);
+      this.game = newBalloons(width, height, this.calm, Math.random, this.level);
+      this.showSum();
     }
+  }
+
+  /** The sum as the top of the board shows it: asked, or answered for a moment. */
+  private showSum() {
+    const { reveal, task } = this.game;
+    const shown = reveal ? reveal.text : task ? `${task.sum.text} = ?` : '';
+    if (shown !== this.sumShown) {
+      this.sumShown = shown;
+      this.sumsShown = shown ? [shown] : [];
+    }
+    this.sumState = reveal ? (reveal.right ? 'right' : 'missed') : '';
   }
 
   @HostListener('window:resize')
@@ -167,7 +196,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
       this.router.navigate(['/grade']);
       return;
     }
-    this.bestBefore = bonusBest(this.progressService.ownerKey(BONUS_BEST_KEY), 'balloons');
+    this.bestBefore = bonusBest(this.progressService.ownerKey(SUMS_BEST_KEY), 'balloons');
     this.fit();
     this.started = true;
     this.countdownLeft = COUNTDOWN;
@@ -252,13 +281,14 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     const before = this.game;
-    const { game, event } = pop(before, x, y);
+    const { game, event, popped, cleared } = pop(before, x, y);
     this.game = game;
     if (event) {
-      const popped = before.balloons.find(balloon => !game.balloons.includes(balloon));
       if (popped) {
-        this.burst(popped, event.x);
+        this.burst(popped, event.x, event.kind === 'wrong');
       }
+      // The rest of the answer's bunch goes with it
+      (cleared || []).forEach(balloon => this.burst(balloon, swayedX(balloon, before.elapsed, this.calm)));
       this.answer(event);
       this.show();
       this.draw();
@@ -269,7 +299,8 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
   private show() {
     const game = this.game;
     const left = MISSES_ALLOWED - game.missed;
-    if (game.points === this.points && left === this.heartsLeft && (game.ended !== null) === this.ended) {
+    const sum = game.reveal ? game.reveal.text : game.task ? `${game.task.sum.text} = ?` : '';
+    if (game.points === this.points && left === this.heartsLeft && (game.ended !== null) === this.ended && sum === this.sumShown) {
       return;
     }
     const ending = game.ended !== null && !this.ended;
@@ -278,6 +309,8 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.celebrateBest();
       }
       this.points = game.points;
+      this.solved = game.solved || 0;
+      this.showSum();
       this.hearts = Array.from({ length: MISSES_ALLOWED }, (_, i) => i < left);
       this.ended = game.ended !== null;
       this.finished = game.ended === 'finished';
@@ -305,10 +338,25 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
       if (event.star) {
         // A star balloon chimes like Springbal's stars, a step higher
         this.soundService.playStar(2);
+      } else if (event.right) {
+        // A right answer chimes, a step higher for each one in a row
+        this.soundService.playStar(Math.min(4, (this.game.streak || 1) - 1));
       } else {
         this.soundService.playPop();
       }
       this.soundService.vibrate(POINT_BUZZ);
+      return;
+    }
+    if (event.kind === 'wrong') {
+      // A wrong number only fizzles: a soft tick, nothing lost, nothing said
+      this.soundService.playTap();
+      return;
+    }
+    if (event.kind === 'clear') {
+      // One of an answer's bunch, as the answer floats away: it goes too
+      if (!this.calm) {
+        this.bursts = [...this.bursts, newBurst(event.x, event.y, this.game.balloons[0]?.radius || 28, event.hue, 0)];
+      }
       return;
     }
     if (event.kind === 'miss') {
@@ -340,9 +388,11 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /** A popped balloon flies apart into pieces, unless the child's device asks for calm. */
-  private burst(balloon: Balloon, x: number) {
+  private burst(balloon: Balloon, x: number, dud = false) {
     if (!this.calm) {
-      this.bursts = [...this.bursts, { ...newBurst(x, balloon.y, balloon.radius, balloon.hue, balloon.phase), star: !!balloon.star }];
+      // A wrong number fizzles out small and grey; the rest fly apart in their own colour
+      const radius = dud ? balloon.radius * 0.6 : balloon.radius;
+      this.bursts = [...this.bursts, { ...newBurst(x, balloon.y, radius, balloon.hue, balloon.phase), star: !!balloon.star, dud }];
     }
   }
 
@@ -364,7 +414,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
   private pay() {
     this.xpWon = bonusXp(this.points);
     this.progressService.addXp(this.xpWon);
-    const record = recordBonusBest(this.progressService.ownerKey(BONUS_BEST_KEY), 'balloons', this.points);
+    const record = recordBonusBest(this.progressService.ownerKey(SUMS_BEST_KEY), 'balloons', this.points);
     this.best = record.best;
     this.newBest = record.beaten;
     this.avatarService.refresh();
@@ -452,6 +502,20 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
       starPath(context, x, y + tall * 0.05, radius * 0.5);
       context.fill();
     }
+
+    // The number it carries: white with a dark edge, so it reads on every colour of the field
+    if (balloon.value !== undefined) {
+      const text = written(balloon.value);
+      context.font = `bold ${Math.round(radius * (text.length > 2 ? 0.72 : 0.92))}px sans-serif`;
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.lineJoin = 'round';
+      context.lineWidth = 3;
+      context.strokeStyle = 'rgba(20, 12, 50, 0.55)';
+      context.strokeText(text, x, y + tall * 0.04);
+      context.fillStyle = '#ffffff';
+      context.fillText(text, x, y + tall * 0.04);
+    }
   }
 
   /**
@@ -481,7 +545,7 @@ export class BalloonsComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** The pieces of a popped balloon, flying apart and fading. */
   private drawBurst(context: CanvasRenderingContext2D, burst: Burst) {
-    const { r, g, b } = burst.star ? STAR_GOLD : fieldColour(burst.hue);
+    const { r, g, b } = burst.dud ? DUD_GREY : burst.star ? STAR_GOLD : fieldColour(burst.hue);
     piecesOf(burst).forEach(piece => {
       context.save();
       context.translate(piece.x, piece.y);
