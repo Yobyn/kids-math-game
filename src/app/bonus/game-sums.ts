@@ -217,3 +217,47 @@ export function choices(sum: GameSum, count: number, random: Random = Math.rando
   }
   return all;
 }
+
+/**
+ * What the three games share in how a sum is scored and shown. A right
+ * answer scores RIGHT_POINTS, and one more for each right one in a row
+ * before it, up to RIGHT_TOP: thinking pays more than tapping everything.
+ */
+export const RIGHT_POINTS = 2;
+export const RIGHT_TOP = 5;
+
+/** What a right answer scores after this many right in a row. */
+export function rightPoints(streak: number): number {
+  return Math.min(RIGHT_TOP, RIGHT_POINTS + Math.max(0, streak));
+}
+
+/** The sum written out with its answer: "7 + 5 = 12". */
+export function answered(sum: GameSum): string {
+  return `${sum.text} = ${written(sum.answer)}`;
+}
+
+/** The sum just settled, written out with its answer for a moment. */
+export interface Reveal {
+  text: string;
+  /** Answered (true), or its answer got away (false). */
+  right: boolean;
+  /** Seconds it still shows. */
+  left: number;
+}
+
+/** How long a sum stands answered before the next one is asked. */
+export const REVEAL_RIGHT = 0.8;
+export const REVEAL_MISSED = 1.8;
+
+/** A reveal this much later, or null once its time is up. */
+export function ageReveal(reveal: Reveal | null | undefined, seconds: number): Reveal | null {
+  return reveal && reveal.left > seconds ? { ...reveal, left: reveal.left - seconds } : null;
+}
+
+/** The sum as the top of a board shows it: asked ("7 + 5 = ?"), or answered for a moment, and how it was settled. */
+export function shownSum(game: { task?: { sum: GameSum } | null; reveal?: Reveal | null }): { text: string; state: '' | 'right' | 'missed' } {
+  if (game.reveal) {
+    return { text: game.reveal.text, state: game.reveal.right ? 'right' : 'missed' };
+  }
+  return { text: game.task ? `${game.task.sum.text} = ?` : '', state: '' };
+}

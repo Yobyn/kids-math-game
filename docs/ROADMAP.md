@@ -733,6 +733,29 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Games with sums, 2: Springbal is "bounce up to the answer"
+  (2026-11-11).** A sum stands above the board, in the title's place while
+  the game is on, so it never covers a star or a block. The stars carry
+  numbers, one in every gap (it was every second gap): the sum's answer or a
+  wrong number, the answer among every two.
+  - A bounce takes a star, so the choice is to bounce or to roll on under
+    it. The answer taken scores 2, and one more for each answer in a row
+    (up to 5), with a chime a step higher each time. The sum shows answered
+    in green and the next one comes.
+  - A wrong number taken only fizzles out in a grey ring: no point, no
+    heart, no buzz. The row of right ones starts again.
+  - A star rolled under costs nothing, the answer too: it comes again.
+  - A star still on its way when its sum is answered turns into a plain
+    one, a point for taking it.
+  - A star with a number is twice as big (22px), its number dark on a pale
+    disc, so it can be read as it comes.
+  - The blocks, the hearts and the flag are as they were, and the end card
+    says how many sums were answered.
+
+  The sums are the same as Ballonnen's (game-sums.ts), by the year and
+  climb of the round that earned the game. A spec plays a whole run to the
+  flag bouncing only for the answers and the blocks on the ground, without
+  a bump. Balspel is next.
 - **Games with sums, 1: Ballonnen is "pop the answer" (2026-11-10).** Yobyn:
   "enhance the gaming and bring maths into the games, go above and beyond
   make it fun and engaging". A sum stands at the top of the board and the

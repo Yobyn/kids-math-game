@@ -2,7 +2,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { BUMP_PULSE, JumpComponent } from './jump.component';
+import { BUMP_PULSE, FIZZ_LIFE, JumpComponent } from './jump.component';
+import { REVEAL_RIGHT, RIGHT_POINTS } from './game-sums';
 import { COUNTDOWN, END_BUZZ, MISS_BUZZ, POINT_BUZZ, SQUASH_TIME } from './game-feel';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, HIT_PULSE } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
@@ -315,7 +316,7 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
   });
 
   it('shows this game\'s best on the end card, without "new best" when the game did not beat it', () => {
-    recordBonusBest('bonusBest:guest', 'jump', 20);
+    recordBonusBest('bonusBestSums:guest', 'jump', 20);
     // the last of the three hearts
     playFacing('ground', 30);
     component.game = { ...component.game, points: 9, bumps: BUMPS_ALLOWED - 1 };
@@ -391,5 +392,126 @@ describe('JumpComponent, the rolling ball bonus game (Yobyn, 2026-10-10)', () =>
   it('shows no clock: only the points and the hearts, the flag comes when it comes', () => {
     const bar = Array.from(fixture.nativeElement.querySelector('.bonus-bar').children) as HTMLElement[];
     expect(bar.map(part => part.className)).toEqual(['bonus-points', 'bonus-hearts']);
+  });
+
+  describe('played with sums: bounce up to the answer (Yobyn, 2026-11-10)', () => {
+    /** Started by hand on 7 + 5, a star with this number where a bounce now reaches it, and nothing else coming. */
+    function facingStar(value: number, streak = 0) {
+      component.started = true;
+      const game = component.game;
+      const star = makeStar(game, game.ball.x + worldSpeed(game.width, component.calm) * AIRTIME / 2, value);
+      component.game = { ...game, task: { sum: { text: '7 + 5', answer: 12 }, deal: [11, 12] }, reveal: null, stars: [star], streak, untilNext: 1e9 };
+      component.advance(0);
+      fixture.detectChanges();
+    }
+    const bounceThrough = () => {
+      component.game = jump(component.game);
+      for (let t = 0; t < AIRTIME; t += 1 / 60) {
+        component.advance(1 / 60);
+      }
+      fixture.detectChanges();
+    };
+    const sum = () => fixture.nativeElement.querySelector('.bonus-sum') as HTMLElement | null;
+
+    it('plays the sums of the year and climb of the round that earned the game', () => {
+      new ProgressService().record({ correctAnswers: 9, total: 10, percentage: 90, score: 18, grade: 4, difficulty: 'easy' });
+      const other = TestBed.createComponent(JumpComponent);
+      other.detectChanges();
+      expect(other.componentInstance.level).toEqual({ grade: 4, warmUp: true, divide: ':' });
+      expect(other.componentInstance.game.level).toEqual(other.componentInstance.level);
+      other.componentInstance.ngOnDestroy();
+      expect(component.level.grade).toBe(1);
+      expect(component.game.task!.sum.text).toMatch(/^\d+ [+\u2212] \d+$/);
+    });
+
+    it('shows the sum in the title\'s place once the game is going, above the board where it covers no star, and not on the start card', () => {
+      const title = fixture.nativeElement.querySelector('.bonus-head h1') as HTMLElement;
+      expect(sum()).toBeNull();
+      expect(title.classList).not.toContain('away');
+      const before = fixture.nativeElement.querySelector('.bonus-board').getBoundingClientRect().top;
+      facingStar(12);
+      expect(sum()!.textContent!.trim()).toBe('7 + 5 = ?');
+      expect(sum()!.closest('.bonus-head')).toBeTruthy();
+      expect(sum()!.closest('.bonus-board')).toBeNull();
+      expect(title.classList).toContain('away');
+      expect(getComputedStyle(title).visibility).toBe('hidden');
+      // the board stays where it was: the sum takes the title's room, no more
+      expect(fixture.nativeElement.querySelector('.bonus-board').getBoundingClientRect().top).toBe(before);
+    });
+
+    it('scores the answer a bounce takes, with its points floating up and a chime, and shows the sum answered', () => {
+      const chime = spyOn(TestBed.inject(SoundService), 'playStar');
+      facingStar(12);
+      component.game = jump(component.game);
+      for (let t = 0; t < AIRTIME / 2 + 0.05; t += 1 / 60) {
+        component.advance(1 / 60);
+      }
+      fixture.detectChanges();
+      expect(component.points).toBe(RIGHT_POINTS);
+      expect(chime).toHaveBeenCalledWith(1);
+      expect(component.floats.some(float => float.text === `+${RIGHT_POINTS}`)).toBeTrue();
+      expect(sum()!.textContent!.trim()).toBe('7 + 5 = 12');
+      expect(sum()!.classList).toContain('right');
+      component.advance(REVEAL_RIGHT + 0.1);
+      fixture.detectChanges();
+      expect(sum()!.textContent!.trim()).toMatch(/ = \?$/);
+      expect(sum()!.classList).not.toContain('right');
+    });
+
+    it('chimes a step higher for each answer in a row, to a top', () => {
+      const chime = spyOn(TestBed.inject(SoundService), 'playStar');
+      facingStar(12, 2);
+      bounceThrough();
+      expect(chime).toHaveBeenCalledWith(3);
+      expect(component.points).toBe(RIGHT_POINTS + 2);
+    });
+
+    it('lets a wrong number fizzle out with a soft tick: no point, no heart, no buzz, the sum stays', () => {
+      const sounds = TestBed.inject(SoundService);
+      const tick = spyOn(sounds, 'playTap');
+      const buzz = spyOn(sounds, 'vibrate');
+      facingStar(11);
+      component.game = jump(component.game);
+      for (let t = 0; t < AIRTIME / 2 + 0.05; t += 1 / 60) {
+        component.advance(1 / 60);
+      }
+      fixture.detectChanges();
+      expect(component.points).toBe(0);
+      expect(component.heartsLeft).toBe(BUMPS_ALLOWED);
+      expect(tick).toHaveBeenCalled();
+      expect(buzz).not.toHaveBeenCalled();
+      expect(component.fizzes.length).toBe(1);
+      expect(sum()!.textContent!.trim()).toBe('7 + 5 = ?');
+      // the fizz fades and is gone
+      component.advance(FIZZ_LIFE + 0.05);
+      expect(component.fizzes).toEqual([]);
+    });
+
+    it('writes the number on each star it draws, dark on a pale disc, and none on a plain star', () => {
+      facingStar(12);
+      const context = (component as any).context as CanvasRenderingContext2D;
+      const written = spyOn(context, 'fillText').and.callThrough();
+      component.game = { ...component.game, stars: [...component.game.stars, makeStar(component.game, 200, -7), makeStar(component.game, 260)] };
+      component.draw();
+      expect(written.calls.allArgs().map(args => args[0])).toEqual(['12', '\u22127']);
+    });
+
+    it('says how many sums were answered on the end card', () => {
+      facingStar(12);
+      bounceThrough();
+      component.game = { ...component.game, bumps: BUMPS_ALLOWED - 1, obstacles: [makeObstacle(component.game, 'ground', component.game.ball.x - 5)] };
+      component.advance(0.05);
+      fixture.detectChanges();
+      expect(component.ended).toBeTrue();
+      expect(fixture.nativeElement.querySelector('.bonus-solved').textContent).toContain('1 som goed');
+      expect(sum()).toBeNull();
+    });
+
+    it('shows the sum and a star with its answer in the picture on the start card, and says so in words', () => {
+      const how = fixture.nativeElement.querySelector('app-how-to-play');
+      expect(how.querySelector('.sum').textContent).toBe('2 + 3');
+      expect(how.querySelector('.number.on-star').textContent).toBe('5');
+      expect(fixture.nativeElement.textContent).toContain('naar de ster met het antwoord van de som');
+    });
   });
 });

@@ -4,11 +4,14 @@
     <rect class="paddle slide" x="44" y="54" width="32" height="6" rx="3"></rect>
     <circle class="ball bounce" cx="60" cy="47" r="6"></circle>
   </g>
-  <!-- Springbal: the ball hops over a block on the ground -->
+  <!-- Springbal: a sum, the ball hopping over a block on the ground, and a star with its answer to bounce up to -->
   <g *ngSwitchCase="'jump'">
+    <text class="sum" x="60" y="9">2 + 3</text>
     <rect class="ground" x="4" y="58" width="112" height="2" rx="1"></rect>
     <rect class="block" x="54" y="44" width="12" height="14" rx="3"></rect>
     <circle class="ball hop" cx="24" cy="52" r="6"></circle>
+    <circle class="star" cx="92" cy="26" r="9"></circle>
+    <text class="number on-star" x="92" y="29.5">5</text>
   </g>
   <!-- Ballonnen: a sum, two balloons with numbers floating up, and a finger tapping the one with its answer -->
   <g *ngSwitchCase="'balloons'">

@@ -23,8 +23,19 @@
  * crash ending it, a run scored 1 to 4 and the flag was hardly ever
  * reached; Ballonnen's three hearts, the same here).
  *
+ * BOUNCE UP TO THE ANSWER (Yobyn, 2026-11-10: "bring maths into the games").
+ * A sum stands at the top of the board and the stars carry numbers, one in
+ * every gap: its answer, or a wrong number. A bounce takes a star, so the
+ * choice is to bounce or to roll on under it. The answer taken scores, more
+ * for each one in a row, and the next sum comes. A wrong number taken only
+ * fizzles: no point, no heart, and the row starts again. A star rolled
+ * under costs nothing, the answer too: it comes again. Without a level (no
+ * sums) the stars are plain, a point each, one in every second gap, as the
+ * game first was.
+ *
  * Free of the DOM, in CSS pixels, y downwards, so it can be tested straight.
  */
+import { GameLevel, GameSum, REVEAL_RIGHT, Reveal, ageReveal, answered, choices, gameSum, rightPoints } from './game-sums';
 
 export type Place = 'ground' | 'middle' | 'top';
 
@@ -61,6 +72,14 @@ export interface Star {
   x: number;
   y: number;
   radius: number;
+  /** The number it carries, when the game plays with sums. */
+  value?: number;
+}
+
+/** The sum being asked, and the numbers still to come on the stars for it. */
+export interface JumperTask {
+  sum: GameSum;
+  deal: number[];
 }
 
 export type JumperEnding = 'crashed' | 'finished';
@@ -90,13 +109,29 @@ export interface Jumper {
   ended: JumperEnding | null;
   /** Calmer under prefers-reduced-motion: slower, and it speeds up more slowly. */
   calm: boolean;
+  /** Who is playing, for the sums; without one the stars carry no numbers. */
+  level?: GameLevel | null;
+  /** The sum above the board, when the game plays with sums. */
+  task?: JumperTask | null;
+  /** Answers taken in a row, without a wrong number taken. */
+  streak?: number;
+  /** Sums answered. */
+  solved?: number;
+  reveal?: Reveal | null;
 }
 
-/** An obstacle passed, a star taken (both points), the ball landing (a squash), one run into, or the end. */
+/**
+ * An obstacle passed, a star taken (both points), a wrong number taken
+ * (fizzling out), the ball landing (a squash), an obstacle run into, or the end.
+ */
 export interface JumperEvent {
-  kind: 'pass' | 'star' | 'land' | 'bump' | 'end';
+  kind: 'pass' | 'star' | 'wrong' | 'land' | 'bump' | 'end';
   x: number;
   y: number;
+  /** A star's points: 1 for a plain one, or what the sum's answer scores. */
+  points?: number;
+  /** A star that was the sum's answer. */
+  right?: boolean;
 }
 
 /** The finish flag comes in somewhere between these, in seconds. */
@@ -145,6 +180,12 @@ export const STAR_RADIUS = 11;
 export const STAR_HEIGHT = JUMP_RISE;
 /** A star hangs in every this many gaps: often enough to reach for, not in every one. */
 export const STAR_EVERY = 2;
+/** With sums a star hangs in every gap, so there is a number to bounce for or to leave every couple of seconds. */
+export const SUM_STAR_EVERY = 1;
+/** A star with a number on it is bigger, so the number can be read as it comes. */
+export const SUM_STAR_RADIUS = 22;
+/** The numbers that come on the stars for a sum: its answer and a wrong one, then dealt again. */
+export const STAR_CHOICES = 2;
 /** The longest single physics step. */
 export const MAX_STEP = 1 / 240;
 
@@ -174,9 +215,15 @@ export function onGround(game: Jumper): boolean {
 }
 
 /** A new game: the ball on the ground, the first obstacle a moment away, the flag at a time of its own. */
-export function newJumper(width: number, height: number, calm = false, random: () => number = Math.random): Jumper {
+export function newJumper(width: number, height: number, calm = false, random: () => number = Math.random,
+                          level: GameLevel | null = null): Jumper {
   const ground = height - GROUND_LIFT;
   return {
+    level,
+    task: level ? newTask(level, random) : null,
+    streak: 0,
+    solved: 0,
+    reveal: null,
     width,
     height,
     ground,
@@ -193,6 +240,12 @@ export function newJumper(width: number, height: number, calm = false, random: (
     ended: null,
     calm
   };
+}
+
+/** A new sum for the level, never the one just asked, with its numbers shuffled to come on the stars. */
+export function newTask(level: GameLevel, random: () => number, last?: GameSum): JumperTask {
+  const sum = gameSum(level, random, last);
+  return { sum, deal: choices(sum, STAR_CHOICES, random) };
 }
 
 /** A bounce, when the ball is on the ground and the game is on; otherwise nothing. */
@@ -237,8 +290,12 @@ export function gapAfter(width: number, speed: number, random: () => number): nu
 }
 
 /** A star in the middle of the gap after an obstacle, where the ball's middle is at the top of a bounce. */
-export function makeStar(game: { ground: number }, x: number): Star {
-  return { x, y: game.ground - STAR_HEIGHT * room(game) - BALL_RADIUS, radius: STAR_RADIUS };
+export function makeStar(game: { ground: number }, x: number, value?: number): Star {
+  const star: Star = { x, y: game.ground - STAR_HEIGHT * room(game) - BALL_RADIUS, radius: value === undefined ? STAR_RADIUS : SUM_STAR_RADIUS };
+  if (value !== undefined) {
+    star.value = value;
+  }
+  return star;
 }
 
 /** Whether the ball reaches a star: the whole ball, not the forgiving circle, so a near one counts. */
@@ -302,6 +359,10 @@ function tick(game: Jumper, dt: number, random: () => number, events: JumperEven
     .filter(star => star.x + star.radius > 0);
   let untilNext = game.untilNext - dx;
   let made = game.made;
+  let task = game.task || null;
+  let streak = game.streak || 0;
+  let solved = game.solved || 0;
+  let reveal = ageReveal(game.reveal, dt);
   let flag = game.flag === null ? null : game.flag - dx;
   if (untilNext <= 0 && flag === null && elapsed >= game.finishAt) {
     flag = game.width + untilNext;
@@ -311,22 +372,47 @@ function tick(game: Jumper, dt: number, random: () => number, events: JumperEven
     obstacles = [...obstacles, coming];
     made += 1;
     const gap = gapAfter(game.width, speed, random);
-    if (made % STAR_EVERY === 0) {
-      stars = [...stars, makeStar(game, coming.x + coming.width + gap / 2)];
+    if (made % (task ? SUM_STAR_EVERY : STAR_EVERY) === 0) {
+      // With sums the star carries the next number dealt for the sum; the deal starts again when it runs out
+      stars = [...stars, makeStar(game, coming.x + coming.width + gap / 2, task ? task.deal[0] : undefined)];
+      if (task) {
+        const deal = task.deal.slice(1);
+        task = { ...task, deal: deal.length ? deal : choices(task.sum, STAR_CHOICES, random) };
+      }
     }
     untilNext += coming.width + gap;
   }
 
-  // A star the ball reaches is taken: a point
+  // A star the ball reaches is taken. A plain one is a point. With sums, the
+  // answer scores and the next sum is set; a wrong number fizzles out
   let points = game.points;
+  let answerTaken = false;
   stars = stars.filter(star => {
-    if (reachesStar(ball, star)) {
-      points += 1;
-      events.push({ kind: 'star', x: star.x, y: star.y });
-      return false;
+    if (!reachesStar(ball, star)) {
+      return true;
     }
-    return true;
+    if (star.value === undefined || !task) {
+      points += 1;
+      events.push({ kind: 'star', x: star.x, y: star.y, points: 1 });
+    } else if (star.value === task.sum.answer && !answerTaken) {
+      const won = rightPoints(streak);
+      points += won;
+      streak += 1;
+      solved += 1;
+      answerTaken = true;
+      events.push({ kind: 'star', x: star.x, y: star.y, points: won, right: true });
+    } else {
+      streak = 0;
+      events.push({ kind: 'wrong', x: star.x, y: star.y });
+    }
+    return false;
   });
+  if (answerTaken && task) {
+    reveal = { text: answered(task.sum), right: true, left: REVEAL_RIGHT };
+    task = game.level ? newTask(game.level, random, task.sum) : task;
+    // A star still on its way carried a number for the old sum: it is a plain one now, a point for taking it
+    stars = stars.map(star => ({ x: star.x, y: star.y, radius: star.radius }));
+  }
 
   // One the ball runs into costs a heart; the ball goes on through it
   let bumps = game.bumps;
@@ -348,7 +434,7 @@ function tick(game: Jumper, dt: number, random: () => number, events: JumperEven
     return obstacle;
   });
 
-  const next: Jumper = { ...game, ball, obstacles, stars, untilNext, made, points, bumps, elapsed, flag };
+  const next: Jumper = { ...game, ball, obstacles, stars, untilNext, made, points, bumps, elapsed, flag, task, streak, solved, reveal };
   if (bumps >= BUMPS_ALLOWED) {
     events.push({ kind: 'end', x: ball.x, y: ball.y });
     return { ...next, ended: 'crashed' };

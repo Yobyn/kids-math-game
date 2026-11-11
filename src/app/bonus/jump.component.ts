@@ -12,8 +12,10 @@ import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { BOARD_MARGIN, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, MIN_BOARD } from './bonus.component';
 import { drawFloats, drawHills, drawShine, prefersReducedMotion, rgb, roundRect, starPath } from './drawing';
-import { COUNTDOWN, END_BUZZ, FloatUp, MISS_BUZZ, POINT_BUZZ, RECORD_PULSE, RECORD_SHOW_MS, SQUASH_TIME, ageFloats, countdownShown, newFloat, passesBest, soundCount, squashScale } from './game-feel';
-import { BONUS_BEST_KEY, bonusBest, recordBonusBest } from './bonus-best';
+import { COUNTDOWN, END_BUZZ, Flash, FloatUp, MISS_BUZZ, POINT_BUZZ, RECORD_PULSE, RECORD_SHOW_MS, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, newFloat, passesBest, soundCount, squashScale } from './game-feel';
+import { SUMS_BEST_KEY, bonusBest, recordBonusBest } from './bonus-best';
+import { GameLevel, shownSum, written } from './game-sums';
+import { levelFor } from './game-level';
 import { showWholeBoard } from './board-view';
 import { BUMPS_ALLOWED, Jumper, JumperEvent, Obstacle, Star, jump, newJumper, step, worldSpeed } from './jumper';
 
@@ -23,6 +25,8 @@ export const BOARD_SHAPE = 1.1;
 export const BUMP_PULSE = 0.12;
 /** An obstacle already run into is drawn this faint. */
 export const HIT_FADE = 0.3;
+/** A wrong number taken fizzles out where it hung, for this long: a grey ring, no telling off. */
+export const FIZZ_LIFE = 0.4;
 /** The ball's glowing tail: this many of its last heights. */
 const TRAIL = 6;
 
@@ -32,6 +36,8 @@ const TRAIL = 6;
  * the air. Its rules are in jumper.ts; this screen draws them and passes on
  * the taps. A tap anywhere on the board bounces, as do Space and the up arrow.
  * It ends at the finish flag, which comes at a random moment, or on a crash.
+ * Since 2026-11-10 it is played with sums: a sum stands at the top of the
+ * board, the stars carry numbers, and the one to bounce up to is its answer.
  *
  * It looks and answers like the paddle game (bonus.component.ts): the canvas
  * is see-through so the particle field shows, every obstacle passed swells
@@ -40,7 +46,7 @@ const TRAIL = 6;
 @Component({
   selector: 'app-jump',
   templateUrl: './jump.component.html',
-  styleUrls: ['./bonus.component.css']
+  styleUrls: ['./bonus.component.css', './game-sum.css']
 })
 export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
@@ -63,6 +69,21 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
   xpWon = 0;
   /** Ended at the finish flag rather than on an obstacle. */
   finished = false;
+  /** The sum at the top of the board: "7 + 5 = ?", or answered for a moment, "7 + 5 = 12". */
+  sumShown = '';
+  /** The same as a list of one, so the template draws a fresh one, popping in, for each new sum. */
+  sumsShown: string[] = [];
+  sumState: '' | 'right' | 'missed' = '';
+  /** True while the sum stands in the title's place: the game is on and there is a sum to show. */
+  get sumOnTitle(): boolean {
+    return this.started && !this.ended && this.countdown === 0 && this.sumsShown.length > 0;
+  }
+  /** Sums answered, for the end card. */
+  solved = 0;
+  /** Whose sums: the year and climb of the round that earned the game. */
+  level: GameLevel = { grade: 1 };
+  /** Where wrong numbers taken are fizzling out (FIZZ_LIFE). */
+  fizzes: Flash[] = [];
   /** The 3-2-1 after Start, as shown; 0 once the game is going (game-feel.ts). */
   countdown = 0;
   /** "New best!" on the board, the moment the game passes this child's best. */
@@ -102,6 +123,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Only a finished round opens the game: without one there is nothing to play for. */
   ngOnInit() {
+    this.level = levelFor(this.progressService.getHistory(), this.languageService.getLanguage());
     if (!this.progressService.hasBonus()) {
       this.router.navigate(['/grade']);
     }
@@ -136,8 +158,19 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     canvas.height = Math.round(height * this.ratio);
     canvas.style.height = `${height}px`;
     if (!this.started) {
-      this.game = newJumper(width, height, this.calm);
+      this.game = newJumper(width, height, this.calm, Math.random, this.level);
+      this.showSum();
     }
+  }
+
+  /** The sum as the top of the board shows it: asked, or answered for a moment. */
+  private showSum() {
+    const { text, state } = shownSum(this.game);
+    if (text !== this.sumShown) {
+      this.sumShown = text;
+      this.sumsShown = text ? [text] : [];
+    }
+    this.sumState = state;
   }
 
   @HostListener('window:resize')
@@ -157,7 +190,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       this.router.navigate(['/grade']);
       return;
     }
-    this.bestBefore = bonusBest(this.progressService.ownerKey(BONUS_BEST_KEY), 'jump');
+    this.bestBefore = bonusBest(this.progressService.ownerKey(SUMS_BEST_KEY), 'jump');
     this.fit();
     this.started = true;
     this.countdownLeft = COUNTDOWN;
@@ -215,6 +248,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     this.floats = ageFloats(this.floats, seconds);
+    this.fizzes = ageFlashes(this.fizzes, seconds, FIZZ_LIFE);
     this.squash = Math.max(0, this.squash - seconds);
     const { game, events } = step(this.game, seconds);
     this.game = game;
@@ -223,18 +257,21 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     events.forEach(event => this.answer(event));
     const left = BUMPS_ALLOWED - game.bumps;
-    if (game.points !== this.points || left !== this.heartsLeft || (game.ended && !this.ended)) {
+    if (game.points !== this.points || left !== this.heartsLeft || (game.ended && !this.ended) || shownSum(game).text !== this.sumShown) {
       const ending = game.ended !== null && !this.ended;
       this.zone.run(() => {
         if (passesBest(this.bestBefore, this.points, game.points) && !game.ended) {
           this.celebrateBest();
         }
         this.points = game.points;
+        this.solved = game.solved || 0;
+        this.showSum();
         this.hearts = Array.from({ length: BUMPS_ALLOWED }, (_, i) => i < left);
         this.ended = game.ended !== null;
         this.finished = game.ended === 'finished';
         if (ending) {
           this.floats = [];
+          this.fizzes = [];
           this.pay();
         }
       });
@@ -296,12 +333,19 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
     if (event.kind === 'star') {
-      // A star taken: a point, a chime a step up from a pass, sparks where it hung
-      this.floats = [...this.floats, newFloat(event.x, event.y - 18)];
+      // A star taken: its points, a chime a step up from a pass (and a step
+      // higher for each answer in a row), sparks where it hung
+      this.floats = [...this.floats, newFloat(event.x, event.y - 18, `+${event.points ?? 1}`)];
       this.pulseService.pulse(HIT_PULSE);
       this.pulseService.tap(left + event.x, top + event.y);
-      this.soundService.playStar(1);
+      this.soundService.playStar(event.right ? Math.min(4, this.game.streak || 1) : 1);
       this.soundService.vibrate(POINT_BUZZ);
+      return;
+    }
+    if (event.kind === 'wrong') {
+      // A wrong number taken only fizzles: a soft tick, nothing lost, nothing said
+      this.fizzes = [...this.fizzes, { x: event.x, y: event.y, age: 0 }];
+      this.soundService.playTap();
       return;
     }
     if (event.kind === 'pass') {
@@ -343,7 +387,7 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
   private pay() {
     this.xpWon = bonusXp(this.points);
     this.progressService.addXp(this.xpWon);
-    const record = recordBonusBest(this.progressService.ownerKey(BONUS_BEST_KEY), 'jump', this.points);
+    const record = recordBonusBest(this.progressService.ownerKey(SUMS_BEST_KEY), 'jump', this.points);
     this.best = record.best;
     this.newBest = record.beaten;
     this.avatarService.refresh();
@@ -387,8 +431,19 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
       context.restore();
     });
 
-    // The stars to bounce up to
+    // The stars to bounce up to, and where wrong numbers taken are fizzling out
     this.game.stars.forEach(star => this.drawStar(context, star));
+    this.fizzes.forEach(fizz => {
+      const t = Math.min(1, fizz.age / FIZZ_LIFE);
+      context.save();
+      context.shadowBlur = 0;
+      context.strokeStyle = `rgba(170, 170, 190, ${(0.8 * (1 - t)).toFixed(3)})`;
+      context.lineWidth = 3;
+      context.beginPath();
+      context.arc(fizz.x, fizz.y, 10 + (this.calm ? 0 : 16 * t), 0, Math.PI * 2);
+      context.stroke();
+      context.restore();
+    });
 
     // The finish flag: a pole from the ground with a flag in the ring's colours
     if (this.game.flag !== null) {
@@ -534,8 +589,23 @@ export class JumpComponent implements OnInit, AfterViewInit, OnDestroy {
     context.shadowColor = 'rgba(255, 220, 120, 0.95)';
     context.shadowBlur = 14;
     context.fillStyle = '#ffd86b';
-    starPath(context, star.x, star.y, star.radius, turn);
+    // A star with a number is drawn a little past its reach, so its points frame the number
+    starPath(context, star.x, star.y, star.value === undefined ? star.radius : star.radius * 1.3, turn);
     context.fill();
+    if (star.value !== undefined) {
+      // The number on a pale gold disc in the star's middle, dark on light, held still as the star turns
+      const text = written(star.value);
+      context.shadowBlur = 0;
+      context.fillStyle = '#fff3c4';
+      context.beginPath();
+      context.arc(star.x, star.y, star.radius * 0.78, 0, Math.PI * 2);
+      context.fill();
+      context.fillStyle = '#2a1f55';
+      context.font = `bold ${text.length > 2 ? 14 : 19}px sans-serif`;
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.fillText(text, star.x, star.y + 0.5);
+    }
     context.restore();
   }
 }
