@@ -1,7 +1,9 @@
 import {
   BALL_RADIUS, DOUBLING_SECONDS, DURATION, MAX_BOUNCE, MISSES_ALLOWED, PADDLE_TOP_SPEED, Pong, aimPaddle, followPaddle, movePaddle, newPong,
+  TILES, TILE_HEIGHT, bounceOffPaddle, ceilingOf, dealTiles, pointsOf,
   restOnPaddle, serve, speedAt, speedOf, startSpeed, step, topSpeed
 } from './pong';
+import { REVEAL_RIGHT, RIGHT_POINTS } from './game-sums';
 
 const W = 360;
 const H = 520;
@@ -231,5 +233,127 @@ describe('the bonus game\'s ball and paddle (bonus/pong.ts)', () => {
     const narrow = newPong(320, 480);
     expect(narrow.paddle.width).toBeGreaterThanOrEqual(72);
     expect(narrow.paddle.width).toBeLessThan(320 / 2);
+  });
+});
+
+describe('Balspel with sums: aim for the answer (Yobyn, 2026-11-10)', () => {
+  const LEVEL = { grade: 1 };
+  const seeded = (seed = 7) => {
+    let state = seed;
+    return () => (state = (state * 16807) % 2147483647) / 2147483647;
+  };
+
+  /** A game on 7 + 5 with the tiles 11, 12 and 13 along the top, and the ball going straight up under the i-th. */
+  function under(i: number, streak = 0): Pong {
+    const game = newPong(W, H, false, seeded(), LEVEL);
+    const each = W / TILES;
+    return {
+      ...game,
+      task: { sum: { text: '7 + 5', answer: 12 } },
+      tiles: [11, 12, 13].map((value, at) => ({ value, x: at * each, width: each })),
+      streak,
+      ball: { ...game.ball, x: each * (i + 0.5), y: TILE_HEIGHT + BALL_RADIUS + 5, vx: 0, vy: -200 }
+    };
+  }
+
+  it('starts with a sum of the child\'s own year and three tiles along the top, its answer on one of them', () => {
+    const game = newPong(W, H, false, seeded(), LEVEL);
+    expect(game.task!.sum.text).toMatch(/^\d+ [+\u2212] \d+$/);
+    expect(game.tiles!.length).toBe(TILES);
+    expect(game.tiles!.filter(tile => tile.value === game.task!.sum.answer).length).toBe(1);
+    // side by side, sharing the whole width
+    expect(game.tiles!.map(tile => Math.round(tile.x))).toEqual([0, 120, 240]);
+    expect(game.tiles!.every(tile => tile.width === W / TILES)).toBeTrue();
+    // and none without a level: the top is the board's edge
+    const plain = newPong(W, H);
+    expect(plain.tiles).toEqual([]);
+    expect(ceilingOf(plain)).toBe(0);
+    expect(ceilingOf(game)).toBe(TILE_HEIGHT);
+  });
+
+  it('bounces the ball off the tiles\' lower edge like a mirror, as it did off the top', () => {
+    const { game: after } = step({ ...under(0), ball: { ...under(0).ball, vx: 30 } }, 0.1, seeded());
+    expect(after.ball.vy).toBeGreaterThan(0);
+    expect(after.ball.vx).toBeGreaterThan(0);
+    expect(after.ball.y).toBeGreaterThanOrEqual(TILE_HEIGHT + BALL_RADIUS);
+  });
+
+  it('scores the answer\'s tile on top of the bounces, says so, and rests the tiles while the sum stands answered', () => {
+    const { game: after, events } = step(under(1), 0.1, seeded());
+    expect(events.find(event => event.kind === 'right')).toEqual(jasmine.objectContaining({ points: RIGHT_POINTS, x: W / 2 }));
+    expect(after.bonus).toBe(RIGHT_POINTS);
+    expect(after.hits).toBe(0);
+    expect(pointsOf(after)).toBe(RIGHT_POINTS);
+    expect(pointsOf({ ...after, hits: 4 })).toBe(4 + RIGHT_POINTS);
+    expect(after.solved).toBe(1);
+    expect(after.streak).toBe(1);
+    expect(after.reveal!.text).toBe('7 + 5 = 12');
+    expect(after.tiles).toEqual([]);
+    expect(after.task!.sum.text).not.toBe('7 + 5');
+  });
+
+  it('brings three new tiles for the next sum once the answered one has stood long enough', () => {
+    const struck = step(under(1), 0.1, seeded()).game;
+    const resting = step({ ...struck, ball: { ...struck.ball, y: 300, vx: 0, vy: 1 } }, REVEAL_RIGHT / 2, seeded()).game;
+    expect(resting.tiles).toEqual([]);
+    const next = step(resting, REVEAL_RIGHT, seeded()).game;
+    expect(next.reveal).toBeNull();
+    expect(next.tiles!.length).toBe(TILES);
+    expect(next.tiles!.filter(tile => tile.value === next.task!.sum.answer).length).toBe(1);
+  });
+
+  it('is a plain wall while the tiles rest: nothing scored, nothing dimmed', () => {
+    const struck = step(under(1), 0.1, seeded()).game;
+    const again = { ...struck, ball: { ...struck.ball, y: TILE_HEIGHT + BALL_RADIUS + 5, vx: 0, vy: -200 } };
+    const { game: after, events } = step(again, 0.1, seeded());
+    expect(events.map(event => event.kind)).toEqual(['wall']);
+    expect(after.bonus).toBe(RIGHT_POINTS);
+    expect(after.ball.vy).toBeGreaterThan(0);
+  });
+
+  it('dims a wrong number\'s tile when it is struck: no point lost, no heart, the sum stays, the row starts again', () => {
+    const { game: after, events } = step({ ...under(0, 2), hits: 3 }, 0.1, seeded());
+    expect(events.map(event => event.kind)).toEqual(['wrong']);
+    expect(after.tiles!.map(tile => !!tile.tried)).toEqual([true, false, false]);
+    expect(pointsOf(after)).toBe(3);
+    expect(after.misses).toBe(0);
+    expect(after.streak).toBe(0);
+    expect(after.task!.sum.text).toBe('7 + 5');
+    // struck again it is a plain wall
+    const again = { ...after, ball: { ...after.ball, y: TILE_HEIGHT + BALL_RADIUS + 5, vx: 0, vy: -200 } };
+    expect(step(again, 0.1, seeded()).events.map(event => event.kind)).toEqual(['wall']);
+  });
+
+  it('scores a row of answers one more each time', () => {
+    expect(step(under(1, 2), 0.1, seeded()).game.bonus).toBe(RIGHT_POINTS + 2);
+  });
+
+  it('deals the answer onto every tile in turn, never always the same one', () => {
+    const random = seeded(3);
+    const places = new Set<number>();
+    for (let i = 0; i < 60; i++) {
+      places.add(dealTiles(W, { text: '6 × 7', answer: 42 }, random).findIndex(tile => tile.value === 42));
+    }
+    expect(places.size).toBe(TILES);
+  });
+
+  it('can be steered: off the paddle\'s left the ball reaches the left tile, off its right the right one', () => {
+    const game = under(1);
+    const fromPaddle = (offset: number) => {
+      const ball = bounceOffPaddle({ ...game.ball, x: game.paddle.x + offset * game.paddle.width / 2 }, game.paddle, startSpeed(H, false));
+      let current: Pong = { ...game, ball, tiles: game.tiles!.map(tile => ({ ...tile, value: 99 })) };
+      for (let i = 0; i < 600; i++) {
+        const { game: next, events } = step(current, 1 / 60, seeded());
+        current = next;
+        const struck = events.find(event => event.kind === 'wrong');
+        if (struck) {
+          return Math.floor(struck.x / (W / TILES));
+        }
+      }
+      return -1;
+    };
+    expect(fromPaddle(-0.5)).toBe(0);
+    expect(fromPaddle(0)).toBe(1);
+    expect(fromPaddle(0.5)).toBe(2);
   });
 });

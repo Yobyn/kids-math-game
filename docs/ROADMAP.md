@@ -733,6 +733,24 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Games with sums, 3: Balspel is "aim for the answer" (2026-11-11).** A
+  sum stands above the board, in the title's place from Start (through the
+  3-2-1 too, so there is time to read it). Three tiles with numbers lie
+  along the top of the board: the sum's answer and two wrong numbers.
+  - The ball leaves the paddle to the left off its left, to the right off
+    its right, so the paddle is what is aimed with. The answer's tile struck
+    scores 2 on top of the bounces, and one more for each answer in a row up
+    to 5; the sum stands answered in green for a moment, the tiles rest, and
+    the next sum comes.
+  - A wrong number's tile only dims, with a soft tick: nothing lost, no
+    heart, only the run of answers starts again. A dimmed tile is a plain
+    wall after that.
+  - Every bounce is still a point and the ball still speeds up, so keeping
+    it up and aiming it are both worth it. The end card says how many sums
+    were answered; the best is kept with the other sums games' (bonusBestSums).
+  - The start card says to aim at the answer, and its picture shows the
+    tiles and a sum. All three bonus games are now played with sums of the
+    child's own year (game-sums.ts).
 - **Games with sums, 2: Springbal is "bounce up to the answer"
   (2026-11-11).** A sum stands above the board, in the title's place while
   the game is on, so it never covers a star or a block. The stars carry

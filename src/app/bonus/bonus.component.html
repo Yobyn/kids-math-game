@@ -1,5 +1,13 @@
 <div class="bonus">
-  <h1>{{ languageService.translate('bonus-title') }}</h1>
+  <!-- From Start the sum to aim at the answer of stands where the title was, above the board: through the 3-2-1 too, so
+       there is time to read it and pick a tile. It stands answered for a moment when it is settled (game-sum.css) -->
+  <div class="bonus-head">
+    <h1 [class.away]="sumOnTitle">{{ languageService.translate('bonus-title') }}</h1>
+    <ng-container *ngIf="sumOnTitle">
+      <div class="bonus-sum in-head" *ngFor="let shown of sumsShown"
+           [class.right]="sumState === 'right'" [class.missed]="sumState === 'missed'" aria-live="polite">{{ shown }}</div>
+    </ng-container>
+  </div>
 
   <!-- The points, big, and the balls that may still be missed. No clock: the ball's speed ends the game (pong.ts) -->
   <div class="bonus-bar">
@@ -36,6 +44,8 @@
       <p class="bonus-well-played">{{ languageService.translate('bonus-well-played') }}</p>
       <!-- One point is a point, not "points" -->
       <p class="bonus-won"><span class="bonus-won-number">{{ hits }}</span> {{ languageService.translate(hits === 1 ? 'bonus-point-won' : 'bonus-points-won') }}</p>
+      <!-- The sums answered: what the extra points were made of -->
+      <p class="bonus-solved" *ngIf="solved > 0">✓ {{ solved }} {{ languageService.translate(solved === 1 ? 'bonus-sum-right' : 'bonus-sums-right') }}</p>
       <p class="bonus-xp">+{{ xpWon }} {{ languageService.translate('xp') }}</p>
       <p class="bonus-best" *ngIf="best > 0">
         <span class="bonus-new-best" *ngIf="newBest">🏆 {{ languageService.translate('bonus-new-best') }}</span>

@@ -1,6 +1,13 @@
 <svg class="how" viewBox="0 0 120 64" aria-hidden="true" focusable="false" [ngSwitch]="game">
-  <!-- Balspel: the ball comes down onto the paddle as it slides under it -->
+  <!-- Balspel: three tiles with numbers along the top, the sum under them, and the ball on the paddle to aim with -->
   <g *ngSwitchCase="'pong'">
+    <rect class="tile" x="14" y="1" width="28" height="12" rx="3"></rect>
+    <rect class="tile answer" x="46" y="1" width="28" height="12" rx="3"></rect>
+    <rect class="tile" x="78" y="1" width="28" height="12" rx="3"></rect>
+    <text class="number" x="28" y="10.5">4</text>
+    <text class="number" x="60" y="10.5">5</text>
+    <text class="number" x="92" y="10.5">6</text>
+    <text class="sum" x="24" y="36">2 + 3</text>
     <rect class="paddle slide" x="44" y="54" width="32" height="6" rx="3"></rect>
     <circle class="ball bounce" cx="60" cy="47" r="6"></circle>
   </g>

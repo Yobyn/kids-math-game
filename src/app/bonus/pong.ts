@@ -13,9 +13,21 @@
  * game, at the third miss. DURATION is only a backstop, never shown: by then
  * the ball is long past what anyone can follow, so the game always ends.
  *
+ * AIM FOR THE ANSWER (Yobyn, 2026-11-10: "bring maths into the games"). A
+ * sum stands above the board and three tiles with numbers lie along its
+ * top, one of them the answer. The ball bounces off the tiles as it did off
+ * the top, and where it leaves the paddle steers it (bounceOffPaddle).
+ * Striking the answer scores on top of the bounces, more for each one in a
+ * row; the tiles rest for a moment while the sum stands answered, and three
+ * new ones come with the next sum. A wrong number struck only dims: no
+ * point lost, no heart, the row starts again, and there is one number fewer
+ * to choose from. Without a level (no sums) the top is a plain wall, as the
+ * game first was.
+ *
  * Free of the DOM, in CSS pixels, so it can be tested straight: the screen
  * (bonus.component.ts) only draws what this says and feeds it the paddle.
  */
+import { GameLevel, GameSum, REVEAL_RIGHT, Reveal, ageReveal, answered, choices, gameSum, rightPoints } from './game-sums';
 
 export interface Ball {
   x: number;
@@ -33,6 +45,21 @@ export interface Paddle {
   /** Its top edge, which the ball bounces off. */
   y: number;
   height: number;
+}
+
+/** A tile at the top of the board with a number on it, when the game plays with sums. */
+export interface Tile {
+  value: number;
+  /** Its left edge and its width: the tiles share the board's width between them. */
+  x: number;
+  width: number;
+  /** Struck already and not the answer: dimmed, and a plain wall from then on. */
+  tried?: boolean;
+}
+
+/** The sum being asked; its numbers lie on the tiles. */
+export interface PongTask {
+  sum: GameSum;
 }
 
 export type Ending = 'missed' | 'time';
@@ -56,13 +83,32 @@ export interface Pong {
   calm: boolean;
   /** Where the finger wants the paddle: it glides there (followPaddle), or null when it is where it should be. */
   paddleTarget?: number | null;
+  /** Who is playing, for the sums; without one the top is a plain wall. */
+  level?: GameLevel | null;
+  /** The sum above the board, when the game plays with sums. */
+  task?: PongTask | null;
+  /** The numbers along the top: none while a sum stands answered. */
+  tiles?: Tile[];
+  /** Points for answers struck, on top of the bounces. */
+  bonus?: number;
+  /** Answers struck in a row, without a wrong number struck. */
+  streak?: number;
+  /** Sums answered. */
+  solved?: number;
+  reveal?: Reveal | null;
 }
 
-/** Something the screen answers: a paddle hit (sparks there), a wall the ball bounced off (a glow there), a ball missed, or the end. */
+/**
+ * Something the screen answers: a paddle hit (sparks there), a wall the ball
+ * bounced off (a glow there), the answer's tile struck (its points), a wrong
+ * number's tile struck (it dims), a ball missed, or the end.
+ */
 export interface PongEvent {
-  kind: 'hit' | 'wall' | 'miss' | 'end';
+  kind: 'hit' | 'wall' | 'right' | 'wrong' | 'miss' | 'end';
   x: number;
   y: number;
+  /** What the answer struck scored. */
+  points?: number;
 }
 
 /** The hidden backstop: five minutes, well after the ball has outrun everyone. */
@@ -100,6 +146,30 @@ export const PADDLE_EASE = 0.04;
 export const PADDLE_TOP_SPEED = 4;
 /** The longest single physics step: the walls and the paddle stay exact at the top speed. */
 export const MAX_STEP = 1 / 600;
+/** With sums, three tiles with numbers lie along the top, this tall: the ball bounces off their lower edge. */
+export const TILES = 3;
+export const TILE_HEIGHT = 40;
+
+/** The points so far: a point a bounce, and what the answers struck added. */
+export function pointsOf(game: Pong): number {
+  return game.hits + (game.bonus || 0);
+}
+
+/** Where the ball turns back at the top: the board's edge, or the tiles' lower edge when there are sums. */
+export function ceilingOf(game: Pong): number {
+  return game.level ? TILE_HEIGHT : 0;
+}
+
+/** Three tiles for a sum: its answer and two wrong numbers, shuffled, sharing the board's width. */
+export function dealTiles(width: number, sum: GameSum, random: () => number): Tile[] {
+  const each = width / TILES;
+  return choices(sum, TILES, random).map((value, i) => ({ value, x: i * each, width: each }));
+}
+
+/** A new sum for the level, never the one just asked. */
+export function newTask(level: GameLevel, random: () => number, last?: GameSum): PongTask {
+  return { sum: gameSum(level, random, last) };
+}
 
 export function startSpeed(height: number, calm: boolean): number {
   return height * START_SPEED * (calm ? CALM_SPEED : 1);
@@ -120,12 +190,21 @@ export function speedAt(height: number, calm: boolean, elapsed: number): number 
  * heading up and a little to one side, so the first bounce is off a wall
  * and the child has a moment to find the paddle.
  */
-export function newPong(width: number, height: number, calm = false, random: () => number = Math.random): Pong {
+export function newPong(width: number, height: number, calm = false, random: () => number = Math.random,
+                        level: GameLevel | null = null): Pong {
   const paddleWidth = Math.max(PADDLE_MIN, width * PADDLE_SHARE);
   const speed = startSpeed(height, calm);
   // Between 20° and 40° from straight up, to the left or the right
   const angle = (Math.PI / 9 + random() * Math.PI / 9) * (random() < 0.5 ? -1 : 1);
+  const task = level ? newTask(level, random) : null;
   return {
+    level,
+    task,
+    tiles: task ? dealTiles(width, task.sum, random) : [],
+    bonus: 0,
+    streak: 0,
+    solved: 0,
+    reveal: null,
     width,
     height,
     ball: { x: width / 2, y: height * 0.55, vx: Math.sin(angle) * speed, vy: -Math.cos(angle) * speed, radius: BALL_RADIUS },
@@ -213,20 +292,57 @@ export function bounceOffPaddle(ball: Ball, paddle: Paddle, speed: number): Ball
  * Advances the game by `seconds`, in steps no longer than MAX_STEP, and says
  * what happened on the way. A game that has ended stays as it is.
  */
-export function step(game: Pong, seconds: number): { game: Pong; events: PongEvent[] } {
+export function step(game: Pong, seconds: number, random: () => number = Math.random): { game: Pong; events: PongEvent[] } {
   const events: PongEvent[] = [];
   let current = game;
   let left = Math.max(0, seconds);
   while (left > 0 && !current.ended) {
     const dt = Math.min(MAX_STEP, left);
     left -= dt;
-    current = tick(current, dt, events);
+    current = tick(current, dt, events, random);
   }
   return { game: current, events };
 }
 
-function tick(before: Pong, dt: number, events: PongEvent[]): Pong {
-  const game = followPaddle(before, dt);
+/**
+ * The ball at the tiles, at x: the answer's tile scores and the tiles rest
+ * while the sum stands answered; a wrong number's tile dims; a tile already
+ * tried, or no tile there, is a plain wall.
+ */
+function strike(game: Pong, x: number, y: number, events: PongEvent[], random: () => number): Pong {
+  const tiles = game.tiles || [];
+  const at = tiles.findIndex(tile => x >= tile.x && x < tile.x + tile.width);
+  const tile = at < 0 ? tiles[tiles.length - 1] : tiles[at];
+  if (!game.task || !tile || tile.tried) {
+    events.push({ kind: 'wall', x, y });
+    return game;
+  }
+  if (tile.value !== game.task.sum.answer) {
+    events.push({ kind: 'wrong', x: tile.x + tile.width / 2, y });
+    return { ...game, streak: 0, tiles: tiles.map(each => each === tile ? { ...each, tried: true } : each) };
+  }
+  const points = rightPoints(game.streak || 0);
+  events.push({ kind: 'right', x: tile.x + tile.width / 2, y, points });
+  return {
+    ...game,
+    bonus: (game.bonus || 0) + points,
+    streak: (game.streak || 0) + 1,
+    solved: (game.solved || 0) + 1,
+    reveal: { text: answered(game.task.sum), right: true, left: REVEAL_RIGHT },
+    task: game.level ? newTask(game.level, random, game.task.sum) : game.task,
+    tiles: []
+  };
+}
+
+function tick(start: Pong, dt: number, events: PongEvent[], random: () => number): Pong {
+  let before = followPaddle(start, dt);
+  // The sum has stood answered long enough: the next one's tiles come
+  if (before.level && before.task) {
+    const reveal = ageReveal(before.reveal, dt);
+    const resting = !(before.tiles || []).length;
+    before = { ...before, reveal, tiles: resting && !reveal ? dealTiles(before.width, before.task.sum, random) : before.tiles };
+  }
+  let game = before;
   const elapsed = game.elapsed + dt;
   // The same direction, at the speed this moment has reached
   const speed = speedAt(game.height, game.calm, elapsed);
@@ -249,10 +365,15 @@ function tick(before: Pong, dt: number, events: PongEvent[]): Pong {
     vx = -Math.abs(vx);
     events.push({ kind: 'wall', x: game.width, y });
   }
-  if (y - r < 0) {
-    y = r;
+  const ceiling = ceilingOf(game);
+  if (y - r < ceiling) {
+    y = ceiling + r;
     vy = Math.abs(vy);
-    events.push({ kind: 'wall', x, y: 0 });
+    if (game.level) {
+      game = strike(game, x, ceiling, events, random);
+    } else {
+      events.push({ kind: 'wall', x, y: 0 });
+    }
   }
 
   let ball: Ball = { ...game.ball, x, y, vx, vy };
