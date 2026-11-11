@@ -2608,6 +2608,15 @@ describe('QuestionComponent telling a sum as a story (verhaaltjessommen, 2026-10
     expect(component.answerWasCorrect).toBeTrue();
   });
 
+  it('does not say a story\'s sum twice when the worked line ends on it (2026-11-11)', () => {
+    build('nl');
+    ask({ num1: 20, num2: 60, operation: '+', story: BIRDS });
+    answer('1');
+    answer('2');
+    // not "20 + 60 = 80 → 2 + 6 = 8 → 20 + 60 = 80"
+    expect(component.workedLine).toBe('2 + 6 = 8 → 20 + 60 = 80');
+  });
+
   it('shows the sum first after two tries, and keeps the fact behind it as the sum', () => {
     build('nl');
     const missed = spyOn(TestBed.inject(ProgressService), 'recordMissed');

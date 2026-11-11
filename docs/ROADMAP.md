@@ -733,6 +733,22 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 14: whole tens and hundreds worked out from the small
+  sum inside them (2026-11-11).** Rounds were played as a child in groep 4
+  (nl), groep 6 and 8 (en) and klas 2 and 4 (es), with no errors. The scan
+  for sums with no worked line after two tries found three kinds that said
+  nothing, on the old rule that "round numbers need no step":
+  - tens in groep 4: "2 + 6 = 8 → 20 + 60 = 80";
+  - hundreds in groep 4 and 5: "8 − 3 = 5 → 800 − 300 = 500";
+  - times a ten in groep 5: "4 × 7 = 28 → 4 × 70 = 280".
+
+  This is how school teaches them: so many tens or hundreds, and a table
+  fact with its nought. Ten times itself (7 × 10), a hundred and tens
+  (200 + 30) and a number taken from itself still say nothing. Told as a
+  story, the line no longer says the story's sum twice when the step ends
+  on it (this also shortens a sharing story's line). A spec holds every
+  such sum groep 4 and 5 are asked to a line that is true, ends on the
+  answer and starts from a sum of single figures.
 - **Games with sums, 3: Balspel is "aim for the answer" (2026-11-11).** A
   sum stands above the board, in the title's place from Start (through the
   3-2-1 too, so there is time to read it). Three tiles with numbers lie

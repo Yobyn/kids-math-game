@@ -62,7 +62,7 @@ the €1, whose answer is the amount itself (2026-11-04).
 | Moment | What is asked | Example |
 | --- | --- | --- |
 | B | Groep 3's end: +/− within 20 crossing the ten | 8 + 5, 15 − 7 |
-| M | Tens: T ± T within 100 | 40 + 30, 70 − 20 |
+| M | Tens: T ± T within 100 (worked from the small sum inside after two tries: 4 + 3 = 7 → 40 + 30 = 70) | 40 + 30, 70 − 20 |
 | M | TE ± E without and with crossing the ten (worked through the ten after two tries: 36 + 4 = 40 → 40 + 4 = 44, 42 − 2 = 40 → 40 − 5 = 35) | 34 + 5, 36 + 8, 42 − 7 |
 | M | TE ± T | 45 + 30, 68 − 40 |
 | M | Tables of 1, 2, 5 and 10 | 7 × 2, 6 × 5 |
@@ -71,7 +71,7 @@ the €1, whose answer is the amount itself (2026-11-04).
 | E | TE ± TE without and with crossing | 36 + 27, 74 − 38 |
 | E | Tables of 3 and 4 added (1–5 and 10; worked from the table of 2 after two tries: 6 × 2 = 12 → 12 + 6 = 18, 8 × 2 = 16 → 16 + 16 = 32) | 6 × 3, 8 × 4 |
 | E | Dividing within tables 1–5 and 10 | 24 : 4, 18 : 3 |
-| E | Hundreds within 1000 | 300 + 400, 600 − 200 |
+| E | Hundreds within 1000 (worked from the small sum inside after two tries: 6 − 2 = 4 → 600 − 200 = 400) | 300 + 400, 600 − 200 |
 | E | Doubles and halves within 100 | dubbel 35, de helft van 60 |
 | E | Klokkijken: every five minutes | 3:25, 10:50 |
 
@@ -83,7 +83,7 @@ the €1, whose answer is the amount itself (2026-11-04).
 | M | All tables 1–10 (6, 7, 8, 9 new) | 7 × 8, 6 × 9 |
 | M | Dividing within all tables | 56 : 7, 63 : 9 |
 | M | +/− within 1000 without crossing | 340 + 250, 563 − 30 |
-| M | Times a ten | 4 × 30, 6 × 40 |
+| M | Times a ten (worked from the table fact after two tries: 4 × 3 = 12 → 4 × 30 = 120) | 4 × 30, 6 × 40 |
 | M | A part of an amount | de helft van 18, ¼ van 20 |
 | M | Klokkijken: to the minute | 3:37, 11:02 |
 

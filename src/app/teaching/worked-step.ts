@@ -45,6 +45,23 @@ export function workedStep(num1: number, num2: number, operation: string): strin
 }
 
 /**
+ * The small sum inside one of whole tens, hundreds or thousands: 20 + 60 is 2 tens and 6 tens, 800 − 300
+ * is 8 hundreds less 3. Both numbers a single figure of the same unit, or there is no small sum to show.
+ */
+function smallSum(num1: number, num2: number): { a: number; b: number } | undefined {
+  const unit = [1000, 100, 10].find(each => num1 % each === 0 && num2 % each === 0);
+  if (!unit || !num1 || !num2 || num1 / unit > 9 || num2 / unit > 9) {
+    return undefined;
+  }
+  return { a: num1 / unit, b: num2 / unit };
+}
+
+/** The ten or hundred a number is 2 to 9 of: 10 for 70, 100 for 300, none for 10, 100 or 110. */
+function roundUnit(value: number): number | undefined {
+  return [100, 10].find(each => value % each === 0 && value / each >= 2 && value / each <= 9);
+}
+
+/**
  * Single digits that cross ten get the bridge — 8 + 7 as 8 + 2 then 10 + 5 —
  * which is the method these facts are actually taught with. Bigger numbers
  * get the tens and the ones separated instead.
@@ -66,6 +83,12 @@ function addition(num1: number, num2: number): string | undefined {
   if (num1 > 10 && num2 < 10 && num1 % 10 + num2 > 10) {
     const bridge = 10 - num1 % 10;
     return `${num1} + ${bridge} = ${num1 + bridge}${THEN}${num1 + bridge} + ${num2 - bridge} = ${total}`;
+  }
+
+  // Groep 4 and 5: whole tens and hundreds, from the small sum they hide. 20 + 60 as 2 + 6 = 8, so 80
+  const small = smallSum(num1, num2);
+  if (small) {
+    return `${small.a} + ${small.b} = ${small.a + small.b}${THEN}${num1} + ${num2} = ${total}`;
   }
 
   const tens = Math.floor(num2 / 10) * 10;
@@ -105,6 +128,12 @@ function subtraction(num1: number, num2: number): string | undefined {
     return `${num1} - ${down} = ${num1 - down}${THEN}${num1 - down} - ${num2 - down} = ${answer}`;
   }
 
+  // Whole tens and hundreds, downward: 800 - 300 as 8 - 3 = 5, so 500
+  const small = smallSum(num1, num2);
+  if (small && answer > 0) {
+    return `${small.a} - ${small.b} = ${small.a - small.b}${THEN}${num1} - ${num2} = ${answer}`;
+  }
+
   const tens = Math.floor(num2 / 10) * 10;
   const ones = num2 - tens;
   if (!tens || !ones) {
@@ -115,10 +144,21 @@ function subtraction(num1: number, num2: number): string | undefined {
 
 /**
  * Leans on the five times table, which children know first: 7 x 6 as
- * 7 x 5 and one more 7. Twos and tens are not worth explaining.
+ * 7 x 5 and one more 7. Twos and tens are not worth explaining; a table
+ * fact times ten is shown as the fact and its nought.
  */
 function multiplication(num1: number, num2: number): string | undefined {
   const product = num1 * num2;
+
+  // Groep 5: a table fact times ten or a hundred. 4 × 70 as 4 × 7 = 28 and a nought, so 280.
+  // Ten times itself (7 × 10) stays "a nought", with no step
+  const [unit1, unit2] = [roundUnit(num1), roundUnit(num2)];
+  if (unit2 && num1 >= 2 && num1 <= 9) {
+    return `${num1} × ${num2 / unit2} = ${product / unit2}${THEN}${num1} × ${num2} = ${product}`;
+  }
+  if (unit1 && num2 >= 2 && num2 <= 9) {
+    return `${num1 / unit1} × ${num2} = ${product / unit1}${THEN}${num1} × ${num2} = ${product}`;
+  }
 
   // Groep 5 and 6: a two-figure number is split in tens and ones, the way
   // 4 × 23 and 23 × 14 are taught. 4 × 20 = 80 → 4 × 3 = 12 → 80 + 12 = 92

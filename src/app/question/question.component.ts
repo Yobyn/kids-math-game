@@ -1031,8 +1031,11 @@ export class QuestionComponent implements OnInit, OnDestroy {
                         this.currentQuestion.operation) || '';
       // A story's sum comes first: turning the story into it was the question.
       // Written as the workbook writes it: 23 : 4 = 5 rest 3, 3 m = 300 cm, ¼ van 20 = 5
-      const storySum = this.storyLine ? this.writtenSum() : '';
-      this.workedLine = longGrouped(this.inCardSigns([storySum, step].filter(Boolean).join(' → ')));
+      const storySum = this.inCardSigns(this.storyLine ? this.writtenSum() : '');
+      const line = this.inCardSigns(step);
+      // A step that ends on the story's own sum already says it: "2 + 6 = 8 → 20 + 60 = 80", not that sum twice
+      const saysSum = storySum !== '' && (line === storySum || line.endsWith(` → ${storySum}`));
+      this.workedLine = longGrouped([saysSum ? '' : storySum, line].filter(Boolean).join(' → '));
       this.showOkButton = true;
       this.results.push(false);
       this.saveRound();
