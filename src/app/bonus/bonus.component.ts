@@ -12,9 +12,11 @@ import { fieldColour } from '../particles/particle-field';
 import { BONUS_WORDS } from './bonus-words';
 import { drawCourt, drawFloats, drawShine, prefersReducedMotion, rgb, roundRect } from './drawing';
 import { COUNTDOWN, END_BUZZ, FLASH_LIFE, Flash, FloatUp, MISS_BUZZ, POINT_BUZZ, RECORD_PULSE, RECORD_SHOW_MS, SQUASH_TIME, ageFlashes, ageFloats, countdownShown, newFloat, passesBest, soundCount, squashScale } from './game-feel';
-import { BONUS_BEST_KEY, bonusBest, recordBonusBest } from './bonus-best';
+import { SUMS_BEST_KEY, bonusBest, recordBonusBest } from './bonus-best';
 import { showWholeBoard } from './board-view';
-import { MISSES_ALLOWED, Pong, PongEvent, aimPaddle, followPaddle, movePaddle, newPong, restOnPaddle, serve, step } from './pong';
+import { MISSES_ALLOWED, Pong, PongEvent, TILES, TILE_HEIGHT, Tile, aimPaddle, followPaddle, movePaddle, newPong, pointsOf, restOnPaddle, serve, step } from './pong';
+import { GameLevel, shownSum, written } from './game-sums';
+import { levelFor } from './game-level';
 
 /** How far a held arrow key moves the paddle, in screen widths a second. */
 const KEY_SPEED = 1.1;
@@ -38,7 +40,10 @@ export const END_SPARK_RADIUS = 36;
 /**
  * The bonus game (Yobyn, 2026-10-09): Pong style, a ball kept up with a
  * paddle slid along the bottom, every bounce a point. Its rules are in
- * pong.ts; this screen draws them and feeds them the paddle.
+ * pong.ts; this screen draws them and feeds them the paddle. Since
+ * 2026-11-10 it is played with sums: a sum stands above the board, three
+ * tiles with numbers lie along its top, and steering the ball into the
+ * answer scores on top of the bounces.
  *
  * It keeps the game's particles (Yobyn: "keep the particles effect of the
  * game"): the canvas is see-through, so the field behind every screen shows
@@ -51,7 +56,7 @@ export const END_SPARK_RADIUS = 36;
 @Component({
   selector: 'app-bonus',
   templateUrl: './bonus.component.html',
-  styleUrls: ['./bonus.component.css']
+  styleUrls: ['./bonus.component.css', './game-sum.css']
 })
 export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('canvas') canvasRef!: ElementRef<HTMLCanvasElement>;
@@ -60,8 +65,24 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
   game: Pong = newPong(320, 480);
   started = false;
   ended = false;
-  /** What the screen shows; copied from the game only when it changes. */
+  /** What the screen shows: the points, a bounce each and what the answers struck added; copied from the game only when it changes. */
   hits = 0;
+  /** The sum above the board: "7 + 5 = ?", or answered for a moment, "7 + 5 = 12". */
+  sumShown = '';
+  /** The same as a list of one, so the template draws a fresh one, popping in, for each new sum. */
+  sumsShown: string[] = [];
+  sumState: '' | 'right' | 'missed' = '';
+  /**
+   * True while the sum stands in the title's place: from Start, through the
+   * 3-2-1 too, so there is time to read it and pick a tile before the serve.
+   */
+  get sumOnTitle(): boolean {
+    return this.started && !this.ended && this.sumsShown.length > 0;
+  }
+  /** Sums answered, for the end card. */
+  solved = 0;
+  /** Whose sums: the year and climb of the round that earned the game. */
+  level: GameLevel = { grade: 1 };
   /** The three hearts: one goes for each ball missed (pong.ts MISSES_ALLOWED). */
   hearts: boolean[] = Array(MISSES_ALLOWED).fill(true);
 
@@ -114,6 +135,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Only a finished round opens the game: without one there is nothing to play for. */
   ngOnInit() {
+    this.level = levelFor(this.progressService.getHistory(), this.languageService.getLanguage());
     if (!this.progressService.hasBonus()) {
       this.router.navigate(['/grade']);
     }
@@ -162,8 +184,19 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     canvas.height = Math.round(height * this.ratio);
     canvas.style.height = `${height}px`;
     if (!this.started) {
-      this.game = newPong(width, height, this.calm);
+      this.game = newPong(width, height, this.calm, Math.random, this.level);
+      this.showSum();
     }
+  }
+
+  /** The sum as it stands above the board: asked, or answered for a moment. */
+  private showSum() {
+    const { text, state } = shownSum(this.game);
+    if (text !== this.sumShown) {
+      this.sumShown = text;
+      this.sumsShown = text ? [text] : [];
+    }
+    this.sumState = state;
   }
 
   @HostListener('window:resize')
@@ -183,7 +216,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
       this.router.navigate(['/grade']);
       return;
     }
-    this.bestBefore = bonusBest(this.progressService.ownerKey(BONUS_BEST_KEY), 'pong');
+    this.bestBefore = bonusBest(this.progressService.ownerKey(SUMS_BEST_KEY), 'pong');
     this.fit();
     this.started = true;
     this.holdPage(true);
@@ -262,13 +295,16 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     events.forEach(event => this.answer(event));
     const left = MISSES_ALLOWED - game.misses;
-    if (game.hits !== this.hits || left !== this.heartsLeft || (game.ended && !this.ended)) {
+    const points = pointsOf(game);
+    if (points !== this.hits || left !== this.heartsLeft || (game.ended && !this.ended) || shownSum(game).text !== this.sumShown) {
       const ending = game.ended !== null && !this.ended;
       this.zone.run(() => {
-        if (passesBest(this.bestBefore, this.hits, game.hits) && !game.ended) {
+        if (passesBest(this.bestBefore, this.hits, points) && !game.ended) {
           this.celebrateBest();
         }
-        this.hits = game.hits;
+        this.hits = points;
+        this.solved = game.solved || 0;
+        this.showSum();
         this.hearts = Array.from({ length: MISSES_ALLOWED }, (_, i) => i < left);
         this.ended = game.ended !== null;
         if (ending) {
@@ -309,6 +345,27 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
       this.soundService.vibrate(MISS_BUZZ);
       return;
     }
+    if (event.kind === 'right') {
+      // The answer's tile struck: its points float down from it, the field
+      // swells and sparks there, and a chime a step higher for each one in a row
+      this.floats = [...this.floats, newFloat(event.x, event.y + 36, `+${event.points ?? 0}`)];
+      if (!this.calm) {
+        this.flashes = [...this.flashes, { x: event.x, y: event.y, age: 0 }];
+      }
+      this.pulseService.pulse(HIT_PULSE);
+      this.pulseService.tap(left + event.x, top + event.y);
+      this.soundService.playStar(Math.min(4, this.game.streak || 1));
+      this.soundService.vibrate(POINT_BUZZ);
+      return;
+    }
+    if (event.kind === 'wrong') {
+      // A wrong number's tile only dims: a soft tick, nothing lost, nothing said
+      if (!this.calm) {
+        this.flashes = [...this.flashes, { x: event.x, y: event.y, age: 0 }];
+      }
+      this.soundService.playTap();
+      return;
+    }
     if (event.kind === 'hit') {
       if (!this.calm) {
         this.squash = SQUASH_TIME;
@@ -327,7 +384,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
       const y = Math.min(this.game.height, Math.max(0, event.y + Math.sin(angle) * END_SPARK_RADIUS));
       this.pulseService.tap(left + x, top + y);
     }
-    if (this.game.hits > 0) {
+    if (pointsOf(this.game) > 0) {
       this.soundService.playSuccess();
       this.soundService.vibrate(END_BUZZ);
     }
@@ -406,7 +463,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
   private pay() {
     this.xpWon = bonusXp(this.hits);
     this.progressService.addXp(this.xpWon);
-    const record = recordBonusBest(this.progressService.ownerKey(BONUS_BEST_KEY), 'pong', this.hits);
+    const record = recordBonusBest(this.progressService.ownerKey(SUMS_BEST_KEY), 'pong', this.hits);
     this.best = record.best;
     this.newBest = record.beaten;
     this.avatarService.refresh();
@@ -429,6 +486,7 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     context.clearRect(0, 0, width, height);
     // The court, marked out faintly under the play
     drawCourt(context, width, height, rgb(fieldColour(0.5)));
+    this.drawTiles(context);
 
     // The ball's tail, fading out behind it
     this.trail.forEach((point, i) => {
@@ -480,6 +538,54 @@ export class BonusComponent implements OnInit, AfterViewInit, OnDestroy {
     context.restore();
     this.drawFlashes(context);
     drawFloats(context, this.floats, this.calm, rgb(fieldColour(0.5)));
+  }
+
+  /**
+   * The tiles along the top, each in the field's colour where it lies, its
+   * number white with a dark edge. One struck and wrong is dimmed. While the
+   * tiles rest (a sum just answered) only their faint places show, so the
+   * line the ball turns back at is still seen.
+   */
+  private drawTiles(context: CanvasRenderingContext2D) {
+    const game = this.game;
+    if (!game.level) {
+      return;
+    }
+    const dealt = game.tiles || [];
+    const tiles: Array<Tile | null> = dealt.length ? dealt : Array(TILES).fill(null);
+    const each = game.width / TILES;
+    context.save();
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.lineJoin = 'round';
+    tiles.forEach((tile, i) => {
+      const x = (tile ? tile.x : i * each) + 3;
+      const wide = (tile ? tile.width : each) - 6;
+      const { r, g, b } = fieldColour(Math.min(1, Math.max(0, (x + wide / 2) / game.width)));
+      roundRect(context, x, 4, wide, TILE_HEIGHT - 8, 10);
+      if (!tile) {
+        context.shadowBlur = 0;
+        context.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.3)`;
+        context.lineWidth = 1.5;
+        context.stroke();
+        return;
+      }
+      context.shadowColor = rgb({ r, g, b });
+      context.shadowBlur = tile.tried ? 0 : 12;
+      context.fillStyle = `rgba(${r}, ${g}, ${b}, ${tile.tried ? 0.22 : 0.9})`;
+      context.fill();
+      context.shadowBlur = 0;
+      const text = written(tile.value);
+      context.font = 'bold 20px sans-serif';
+      if (!tile.tried) {
+        context.lineWidth = 3;
+        context.strokeStyle = 'rgba(20, 12, 50, 0.55)';
+        context.strokeText(text, x + wide / 2, TILE_HEIGHT / 2 + 1);
+      }
+      context.fillStyle = `rgba(255, 255, 255, ${tile.tried ? 0.4 : 1})`;
+      context.fillText(text, x + wide / 2, TILE_HEIGHT / 2 + 1);
+    });
+    context.restore();
   }
 
   /** A soft glow where the ball struck a wall or the top, in the field's colour there, fading out. */

@@ -4,7 +4,8 @@ import { RouterTestingModule } from '@angular/router/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { BOARD_MARGIN, BonusComponent, CHILD_BAND, END_PULSE, END_SPARKS, END_SPARK_RADIUS, HIT_PULSE, LOST_BALL_PULSE, MIN_BOARD } from './bonus.component';
 import { FieldPulseService } from '../services/field-pulse.service';
-import { BALL_RADIUS, MISSES_ALLOWED, PADDLE_TOP_SPEED, speedAt, speedOf } from './pong';
+import { BALL_RADIUS, MISSES_ALLOWED, PADDLE_TOP_SPEED, TILES, TILE_HEIGHT, speedAt, speedOf } from './pong';
+import { RIGHT_POINTS, rightPoints } from './game-sums';
 import { COUNTDOWN, END_BUZZ, MISS_BUZZ, POINT_BUZZ, SQUASH_TIME } from './game-feel';
 import { ProgressService } from '../services/progress.service';
 import { SoundService } from '../services/sound.service';
@@ -47,11 +48,14 @@ describe('BonusComponent, the bonus game after a round', () => {
   /**
    * A ball put where a test wants it, two minutes into a game: the ball goes
    * at the speed the moment has reached (pong.ts), quick by then, in the
-   * direction given.
+   * direction given. The tiles along the top are all tried already, so the
+   * top is a plain wall whatever numbers were dealt: a quick ball that
+   * reaches it scores nothing by luck (the tiles have their own tests below).
    */
   function playWithBall(x: number, y: number, vx: number, vy: number, misses = 0) {
     component.started = true;
-    component.game = { ...component.game, elapsed: 120, misses, ball: { ...component.game.ball, x, y, vx, vy } };
+    const tiles = (component.game.tiles || []).map(tile => ({ ...tile, tried: true }));
+    component.game = { ...component.game, elapsed: 120, misses, tiles, ball: { ...component.game.ball, x, y, vx, vy } };
   }
 
   it('says how to play and waits for Start, with no ball moving yet', () => {
@@ -360,7 +364,7 @@ describe('BonusComponent, the bonus game after a round', () => {
   });
 
   it('shows this game\'s best on the end card, and says so when it is beaten', () => {
-    recordBonusBest('bonusBest:guest', 'pong', 3);
+    recordBonusBest('bonusBestSums:guest', 'pong', 3);
     component.started = true;
     component.game = { ...component.game, hits: 4 };
     playWithBall(10, component.game.height - 5, 0, 400, MISSES_ALLOWED - 1);
@@ -372,7 +376,7 @@ describe('BonusComponent, the bonus game after a round', () => {
     expect(component.newBest).toBeTrue();
     expect(best.textContent).toContain('Nieuw record!');
     expect(best.textContent).toContain('Beste tot nu toe: 4');
-    expect(bonusBest('bonusBest:guest', 'pong')).toBe(4);
+    expect(bonusBest('bonusBestSums:guest', 'pong')).toBe(4);
   });
 
   it('puts the paddle under the finger anywhere on the board', () => {
@@ -401,8 +405,8 @@ describe('BonusComponent, the bonus game after a round', () => {
     const context = canvas.getContext('2d')!;
     const ratio = canvas.width / component.game.width;
     const pixel = (x: number, y: number) => context.getImageData(Math.round(x * ratio), Math.round(y * ratio), 1, 1).data;
-    // a corner far from ball and paddle: nothing drawn, fully clear
-    expect(pixel(3, 3)[3]).toBe(0);
+    // the side, far from ball, paddle and the tiles along the top: nothing drawn, fully clear
+    expect(pixel(3, component.game.height / 2)[3]).toBe(0);
     // the ball and the paddle are there
     expect(pixel(component.game.ball.x, component.game.ball.y)[3]).toBeGreaterThan(200);
     const paddle = component.game.paddle;
@@ -549,6 +553,134 @@ describe('BonusComponent, the bonus game after a round', () => {
     const [, endG] = canvas.getContext('2d')!.getImageData(
       Math.round((paddle.x - paddle.width * (CHILD_BAND / 2 + 0.25)) * ratio), Math.round((paddle.y + paddle.height / 2) * ratio), 1, 1).data;
     expect(endG).toBeLessThan(150);
+  });
+
+  describe('played with sums: aim for the answer (Yobyn, 2026-11-10)', () => {
+    /** Started by hand on 7 + 5 with 11, 12 and 13 on the tiles, the ball going straight up under the tile given. */
+    function underTile(index: number, streak = 0) {
+      component.started = true;
+      const game = component.game;
+      const wide = game.width / TILES;
+      const tiles = [11, 12, 13].map((value, i) => ({ value, x: i * wide, width: wide }));
+      component.game = {
+        ...game, elapsed: 120, task: { sum: { text: '7 + 5', answer: 12 } }, reveal: null, tiles, streak,
+        ball: { ...game.ball, x: (index + 0.5) * wide, y: TILE_HEIGHT + BALL_RADIUS + 2, vx: 0, vy: -300 }
+      };
+      component.advance(0);
+      fixture.detectChanges();
+    }
+    const sum = () => fixture.nativeElement.querySelector('.bonus-sum') as HTMLElement | null;
+
+    it('plays the sums of the year and climb of the round that earned the game', () => {
+      new ProgressService().record({ correctAnswers: 9, total: 10, percentage: 90, score: 18, grade: 4, difficulty: 'easy' });
+      const other = TestBed.createComponent(BonusComponent);
+      other.detectChanges();
+      expect(other.componentInstance.level).toEqual({ grade: 4, warmUp: true, divide: ':' });
+      expect(other.componentInstance.game.level).toEqual(other.componentInstance.level);
+      other.componentInstance.ngOnDestroy();
+      expect(component.level.grade).toBe(1);
+      expect(component.game.task!.sum.text).toMatch(/^\d+ [+\u2212] \d+$/);
+      expect(component.game.tiles!.map(tile => tile.value)).toContain(component.game.task!.sum.answer);
+    });
+
+    it('says on the start card to aim at the answer, with tiles and a sum in its picture', () => {
+      expect(fixture.nativeElement.querySelector('.bonus-card').textContent).toContain('Mik op het antwoord van de som');
+      const picture = fixture.nativeElement.querySelector('app-how-to-play');
+      expect(picture.querySelectorAll('.tile').length).toBe(3);
+      expect(picture.querySelector('.sum').textContent).toBe('2 + 3');
+    });
+
+    it('shows the sum in the title\'s place from Start, through the 3-2-1 too, and the board stays where it was', () => {
+      const title = fixture.nativeElement.querySelector('.bonus-head h1') as HTMLElement;
+      expect(sum()).toBeNull();
+      expect(title.classList).not.toContain('away');
+      // Measured from the top of the game's own page: Start may scroll the board into view (board-view.ts)
+      const boardTop = () => fixture.nativeElement.querySelector('.bonus-board').getBoundingClientRect().top
+        - fixture.nativeElement.querySelector('.bonus').getBoundingClientRect().top;
+      const before = boardTop();
+      component.start();
+      fixture.detectChanges();
+      expect(component.countdown).toBeGreaterThan(0);
+      expect(sum()!.textContent!.trim()).toBe(`${component.game.task!.sum.text} = ?`);
+      expect(sum()!.closest('.bonus-head')).toBeTruthy();
+      expect(getComputedStyle(title).visibility).toBe('hidden');
+      expect(boardTop()).toBe(before);
+    });
+
+    it('scores the answer\'s tile on top of the bounces: its points float from it, a chime, and the sum stands answered in green', () => {
+      const sounds = TestBed.inject(SoundService);
+      spyOn(sounds, 'playStar');
+      spyOn(sounds, 'vibrate');
+      underTile(1);
+      component.game = { ...component.game, hits: 3 };
+      component.advance(0.03);
+      fixture.detectChanges();
+
+      expect(component.hits).toBe(3 + RIGHT_POINTS);
+      expect(component.solved).toBe(1);
+      expect(component.floats.map(float => float.text)).toEqual([`+${RIGHT_POINTS}`]);
+      expect(sounds.playStar).toHaveBeenCalledWith(1);
+      expect(sounds.vibrate).toHaveBeenCalledWith(POINT_BUZZ);
+      expect(pulses.pulse).toHaveBeenCalledWith(HIT_PULSE);
+      expect(sum()!.textContent!.trim()).toBe('7 + 5 = 12');
+      expect(sum()!.classList).toContain('right');
+      // the ball turned back at the tiles
+      expect(component.game.ball.vy).toBeGreaterThan(0);
+    });
+
+    it('pays more for answers in a row, with a higher chime', () => {
+      const sounds = TestBed.inject(SoundService);
+      spyOn(sounds, 'playStar');
+      underTile(1, 2);
+      component.advance(0.03);
+      expect(component.hits).toBe(rightPoints(2));
+      expect(sounds.playStar).toHaveBeenCalledWith(3);
+    });
+
+    it('only dims a wrong number\'s tile: no point, no buzz, the sum still asked', () => {
+      const sounds = TestBed.inject(SoundService);
+      spyOn(sounds, 'playStar');
+      spyOn(sounds, 'vibrate');
+      underTile(0, 2);
+      component.advance(0.03);
+      fixture.detectChanges();
+
+      expect(component.hits).toBe(0);
+      expect(component.game.tiles![0].tried).toBeTrue();
+      expect(component.game.streak).toBe(0);
+      expect(sounds.playStar).not.toHaveBeenCalled();
+      expect(sounds.vibrate).not.toHaveBeenCalled();
+      expect(component.heartsLeft).toBe(MISSES_ALLOWED);
+      expect(sum()!.textContent!.trim()).toBe('7 + 5 = ?');
+      expect(sum()!.classList).not.toContain('right');
+    });
+
+    it('writes each tile\'s number on the board, a number below nought with a true minus', () => {
+      underTile(1);
+      component.game = { ...component.game, tiles: component.game.tiles!.map((tile, i) => i === 0 ? { ...tile, value: -4 } : tile) };
+      const context = (fixture.nativeElement.querySelector('canvas') as HTMLCanvasElement).getContext('2d')!;
+      const write = spyOn(context, 'fillText').and.callThrough();
+      component.draw();
+      expect(write.calls.allArgs().map(args => args[0])).toEqual(['\u22124', '12', '13']);
+    });
+
+    it('says on the end card how many sums were answered, and pays the bounces and the answers together', () => {
+      underTile(1);
+      component.advance(0.03);
+      component.game = { ...component.game, hits: 4 };
+      playWithBall(10, component.game.height - 5, 0, 400, MISSES_ALLOWED - 1);
+      component.game = { ...component.game, paddle: { ...component.game.paddle, x: component.game.width - component.game.paddle.width / 2 } };
+      component.advance(0.05);
+      fixture.detectChanges();
+
+      expect(component.ended).toBeTrue();
+      expect(component.hits).toBe(4 + RIGHT_POINTS);
+      expect(fixture.nativeElement.querySelector('.bonus-solved').textContent).toContain('1 som goed');
+      expect(sum()).toBeNull();
+      expect(component.xpWon).toBe(bonusXp(4 + RIGHT_POINTS));
+      expect(bonusBest('bonusBestSums:guest', 'pong')).toBe(4 + RIGHT_POINTS);
+      expect(bonusBest('bonusBest:guest', 'pong')).toBe(0);
+    });
   });
 
   it('goes on when the game is done', () => {

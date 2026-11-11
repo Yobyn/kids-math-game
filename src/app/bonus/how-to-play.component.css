@@ -52,6 +52,16 @@
   fill: var(--accent-blue);
 }
 
+/* Balspel's tiles: the answer's in magenta, the others in blue */
+.tile {
+  fill: var(--accent-blue);
+  opacity: 0.85;
+}
+
+.tile.answer {
+  fill: var(--accent-magenta);
+}
+
 /* A star with a number, in the games' gold; its number is dark on it, as on the board */
 .star {
   fill: var(--star-gold, #ffd86b);

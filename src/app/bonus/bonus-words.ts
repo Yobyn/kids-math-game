@@ -29,7 +29,7 @@ export type BonusKey =
 export const BONUS_WORDS: Words<BonusKey> = {
   en: {
     'bonus-title': 'Ball game',
-    'bonus-how': 'Slide the paddle to keep the ball up. Every bounce is a point!',
+    'bonus-how': 'Slide the paddle to keep the ball up. Aim it at the answer to the sum for extra points!',
     'bonus-start': 'Start',
     'bonus-well-played': 'Well played!',
     'bonus-points-won': 'bonus points',
@@ -54,7 +54,7 @@ export const BONUS_WORDS: Words<BonusKey> = {
   },
   nl: {
     'bonus-title': 'Balspel',
-    'bonus-how': 'Schuif het plankje en houd de bal hoog. Elke stuit is een punt!',
+    'bonus-how': 'Schuif het plankje en houd de bal hoog. Mik op het antwoord van de som voor extra punten!',
     'bonus-start': 'Start',
     'bonus-well-played': 'Goed gespeeld!',
     'bonus-points-won': 'bonuspunten',
@@ -79,7 +79,7 @@ export const BONUS_WORDS: Words<BonusKey> = {
   },
   es: {
     'bonus-title': 'Juego de pelota',
-    'bonus-how': 'Mueve la paleta para mantener la pelota arriba. ¡Cada rebote es un punto!',
+    'bonus-how': 'Mueve la paleta para mantener la pelota arriba. ¡Apunta a la respuesta de la suma para ganar puntos extra!',
     'bonus-start': 'Empezar',
     'bonus-well-played': '¡Bien jugado!',
     'bonus-points-won': 'puntos extra',
