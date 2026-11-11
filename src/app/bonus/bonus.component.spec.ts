@@ -48,11 +48,14 @@ describe('BonusComponent, the bonus game after a round', () => {
   /**
    * A ball put where a test wants it, two minutes into a game: the ball goes
    * at the speed the moment has reached (pong.ts), quick by then, in the
-   * direction given.
+   * direction given. The tiles along the top are all tried already, so the
+   * top is a plain wall whatever numbers were dealt: a quick ball that
+   * reaches it scores nothing by luck (the tiles have their own tests below).
    */
   function playWithBall(x: number, y: number, vx: number, vy: number, misses = 0) {
     component.started = true;
-    component.game = { ...component.game, elapsed: 120, misses, ball: { ...component.game.ball, x, y, vx, vy } };
+    const tiles = (component.game.tiles || []).map(tile => ({ ...tile, tried: true }));
+    component.game = { ...component.game, elapsed: 120, misses, tiles, ball: { ...component.game.ball, x, y, vx, vy } };
   }
 
   it('says how to play and waits for Start, with no ball moving yet', () => {
