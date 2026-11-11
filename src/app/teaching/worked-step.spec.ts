@@ -168,6 +168,35 @@ describe('the method it chooses', () => {
     }
   });
 
+  it('works a sum of whole tens or hundreds out from the small sum inside it (2026-11-11)', () => {
+    // 20 + 60, 800 − 400 and 4 × 70 had no worked line at all: "round numbers need no step". But a child who
+    // missed one twice is shown the sum it hides, as school teaches it: 2 tens and 6 tens, 4 × 7 and a nought
+    expect(workedStep(20, 60, '+')).toBe('2 + 6 = 8 → 20 + 60 = 80');
+    expect(workedStep(60, 70, '+')).toBe('6 + 7 = 13 → 60 + 70 = 130');
+    expect(workedStep(50, 20, '-')).toBe('5 - 2 = 3 → 50 - 20 = 30');
+    expect(workedStep(300, 200, '+')).toBe('3 + 2 = 5 → 300 + 200 = 500');
+    expect(workedStep(800, 400, '-')).toBe('8 - 4 = 4 → 800 - 400 = 400');
+    expect(workedStep(4, 70, '*')).toBe('4 × 7 = 28 → 4 × 70 = 280');
+    expect(workedStep(30, 4, '*')).toBe('3 × 4 = 12 → 30 × 4 = 120');
+    expect(workedStep(6, 300, '*')).toBe('6 × 3 = 18 → 6 × 300 = 1800');
+  });
+
+  it('gives every sum of whole tens and hundreds that groep 4 and 5 are asked a worked line, true and on its answer (2026-11-11)', () => {
+    const random = (() => { let seed = 23; return () => (seed = (seed * 16807) % 2147483647) / 2147483647; })();
+    ['tientallen', 'honderdtallen', 'keer-tiental'].forEach(topic => {
+      for (let i = 0; i < 300; i++) {
+        const sum = TOPICS[topic](random);
+        const step = workedStep(sum.num1, sum.num2, sum.operation);
+        expect(step).withContext(`${topic}: ${sum.num1} ${sum.operation} ${sum.num2}`).toBeDefined();
+        const lines = equations(step || '0 + 0 = 0');
+        lines.forEach(({ left, right }) => expect(evaluate(left)).withContext(step || '').toBe(right));
+        expect(lines[lines.length - 1].right).toBe(answerFor(sum.num1, sum.num2, sum.operation));
+        // the small sum is one of single figures: a fact known by heart
+        expect(lines[0].left).toMatch(/^\d [+\-×] \d$/);
+      }
+    });
+  });
+
   it('reads division back as the multiplication behind it', () => {
     expect(workedStep(42, 6, '/')).toBe('6 × 7 = 42 → 42 ÷ 6 = 7');
   });
@@ -225,18 +254,20 @@ describe('when it says nothing', () => {
     expect(workedStep(8, 3, '-')).toBeUndefined();
   });
 
-  it('stays quiet about round numbers', () => {
-    expect(workedStep(20, 30, '+')).toBeUndefined();
-    expect(workedStep(50, 20, '-')).toBeUndefined();
+  it('stays quiet about round numbers that hide no small sum', () => {
+    // hundreds and tens are said as they are written, and nothing is left of a number taken from itself
+    expect(workedStep(200, 30, '+')).toBeUndefined();
+    expect(workedStep(250, 20, '-')).toBeUndefined();
+    expect(workedStep(40, 40, '-')).toBeUndefined();
   });
 
   it('stays quiet about tables a child does not need talking through', () => {
     expect(workedStep(6, 2, '*')).toBeUndefined();
     expect(workedStep(6, 5, '*')).toBeUndefined();
     expect(workedStep(7, 10, '*')).toBeUndefined();
-    // times a ten is a table and a nought: 7 × 20
-    expect(workedStep(7, 20, '*')).toBeUndefined();
-    expect(workedStep(30, 4, '*')).toBeUndefined();
+    // ten or a hundred times is noughts and no more, and tens times tens is no table
+    expect(workedStep(4, 100, '*')).toBeUndefined();
+    expect(workedStep(20, 30, '*')).toBeUndefined();
   });
 
   it('stays quiet about division that explains nothing', () => {
