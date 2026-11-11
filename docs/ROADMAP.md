@@ -733,6 +733,33 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Games with sums, 1: Ballonnen is "pop the answer" (2026-11-10).** Yobyn:
+  "enhance the gaming and bring maths into the games, go above and beyond
+  make it fun and engaging". A sum stands at the top of the board and the
+  balloons carry numbers, three to a sum, one of them its answer.
+  - Popping the answer scores 2, and one more for each right one in a row
+    (up to 5), with a chime a step higher each time. Its whole bunch pops
+    with it, the sum shows answered in green ("7 + 5 = 12"), and the next
+    sum comes.
+  - A wrong number tapped only fizzles out, small and grey: no point, no
+    heart, no buzz. The row of right ones starts again.
+  - A wrong number may float away. The answer floating away costs the
+    heart, and the sum at the top says what it was.
+  - A gold star balloon has no number and is only a treat: 3 points, and
+    nothing lost when it goes.
+  - With numbers to read, balloons are bigger and rise more slowly (five
+    seconds up the board, not three and a half).
+  - The end card says how many sums were answered ("3 sommen goed").
+
+  The sums (bonus/game-sums.ts) are the facts each year knows by heart, by
+  the year and climb of the round that earned the game: to 10 in groep 3,
+  through the ten and the first tables in groep 4, the tables in groep 5
+  to 8, below nought and squares in klas 1 and 2, roots and powers in klas
+  3 and 4. The warm-up climb plays last year's. The wrong numbers are
+  slips, not guesses: one off, a ten off, the sign the wrong way round.
+  The games' bests are kept apart from the bests before the sums
+  (`bonusBestSums`), which scored differently. Springbal and Balspel are
+  next.
 - **Questions, run 13: the tables of 3 and 4 worked out from the table of 2
   (2026-11-10).** Rounds were played as a child in groep 3 (nl), groep 5
   (en) and klas 3 (es), with no errors. The scan for sums with no worked

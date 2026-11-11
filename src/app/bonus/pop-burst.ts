@@ -19,6 +19,8 @@ export interface Burst {
   turn: number;
   /** A star balloon's: its pieces are gold. */
   star?: boolean;
+  /** A wrong number fizzling out: its pieces are grey. */
+  dud?: boolean;
 }
 
 export interface Piece {

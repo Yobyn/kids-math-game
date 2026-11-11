@@ -1,6 +1,7 @@
 import {
   Balloon, Balloons, FINISH_EARLIEST, FINISH_LATEST, FIRST_GAP, LAST_GAP, MISSES_ALLOWED, MIN_REACH, RAMP,
-  STAR_EVERY, STAR_POINTS, balloonRadius, gapAt, makeBalloon, newBalloons, pop, reaches, riseSpeed, step, swayedX
+  CHOICES, REVEAL_MISSED, REVEAL_RIGHT, RIGHT_POINTS, RIGHT_TOP, RISE, SUM_RISE,
+  STAR_EVERY, STAR_POINTS, balloonRadius, gapAt, makeBalloon, newBalloons, pop, reaches, rightPoints, riseSpeed, step, swayedX
 } from './balloons';
 
 const W = 360;
@@ -201,5 +202,173 @@ describe('Ballonnen, the balloon game (Yobyn, 2026-10-13)', () => {
     const picks = [0.25, 0.26, 0.9, 0.5];
     const coming = makeBalloon(game, () => picks.shift() ?? 0.5);
     expect(Math.abs(coming.x - last.x)).toBeGreaterThanOrEqual(2 * last.radius);
+  });
+});
+
+describe('Ballonnen with sums: pop the answer (Yobyn, 2026-11-10)', () => {
+  const LEVEL = { grade: 1 };
+
+  /** A game on the sum 7 + 5, with these numbers up side by side and nothing else coming for a long while. */
+  function asking(values: (number | undefined)[], game: Balloons = newBalloons(W, H, false, seeded(), LEVEL)): Balloons {
+    const radius = balloonRadius(W);
+    const balloons: Balloon[] = values.map((value, i) => ({
+      id: 50 + i, x: 60 + i * 80, y: H / 2, radius, hue: 0.5, phase: 0,
+      ...(value === undefined ? { star: true } : { value })
+    }));
+    return { ...game, task: { sum: { text: '7 + 5', answer: 12 }, deal: [11, 12, 13] }, balloons, untilNext: 1e9, made: 9 };
+  }
+  const tapOn = (game: Balloons, i: number, random = seeded()) => pop(game, 60 + i * 80, H / 2, random);
+
+  it('starts with a sum of the child\'s own year above the board, and none without a level', () => {
+    const game = newBalloons(W, H, false, seeded(), LEVEL);
+    expect(game.task!.sum.text).toMatch(/^\d+ [+\u2212] \d+$/);
+    expect(game.task!.deal.length).toBe(CHOICES);
+    expect(game.task!.deal).toContain(game.task!.sum.answer);
+    expect(newBalloons(W, H).task).toBeNull();
+  });
+
+  it('sends the sum\'s numbers up on the balloons, its answer among every three, and deals them again', () => {
+    let game: Balloons = { ...newBalloons(W, H, false, seeded(), LEVEL), finishAt: 1e9 };
+    const answer = game.task!.sum.answer;
+    const values: number[] = [];
+    const seen = new Set<number>();
+    const random = seeded(3);
+    for (let i = 0; i < 600 && values.length < 6; i++) {
+      game = step(game, 0.1, random).game;
+      game.balloons.forEach(balloon => {
+        if (!seen.has(balloon.id) && balloon.value !== undefined) {
+          seen.add(balloon.id);
+          values.push(balloon.value);
+        }
+      });
+      // let none get away: lift nothing off the top
+      game = { ...game, balloons: game.balloons.map(balloon => ({ ...balloon, y: Math.max(balloon.y, 100) })) };
+    }
+    expect(values.length).toBe(6);
+    expect(values.slice(0, 3)).toContain(answer);
+    expect(values.slice(3, 6)).toContain(answer);
+    expect(new Set(values.slice(0, 3)).size).toBe(3);
+  });
+
+  it('gives a star balloon no number: it is always right to pop', () => {
+    const game = { ...newBalloons(W, H, false, seeded(), LEVEL), made: STAR_EVERY - 1 };
+    const star = makeBalloon(game, seeded());
+    expect(star.star).toBeTrue();
+    expect(star.value).toBeUndefined();
+    const { game: after, event } = tapOn(asking([undefined]), 0);
+    expect(after.points).toBe(STAR_POINTS);
+    expect(event!.kind).toBe('pop');
+    expect(after.task!.sum.text).toBe('7 + 5');
+  });
+
+  it('pops the answer for points, takes the rest of its bunch with it, and sets the next sum', () => {
+    const { game: after, event, popped, cleared } = tapOn(asking([11, 12, 13, undefined]), 1);
+    expect(event).toEqual(jasmine.objectContaining({ kind: 'pop', right: true, points: RIGHT_POINTS }));
+    expect(after.points).toBe(RIGHT_POINTS);
+    expect(popped!.value).toBe(12);
+    expect(cleared!.map(balloon => balloon.value)).toEqual([11, 13]);
+    // only the star balloon is left up
+    expect(after.balloons.map(balloon => balloon.star)).toEqual([true]);
+    expect(after.task!.sum.text).not.toBe('7 + 5');
+    expect(after.solved).toBe(1);
+    expect(after.streak).toBe(1);
+  });
+
+  it('shows the sum answered for a moment before the next one\'s balloons come', () => {
+    const { game: after } = tapOn(asking([12]), 0);
+    expect(after.reveal).toEqual({ text: '7 + 5 = 12', right: true, left: REVEAL_RIGHT });
+    expect(after.untilNext).toBe(REVEAL_RIGHT);
+    const later = step({ ...after, finishAt: 1e9 }, REVEAL_RIGHT + 0.2, seeded()).game;
+    expect(later.reveal).toBeNull();
+    expect(later.balloons.length).toBe(1);
+    expect(later.balloons[0].value).toBeDefined();
+  });
+
+  it('scores a row of right answers one more each time, to a top, and starts again after a wrong one', () => {
+    expect([0, 1, 2, 3, 4, 9].map(rightPoints)).toEqual([2, 3, 4, 5, 5, 5]);
+    expect(rightPoints(0)).toBe(RIGHT_POINTS);
+    expect(rightPoints(50)).toBe(RIGHT_TOP);
+    const second = tapOn(asking([12], { ...newBalloons(W, H, false, seeded(), LEVEL), streak: 2, points: 5 }), 0);
+    expect(second.event!.points).toBe(4);
+    expect(second.game.points).toBe(9);
+    const wrong = tapOn(asking([11, 12], { ...newBalloons(W, H, false, seeded(), LEVEL), streak: 2 }), 0);
+    expect(wrong.game.streak).toBe(0);
+    expect(tapOn(wrong.game, 1).event!.points).toBe(RIGHT_POINTS);
+  });
+
+  it('lets a wrong number fizzle out when it is tapped: no point, no heart, the sum stays', () => {
+    const { game: after, event, popped } = tapOn(asking([11, 12, 13]), 0);
+    expect(event!.kind).toBe('wrong');
+    expect(popped!.value).toBe(11);
+    expect(after.points).toBe(0);
+    expect(after.missed).toBe(0);
+    expect(after.balloons.map(balloon => balloon.value)).toEqual([12, 13]);
+    expect(after.task!.sum.text).toBe('7 + 5');
+  });
+
+  it('lets a wrong number float away for nothing', () => {
+    const game = { ...asking([11]), balloons: [{ ...asking([11]).balloons[0], y: 5 }] };
+    const { game: after, events } = step(game, 1, seeded());
+    expect(after.balloons).toEqual([]);
+    expect(after.missed).toBe(0);
+    expect(events).toEqual([]);
+    expect(after.task!.sum.text).toBe('7 + 5');
+  });
+
+  it('takes a heart when the answer floats away, says what it was, clears its bunch and asks the next sum', () => {
+    const up = asking([12, 11, undefined]);
+    const game = { ...up, streak: 3, balloons: up.balloons.map((balloon, i) => i === 0 ? { ...balloon, y: 5 } : balloon) };
+    const { game: after, events } = step(game, 0.5, seeded());
+    expect(after.missed).toBe(1);
+    expect(events.map(event => event.kind)).toEqual(['miss', 'clear']);
+    expect(after.reveal!.text).toBe('7 + 5 = 12');
+    expect(after.reveal!.right).toBeFalse();
+    expect(after.reveal!.left).toBeGreaterThan(REVEAL_MISSED - 0.6);
+    expect(after.task!.sum.text).not.toBe('7 + 5');
+    expect(after.streak).toBe(0);
+    // the star balloon stays up; the wrong number of the old sum is gone
+    expect(after.balloons.map(balloon => balloon.star)).toEqual([true]);
+  });
+
+  it('ends on the third answer away', () => {
+    const up = asking([12]);
+    const game = { ...up, missed: MISSES_ALLOWED - 1, balloons: [{ ...up.balloons[0], y: 5 }] };
+    expect(step(game, 0.5, seeded()).game.ended).toBe('missed');
+  });
+
+  it('lets a star balloon float away for nothing: with sums it is only a treat', () => {
+    const up = asking([undefined]);
+    const game = { ...up, missed: MISSES_ALLOWED - 1, balloons: [{ ...up.balloons[0], y: 5 }] };
+    const { game: after, events } = step(game, 0.5, seeded());
+    expect(after.missed).toBe(MISSES_ALLOWED - 1);
+    expect(after.ended).toBeNull();
+    expect(events).toEqual([]);
+  });
+
+  it('rises more slowly with sums, so a number can be read before it is tapped', () => {
+    expect(SUM_RISE).toBeLessThan(RISE);
+    expect(riseSpeed(H, false, true)).toBe(H * SUM_RISE);
+    expect(riseSpeed(H, false)).toBe(H * RISE);
+    expect(gapAt(0, false, true)).toBeGreaterThan(gapAt(0, false));
+    expect(gapAt(1e6, false, true)).toBeGreaterThanOrEqual(1);
+    const up = asking([11]);
+    const after = step(up, 1, seeded()).game;
+    expect(up.balloons[0].y - after.balloons[0].y).toBeCloseTo(H * SUM_RISE, 0);
+  });
+
+  it('can be played to the finish by popping each answer as it comes, never losing a heart', () => {
+    let game: Balloons = { ...newBalloons(W, H, false, seeded(21), { grade: 4 }), finishAt: 25 };
+    const random = seeded(5);
+    for (let i = 0; i < 4000 && !game.ended; i++) {
+      game = step(game, 0.05, random).game;
+      const right = game.balloons.find(balloon => balloon.star || balloon.value === game.task!.sum.answer);
+      if (right && right.y < H * 0.7) {
+        game = pop(game, swayedX(right, game.elapsed, false), right.y, random).game;
+      }
+    }
+    expect(game.ended).toBe('finished');
+    expect(game.missed).toBe(0);
+    expect(game.solved).toBeGreaterThan(4);
+    expect(game.points).toBeGreaterThan(game.solved! * RIGHT_POINTS);
   });
 });

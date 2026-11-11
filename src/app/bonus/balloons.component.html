@@ -19,6 +19,12 @@
             [attr.aria-label]="languageService.translate('balloons-board')"
             (pointerdown)="tap($event)"></canvas>
 
+    <!-- The sum to pop the answer of, on the board where the eyes are; it stands answered for a moment when it is settled -->
+    <ng-container *ngIf="started && !ended && countdown === 0">
+      <div class="bonus-sum" *ngFor="let shown of sumsShown"
+           [class.right]="sumState === 'right'" [class.missed]="sumState === 'missed'" aria-live="polite">{{ shown }}</div>
+    </ng-container>
+
     <div class="bonus-card" *ngIf="!started">
       <app-how-to-play game="balloons"></app-how-to-play>
       <p>{{ languageService.translate('balloons-how') }}</p>
@@ -36,6 +42,8 @@
       <p class="bonus-well-played" *ngIf="!finished">{{ languageService.translate('bonus-well-played') }}</p>
       <!-- One point is a point, not "points" -->
       <p class="bonus-won"><span class="bonus-won-number">{{ points }}</span> {{ languageService.translate(points === 1 ? 'bonus-point-won' : 'bonus-points-won') }}</p>
+      <!-- The sums answered: what the points were made of -->
+      <p class="bonus-solved" *ngIf="solved > 0">✓ {{ solved }} {{ languageService.translate(solved === 1 ? 'bonus-sum-right' : 'bonus-sums-right') }}</p>
       <p class="bonus-xp">+{{ xpWon }} {{ languageService.translate('xp') }}</p>
       <p class="bonus-best" *ngIf="best > 0">
         <span class="bonus-new-best" *ngIf="newBest">🏆 {{ languageService.translate('bonus-new-best') }}</span>

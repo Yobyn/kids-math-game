@@ -32,6 +32,26 @@
   font-size: 14px;
 }
 
+/* The sum above a game's picture, and the numbers on what it shows */
+.sum,
+.number {
+  fill: var(--text);
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.sum {
+  font-size: 11px;
+}
+
+.number {
+  font-size: 10px;
+}
+
+.balloon.other {
+  fill: var(--accent-blue);
+}
+
 .slide { animation: slide 1.6s ease-in-out infinite alternate; }
 .bounce { animation: bounce 0.8s ease-in infinite alternate; }
 .hop { animation: hop 1.6s ease-in-out infinite; }

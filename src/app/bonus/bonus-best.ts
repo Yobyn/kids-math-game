@@ -7,6 +7,12 @@ import { BonusGame } from './bonus-games';
  * nothing of it is in the first load.
  */
 export const BONUS_BEST_KEY = 'bonusBest';
+/**
+ * The bests of the games as they are played with sums (2026-11-10): kept
+ * apart, since a game with sums scores differently and a best from before
+ * them could never be passed again.
+ */
+export const SUMS_BEST_KEY = 'bonusBestSums';
 
 type Bests = { [game in BonusGame]?: number };
 
