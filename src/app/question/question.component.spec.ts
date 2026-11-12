@@ -1967,9 +1967,14 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     const MARGIN = 8;
     const rect = (selector: string) => (fixture.nativeElement.querySelector(selector) as HTMLElement).getBoundingClientRect();
 
-    /** The card pushed down the page until Check Answer ends 40px under the screen, as on a 320 by 568 phone. */
+    /**
+     * The card pushed down the page until Check Answer ends 40px under the screen, as on a 320 by 568 phone.
+     * Measured with a plain sum on the card, as high as the ones the tests then ask: the round's own first
+     * question is drawn at random, and a story or a clock is a taller card.
+     */
     function underTheScreen() {
       build('nl');
+      ask({ num1: 7, num2: 40, operation: '*' });
       window.scrollTo(0, 0);
       const host = fixture.nativeElement as HTMLElement;
       host.style.display = 'block';

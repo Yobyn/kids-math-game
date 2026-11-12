@@ -82,14 +82,14 @@ the €1, whose answer is the amount itself (2026-11-04).
 | B | Groep 4's end: tables 1–5 and 10, TE ± TE | 7 × 4, 63 − 28 |
 | M | All tables 1–10 (6, 7, 8, 9 new) | 7 × 8, 6 × 9 |
 | M | Dividing within all tables | 56 : 7, 63 : 9 |
-| M | +/− within 1000 without crossing | 340 + 250, 563 − 30 |
+| M | +/− within 1000 without crossing (worked a place at a time after two tries: 340 + 200 = 540 → 540 + 50 = 590) | 340 + 250, 563 − 30 |
 | M | Times a ten (worked from the table fact after two tries: 4 × 3 = 12 → 4 × 30 = 120) | 4 × 30, 6 × 40 |
 | M | A part of an amount | de helft van 18, ¼ van 20 |
 | M | Klokkijken: to the minute | 3:37, 11:02 |
 
 From groep 5 a table is revisited, not learnt: a table fact never has a 1 in
 it (4 × 1, 1 × 7, 9 : 9 are groep 4's; 2026-11-08).
-| E | +/− within 1000 crossing (kolomsgewijs) | 367 + 258, 512 − 347 |
+| E | +/− within 1000 crossing (kolomsgewijs; worked a place at a time after two tries: 367 + 200 = 567 → 567 + 50 = 617 → 617 + 8 = 625) | 367 + 258, 512 − 347 |
 | E | TE × E | 4 × 23, 6 × 15 |
 | E | Dividing with a remainder | 23 : 4 = 5 rest ? |
 | E | Measures: m/cm, kg/g, hours/minutes | 3 m = ? cm, 2 uur = ? minuten |
@@ -99,7 +99,7 @@ it (4 × 1, 1 × 7, 9 : 9 are groep 4's; 2026-11-08).
 | Moment | What is asked | Example |
 | --- | --- | --- |
 | B | Groep 5's end | 367 + 258, 6 × 15 |
-| M | +/− within 10 000 (cijferend) | 2345 + 1678, 5003 − 2468 |
+| M | +/− within 10 000 (cijferend; worked a place at a time after two tries, thousands first) | 2345 + 1678, 5003 − 2468 |
 | M | Times and dividing, larger | 12 × 15, 25 × 8, 96 : 4, 150 : 6 |
 | M | Fractions of an amount; equal fractions | ¾ van 20, ½ = ?/8 |
 | E | Decimals: tenths and money | 0,3 + 0,4, 1,5 + 2,7 |

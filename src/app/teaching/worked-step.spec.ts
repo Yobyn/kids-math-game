@@ -197,6 +197,51 @@ describe('the method it chooses', () => {
     });
   });
 
+  it('takes a bigger number a place at a time, as it is strung on the number line: hundreds, tens, ones (2026-11-12)', () => {
+    // 829 + 140 had no worked line: its second number has no ones, and only tens-and-ones were split
+    expect(workedStep(829, 140, '+')).toBe('829 + 100 = 929 → 929 + 40 = 969');
+    expect(workedStep(594, 290, '-')).toBe('594 - 200 = 394 → 394 - 90 = 304');
+    expect(workedStep(7025, 4770, '-')).toBe('7025 - 4000 = 3025 → 3025 - 700 = 2325 → 2325 - 70 = 2255');
+    // 725 − 534 was "725 − 530 = 195 → 195 − 4 = 191": a first step as hard as the sum
+    expect(workedStep(725, 534, '-')).toBe('725 - 500 = 225 → 225 - 30 = 195 → 195 - 4 = 191');
+    expect(workedStep(756, 186, '+')).toBe('756 + 100 = 856 → 856 + 80 = 936 → 936 + 6 = 942');
+    expect(workedStep(402, 105, '+')).toBe('402 + 100 = 502 → 502 + 5 = 507');
+    // two figures are tens and ones, as they were
+    expect(workedStep(38, 45, '+')).toBe('38 + 40 = 78 → 78 + 5 = 83');
+    expect(workedStep(76, 25, '-')).toBe('76 - 20 = 56 → 56 - 5 = 51');
+    // a number of one place is one step, which says nothing
+    expect(workedStep(148, 600, '+')).toBeUndefined();
+    expect(workedStep(563, 30, '-')).toBeUndefined();
+  });
+
+  it('gives every sum within 1000 and 10 000 that groep 5 and 6 are asked a line of single places, true and on its answer (2026-11-12)', () => {
+    const random = (() => { let seed = 31; return () => (seed = (seed * 16807) % 2147483647) / 2147483647; })();
+    let worked = 0;
+    ['tot-1000-zonder', 'tot-1000-over', 'tot-10000'].forEach(topic => {
+      for (let i = 0; i < 300; i++) {
+        const sum = TOPICS[topic](random);
+        const context = `${topic}: ${sum.num1} ${sum.operation} ${sum.num2}`;
+        const step = workedStep(sum.num1, sum.num2, sum.operation);
+        // only a second number of one place (148 + 600) is left as it is
+        const onePlace = /^\d0*$/.test(String(sum.num2));
+        expect(step === undefined).withContext(context).toBe(onePlace);
+        if (!step) {
+          continue;
+        }
+        worked++;
+        const lines = equations(step);
+        lines.forEach(({ left, right }) => {
+          expect(evaluate(left)).withContext(step).toBe(right);
+          // each step adds or takes one place: 500, 30 or 4
+          expect(left.split(' ')[2]).withContext(step).toMatch(/^\d0*$/);
+        });
+        expect(lines[0].left.split(' ')[0]).withContext(context).toBe(String(sum.num1));
+        expect(lines[lines.length - 1].right).withContext(context).toBe(answerFor(sum.num1, sum.num2, sum.operation));
+      }
+    });
+    expect(worked).toBeGreaterThan(600);
+  });
+
   it('reads division back as the multiplication behind it', () => {
     expect(workedStep(42, 6, '/')).toBe('6 × 7 = 42 → 42 ÷ 6 = 7');
   });

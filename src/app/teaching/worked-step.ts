@@ -56,6 +56,18 @@ function smallSum(num1: number, num2: number): { a: number; b: number } | undefi
   return { a: num1 / unit, b: num2 / unit };
 }
 
+/** A whole number in its places, the biggest first: 534 as 500, 30 and 4; 4770 as 4000, 700 and 70. */
+function places(value: number): number[] {
+  const parts: number[] = [];
+  for (let unit = 1; Number.isInteger(value) && unit <= value; unit *= 10) {
+    const part = Math.floor(value / unit) % 10 * unit;
+    if (part) {
+      parts.unshift(part);
+    }
+  }
+  return parts;
+}
+
 /** The ten or hundred a number is 2 to 9 of: 10 for 70, 100 for 300, none for 10, 100 or 110. */
 function roundUnit(value: number): number | undefined {
   return [100, 10].find(each => value % each === 0 && value / each >= 2 && value / each <= 9);
@@ -64,7 +76,7 @@ function roundUnit(value: number): number | undefined {
 /**
  * Single digits that cross ten get the bridge — 8 + 7 as 8 + 2 then 10 + 5 —
  * which is the method these facts are actually taught with. Bigger numbers
- * get the tens and the ones separated instead.
+ * are taken a place at a time instead: the hundreds, the tens, the ones.
  */
 function addition(num1: number, num2: number): string | undefined {
   const total = num1 + num2;
@@ -91,12 +103,14 @@ function addition(num1: number, num2: number): string | undefined {
     return `${small.a} + ${small.b} = ${small.a + small.b}${THEN}${num1} + ${num2} = ${total}`;
   }
 
-  const tens = Math.floor(num2 / 10) * 10;
-  const ones = num2 - tens;
-  if (!tens || !ones) {
+  // The second number a place at a time, as it is strung on the number line (rijgen): 38 + 45 as
+  // + 40 and + 5, 829 + 140 as + 100 and + 40. A number of one place (148 + 600) is one step: no line
+  const parts = places(num2);
+  if (parts.length < 2) {
     return undefined;
   }
-  return `${num1} + ${tens} = ${num1 + tens}${THEN}${num1 + tens} + ${ones} = ${total}`;
+  let at = num1;
+  return parts.map(part => `${at} + ${part} = ${at += part}`).join(THEN);
 }
 
 /** The same bridge, downward: 15 - 8 as 15 - 5 then 10 - 3. */
@@ -134,12 +148,13 @@ function subtraction(num1: number, num2: number): string | undefined {
     return `${small.a} - ${small.b} = ${small.a - small.b}${THEN}${num1} - ${num2} = ${answer}`;
   }
 
-  const tens = Math.floor(num2 / 10) * 10;
-  const ones = num2 - tens;
-  if (!tens || !ones) {
+  // A place at a time, downward: 725 - 534 as - 500, - 30 and - 4
+  const parts = places(num2);
+  if (parts.length < 2) {
     return undefined;
   }
-  return `${num1} - ${tens} = ${num1 - tens}${THEN}${num1 - tens} - ${ones} = ${answer}`;
+  let at = num1;
+  return parts.map(part => `${at} - ${part} = ${at -= part}`).join(THEN);
 }
 
 /**
