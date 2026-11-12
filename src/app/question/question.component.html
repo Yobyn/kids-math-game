@@ -23,7 +23,7 @@
                    [score]="currentScore"
                    [streak]="streakCount"></app-round-track>
 
-  <div class="question-box" [class.shake]="showShakeAnimation" [class.picking]="isPicking">
+  <div class="question-box" #questionBox [class.shake]="showShakeAnimation" [class.picking]="isPicking">
     <p class="money-prompt" *ngIf="currentQuestion.money">{{ moneyText }}</p>
     <!-- A verhaaltjessom (teaching/school/story.ts): the story and the box; the sum is the child's to find -->
     <p class="money-prompt story" *ngIf="storyLine"><span aria-hidden="true">{{ storyPicture }}</span> {{ storyLine }}</p>
@@ -121,6 +121,7 @@
     <div class="button-container">
       <button *ngIf="!showOkButton" 
               class="check-button" 
+              #checkButton
               (click)="checkAnswer()">
         {{ languageService.translate('check') }}
       </button>

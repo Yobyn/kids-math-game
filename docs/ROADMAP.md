@@ -733,6 +733,23 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 18: a new question brings Check Answer on screen
+  (2026-11-12).** Rounds were played in groep 5 and 7 and in klas 2 and 3,
+  at 320, 360 and 390px in nl, en and es, with no errors. On a 320 by 568
+  phone a round opened with Check Answer cut off: it ended 17px under the
+  screen on a plain sum, and 40 to 56px under on a money question, so the
+  button could not be read. The page only moved once Next took the focus.
+  Now each new question brings Check Answer on screen with it:
+  - the page comes up only as far as the button needs;
+  - it never passes the top of the card, so the sum is seen before the
+    button;
+  - it moves once for a question, so a child who scrolls back up is not
+    pulled down again.
+
+  On 320 by 568, Check Answer now ends at 564 on a plain sum and 560 on a
+  money question. A clock question's card is taller than that screen, so
+  its button still ends 13px under it. 360 and 390 phones already fitted
+  and do not move. No CSS changed; the first load is unchanged.
 - **Questions, run 14: whole tens and hundreds worked out from the small
   sum inside them (2026-11-11).** Rounds were played as a child in groep 4
   (nl), groep 6 and 8 (en) and klas 2 and 4 (es), with no errors. The scan

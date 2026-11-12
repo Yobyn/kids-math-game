@@ -133,6 +133,9 @@ describe('QuestionComponent', () => {
       const done = Array.from(fixture.nativeElement.querySelectorAll('.pip.done')) as HTMLElement[];
 
       expect(done.length).toBe(3);
+      // The colour a pip settles on, not one on the way there: the card has been measured by now
+      // (showCheck), so a pip that lights up fades in from its unlit colour
+      done[0].style.transition = 'none';
       // Blue at the start of the ring, not a flat grey
       expect(getComputedStyle(done[0]).backgroundColor).toBe('rgb(56, 128, 255)');
     });
@@ -1959,6 +1962,50 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
   });
 
   afterEach(() => localStorage.clear());
+
+  describe('a new question brings Check Answer on screen (2026-11-12)', () => {
+    const MARGIN = 8;
+    const rect = (selector: string) => (fixture.nativeElement.querySelector(selector) as HTMLElement).getBoundingClientRect();
+
+    /** The card pushed down the page until Check Answer ends 40px under the screen, as on a 320 by 568 phone. */
+    function underTheScreen() {
+      build('nl');
+      window.scrollTo(0, 0);
+      const host = fixture.nativeElement as HTMLElement;
+      host.style.display = 'block';
+      host.style.paddingTop = `${Math.max(0, window.innerHeight + 40 - rect('.check-button').bottom)}px`;
+      expect(rect('.check-button').bottom).toBeGreaterThan(window.innerHeight);
+    }
+
+    afterEach(() => window.scrollTo(0, 0));
+
+    it('comes up as far as Check Answer needs, and never pushes the sum off the top', () => {
+      underTheScreen();
+      ask({ num1: 8, num2: 60, operation: '*' });
+
+      expect(window.scrollY).toBeGreaterThan(0);
+      const [box, check] = [rect('.question-box'), rect('.check-button')];
+      // Check Answer is on screen with its margin, or the card already stands at the top
+      expect(check.bottom <= window.innerHeight - MARGIN + 0.5 || Math.abs(box.top - MARGIN) < 1).toBeTrue();
+      expect(box.top).toBeGreaterThanOrEqual(MARGIN - 0.5);
+    });
+
+    it('moves once for a question, not again while it is answered, and stays for the next one of the same height', () => {
+      underTheScreen();
+      ask({ num1: 8, num2: 60, operation: '*' });
+      const moved = window.scrollY;
+      expect(moved).toBeGreaterThan(0);
+
+      // a child scrolls back up to look at the round track: typing does not pull the page down again
+      window.scrollTo(0, 0);
+      component.userAnswer = '48';
+      fixture.detectChanges();
+      expect(window.scrollY).toBe(0);
+
+      ask({ num1: 6, num2: 30, operation: '*' });
+      expect(window.scrollY).toBe(moved);
+    });
+  });
 
   it('puts the box where the "?" is in the workbook', () => {
     build('nl');
