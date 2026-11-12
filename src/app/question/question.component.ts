@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { ScoreService } from '../services/score.service';
 import { LanguageService } from '../services/language.service';
@@ -81,10 +81,14 @@ function longGrouped(text: string): string {
   templateUrl: './question.component.html',
   styleUrls: ['./question.component.css'],
 })
-export class QuestionComponent implements OnInit, OnDestroy {
+export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
   @ViewChild('answerInput') answerInput!: ElementRef;
   @ViewChild('nextButton') nextButton!: ElementRef;
   @ViewChild('verdict') verdict?: ElementRef;
+  @ViewChild('questionBox') questionBox?: ElementRef;
+  @ViewChild('checkButton') checkButton?: ElementRef;
+  /** The question Check Answer was last brought on screen for (showCheck). */
+  private shownQuestion?: unknown;
   
   isReplay = false;
   private missed: PendingReplay[] = [];
@@ -598,6 +602,38 @@ export class QuestionComponent implements OnInit, OnDestroy {
    */
   get workedSteps(): string[] {
     return this.workedLine.split(' → ').map((step, i) => (i ? '→ ' + step : step));
+  }
+
+  /** A question newly on the card, with Check Answer under it: once for each, however it came (a new round, Next, a round resumed). */
+  ngAfterViewChecked() {
+    if (this.currentQuestion !== this.shownQuestion && this.checkButton) {
+      this.shownQuestion = this.currentQuestion;
+      this.showCheck();
+    }
+  }
+
+  /**
+   * Brings Check Answer on screen with a new question. On the smallest
+   * phone (320 by 568) the header and the round track leave the card less
+   * room than it takes: a round opened with Check Answer cut off at the
+   * bottom, and a money question put it wholly under the screen. The page
+   * comes up only as far as the button needs, and never past the top of
+   * the card: the sum is to be seen before the button. Once for a
+   * question, so a child who scrolls back is not pulled down again.
+   */
+  private showCheck() {
+    if (!this.questionBox || !this.checkButton || typeof window === 'undefined') {
+      return;
+    }
+    const margin = 8;
+    const top = (this.questionBox.nativeElement as HTMLElement).getBoundingClientRect().top;
+    const bottom = (this.checkButton.nativeElement as HTMLElement).getBoundingClientRect().bottom;
+    // As far as the button needs, and no further than the card's top allows (as the games' board-view.ts does;
+    // not imported from there: sharing it between the two lazy chunks put 30 bytes in the first load)
+    const by = Math.min(bottom + margin - window.innerHeight, top - margin);
+    if (by > 0) {
+      window.scrollBy(0, by);
+    }
   }
 
   /**
