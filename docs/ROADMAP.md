@@ -733,6 +733,25 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 15: a bigger number taken a place at a time
+  (2026-11-12).** Rounds were played as a child in groep 3 (nl), groep 5
+  (en), groep 6 (nl) and klas 1 (es), with no errors. A groep 5 round
+  asked "465 − 140", "594 − 290" and "655 − 340", and none had a worked
+  line after two tries: only a second number with tens and ones was split.
+  A sum that did get one took all but the ones in a single step: "725 −
+  534" was "725 − 530 = 195 → 195 − 4 = 191", a first step as hard as the
+  sum. The second number is now taken a place at a time, as school strings
+  it on the number line (rijgen):
+  - "829 + 140": "829 + 100 = 929 → 929 + 40 = 969";
+  - "725 − 534": "725 − 500 = 225 → 225 − 30 = 195 → 195 − 4 = 191";
+  - within 10 000 the thousands come first: "7025 − 4000 = 3025 → 3025 −
+    700 = 2325 → 2325 − 70 = 2255".
+
+  Two figures are tens and ones as before. A second number of one place
+  ("148 + 600", "563 − 30") is one step and still says nothing. A spec
+  holds every sum of groep 5's and 6's three topics to a line that is
+  true, starts at the first number, ends on the answer, and adds or takes
+  one place in each step.
 - **Look and feel, run 18: a new question brings Check Answer on screen
   (2026-11-12).** Rounds were played in groep 5 and 7 and in klas 2 and 3,
   at 320, 360 and 390px in nl, en and es, with no errors. On a 320 by 568
