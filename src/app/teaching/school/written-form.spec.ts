@@ -508,7 +508,8 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('korting-25', 92, 23, '-')).toBe('92 : 4 = 23 → 92 − 23 = 69');
     expect(formWorkedStep('procent-via-5', 3, 3, '*')).toBe('5% van 60 = 3 → 3 × 3 = 9');
     expect(formWorkedStep('procent-via-1', 3, 12, '*')).toBe('1% van 300 = 3 → 12 × 3 = 36');
-    expect(formWorkedStep('welk-procent', 1800, 72, '/')).toBe('18 × 100 = 1800 → 1800 : 72 = 25');
+    // 18 van 72 was "18 × 100 = 1800 → 1800 : 72 = 25": a sharing as hard as the question. 72 in four is 18
+    expect(formWorkedStep('welk-procent', 1800, 72, '/')).toBe('72 : 4 = 18 → 25%');
     expect(formWorkedStep('schaal-500', 4, 5, '*')).toBe('1 cm = 5 m → 4 × 5 = 20');
     expect(formWorkedStep('gemiddelde-4', 48, 4, '/')).toBe('13 + 10 + 11 + 14 = 48 → 48 : 4 = 12');
     expect(formWorkedStep('inhoud-10', 50, 4, '*')).toBe('10 × 5 = 50 → 50 × 4 = 200');
@@ -565,7 +566,7 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
-      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur|negatief|ongelijk|macht|pythagoras|beide|kwadratisch|kwadraat-vgl|negmacht|minkwadraat|wortel-vereenvoudig|herleiden|klok)/.test(sum.form!)) {
+      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|welk-procent|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur|negatief|ongelijk|macht|pythagoras|beide|kwadratisch|kwadraat-vgl|negmacht|minkwadraat|wortel-vereenvoudig|herleiden|klok)/.test(sum.form!)) {
         // read as rounding, as decimals, as percentages, as fractions, as scales and as means below; a clock in clock-face.spec.ts
         return;
       }
@@ -1142,6 +1143,52 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
         expect(sum.num2).withContext(at).not.toBe(100);
       });
       expect(new Set(sums.map(sum => answer(sum))).size).toBeGreaterThan(8);
+    });
+
+    it('works out which percentage through a handy part of the whole: a quarter, a fifth, 10% or 5% (2026-11-13)', () => {
+      expect(formWorkedStep('welk-procent', 5700, 190, '/')).toBe('10% van 190 = 19 → 57 : 19 = 3 → 3 × 10% = 30%');
+      expect(formWorkedStep('welk-procent', 7200, 96, '/')).toBe('25% van 96 = 24 → 72 : 24 = 3 → 3 × 25% = 75%');
+      expect(formWorkedStep('welk-procent', 2100, 35, '/')).toBe('20% van 35 = 7 → 21 : 7 = 3 → 3 × 20% = 60%');
+      expect(formWorkedStep('welk-procent', 900, 60, '/')).toBe('5% van 60 = 3 → 9 : 3 = 3 → 3 × 5% = 15%');
+      // the part is the handy part itself: the whole shared out says so
+      expect(formWorkedStep('welk-procent', 1900, 190, '/')).toBe('190 : 10 = 19 → 10%');
+      expect(formWorkedStep('welk-procent', 700, 35, '/')).toBe('35 : 5 = 7 → 20%');
+      expect(formWorkedStep('welk-procent', 300, 60, '/')).toBe('60 : 20 = 3 → 5%');
+      // 3 van 20: 5% of 20 is 1, and nothing is shared by 1
+      expect(formWorkedStep('welk-procent', 300, 20, '/')).toBe('5% van 20 = 1 → 3 × 5% = 15%');
+      // in the child's own words
+      expect(formWorkedStep('welk-procent', 5700, 190, '/', '.', { of: 'of', or: 'or' }))
+        .toBe('10% of 190 = 19 → 57 : 19 = 3 → 3 × 10% = 30%');
+    });
+
+    it('holds every welk-procent groep 8 asks to a line of whole numbers no bigger than the whole, true and on its answer (2026-11-13)', () => {
+      made('welk-procent', 800).forEach(sum => {
+        const [part, whole, percent] = [sum.num1 / 100, sum.num2, answer(sum)];
+        const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+        const at = `${part} van ${whole}: ${line}`;
+        expect(line.endsWith(`${percent}%`)).withContext(at).toBeTrue();
+        // the old line shared 5700 by 190: nothing here is past the whole (or a percentage, under 100)
+        (line.match(/\d+/g) || []).map(Number).forEach(value => expect(value).withContext(at).toBeLessThanOrEqual(Math.max(whole, 100)));
+        expect(line).withContext(at).not.toMatch(/\d[.,]\d/);
+        const steps = line.split(' → ');
+        const whole4 = steps[0].match(/^(\d+) : (\d+) = (\d+)$/);
+        if (whole4) {
+          // 72 : 4 = 18 → 25%: the whole in so many parts is the part
+          const [, shared, by, is] = whole4.map(Number);
+          expect([shared, shared / by, is, 100 / by]).withContext(at).toEqual([whole, part, part, percent]);
+          expect(steps.length).withContext(at).toBe(2);
+          return;
+        }
+        // 10% van 190 = 19 → 57 : 19 = 3 → 3 × 10% = 30%
+        const [, unit, of, amount] = steps[0].match(/^(\d+)% van (\d+) = (\d+)$/)!.map(Number);
+        expect([of, of * unit / 100]).withContext(at).toEqual([whole, amount]);
+        const times = part / amount;
+        expect(times).withContext(at).toBeGreaterThan(1);
+        expect(times * unit).withContext(at).toBe(percent);
+        expect(steps[steps.length - 1]).withContext(at).toBe(`${times} × ${unit}% = ${percent}%`);
+        // 3 van 20: 5% of 20 is 1, so the 3 is three of them as it stands, with no sharing by 1
+        expect(steps.slice(1, -1)).withContext(at).toEqual(amount === 1 ? [] : [`${part} : ${amount} = ${times}`]);
+      });
     });
 
     it('takes parts of bigger amounts in groep 8: ⅔ van 45, past what groep 6 asked', () => {

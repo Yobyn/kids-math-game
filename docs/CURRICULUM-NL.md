@@ -127,7 +127,7 @@ it (4 × 1, 1 × 7, 9 : 9 are groep 4's; 2026-11-08).
 | Moment | What is asked | Example |
 | --- | --- | --- |
 | B | Groep 7's end | 20% korting, 2,5 km = ? m |
-| M | Percentages of any amount; what percentage | 15% van 60, 18 van 72 = ?% |
+| M | Percentages of any amount; what percentage (worked through a handy part after two tries: 10% van 190 = 19 → 57 : 19 = 3 → 3 × 10% = 30%) | 15% van 60, 18 van 72 = ?% |
 | M | Fractions of amounts; adding unlike fractions | ⅔ van 45 |
 | M | Scale | 1 : 100, 4 cm = ? m |
 | M | The mean | gemiddelde van 4, 8, 6, 10 |
