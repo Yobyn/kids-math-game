@@ -6,6 +6,18 @@
   width: min(44vw, 170px);
 }
 
+/* A screen under 600 high (a 320 by 568 phone): the card of a clock
+   question was 590px, more than the screen holds, so Check Answer ended
+   under it. The clock gives up 6px there and stands 8px into the sum
+   row's own air above and below (20px each, 12 left), which brings the
+   button on screen. A taller phone keeps the clock it had. */
+@media (max-height: 600px) {
+  :host {
+    width: min(42vw, 170px);
+    margin: -8px 0;
+  }
+}
+
 .clock-face {
   display: block;
   width: 100%;
