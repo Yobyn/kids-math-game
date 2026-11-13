@@ -733,6 +733,18 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 19: a clock question and Check Answer on one small
+  screen (2026-11-13).** Rounds were played in groep 4 and 3 and in klas 1
+  and 4, at 320, 360 and 390px in nl, en and es, with no errors. Run 18
+  left one case open: a clock question's card was 590px on a 320 by 568
+  phone, so with the page come up to the card's top, Check Answer still
+  ended 13px under the screen. The clock took 141px of the card, with
+  20px of air above and below it. On a screen under 600 high the clock
+  is now 134px and stands 8px into that air on each side (12px left), so
+  it takes 22px less. Check Answer ends at 560 there, 8px inside the
+  screen. A taller phone keeps the clock it had (158px at 360, 170px at
+  390). Only the clock's own CSS changed; a spec renders it in a 320 by
+  568 frame and in three taller ones.
 - **Questions, run 15: a bigger number taken a place at a time
   (2026-11-12).** Rounds were played as a child in groep 3 (nl), groep 5
   (en), groep 6 (nl) and klas 1 (es), with no errors. A groep 5 round

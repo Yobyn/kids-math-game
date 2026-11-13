@@ -75,6 +75,56 @@ describe('klokkijken (groep 3 to 5, Yobyn 2026-10-24)', () => {
       fixture = TestBed.createComponent(ClockFaceComponent);
     });
 
+    describe('on a short phone (2026-11-13)', () => {
+      /** The clock as rendered, with its styles, in a frame the size of a phone's screen: its media queries apply there. */
+      function onPhone(width: number, height: number): Promise<{ wide: number; room: number }> {
+        fixture.componentInstance.hours = 3;
+        fixture.componentInstance.minutes = 37;
+        fixture.detectChanges();
+        const frame = document.createElement('iframe');
+        frame.style.cssText = `width:${width}px;height:${height}px;border:0;position:absolute;left:-2000px;top:0`;
+        document.body.appendChild(frame);
+        const rules = Array.from(document.styleSheets).map(sheet => {
+          try {
+            return Array.from(sheet.cssRules).map(rule => rule.cssText).join('\n');
+          } catch {
+            return '';
+          }
+        }).join('\n');
+        const doc = frame.contentDocument!;
+        doc.open();
+        // in a row of its own, as the sum's row holds it: the row is as high as the room the clock takes
+        doc.write(`<!doctype html><html><head><style>${rules}</style></head>`
+          + `<body style="margin:0"><div id="row" style="display:flex;align-items:center">${fixture.nativeElement.outerHTML}</div></body></html>`);
+        doc.close();
+        return new Promise(resolve => setTimeout(() => {
+          const wide = doc.querySelector('svg')!.getBoundingClientRect().width;
+          const room = doc.getElementById('row')!.getBoundingClientRect().height;
+          frame.remove();
+          resolve({ wide, room });
+        }, 50));
+      }
+
+      afterEach(() => document.querySelectorAll('iframe').forEach(frame => frame.remove()));
+
+      it('takes 22px less of the card on a 320 by 568 screen, so Check Answer comes on it, and stays a clock to read', async () => {
+        // The card of a clock question was 590px there: with the page come up to the card's top,
+        // Check Answer still ended 13px under the screen. The clock took 141px of it
+        const { wide, room } = await onPhone(320, 568);
+        expect(room).toBeLessThanOrEqual(141 - 22);
+        // still nearly the clock it was: every minute mark is to be read on it
+        expect(wide).toBeGreaterThanOrEqual(130);
+      });
+
+      it('is the clock it was on a taller phone', async () => {
+        for (const [width, height, was] of [[320, 700, 140.8], [360, 740, 158.4], [390, 844, 170]]) {
+          const { wide, room } = await onPhone(width, height);
+          expect(wide).withContext(`${width} by ${height}`).toBeCloseTo(was, 0);
+          expect(room).withContext(`${width} by ${height}`).toBeCloseTo(was, 0);
+        }
+      });
+    });
+
     it('draws twelve numbers, a mark for every minute, and the hands turned to the time', () => {
       fixture.componentInstance.hours = 3;
       fixture.componentInstance.minutes = 45;
