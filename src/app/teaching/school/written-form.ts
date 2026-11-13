@@ -1017,9 +1017,25 @@ function dutchWorkedStep(form: SumForm | undefined, num1: number, num2: number,
       const step = stepOf(form);
       return `${step}% van ${grouped(num1 * 100 / step)} = ${num1} → ${num2} × ${num1} = ${num1 * num2}`;
     }
-    // 18 van 72: as hundredths of 72, 18 × 100 shared by 72
-    case 'welk-procent':
-      return `${num1 / 100} × 100 = ${num1} → ${num1} : ${num2} = ${num1 / num2}`;
+    // 57 van 190: through a handy part of the whole, the biggest of a quarter, a fifth, 10% and 5% that
+    // the percentage is a whole number of. 10% of 190 is 19, and 57 is three of those: 30%. It was
+    // "57 × 100 = 5700 → 5700 : 190 = 30", a sharing as hard as the question
+    case 'welk-procent': {
+      const [part, percent] = [num1 / 100, num1 / num2];
+      const unit = [25, 20, 10, 5].find(each => percent % each === 0 && Number.isInteger(num2 * each / 100));
+      if (!unit) {
+        return `${part} × 100 = ${num1} → ${num1} : ${num2} = ${percent}`;
+      }
+      const amount = num2 * unit / 100;
+      const times = percent / unit;
+      // 18 van 72: the part is the handy part itself, 72 in four
+      if (times === 1) {
+        return `${num2} : ${100 / unit} = ${amount} → ${unit}%`;
+      }
+      // 3 van 20: 5% of 20 is 1, so the 3 is three of them as it stands; sharing by 1 says nothing
+      const count = amount === 1 ? '' : `${part} : ${amount} = ${times} → `;
+      return `${unit}% van ${num2} = ${amount} → ${count}${times} × ${unit}% = ${percent}%`;
+    }
     // 1 : 500: one centimetre on the map is 500 cm, 5 m, in real life
     case 'schaal-100':
     case 'schaal-200':

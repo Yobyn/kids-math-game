@@ -733,6 +733,24 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 16: "which percentage" worked out through a handy part
+  (2026-11-13).** Rounds were played as a child in groep 4 (nl), groep 7
+  (en), groep 8 (nl) and klas 3 (es), with no errors. A scan of every
+  topic's worked lines found groep 8's "57 van 190 = ? %" worked as "57 ×
+  100 = 5700 → 5700 : 190 = 30": true, but its second step is a sharing
+  as hard as the question. It is now worked through a handy part of the
+  whole, the biggest of a quarter, a fifth, 10% and 5% that the
+  percentage is a whole number of:
+  - "57 van 190": "10% van 190 = 19 → 57 : 19 = 3 → 3 × 10% = 30%";
+  - "72 van 96": "25% van 96 = 24 → 72 : 24 = 3 → 3 × 25% = 75%";
+  - "18 van 72", where the part is the handy part itself: "72 : 4 = 18 →
+    25%";
+  - "3 van 20", where 5% is 1: "5% van 20 = 1 → 3 × 5% = 15%", with no
+    sharing by 1.
+
+  The line says "of" and "de" in English and Spanish, as the card does. A
+  spec holds all 800 drawn sums to a line of whole numbers, none bigger
+  than the whole, that is true at every step and ends on the percentage.
 - **Look and feel, run 19: a clock question and Check Answer on one small
   screen (2026-11-13).** Rounds were played in groep 4 and 3 and in klas 1
   and 4, at 320, 360 and 390px in nl, en and es, with no errors. Run 18

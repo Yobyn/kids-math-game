@@ -234,7 +234,7 @@ describe('the facts an adult is asked to practise', () => {
     expect(items.map(item => item.question)).toEqual(['15% × 60', '18 / 72 = ?%', '1 : 500, 4 cm = ? m', '(11 + 15 + 10) : 3']);
     expect(items.map(item => item.answer)).toEqual(['9', '25', '20', '12']);
     expect(items.map(item => item.worked)).toEqual([
-      '5% van 60 = 3 → 3 × 3 = 9', '18 × 100 = 1800 → 1800 : 72 = 25', '1 cm = 5 m → 4 × 5 = 20', '11 + 15 + 10 = 36 → 36 : 3 = 12'
+      '5% van 60 = 3 → 3 × 3 = 9', '72 : 4 = 18 → 25%', '1 cm = 5 m → 4 × 5 = 20', '11 + 15 + 10 = 36 → 36 : 3 = 12'
     ]);
   });
 
