@@ -1,12 +1,16 @@
 <div class="keypad" role="group" aria-label="Number pad">
-  <button type="button"
-          class="key"
-          *ngFor="let key of keys"
-          [class.key-action]="key === 'del' || key === '-' || key === '.'"
-          [class.key-mark]="key === '.'"
-          [disabled]="disabled"
-          [attr.aria-label]="label(key)"
-          (click)="onPress(key)">
-    {{ face(key) }}
-  </button>
+  <ng-container *ngFor="let key of keys">
+    <button type="button"
+            class="key"
+            *ngIf="key"
+            [class.key-action]="key === 'del' || key === '-' || key === '.'"
+            [class.key-mark]="key === '.'"
+            [disabled]="disabled"
+            [attr.aria-label]="label(key)"
+            (click)="onPress(key)">
+      {{ face(key) }}
+    </button>
+    <!-- The minus key's place, left open where no answer is below nought, so 0 stays under 8 -->
+    <span class="key-gap" *ngIf="!key" aria-hidden="true"></span>
+  </ng-container>
 </div>

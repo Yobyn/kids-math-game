@@ -24,6 +24,15 @@ export const KEYPAD_KEYS = [
  */
 export const KEYPAD_KEYS_DECIMAL = KEYPAD_KEYS.map(key => (key === '-' ? '.' : key));
 
+/**
+ * The keys with the minus left out and its place left open (an empty key
+ * name), for the years that never answer below nought: groep 3 to 8. The
+ * minus is a toggle, so one stray tap of it made a right 13 a wrong −13,
+ * and a six-year-old has no use for it. The place stays open so 0 keeps
+ * its place under 8, as on a telephone.
+ */
+export const KEYPAD_KEYS_NO_MINUS = KEYPAD_KEYS.map(key => (key === '-' ? '' : key));
+
 /** The key that adds a decimal point, on the money keypad only. */
 export const DECIMAL_KEY = '.';
 
