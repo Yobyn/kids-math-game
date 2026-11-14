@@ -733,6 +733,17 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 20: no minus key where no answer is below nought
+  (2026-11-14).** Rounds were played in groep 3 and 6 and in klas 1, at
+  320, 360 and 390px in nl, en and es, with no errors. Every keypad had a
+  − key, on a groep 3 sum and under a clock too. The key is a toggle, so
+  one stray tap made a right 13 a wrong −13, and groep 3 to 8 never
+  answer below nought. Their keypad now leaves the key out and its place
+  open, so 0 stays under 8 as on a telephone. Klas 1 and up keep the key
+  on every question: it goes by the year and not by the answer, so it
+  never tells the sign. A sum from below nought that comes back in a
+  lower year's round keeps the key too. A spec draws 120 questions for
+  each climb of groep 3 to 8 and finds none that needs the key.
 - **Questions, run 16: "which percentage" worked out through a handy part
   (2026-11-13).** Rounds were played as a child in groep 4 (nl), groep 7
   (en), groep 8 (nl) and klas 3 (es), with no errors. A scan of every

@@ -694,6 +694,19 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
     return operation === '-' ? '−' : operation;
   }
 
+  /**
+   * The minus key is for a year that counts below nought: klas 1 and up
+   * (grade 7). Groep 3 to 8 never answer below nought, and the key is a
+   * toggle, so a stray tap made a right 13 a wrong −13. By the year and
+   * not by the answer, so in a klas the key never tells the sign. A sum
+   * from below nought that comes back in a lower year's round (a missed
+   * fact) keeps the key too.
+   */
+  get needsMinusKey(): boolean {
+    const { num1, num2, operation } = this.currentQuestion;
+    return this.grade >= 7 || num1 < 0 || num2 < 0 || (operation === '-' && num1 < num2);
+  }
+
   /** True where the band writes €3.40, which needs a point on the keypad. */
   get needsDecimalKey(): boolean {
     return this.currentQuestion.money ? this.currentQuestion.money.unit === 'decimal' : this.inDecimals;

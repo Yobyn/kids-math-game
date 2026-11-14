@@ -24,6 +24,35 @@ describe('KeypadComponent', () => {
     expect(keys().length).toBe(KEYPAD_KEYS.length);
   });
 
+  describe('without the minus key, for the years that never answer below nought (2026-11-14)', () => {
+    const faces = () => keys().map(button => button.textContent!.trim());
+    const left = (face: string) => Math.round(keys().find(button => button.textContent!.trim() === face)!.getBoundingClientRect().left);
+
+    it('has the minus key unless it is told otherwise', () => {
+      expect(faces()).toContain('\u2212');
+    });
+
+    it('leaves the key out and its place open, so 0 stays under 8 and ⌫ under 9', () => {
+      component.minus = false;
+      fixture.detectChanges();
+      expect(faces()).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '⌫']);
+      expect(left('0')).toBe(left('8'));
+      expect(left('⌫')).toBe(left('9'));
+      // the open place is nothing to press or to read out
+      const gap = fixture.nativeElement.querySelector('.key-gap') as HTMLElement;
+      expect(gap.tagName).not.toBe('BUTTON');
+      expect(gap.getAttribute('aria-hidden')).toBe('true');
+    });
+
+    it('still swaps in the decimal key where a sum has a comma', () => {
+      component.minus = false;
+      component.decimal = true;
+      fixture.detectChanges();
+      expect(faces()).toContain('.');
+      expect(faces().length).toBe(12);
+    });
+  });
+
   it('shows the decimal key as a comma where the child writes 0,7, and still types the point', () => {
     component.decimal = true;
     component.comma = true;

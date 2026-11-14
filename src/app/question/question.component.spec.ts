@@ -1963,6 +1963,65 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
 
   afterEach(() => localStorage.clear());
 
+  describe('the minus key is for the years that count below nought (2026-11-14)', () => {
+    const faces = () => Array.from(fixture.nativeElement.querySelectorAll('app-keypad .key') as NodeListOf<HTMLElement>)
+      .map(key => key.textContent!.trim());
+
+    /** A round in this grade (1 is groep 3, 7 is klas 1) on a phone, with a plain sum on the card. */
+    function onPhone(grade: number, climb = 'medium') {
+      localStorage.clear();
+      localStorage.setItem('grade', String(grade));
+      localStorage.setItem('difficulty', climb);
+      localStorage.setItem('language', 'nl');
+      fixture = TestBed.createComponent(QuestionComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+      component.useKeypad = true;
+      ask({ num1: 8, num2: 5, operation: '+' });
+    }
+
+    it('gives groep 3 a keypad with no minus key: one tap of it made a right 13 a wrong −13', () => {
+      onPhone(1);
+      expect(faces()).toEqual(['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '⌫']);
+    });
+
+    it('never asks groep 3 to 8 for a number below nought, in any climb, so the key is never missed', () => {
+      for (let grade = 1; grade <= 6; grade++) {
+        ['easy', 'medium', 'hard'].forEach(climb => {
+          onPhone(grade, climb);
+          for (let i = 0; i < 120; i++) {
+            component.generateQuestion();
+            const { num1, num2, operation } = component.currentQuestion;
+            const at = `grade ${grade} ${climb}: ${num1} ${operation} ${num2} ${component.currentQuestion.form || ''}`;
+            expect(num1 >= 0 && num2 >= 0 && !(operation === '-' && num1 < num2)).withContext(at).toBeTrue();
+            expect(component.needsMinusKey).withContext(at).toBeFalse();
+          }
+        });
+      }
+    });
+
+    it('gives klas 1 to 4 the minus key on every question, so the key never tells the sign', () => {
+      for (let grade = 7; grade <= 10; grade++) {
+        onPhone(grade);
+        expect(faces()).withContext(`grade ${grade}`).toContain('\u2212');
+        for (let i = 0; i < 60; i++) {
+          component.generateQuestion();
+          expect(component.needsMinusKey).withContext(`grade ${grade}`).toBeTrue();
+        }
+      }
+    });
+
+    it('keeps the key for a sum below nought that comes back in a lower year\'s round', () => {
+      onPhone(3);
+      ask({ num1: 3, num2: 14, operation: '-' });
+      expect(faces()).toContain('\u2212');
+      ask({ num1: -6, num2: 14, operation: '+', form: 'negatief' });
+      expect(faces()).toContain('\u2212');
+      ask({ num1: 8, num2: 5, operation: '+' });
+      expect(faces()).not.toContain('\u2212');
+    });
+  });
+
   describe('a new question brings Check Answer on screen (2026-11-12)', () => {
     const MARGIN = 8;
     const rect = (selector: string) => (fixture.nativeElement.querySelector(selector) as HTMLElement).getBoundingClientRect();
