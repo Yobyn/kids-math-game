@@ -733,6 +733,23 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 17: a 1 in the ones is one group more, never a step
+  times 1 (2026-11-15).** Rounds were played as a child in groep 3 (nl),
+  groep 7 (en) and klas 2 (es), with no errors. A scan of every topic's
+  worked lines found a step that multiplies by 1 in four topics of groep 5
+  to 7 (TE × E, TE × TE, a bigger number × E, cijferend ×): "6 × 11" was
+  "6 × 10 = 60 → 6 × 1 = 6 → 60 + 6 = 66", and "291 × 31" had "291 × 1 =
+  291". Run 5 kept the written forms from multiplying by 1, but not the
+  plain sums. A 1 in the ones is now one group more:
+  - "4 × 21": "4 × 20 = 80 → 80 + 4 = 84";
+  - "51 × 7": "50 × 7 = 350 → 350 + 7 = 357";
+  - "291 × 31": "291 × 30 = 8730 → 8730 + 291 = 9021".
+
+  Another figure in the ones keeps its own step, as before. A spec holds
+  2400 drawn sums of the four topics to steps that are true, end on the
+  answer and never multiply by 1. Sharing out ("155 : 5" as "150 : 5 = 30
+  → 5 : 5 = 1 → 30 + 1") was left as it is: there the 1 is the answer to
+  a step, not a step that says nothing.
 - **Look and feel, run 20: no minus key where no answer is below nought
   (2026-11-14).** Rounds were played in groep 3 and 6 and in klas 1, at
   320, 360 and 390px in nl, en and es, with no errors. Every keypad had a
