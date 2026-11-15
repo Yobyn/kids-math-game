@@ -242,6 +242,40 @@ describe('the method it chooses', () => {
     expect(worked).toBeGreaterThan(600);
   });
 
+  it('adds one more group for a 1 in the ones, and never multiplies by 1 (2026-11-15)', () => {
+    // 6 × 11 was "6 × 10 = 60 → 6 × 1 = 6 → 60 + 6 = 66": a step that says nothing
+    expect(workedStep(6, 11, '*')).toBe('6 × 10 = 60 → 60 + 6 = 66');
+    expect(workedStep(51, 7, '*')).toBe('50 × 7 = 350 → 350 + 7 = 357');
+    expect(workedStep(34, 11, '*')).toBe('34 × 10 = 340 → 340 + 34 = 374');
+    expect(workedStep(291, 31, '*')).toBe('291 × 30 = 8730 → 8730 + 291 = 9021');
+    // another figure in the ones keeps its own step
+    expect(workedStep(6, 17, '*')).toBe('6 × 10 = 60 → 6 × 7 = 42 → 60 + 42 = 102');
+    expect(workedStep(23, 14, '*')).toBe('23 × 10 = 230 → 23 × 4 = 92 → 230 + 92 = 322');
+  });
+
+  it('holds every split times sum groep 5 to 7 are asked to steps that never multiply by 1, true and on the answer (2026-11-15)', () => {
+    const random = (() => { let seed = 41; return () => (seed = (seed * 16807) % 2147483647) / 2147483647; })();
+    let ones = 0;
+    ['te-keer-e', 'keer-groter', 'te-keer-te', 'cijferend-keer'].forEach(topic => {
+      for (let i = 0; i < 600; i++) {
+        const sum = TOPICS[topic](random);
+        const step = workedStep(sum.num1, sum.num2, sum.operation)!;
+        const at = `${topic}: ${sum.num1} × ${sum.num2} => ${step}`;
+        const lines = equations(step);
+        lines.forEach(({ left, right }) => {
+          expect(evaluate(left)).withContext(at).toBe(right);
+          expect(left).withContext(at).not.toMatch(/(^| )1 × |× 1$/);
+        });
+        expect(lines[lines.length - 1].right).withContext(at).toBe(sum.num1 * sum.num2);
+        if (sum.num1 % 10 === 1 || sum.num2 % 10 === 1) {
+          ones++;
+        }
+      }
+    });
+    // the sweep met sums with a 1 in the ones, the ones the old line multiplied by 1
+    expect(ones).toBeGreaterThan(50);
+  });
+
   it('reads division back as the multiplication behind it', () => {
     expect(workedStep(42, 6, '/')).toBe('6 × 7 = 42 → 42 ÷ 6 = 7');
   });

@@ -90,7 +90,7 @@ the €1, whose answer is the amount itself (2026-11-04).
 From groep 5 a table is revisited, not learnt: a table fact never has a 1 in
 it (4 × 1, 1 × 7, 9 : 9 are groep 4's; 2026-11-08).
 | E | +/− within 1000 crossing (kolomsgewijs; worked a place at a time after two tries: 367 + 200 = 567 → 567 + 50 = 617 → 617 + 8 = 625) | 367 + 258, 512 − 347 |
-| E | TE × E | 4 × 23, 6 × 15 |
+| E | TE × E (worked in tens and ones after two tries; a 1 in the ones is one group more: 4 × 20 = 80 → 80 + 4 = 84) | 4 × 23, 6 × 15 |
 | E | Dividing with a remainder | 23 : 4 = 5 rest ? |
 | E | Measures: m/cm, kg/g, hours/minutes | 3 m = ? cm, 2 uur = ? minuten |
 
@@ -103,7 +103,7 @@ it (4 × 1, 1 × 7, 9 : 9 are groep 4's; 2026-11-08).
 | M | Times and dividing, larger | 12 × 15, 25 × 8, 96 : 4, 150 : 6 |
 | M | Fractions of an amount; equal fractions | ¾ van 20, ½ = ?/8 |
 | E | Decimals: tenths and money | 0,3 + 0,4, 1,5 + 2,7 |
-| E | TE × TE | 23 × 14 |
+| E | TE × TE (worked in tens and ones after two tries; 34 × 11 as 34 × 10 = 340 → 340 + 34 = 374) | 23 × 14 |
 | E | Perimeter and area of a rectangle | 6 m bij 4 m: oppervlakte = ? m² |
 | E | Rounding to tens and hundreds | 347 ≈ ? (op tientallen) |
 

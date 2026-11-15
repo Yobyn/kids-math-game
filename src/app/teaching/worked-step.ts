@@ -179,12 +179,20 @@ function multiplication(num1: number, num2: number): string | undefined {
   // 4 × 23 and 23 × 14 are taught. 4 × 20 = 80 → 4 × 3 = 12 → 80 + 12 = 92
   if (num2 > 10 && num2 % 10 && num1 > 1) {
     const [tens, ones] = [num2 - num2 % 10, num2 % 10];
+    // A 1 in the ones is one group more, not a step times 1: 6 × 11 as 6 × 10 = 60 and 6 more
+    if (ones === 1) {
+      return `${num1} × ${tens} = ${num1 * tens}${THEN}${num1 * tens} + ${num1} = ${product}`;
+    }
     return `${num1} × ${tens} = ${num1 * tens}${THEN}${num1} × ${ones} = ${num1 * ones}` +
       `${THEN}${num1 * tens} + ${num1 * ones} = ${product}`;
   }
   // 25 × 8 = 20 × 8 + 5 × 8
   if (num1 > 10 && num1 % 10 && num2 > 1) {
     const [tens, ones] = [num1 - num1 % 10, num1 % 10];
+    // 51 × 7 as 50 × 7 = 350 and one 7 more
+    if (ones === 1) {
+      return `${tens} × ${num2} = ${tens * num2}${THEN}${tens * num2} + ${num2} = ${product}`;
+    }
     return `${tens} × ${num2} = ${tens * num2}${THEN}${ones} × ${num2} = ${ones * num2}` +
       `${THEN}${tens * num2} + ${ones * num2} = ${product}`;
   }
