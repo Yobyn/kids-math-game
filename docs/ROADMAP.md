@@ -733,6 +733,27 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Avatar graphics, 2: softer light, a rim, a shadow underfoot and
+  sharper pictures (2026-11-16).** The second of Yobyn's four parts, for
+  every character at once (toon.ts):
+  - The four bands of light were four greys read one texel each, so each
+    band ended in a jagged stair-step across a cheek. The ramp is 128
+    texels now with a soft edge between bands (`rampColour`), the shade
+    leans to the stage's violet and the highlight is a little warm
+    (`BANDS`).
+  - A rim of light round every part, brightest where the surface turns
+    away from the eye (`RIM`, `addRim`): it lifts a character off the
+    dark stage and one part off the part behind it. It is written into
+    three.js's own toon shader; a test fails if a new three.js words
+    that shader differently, and another compiles it in a real WebGL
+    context.
+  - A soft shadow on the stand under every character, dark in the middle
+    and gone at the rim (`pedestal-shadow`): the feet no longer float on
+    a lit plate.
+  - The small pictures (header, result, progress) are drawn at up to
+    three device pixels to one (`MAX_STILL_RATIO`); they stopped at two,
+    so on most phones they were stretched half as big again. The kept
+    pictures are re-drawn (`STILL_VERSION` 14).
 - **Avatar graphics, 1: the kid hero's clothes, arms, hands and hair
   (2026-11-16).** Yobyn: "We need to work on the graphics of the avatar",
   and of four parts offered (the kid hero, shading and sharpness, the

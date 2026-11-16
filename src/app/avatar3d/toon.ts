@@ -10,22 +10,76 @@ const OUTLINE = new THREE.Color('#2a1640');
 
 let toonRamp: THREE.DataTexture | null = null;
 
-/** Three bands of light: shadow, mid, lit. */
+/**
+ * The four bands of light, darkest first, as the colour each multiplies a
+ * surface by. The shadows lean to the stage's violet and the highlight is a
+ * little warm: light and shade differ in colour as well as in brightness,
+ * which is what makes a drawn character look lit rather than greyed
+ * (they were four greys: 120, 185, 235, 255).
+ */
+export const BANDS: [number, number, number][] = [[112, 108, 150], [180, 178, 200], [236, 234, 232], [255, 252, 244]];
+/** How many texels the ramp is drawn over, and how far either side of a band's edge it blends, as a share of a band. */
+export const RAMP_WIDTH = 128;
+export const BAND_BLEND = 0.1;
+
+/** The colour of the light at `t` along the ramp, 0 (facing away) to 1 (facing the light). */
+export function rampColour(t: number): [number, number, number] {
+  const at = Math.min(Math.max(t, 0), 1) * BANDS.length;
+  const band = Math.min(BANDS.length - 1, Math.floor(at));
+  const into = at - band;
+  // Flat across the band, blended into its neighbour over a narrow edge: a
+  // soft step, where one texel a band gave an edge of stair-steps
+  const mix = (a: number[], b: number[], k: number) => a.map((v, i) => v + (b[i] - v) * k) as [number, number, number];
+  const smooth = (k: number) => k * k * (3 - 2 * k);
+  if (into < BAND_BLEND && band > 0) {
+    return mix(BANDS[band - 1], BANDS[band], smooth(0.5 + into / (2 * BAND_BLEND)));
+  }
+  if (into > 1 - BAND_BLEND && band < BANDS.length - 1) {
+    return mix(BANDS[band], BANDS[band + 1], smooth((into - (1 - BAND_BLEND)) / (2 * BAND_BLEND)));
+  }
+  return BANDS[band];
+}
+
+/** Four bands of light — shadow, half-light, light, highlight — with soft edges between them. */
 export function ramp(): THREE.DataTexture {
   if (!toonRamp) {
-    // Four soft steps: shadow, half-light, light and a small highlight
-    const data = new Uint8Array([120, 120, 120, 255, 185, 185, 185, 255, 235, 235, 235, 255, 255, 255, 255, 255]);
-    toonRamp = new THREE.DataTexture(data, 4, 1, THREE.RGBAFormat);
-    toonRamp.minFilter = THREE.NearestFilter;
-    toonRamp.magFilter = THREE.NearestFilter;
+    const data = new Uint8Array(RAMP_WIDTH * 4);
+    for (let i = 0; i < RAMP_WIDTH; i++) {
+      const [r, g, b] = rampColour((i + 0.5) / RAMP_WIDTH);
+      data.set([Math.round(r), Math.round(g), Math.round(b), 255], i * 4);
+    }
+    toonRamp = new THREE.DataTexture(data, RAMP_WIDTH, 1, THREE.RGBAFormat);
+    toonRamp.minFilter = THREE.LinearFilter;
+    toonRamp.magFilter = THREE.LinearFilter;
     toonRamp.generateMipmaps = false;
     toonRamp.needsUpdate = true;
   }
   return toonRamp;
 }
 
+/**
+ * A rim of light round every part, brightest where its surface turns away
+ * from the eye: the glow a figure has standing in front of a light. On the
+ * dark stage it lifts each part off the background and off the part behind
+ * it, where flat bands alone left a dark top on dark trousers as one shape.
+ * RIM.strength of the part's own colour, lightened by RIM.white, falling off
+ * with the RIM.power-th power of how square-on the surface is.
+ */
+export const RIM = { strength: 0.42, white: 0.55, power: 3 };
+
+const LIT = 'vec3 outgoingLight = reflectedLight.directDiffuse + reflectedLight.indirectDiffuse + totalEmissiveRadiance;';
+
+/** Adds the rim to a toon material's shader. One function for every material, so they all share one program. */
+export function addRim(shader: { fragmentShader: string }): void {
+  shader.fragmentShader = shader.fragmentShader.replace(LIT, `${LIT}
+	float rimEdge = pow(1.0 - saturate(dot(normalize(normal), normalize(vViewPosition))), ${RIM.power.toFixed(1)});
+	outgoingLight += mix(diffuseColor.rgb, vec3(1.0), ${RIM.white.toFixed(2)}) * rimEdge * ${RIM.strength.toFixed(2)};`);
+}
+
 export function toon(colour: string | THREE.Color, extra: THREE.MeshToonMaterialParameters = {}): THREE.MeshToonMaterial {
-  return new THREE.MeshToonMaterial({ color: new THREE.Color(colour as any), gradientMap: ramp(), ...extra });
+  const material = new THREE.MeshToonMaterial({ color: new THREE.Color(colour as any), gradientMap: ramp(), ...extra });
+  material.onBeforeCompile = addRim;
+  return material;
 }
 
 /** A dark shell drawn behind a mesh, pushed out along its normals. */

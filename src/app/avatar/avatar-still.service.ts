@@ -9,14 +9,19 @@ export interface StillMaker {
 }
 
 /** Bumped whenever the 3D look changes, so no screen shows a picture of the old one. */
-export const STILL_VERSION = 13;
+export const STILL_VERSION = 14;
 export const STILL_STORE_KEY = 'avatarStills';
 /** A few pictures of the current character are kept; older ones make room. */
 export const MAX_STORED_STILLS = 8;
 
+/** The most device pixels a still is drawn at for each pixel of its size on the page. */
+export const MAX_STILL_RATIO = 3;
+
 /** A full still is taller than it is wide, as the 2D drawing's full framing is. */
 export function stillBox(framing: StillFraming, size: number, pixelRatio: number): [number, number] {
-  const ratio = Math.min(2, Math.max(1, pixelRatio || 1));
+  // Up to three device pixels to one: most phones are 3 now, and at 2 the
+  // header's picture was drawn 88 pixels across and stretched to 132
+  const ratio = Math.min(MAX_STILL_RATIO, Math.max(1, pixelRatio || 1));
   const height = framing === 'full' ? size * 1.32 : size;
   return [Math.round(size * ratio), Math.round(height * ratio)];
 }

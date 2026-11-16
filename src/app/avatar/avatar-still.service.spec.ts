@@ -7,6 +7,7 @@ import {
   STILL_STORE_KEY,
   STILL_VERSION,
   StillMaker,
+  MAX_STILL_RATIO,
   stillBox,
   stillKey
 } from './avatar-still.service';
@@ -22,9 +23,15 @@ describe('stillBox and stillKey', () => {
     expect(stillBox('full', 100, 1)).toEqual([100, 132]);
   });
 
-  it('draws for sharp screens, but never more than twice over', () => {
+  it('draws for sharp screens, a device pixel for each one up to three times over (2026-11-16)', () => {
+    // It stopped at twice: on a phone that draws three to one, the header's picture was stretched half as big again
+    expect(MAX_STILL_RATIO).toBe(3);
     expect(stillBox('portrait', 50, 2)).toEqual([100, 100]);
-    expect(stillBox('portrait', 50, 3)).toEqual([100, 100]);
+    expect(stillBox('portrait', 50, 3)).toEqual([150, 150]);
+    expect(stillBox('portrait', 44, 3)).toEqual([132, 132]);
+    expect(stillBox('full', 96, 3)).toEqual([288, 380]);
+    // and no further: a picture is kept in the browser, and one four times over is too much to keep
+    expect(stillBox('portrait', 50, 4)).toEqual([150, 150]);
     expect(stillBox('portrait', 50, 0.5)).toEqual([50, 50]);
     expect(stillBox('portrait', 50, 0)).toEqual([50, 50]);
   });
