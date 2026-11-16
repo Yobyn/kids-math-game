@@ -4,7 +4,7 @@ import { CREATURE_STAND_RADIUS, buildAvatar, disposeAvatar } from './build-avata
 import { CREATURE, CREATURE_GLOW, CREATURE_HEAD, STAGE_HEIGHT } from './creatures';
 import { figureFor } from './figure';
 import { BREATH_RISE, BREATH_SECONDS, GLOW_LOW, GLOW_SECONDS, eyesOpen } from './motion';
-import { CAPE_RED, GOLD, buildPizza } from './pizza';
+import { CAPE_GAP, CAPE_RED, CAPE_SWING, CHEESE, CHEESE_FRONT, GOLD, ROUND, THICK, buildPizza } from './pizza';
 import { Rig } from './rig';
 import { framedBox } from './still-renderer';
 
@@ -200,6 +200,53 @@ describe('the Silly objects family: a slice of pizza that grows into a super piz
     const trim = boxOf(root.getObjectByName('pizza-cape-trim')!);
     expect(trim.containsPoint(middle)).toBeTrue();
     expect(trim.min.y).toBeLessThan(boxOf(cape).min.y);
+  });
+
+  it('is a plump wedge from the side, in layers: a baked base, the dough, cheese over the whole front (2026-11-16)', () => {
+    // It was half a unit thick on a slice four wide: from the side a board with its face painted on
+    expect(THICK).toBeGreaterThanOrEqual(0.9);
+    expect(ROUND).toBeGreaterThan(0.2);
+    [1, 2, 3].forEach(stage => {
+      const root = buildPizza(stage);
+      root.updateMatrixWorld(true);
+      const [slice, cheese, base, crust] = ['pizza-slice', 'pizza-cheese', 'pizza-base', 'pizza-crust'].map(name => boxOf(root.getObjectByName(name)!));
+      const size = (box: THREE.Box3) => box.getSize(new THREE.Vector3());
+      const at = `stage ${stage}`;
+      // at least a quarter as thick as it is wide (it was an eighth), the crust a fatter roll still
+      expect(size(slice).z / size(slice).x).withContext(at).toBeGreaterThan(0.25);
+      expect(size(crust).z).withContext(at).toBeGreaterThan(size(slice).z);
+      // the cheese covers the front, edge to edge within the dough's own sides, and stands just proud of it
+      expect(size(cheese).x / size(slice).x).withContext(at).toBeGreaterThan(0.9);
+      expect(size(cheese).x).withContext(at).toBeLessThan(size(slice).x);
+      expect(cheese.max.z).withContext(at).toBeGreaterThan(slice.max.z);
+      expect(cheese.min.z).withContext(at).toBeGreaterThan(slice.getCenter(new THREE.Vector3()).z);
+      // the base lies on the back, in the crust's own baked colour, and is no thicker than a crust is
+      expect(base.min.z).withContext(at).toBeLessThan(slice.min.z);
+      expect(base.max.z).withContext(at).toBeLessThan(slice.getCenter(new THREE.Vector3()).z);
+      expect(colourOf(root.getObjectByName('pizza-base')!)).toBe(colourOf(root.getObjectByName('pizza-crust')!));
+      expect(colourOf(root.getObjectByName('pizza-cheese')!)).toBe(CHEESE);
+      // the face and the toppings are on the cheese's front, not sunk in it
+      expect(CHEESE_FRONT).toBeCloseTo(THICK / 2 + ROUND + 0.02, 9);
+      root.traverse(node => (node as THREE.Mesh).geometry?.dispose());
+    });
+  });
+
+  it('hangs the cape close behind the slice, nearly straight down: cloth, not a second board leaning on it (2026-11-16)', () => {
+    expect(CAPE_GAP).toBeLessThan(0.25);
+    expect(CAPE_SWING).toBeLessThan(0.12);
+    expect(CAPE_SWING).toBeGreaterThan(0);
+    [2, 3].forEach(stage => {
+      const root = buildPizza(stage);
+      root.updateMatrixWorld(true);
+      const [slice, base, cape] = ['pizza-slice', 'pizza-base', 'pizza-cape'].map(name => boxOf(root.getObjectByName(name)!));
+      const thick = slice.max.z - slice.min.z;
+      // behind the base, by less than a third of the slice's own thickness at the top
+      expect(cape.max.z).withContext(`stage ${stage}`).toBeLessThan(base.min.z);
+      expect(base.min.z - cape.max.z).withContext(`stage ${stage}`).toBeLessThan(thick / 3);
+      // and its hem no further back than the slice is thick (it swung back more than twice that)
+      expect(base.min.z - cape.min.z).withContext(`stage ${stage}`).toBeLessThan(thick);
+      root.traverse(node => (node as THREE.Mesh).geometry?.dispose());
+    });
   });
 
   it('puts the super pizza’s sparkles above its crust', () => {

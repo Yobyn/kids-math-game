@@ -733,6 +733,26 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Avatar graphics, 3: the creatures, and a pizza that is a wedge
+  (2026-11-16).** The third of Yobyn's four parts. All five creature
+  families were rendered at each stage from the front, the side and the
+  back. The dragon, the robot, the bear and the alien hold up from every
+  side and were left as they are (the new light and shadow of part 2 are
+  theirs too). The pizza did not: half a unit thick on a slice four
+  wide, it was a board from the side, with its cape leaning on it like a
+  second board. Now (pizza.ts):
+  - the slice is `THICK` 0.9 with fuller rounding, a deep-dish wedge,
+    under a fatter roll of crust; its outline is as wide as it was, so
+    the cape still shows either side;
+  - it is in layers, as a slice is from the side: a baked base behind
+    (`pizza-base`), the dough, and cheese over the whole front, its edge
+    showing all round;
+  - the cape hangs close behind the base (`CAPE_GAP`) and nearly
+    straight down (`CAPE_SWING` 0.08 of a radian; it was 0.25).
+
+  The kept pictures are re-drawn (`STILL_VERSION` 15). Tests hold the
+  slice's thickness against its width, each layer's place and colour,
+  and how near the cape hangs.
 - **Avatar graphics, 2: softer light, a rim, a shadow underfoot and
   sharper pictures (2026-11-16).** The second of Yobyn's four parts, for
   every character at once (toon.ts):
