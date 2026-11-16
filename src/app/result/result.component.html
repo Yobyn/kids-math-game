@@ -31,7 +31,8 @@
         <ng-container [ngSwitch]="tile.kind">
           <ng-container *ngSwitchCase="'right'">
             <span class="tile-value">{{ tile.value }}</span>
-            <span class="tile-label">{{ languageService.translate('answers-right') }}</span>
+            <!-- One answer is an answer, not "answers" -->
+            <span class="tile-label">{{ languageService.translate(tile.value === 1 ? 'answer-right' : 'answers-right') }}</span>
           </ng-container>
           <ng-container *ngSwitchCase="'xp'">
             <span class="tile-value">+{{ tile.value }}</span>

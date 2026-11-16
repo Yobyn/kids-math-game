@@ -27,6 +27,7 @@ export type PlayKey =
   | 'resume-start-again'
   | 'answer-is'
   | 'good-try'
+  | 'answer-right'
   | 'right-1'
   | 'right-2'
   | 'right-3'
@@ -105,6 +106,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'resume-start-again': 'Start again',
     'answer-is': 'The answer is',
     'good-try': "Good try — you'll get the next one!",
+    'answer-right': 'answer right',
     'right-1': 'Spot on!',
     'right-2': "That's right!",
     'right-3': 'Exactly right!',
@@ -182,6 +184,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'resume-start-again': 'Opnieuw beginnen',
     'answer-is': 'Het antwoord is',
     'good-try': 'Goed geprobeerd — de volgende lukt je!',
+    'answer-right': 'goed antwoord',
     'right-1': 'Goed gerekend!',
     'right-2': 'Klopt helemaal!',
     'right-3': 'Precies goed!',
@@ -259,6 +262,7 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'resume-start-again': 'Empezar de nuevo',
     'answer-is': 'La respuesta es',
     'good-try': '¡Buen intento, la próxima te saldrá!',
+    'answer-right': 'respuesta correcta',
     'right-1': '¡Correcto!',
     'right-2': '¡Exacto!',
     'right-3': '¡Bien calculado!',

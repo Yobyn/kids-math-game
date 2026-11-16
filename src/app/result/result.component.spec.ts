@@ -5,6 +5,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { ROUND_TUNE_AFTER_STARS_MS, ResultComponent } from './result.component';
 import { STAR_STEP_MS } from './round-card';
 import { SoundService } from '../services/sound.service';
+import { LanguageService } from '../services/language.service';
 import { ScoreService } from '../services/score.service';
 import { ProgressService } from '../services/progress.service';
 import { AuthService } from '../services/auth.service';
@@ -41,6 +42,30 @@ describe('ResultComponent', () => {
     }).compileComponents();
 
     scoreService = TestBed.inject(ScoreService);
+  });
+
+  it('says one answer right in the singular, in every language (2026-11-16)', () => {
+    const label = () => (fixture.nativeElement.querySelector('[data-kind="right"] .tile-label') as HTMLElement).textContent!.trim();
+    const said: { [language: string]: string[] } = {
+      nl: ['goed antwoord', 'goede antwoorden'], en: ['answer right', 'answers right'], es: ['respuesta correcta', 'respuestas correctas']
+    };
+    Object.keys(said).forEach(language => {
+      TestBed.inject(LanguageService).setLanguage(language as any);
+      const spy = jasmine.isSpy(scoreService.getFinalScore) ? scoreService.getFinalScore as jasmine.Spy : spyOn(scoreService, 'getFinalScore');
+      spy.and.returnValue({ score: 2, total: 10, correctAnswers: 1, percentage: 10 });
+      fixture = TestBed.createComponent(ResultComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
+      expect(label()).withContext(language).toBe(said[language][0]);
+      spy.and.returnValue({ score: 4, total: 10, correctAnswers: 2, percentage: 20 });
+      fixture.destroy();
+      fixture = TestBed.createComponent(ResultComponent);
+      fixture.detectChanges();
+      expect(label()).withContext(language).toBe(said[language][1]);
+      fixture.destroy();
+    });
+    // the language was kept in storage as it was set: leave none behind for the tests after this one
+    localStorage.removeItem('language');
   });
 
   it('should create', () => {

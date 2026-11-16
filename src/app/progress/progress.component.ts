@@ -69,11 +69,12 @@ export class ProgressComponent implements OnInit {
     return Math.round(Math.min(Math.max(this.level.fraction, 0), 1) * 100);
   }
 
-  labelFor(kind: TileKind): TranslationKeys {
+  /** What a count says it counts, in the singular for one: "1 ronde gespeeld", never "1 rondes". */
+  labelFor(kind: TileKind, value?: number): TranslationKeys {
     const labels: Record<TileKind, TranslationKeys> = {
-      rounds: 'rounds-finished',
-      questions: 'questions-answered',
-      right: 'answers-right',
+      rounds: value === 1 ? 'round-finished' : 'rounds-finished',
+      questions: value === 1 ? 'question-answered' : 'questions-answered',
+      right: value === 1 ? 'answer-right-in-all' : 'answers-right',
       best: 'your-best'
     };
     return labels[kind];
