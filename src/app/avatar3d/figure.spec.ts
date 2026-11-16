@@ -203,6 +203,21 @@ describe('figure', () => {
 
 
 
+    it('hangs slim arms beside a sturdy body, ending in hands big enough to read (2026-11-16)', () => {
+      // The arms were as sturdy as the body (build 1.45): a pair of bolsters, with hands thinner than their cuffs
+      expect(STYLE.arm).toBeLessThan(0.85);
+      expect(STYLE.arm).toBeGreaterThan(0.7);
+      expect(STYLE.hand).toBeGreaterThan(1.2);
+      BODY_TYPES_HERE.forEach(type => {
+        const [s, m] = [FIGURES[type], MEASURED[type]];
+        s.armRadii.forEach((radius, i) => expect(radius).withContext(`${type} ${i}`).toBeCloseTo(m.armRadii[i] * STYLE.build * STYLE.arm!, 9));
+        // slimmer than the leg beside it at every joint, as a child's are
+        expect(s.armRadii[0]).withContext(type).toBeLessThan(s.legRadii[0] * 0.7);
+        // the hand is longer than the wrist is wide: a mitten on the end of the arm, not a knob
+        expect(s.handLength).withContext(type).toBeGreaterThan(s.armRadii[2] * 2 * 1.2);
+      });
+    });
+
     it('has a bigger head and a shorter, sturdier body than measured', () => {
       BODY_TYPES_HERE.forEach(type => {
         const [s, m] = [FIGURES[type], MEASURED[type]];
@@ -214,7 +229,7 @@ describe('figure', () => {
         expect(s.upperArm / s.forearm).toBeCloseTo(m.upperArm / m.forearm, 9);
         // A neck fit for a bigger head, hands and feet in proportion
         expect(s.neckRadius).toBeCloseTo(m.neckRadius * STYLE.build * Math.sqrt(STYLE.head), 9);
-        expect(s.handLength).toBeCloseTo(m.handLength * STYLE.body * STYLE.build, 9);
+        expect(s.handLength).toBeCloseTo(m.handLength * STYLE.body * STYLE.build * STYLE.hand!, 9);
         expect(s.foot[0]).toBeCloseTo(m.foot[0] * STYLE.build, 9);
         expect(s.foot[1]).toBeCloseTo(m.foot[1] * STYLE.build, 9);
       });
@@ -278,7 +293,7 @@ describe('figure', () => {
       // Saved pictures are kept by version; a new STYLE with the old version
       // would leave every screen showing the old character
       expect({ version: STILL_VERSION, style: STYLE, tuck: SHOULDER_TUCK }).toEqual({
-        version: 12, style: { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.55, round: true, stance: 0.4 }, tuck: 0.3
+        version: 13, style: { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.55, round: true, stance: 0.4, arm: 0.78, hand: 1.3 }, tuck: 0.3
       });
     });
 

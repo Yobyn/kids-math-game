@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import { TOP_COLOURS } from '../avatar/top-colours';
 import {
-  Avatar, FACE_SHAPES, HAIR_STYLES, HAIR_TEXTURES, NO_ITEM, WARDROBE, defaultAvatar, findItem
+  Avatar, DEFAULT_TOP_COLOUR, FACE_SHAPES, HAIR_STYLES, HAIR_TEXTURES, NO_ITEM, SKIN_TONES, WARDROBE, defaultAvatar, findItem
 } from '../avatar/avatar-model';
 import { HATS_OVER_HAIR } from '../avatar/avatar-parts';
-import { ARM_RIG, EYE_SCALE, EYE_SIZE, EYE_WHITE, FOREARM_RIG, IRIS, NOSE_SIZE, POCKET_ARC, POCKET_AT, POCKET_HEIGHT, STRING_GAP, buildAvatar, disposeAvatar, topCut } from './build-avatar';
+import { ARM_RIG, EYE_SCALE, EYE_SIZE, EYE_WHITE, FOREARM_RIG, HAND, IRIS, NOSE_SIZE, POCKET_ARC, POCKET_AT, POCKET_HEIGHT, STRING_GAP, TROUSERS, TURN_UP, TURN_UP_SHARE, buildAvatar, disposeAvatar, topCut } from './build-avatar';
+import { collarShare } from './shoes';
 import { FIGURES, Figure, KNEE_FORWARD, chinY, figureFor, torsoRadius } from './figure';
 import {
   EYE_DIRS, HAT_CAP, HAT_LIFT, Vec3, hairPoint, hatBrim, headPoint, normalise, radiusAlong
@@ -717,6 +718,85 @@ describe('buildAvatar', () => {
       expect(radiusTop).toBeCloseTo(torsoRadius(figure, pocket.position.y) * 1.02, 9);
       expect(pocket.scale.z).toBe(depth);
       disposeAvatar(root);
+    });
+  });
+
+  describe('the kid hero\'s clothes and hands read at a glance (2026-11-16)', () => {
+    const colourOf = (root: THREE.Object3D, name: string) => (find(root, name)[0] as THREE.Mesh).material as THREE.MeshToonMaterial;
+    const apart = (a: THREE.Color, b: THREE.Color) => Math.hypot(a.r - b.r, a.g - b.g, a.b - b.b);
+
+    it('wears jeans that are no colour of skin, and none of the tops\' colours', () => {
+      // The trousers were #a86f3f, a tan between two of the skin tones: the legs read as bare
+      const jeans = new THREE.Color(TROUSERS);
+      expect(apart(jeans, new THREE.Color('#a86f3f'))).toBeGreaterThan(0.4);
+      SKIN_TONES.forEach(skin => expect(apart(jeans, new THREE.Color(skin))).withContext(skin).toBeGreaterThan(0.35));
+      [DEFAULT_TOP_COLOUR, ...TOP_COLOURS, ...WARDROBE.filter(item => item.slot === 'top' && item.id !== NO_ITEM).map(item => item.colour)]
+        .forEach(top => expect(apart(jeans, new THREE.Color(top))).withContext(top).toBeGreaterThan(0.2));
+      // light enough to show on the dark stage, and blue: denim
+      const hsl = jeans.getHSL({ h: 0, s: 0, l: 0 });
+      expect(hsl.l).toBeGreaterThan(0.55);
+      expect(hsl.h).toBeGreaterThan(0.5);
+      expect(hsl.h).toBeLessThan(0.7);
+      BODY_TYPES.forEach(bodyType => {
+        const root = buildAvatar(avatar({ bodyType }));
+        ['leg', 'hips'].forEach(name => expect('#' + colourOf(root, name).color.getHexString()).withContext(name).toBe(TROUSERS));
+        disposeAvatar(root);
+      });
+    });
+
+    it('turns the jeans up at the ankle over a shoe, and tucks them into a boot with no turn-up', () => {
+      BODY_TYPES.forEach(bodyType => {
+        const figure = figureFor(bodyType);
+        const root = buildAvatar(avatar({ bodyType }));
+        const turnUps = find(root, 'turn-up') as THREE.Mesh[];
+        expect(turnUps.length).withContext(bodyType).toBe(2);
+        expect('#' + (turnUps[0].material as THREE.MeshToonMaterial).color.getHexString()).toBe(TURN_UP);
+        // lighter than the jeans: the inside of the cloth
+        expect(new THREE.Color(TURN_UP).getHSL({ h: 0, s: 0, l: 0 }).l).toBeGreaterThan(new THREE.Color(TROUSERS).getHSL({ h: 0, s: 0, l: 0 }).l + 0.1);
+        turnUps.forEach(turnUp => {
+          const ys = worldVertices(root, turnUp).map(p => p.y);
+          // from the ankle up a fifth of the lower leg, and wider than the leg it is turned up on
+          // (its ends are square to a leg that leans out to the foot, so each rim dips a little on one side)
+          const lean = 0.15;
+          const share = (figure.knee[1] - figure.ankle[1]) * TURN_UP_SHARE;
+          expect(Math.abs(Math.min(...ys) - figure.ankle[1])).withContext(bodyType).toBeLessThan(lean);
+          expect(Math.max(...ys) - figure.ankle[1]).withContext(bodyType).toBeGreaterThan(share - lean);
+          expect(Math.max(...ys) - figure.ankle[1]).withContext(bodyType).toBeLessThan(share + lean);
+          const across = worldVertices(root, turnUp).map(p => Math.hypot(Math.abs(p.x) - figure.ankle[0], p.z));
+          expect(Math.max(...across)).withContext(bodyType).toBeGreaterThan(figure.legRadii[2] * 1.05);
+        });
+        disposeAvatar(root);
+        WARDROBE.filter(item => item.slot === 'shoes' && item.id !== NO_ITEM).forEach(shoe => {
+          const worn = buildAvatar(avatar({ bodyType, shoes: shoe.id }));
+          expect(find(worn, 'turn-up').length).withContext(`${bodyType} ${shoe.id}`).toBe(collarShare(shoe.id) > 0 ? 0 : 2);
+          disposeAvatar(worn);
+        });
+      });
+    });
+
+    it('ends each arm in a mitten of a hand: broader than the bare wrist it hangs from, sized by its length', () => {
+      // A palm 0.58 across on a cuff 1.08 across: the hand was a knob on the end of the sleeve
+      BODY_TYPES.forEach(bodyType => WARDROBE.filter(item => item.slot === 'top').forEach(top => {
+        const figure = figureFor(bodyType);
+        const root = buildAvatar(avatar({ bodyType, top: top.id }));
+        const hands = find(root, 'hand');
+        expect(hands.length).toBe(2);
+        hands.forEach(hand => {
+          const palm = hand.getObjectByName('palm') as THREE.Mesh;
+          const fingers = hand.getObjectByName('fingers') as THREE.Mesh;
+          const thumb = hand.getObjectByName('thumb') as THREE.Mesh;
+          const at = `${bodyType} ${top.id}`;
+          expect(palm.scale.x).withContext(at).toBeCloseTo(figure.handLength * HAND.thick, 9);
+          expect(palm.scale.z).withContext(at).toBeCloseTo(figure.handLength * HAND.broad, 9);
+          // as thick as the bare wrist, seen from the front, and broader than it from the side
+          expect(palm.scale.x).withContext(at).toBeGreaterThan(figure.armRadii[2] * 2 * 0.75 * 0.95);
+          expect(palm.scale.z).withContext(at).toBeGreaterThan(figure.armRadii[2] * 2);
+          // fingers a little narrower than the palm, a thumb that stands clear in front of it
+          expect(fingers.scale.z).withContext(at).toBeLessThan(palm.scale.z);
+          expect(thumb.position.z + thumb.scale.z / 2).withContext(at).toBeGreaterThan(palm.scale.z / 2 + figure.handLength * 0.1);
+        });
+        disposeAvatar(root);
+      }));
     });
   });
 

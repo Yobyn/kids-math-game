@@ -389,8 +389,18 @@ export const POCKET_ARC = 1.1;
 /** How far the stand reaches beyond where the hands hang. */
 export const STAND_BEYOND_HANDS = 0.45;
 
-/** A body part in the trousers' colour. */
-const TROUSERS = '#a86f3f';
+/**
+ * The trousers: jeans, in a soft denim. They were a tan (#a86f3f) that is
+ * the colour of skin, so the legs read as bare (Yobyn, 2026-11-16: "we need
+ * to work on the graphics of the avatar"). A mid blue-grey is no skin tone,
+ * none of the tops' colours, and light enough to show on the dark stage.
+ */
+export const TROUSERS = '#8aa6d1';
+/** The jeans' turn-ups at the ankle: the lighter inside of the cloth. */
+export const TURN_UP = '#d3e0f3';
+/** How far up the lower leg a turn-up comes, and how much wider than the leg it is. */
+export const TURN_UP_SHARE = 0.2;
+export const TURN_UP_WIDER = 1.1;
 const BELT = '#2f2a3a';
 
 /**
@@ -399,6 +409,9 @@ const BELT = '#2f2a3a';
  * surface's facets stray from the true curve, so they never cross.
  */
 export const ELBOW_INSIDE = 0.94;
+
+/** A hand's thickness (seen from the front, arms hanging) and breadth (from the side), in hand lengths. */
+export const HAND = { thick: 0.6, broad: 0.78 };
 
 /** How many steps round a limb's rounded end, from its side to its tip. */
 export const DOME_STEPS = 8;
@@ -518,6 +531,11 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
       ? Array.from({ length: 17 }, (_, i) => legRadius(figure, legLength(figure) * (1 - i / 16), share))
       : lowerLegRadii(figure);
     body.add(part('leg', limb(radii, knee, ankle), trousers, 0.04));
+    if (share === 0) {
+      // Turn-ups, where the jeans come down to the shoe: nothing to turn up inside a boot
+      const hemRadius = radii[radii.length - 1] * TURN_UP_WIDER;
+      body.add(part('turn-up', limb([hemRadius, hemRadius], ankle.clone().lerp(knee, TURN_UP_SHARE), ankle), toon(TURN_UP), 0.03));
+    }
 
     // What the character stands in (shoes.ts): the sneakers, or a pair won
     body.add((worn && buildShoe(worn.id, worn.colour, figure, side)) || buildShoe(NO_ITEM, '', figure, side)!);
@@ -588,17 +606,21 @@ function buildBody(avatar: Avatar, figure: Figure): THREE.Group {
     const down = wristV.clone().sub(elbow).normalize();
     hand.position.copy(wristV);
     hand.quaternion.setFromUnitVectors(new THREE.Vector3(0, -1, 0), down);
-    const palm = part('palm', new THREE.SphereGeometry(0.5, 18, 14), skin, 0.025);
-    palm.scale.set(0.58, figure.handLength * 0.62, 0.78);
-    palm.position.y = -figure.handLength * 0.28;
-    const fingers = part('fingers', new THREE.SphereGeometry(0.5, 18, 14), skin, 0.025);
-    fingers.scale.set(0.52, figure.handLength * 0.6, 0.7);
-    fingers.position.set(0, -figure.handLength * 0.68, 0.04);
+    // A mitten: as broad as it is long, so it reads as a hand at the size of
+    // a header picture. Sized by the hand's length alone (HAND), not in fixed
+    // units: a slimmer arm no longer ends in a hand thinner than its cuff
+    const length = figure.handLength;
+    const palm = part('palm', new THREE.SphereGeometry(0.5, 20, 16), skin, 0.025);
+    palm.scale.set(length * HAND.thick, length * 0.66, length * HAND.broad);
+    palm.position.y = -length * 0.28;
+    const fingers = part('fingers', new THREE.SphereGeometry(0.5, 20, 16), skin, 0.025);
+    fingers.scale.set(length * HAND.thick * 0.92, length * 0.6, length * HAND.broad * 0.9);
+    fingers.position.set(0, -length * 0.64, length * 0.04);
     fingers.rotation.x = 0.25;
-    const thumb = part('thumb', new THREE.SphereGeometry(0.5, 12, 10), skin, 0.02);
-    thumb.scale.set(0.26, figure.handLength * 0.42, 0.26);
-    thumb.position.set(-side * 0.02, -figure.handLength * 0.36, 0.34);
-    thumb.rotation.x = 0.5;
+    const thumb = part('thumb', new THREE.SphereGeometry(0.5, 14, 12), skin, 0.02);
+    thumb.scale.set(length * 0.3, length * 0.46, length * 0.3);
+    thumb.position.set(-side * length * 0.02, -length * 0.36, length * HAND.broad * 0.48);
+    thumb.rotation.x = 0.55;
     hand.add(palm, fingers, thumb);
     onLower(hand);
   });

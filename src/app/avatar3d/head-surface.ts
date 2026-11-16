@@ -120,6 +120,12 @@ export interface HairShape {
   sideburn: number;
   /** Extra height swept up over the forehead, as in the reference boy's hair. */
   quiff?: number;
+  /**
+   * How much further the hair comes down the back of the head than `back`,
+   * at the nape only: a short cut tapers down to the neck behind, where the
+   * straight line from forehead to `back` left the lower half of the head bare.
+   */
+  nape?: number;
 }
 
 /**
@@ -128,16 +134,24 @@ export interface HairShape {
  * eyes on any face.
  */
 export const HAIR: { [style in HairStyle]: HairShape } = {
-  short: { thickness: 0.1, front: 0.5, back: -0.3, fringe: [0.03, 5], bumps: [0, 0], sideburn: 0.22, quiff: 0.22 },
-  buzz: { thickness: 0.03, front: 0.5, back: -0.25, fringe: [0, 0], bumps: [0, 0], sideburn: 0.18 },
+  short: { thickness: 0.1, front: 0.5, back: -0.3, fringe: [0.03, 5], bumps: [0, 0], sideburn: 0.22, quiff: 0.22, nape: 0.34 },
+  buzz: { thickness: 0.03, front: 0.5, back: -0.25, fringe: [0, 0], bumps: [0, 0], sideburn: 0.18, nape: 0.36 },
   long: { thickness: 0.12, front: 0.48, back: -0.45, fringe: [0.05, 3], bumps: [0, 0], sideburn: 0.3 },
-  curly: { thickness: 0.2, front: 0.5, back: -0.35, fringe: [0.06, 7], bumps: [0.1, 70], sideburn: 0.22 },
-  bun: { thickness: 0.07, front: 0.5, back: -0.25, fringe: [0, 0], bumps: [0, 0], sideburn: 0.12 },
-  afro: { thickness: 0.55, front: 0.52, back: -0.3, fringe: [0, 0], bumps: [0.07, 110], sideburn: 0.16 },
-  coils: { thickness: 0.28, front: 0.5, back: -0.3, fringe: [0, 0], bumps: [0.09, 200], sideburn: 0.18 },
-  braids: { thickness: 0.07, front: 0.5, back: -0.3, fringe: [0, 0], bumps: [0, 0], sideburn: 0.12 },
-  locs: { thickness: 0.12, front: 0.5, back: -0.4, fringe: [0, 0], bumps: [0.04, 150], sideburn: 0.2 }
+  curly: { thickness: 0.2, front: 0.5, back: -0.35, fringe: [0.06, 7], bumps: [0.1, 70], sideburn: 0.22, nape: 0.3 },
+  bun: { thickness: 0.07, front: 0.5, back: -0.25, fringe: [0, 0], bumps: [0, 0], sideburn: 0.12, nape: 0.36 },
+  afro: { thickness: 0.55, front: 0.52, back: -0.3, fringe: [0, 0], bumps: [0.07, 110], sideburn: 0.16, nape: 0.3 },
+  coils: { thickness: 0.28, front: 0.5, back: -0.3, fringe: [0, 0], bumps: [0.09, 200], sideburn: 0.18, nape: 0.32 },
+  braids: { thickness: 0.07, front: 0.5, back: -0.3, fringe: [0, 0], bumps: [0, 0], sideburn: 0.12, nape: 0.32 },
+  locs: { thickness: 0.12, front: 0.5, back: -0.4, fringe: [0, 0], bumps: [0.04, 150], sideburn: 0.2, nape: 0.22 }
 };
+
+/**
+ * The nape, in radians round from the middle of the back: as low as it goes
+ * out to NAPE_FULL either side, then rising in a soft curve and gone by
+ * NAPE_GONE, behind the ears (which are a quarter turn, 1.57, from the back).
+ */
+export const NAPE_FULL = 0.5;
+export const NAPE_GONE = 1.3;
 
 /** Where the sideburns fall: this far round from the nose, in radians (about 69°). */
 export const SIDEBURN_AT = 1.2;
@@ -154,6 +168,10 @@ export function hairline(style: HairStyle, dir: Vec3): number {
   // A sideburn just in front of each ear, so the side of the hair is not
   // one straight cut from forehead to nape
   line -= shape.sideburn * Math.exp(-(((Math.abs(phi) - SIDEBURN_AT) / 0.24) ** 2));
+  // Down the back of the head to the nape: all the way down across the middle
+  // of the back (NAPE_FULL), easing out to nothing before the ears (NAPE_GONE)
+  const round = Math.min(1, Math.max(0, (Math.PI - Math.abs(phi) - NAPE_FULL) / (NAPE_GONE - NAPE_FULL)));
+  line -= (shape.nape || 0) * (1 - round * round * (3 - 2 * round));
   const [depth, points] = shape.fringe;
   if (depth > 0 && Math.abs(phi) < Math.PI / 3) {
     // Points of the fringe hang down; never below the brows

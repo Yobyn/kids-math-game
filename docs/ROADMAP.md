@@ -733,6 +733,32 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Avatar graphics, 1: the kid hero's clothes, arms, hands and hair
+  (2026-11-16).** Yobyn: "We need to work on the graphics of the avatar",
+  and of four parts offered (the kid hero, shading and sharpness, the
+  creatures, movement and expression) he chose all four. This is the
+  first. Every character was rendered from three sides first; the kid
+  hero, the one every child starts as, had four things wrong:
+  - The trousers were a tan between two of the skin tones, so the legs
+    read as bare. They are jeans now, a light denim (`TROUSERS`) that is
+    no skin tone and none of the tops' colours, with lighter turn-ups at
+    the ankle (none inside a boot).
+  - The arms were as sturdy as the body: two bolsters held away from it.
+    `STYLE.arm` (0.78) slims them; the shoulders and the backpack's
+    straps follow by construction.
+  - The hands were thinner than their own cuffs, a knob on the end of
+    each sleeve. They are mittens sized by the hand's length (`HAND`,
+    `STYLE.hand` 1.3): as thick as the wrist from the front, broader from
+    the side, with a thumb that stands clear.
+  - Every cut but long hair ended in a straight line halfway down the
+    back of the head, bare skin below it. Each now comes down to a
+    rounded nape (`nape` in `HAIR`, head-surface.ts): full across the
+    middle of the back, gone before the ears.
+
+  The kept pictures are re-drawn (`STILL_VERSION` 13). Tests hold the
+  jeans' colour against every skin tone and top, the turn-ups, the
+  hands' size in every top, the arms' radii and the nape on every cut.
+  Next: shading and sharpness, then the creatures, then movement.
 - **Look and feel, run 21: one round, one answer, in the singular
   (2026-11-16).** Rounds were played in groep 3 (es), groep 7 (nl) and
   klas 3 (en), at 320, 360 and 390px, with no errors. After a child's

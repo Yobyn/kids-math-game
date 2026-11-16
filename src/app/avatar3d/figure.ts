@@ -162,9 +162,17 @@ export interface Style {
    * goes half as far, so each leg is straight from hip to ankle.
    */
   stance?: number;
+  /**
+   * How thick the arms are for the build: 1 is as sturdy as the legs and the
+   * body. A sturdy body's arms, as sturdy, are a pair of bolsters held away
+   * from it; a child's are slim beside a round tummy.
+   */
+  arm?: number;
+  /** How big the hands are for the build: a small character reads by its hands, as a mitten does. */
+  hand?: number;
 }
 
-export const STYLE: Style = { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.55, round: true, stance: 0.4 };
+export const STYLE: Style = { head: 2.4, body: 0.52, build: 1.45, armSwing: 0.28, elbowBend: 0.55, round: true, stance: 0.4, arm: 0.78, hand: 1.3 };
 
 /**
  * The torso as one round shape, the way the dragon's body is (Yobyn,
@@ -223,11 +231,11 @@ export function stylise(measured: Figure, style: Style): Figure {
     legRadii: measured.legRadii.map(w) as [number, number, number],
     // The arms thicken outwards, not into the chest: the shoulder moves out
     // by as much as the arm grew
-    shoulder: [w(measured.shoulder[0]) + (style.build - 1) * measured.armRadii[0], y(measured.shoulder[1])],
+    shoulder: [w(measured.shoulder[0]) + (style.build * (style.arm ?? 1) - 1) * measured.armRadii[0], y(measured.shoulder[1])],
     upperArm: y(measured.upperArm),
     forearm: y(measured.forearm),
-    armRadii: measured.armRadii.map(w) as [number, number, number],
-    handLength: y(measured.handLength) * style.build,
+    armRadii: measured.armRadii.map(v => w(v) * (style.arm ?? 1)) as [number, number, number],
+    handLength: y(measured.handLength) * style.build * (style.hand ?? 1),
     armSwing: style.armSwing ?? measured.armSwing,
     elbowBend: style.elbowBend ?? measured.elbowBend,
     neckRadius: w(measured.neckRadius) * Math.sqrt(style.head),

@@ -235,6 +235,13 @@ export function strapPath(meshes: THREE.Mesh[], x: number, halfWidth: number, fi
       continue;
     }
     if (angle > 0 && point.x < endY) {
+      // The strap ends at endY itself, between the last point above it and
+      // this one: not up to a whole step short of it (with a slimmer arm the
+      // armpit is higher on the chest, where a step is a long way down)
+      const before = outline[outline.length - 1];
+      if (before && before.x > endY) {
+        outline.push(before.clone().lerp(point, (before.x - endY) / (before.x - point.x)));
+      }
       break;
     }
     outline.push(point);
