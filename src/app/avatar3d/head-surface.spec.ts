@@ -1,6 +1,6 @@
 import { FACE_SHAPES, HAIR_STYLES, HAIR_TEXTURES } from '../avatar/avatar-model';
 import {
-  BROW_DIRS, BROW_TOP, EAR_DIRS, EYE_DIRS, HAIR, HAT_BACK, HAT_CAP, HAT_FRONT, HAT_LIFT, SIDEBURN_AT, Vec3,
+  BROW_DIRS, BROW_TOP, EAR_DIRS, EYE_DIRS, HAIR, HAT_BACK, HAT_CAP, HAT_FRONT, HAT_LIFT, NAPE_FULL, NAPE_GONE, SIDEBURN_AT, Vec3,
   azimuth, covered, hairPoint, hairline, hatBrim, headPoint, headRadius, normalise, puff, radiusAlong, spherePoints, textureRipple
 } from './head-surface';
 
@@ -117,7 +117,37 @@ describe('hairline', () => {
       const back = hairline(style, round(Math.PI));
       expect(front).toBeGreaterThan(side, style);
       expect(side).toBeGreaterThan(back, style);
-      expect(back).toBeCloseTo(HAIR[style].back, 6);
+      expect(back).toBeCloseTo(HAIR[style].back - (HAIR[style].nape || 0), 6);
+    }
+  });
+
+  it('comes down the back of the head to a rounded nape, and is gone by the ears (2026-11-16)', () => {
+    // The line from forehead to `back` ended halfway down the back of the head on every cut:
+    // the lower half was bare skin under a straight edge, a bowl set on the head
+    for (const style of HAIR_STYLES) {
+      const shape = HAIR[style];
+      const without = (phi: number) => shape.front + (shape.back - shape.front) * (1 - Math.cos(phi)) / 2;
+      if (style === 'long') {
+        // long hair falls from its own sheet down the back
+        expect(shape.nape).toBeUndefined();
+        continue;
+      }
+      expect(shape.nape).withContext(style).toBeGreaterThan(0.2);
+      // as low as it goes right across the middle of the back: a round nape, not a point
+      [0, 0.25, NAPE_FULL].forEach(off => {
+        expect(hairline(style, round(Math.PI - off))).withContext(`${style} ${off}`).toBeCloseTo(without(Math.PI - off) - shape.nape!, 6);
+        expect(hairline(style, round(-Math.PI + off))).withContext(`${style} -${off}`).toBeCloseTo(without(Math.PI - off) - shape.nape!, 6);
+      });
+      // and nothing of it left where the ears are, a quarter turn from the back
+      expect(NAPE_GONE).toBeLessThan(Math.PI / 2 - 0.2);
+      const ear = azimuth(EAR_DIRS[1]);
+      expect(hairline(style, round(ear))).withContext(style).toBeCloseTo(without(ear) - shape.sideburn * Math.exp(-(((ear - SIDEBURN_AT) / 0.24) ** 2)), 6);
+      // never lower than where the head turns in to the neck
+      expect(hairline(style, round(Math.PI))).withContext(style).toBeGreaterThan(-0.72);
+      // it only ever falls on the way round from the ear to the back
+      for (let phi = ear; phi < Math.PI; phi += 0.05) {
+        expect(hairline(style, round(phi + 0.05))).withContext(`${style} ${phi.toFixed(2)}`).toBeLessThanOrEqual(hairline(style, round(phi)) + 1e-9);
+      }
     }
   });
 
