@@ -733,6 +733,18 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 21: one round, one answer, in the singular
+  (2026-11-16).** Rounds were played in groep 3 (es), groep 7 (nl) and
+  klas 3 (en), at 320, 360 and 390px, with no errors. After a child's
+  first round the progress screen said "1 rondes gespeeld", "1 rounds
+  finished" and "1 rondas jugadas", and a round with one answer right
+  would end on "1 goede antwoorden". One is now said in the singular on
+  both screens, in every language: "1 ronde gespeeld", "1 vraag
+  beantwoord", "1 goed antwoord"; "1 round finished", "1 answer right";
+  "1 ronda jugada", "1 respuesta correcta". Two and up, and nought, stay
+  as they were. The words are in each screen's own lazy words file (no
+  two screens share a key, so the progress screen's is
+  'answer-right-in-all'); nothing new is in the first load.
 - **Questions, run 17: a 1 in the ones is one group more, never a step
   times 1 (2026-11-15).** Rounds were played as a child in groep 3 (nl),
   groep 7 (en) and klas 2 (es), with no errors. A scan of every topic's

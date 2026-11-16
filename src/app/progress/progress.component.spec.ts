@@ -138,11 +138,33 @@ describe('ProgressComponent', () => {
     const labels = Array.from(fixture.nativeElement.querySelectorAll('.count') as NodeListOf<HTMLElement>)
       .map(tile => [tile.getAttribute('data-kind'), tile.querySelector('.count-label')!.textContent!.trim()]);
     expect(labels).toEqual([
-      ['rounds', t('rounds-finished')],
+      ['rounds', t('round-finished')],
       ['questions', t('questions-answered')],
       ['right', t('answers-right')],
       ['best', t('your-best')]
     ]);
+  });
+
+  it('says one in the singular: "1 ronde gespeeld", not "1 rondes" (2026-11-16)', () => {
+    // After a child's first round the screen said "1 rondes gespeeld", "1 rounds finished", "1 rondas jugadas"
+    const counts = () => Array.from(fixture.nativeElement.querySelectorAll('.count:not([data-kind="best"])') as NodeListOf<HTMLElement>)
+      .map(tile => `${tile.querySelector('.count-value')!.textContent!.trim()} ${tile.querySelector('.count-label')!.textContent!.trim()}`);
+    const said: { [language: string]: string[][] } = {
+      nl: [['1 ronde gespeeld', '10 vragen beantwoord', '1 goed antwoord'], ['2 rondes gespeeld', '20 vragen beantwoord', '3 goede antwoorden']],
+      en: [['1 round finished', '10 questions answered', '1 answer right'], ['2 rounds finished', '20 questions answered', '3 answers right']],
+      es: [['1 ronda jugada', '10 preguntas respondidas', '1 respuesta correcta'], ['2 rondas jugadas', '20 preguntas respondidas', '3 respuestas correctas']]
+    };
+    Object.keys(said).forEach(language => {
+      localStorage.clear();
+      localStorage.setItem('language', language);
+      TestBed.inject(LanguageService).setLanguage(language as any);
+      progress.record(round(1));
+      open();
+      expect(counts()).withContext(language).toEqual(said[language][0]);
+      progress.record(round(2));
+      open();
+      expect(counts()).withContext(language).toEqual(said[language][1]);
+    });
   });
 
   it('shows no best at all when the best round earned no stars', () => {
