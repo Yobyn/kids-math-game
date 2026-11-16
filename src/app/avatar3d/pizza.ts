@@ -36,8 +36,22 @@ const BLUSH = '#ff8fb1';
 export const LEGS = 1.0;
 const SLICE = 4.5;
 const HALF = 2.0;
-/** The front of the cheese, where the face and the toppings sit. */
-export const CHEESE_FRONT = 0.42;
+/**
+ * How thick the slice is, and how round its edges: a deep-dish slice, plump
+ * as the dragon's tummy is. It was 0.5 thick with 0.15 of rounding on a
+ * slice 4 wide: from the side a board, with its face painted on.
+ */
+export const THICK = 0.9;
+export const ROUND = 0.22;
+const WAS_ROUND = 0.15;
+/** The front of the cheese, where the face and the toppings sit: on the front of the dough. */
+export const CHEESE_FRONT = THICK / 2 + ROUND + 0.02;
+/** How much of the slice's front the cheese covers, from its point up, and how far the baked base stands behind the dough. */
+export const CHEESE_COVERS = 0.96;
+export const BASE_BEHIND = 0.03;
+/** How far behind the slice its cape hangs, and how far its hem swings back, in radians: close, as cloth does. */
+export const CAPE_GAP = 0.15;
+export const CAPE_SWING = 0.08;
 
 /** How wide the slice is, either side of its middle, at a height (in the slice's own frame, point at LEGS). */
 export function halfWidthAt(y: number): number {
@@ -100,12 +114,16 @@ function capeShape(): THREE.Shape {
   return shape;
 }
 
-/** Hung from the top of the slice, behind it, the bottom swinging back away from the legs. */
+/**
+ * Hung from the top of the slice, close behind it, the bottom swinging back
+ * a little away from the legs. It hung half a slice's thickness off and a
+ * quarter of a radian back: a second board leaning on the first.
+ */
 function hang(name: string, shape: THREE.Shape, colour: string): THREE.Mesh {
   const geometry = new THREE.ExtrudeGeometry(shape, { depth: 0.06, bevelEnabled: true, bevelThickness: 0.03, bevelSize: 0.03, bevelSegments: 2, curveSegments: 12 });
   const mesh = part(name, geometry, toon(colour, { side: THREE.DoubleSide }), 0.02);
-  mesh.position.set(0, LEGS + SLICE - 0.05, -0.55);
-  mesh.rotation.x = 0.25;
+  mesh.position.set(0, LEGS + SLICE - 0.05, -(THICK / 2 + ROUND + BASE_BEHIND + CAPE_GAP));
+  mesh.rotation.x = CAPE_SWING;
   return mesh;
 }
 
@@ -138,24 +156,34 @@ function capeTrim(): THREE.Mesh {
 function slice(at: number): THREE.Group {
   const head = new THREE.Group();
   head.name = CREATURE_HEAD;
-  const dough = slab('pizza-slice', HALF, SLICE, 0.5, 0.15, toon(DOUGH), 0.03);
+  // As wide at its sides as it always was (its rounding stands out from its outline, and is fuller now):
+  // the cape still shows past it either side
+  const dough = slab('pizza-slice', HALF - (ROUND - WAS_ROUND), SLICE, THICK, ROUND, toon(DOUGH), 0.03);
   dough.position.y = LEGS;
   head.add(dough);
-  const cheese = slab('pizza-cheese', HALF * 0.88, SLICE * 0.88, 0.06, 0.06, toon(CHEESE), 0);
-  cheese.position.set(0, LEGS + SLICE * 0.09, 0.3);
+  // In layers, as a slice is from the side: a baked base behind, the dough,
+  // and a layer of cheese over the whole front, its edge showing all round
+  const [cheeseDeep, cheeseRound] = [0.26, 0.1];
+  const cheese = slab('pizza-cheese', HALF * CHEESE_COVERS, SLICE * CHEESE_COVERS, cheeseDeep, cheeseRound, toon(CHEESE), 0.015);
+  cheese.position.set(0, LEGS + SLICE * (1 - CHEESE_COVERS) / 2, CHEESE_FRONT - (cheeseDeep / 2 + cheeseRound));
   head.add(cheese);
+  const [baseDeep, baseRound] = [0.08, 0.08];
+  const base = slab('pizza-base', HALF * 0.99, SLICE * 0.99, baseDeep, baseRound, toon(CRUST), 0.015);
+  base.position.set(0, LEGS + SLICE * 0.005, -(THICK / 2 + ROUND + BASE_BEHIND) + baseDeep / 2 + baseRound);
+  head.add(base);
   // Cheese dripping over the edges: more of it on the super pizza
   const drips = at === 3 ? [0.35, 0.55, 0.75] : [0.45, 0.7];
   drips.forEach((t, i) => {
     const side = i % 2 === 0 ? 1 : -1;
     const y = LEGS + SLICE * t;
-    head.add(blob('pizza-drip', [0.13, 0.26, 0.08], [side * (halfWidthAt(y) - 0.02), y - 0.18, 0.36], toon(CHEESE), 0.015));
+    head.add(blob('pizza-drip', [0.13, 0.26, 0.08], [side * (halfWidthAt(y) - 0.02), y - 0.18, CHEESE_FRONT - 0.06], toon(CHEESE), 0.015));
   });
   // The face, in the cheese near the top where the slice is widest, under the crust: what a portrait shows
   const face = new THREE.Group();
   face.name = CREATURE_FACE;
   head.add(face);
-  face.add(blob('pizza-crust', [HALF + 0.25, 0.45, 0.6], [0, LEGS + SLICE + 0.1, 0], toon(CRUST), 0.03));
+  // A fat roll of crust along the top, fuller than the slice it tops
+  face.add(blob('pizza-crust', [HALF + 0.25, 0.5, THICK / 2 + ROUND + 0.22], [0, LEGS + SLICE + 0.1, 0], toon(CRUST), 0.03));
   const eyeY = LEGS + SLICE * 0.72;
   const pair = eyes([0, eyeY - 0.26 * 0.6, 0], 0.55, CHEESE_FRONT + 0.06, 0.26);
   pair.children.forEach(eye => (eye.name = 'eye'));
@@ -169,7 +197,7 @@ function slice(at: number): THREE.Group {
   [-1, 1].forEach(side => {
     const y = LEGS + SLICE * 0.45;
     const shoulder = new THREE.Vector3(side * (halfWidthAt(y) - 0.05), y, 0);
-    const hand = new THREE.Vector3(side * 1.65, LEGS + SLICE * 0.3, 0.35);
+    const hand = new THREE.Vector3(side * 1.65, LEGS + SLICE * 0.3, CHEESE_FRONT - 0.1);
     head.add(limb('pizza-arm', shoulder, hand.clone().lerp(shoulder, 0.12), 0.11, toon(CRUST)));
     head.add(blob('pizza-hand', [0.22, 0.2, 0.22], [hand.x, hand.y, hand.z], toon('#ffffff'), 0.02));
   });
@@ -195,7 +223,7 @@ function slice(at: number): THREE.Group {
     [-1, 1].forEach(side => {
       const sparkle = new THREE.Mesh(new THREE.ShapeGeometry(starShape(0.32, 0.13)), new THREE.MeshBasicMaterial({ color: '#fff3a8', side: THREE.DoubleSide }));
       sparkle.name = CREATURE_GLOW;
-      sparkle.position.set(side * 1.3, LEGS + SLICE + 1.0, 0.3);
+      sparkle.position.set(side * 1.3, LEGS + SLICE + 1.0, CHEESE_FRONT - 0.15);
       sparkle.rotation.z = side * 0.3;
       head.add(sparkle);
     });
