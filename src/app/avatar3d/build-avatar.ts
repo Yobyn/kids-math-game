@@ -785,7 +785,43 @@ function buildPedestal(radius: number, name = 'pedestal'): THREE.Group {
   glow.rotation.x = Math.PI / 2;
   glow.position.y = -0.01;
   pedestal.add(glow);
+  // A soft shadow on the stand under whoever stands on it: darkest in the
+  // middle, fading to nothing with no edge. Without it the feet float on a lit plate
+  const shadow = new THREE.Mesh(new THREE.CircleGeometry(radius * SHADOW_REACH, 48), shadowMaterial());
+  shadow.name = 'pedestal-shadow';
+  shadow.rotation.x = -Math.PI / 2;
+  shadow.position.y = -0.006;
+  shadow.renderOrder = 1;
+  pedestal.add(shadow);
   return pedestal;
+}
+
+/** The shadow on a stand: its colour, how dark it is in the middle, and how far across the stand it reaches. */
+export const SHADOW = '#0b0620';
+export const SHADOW_DARKEST = 0.5;
+export const SHADOW_REACH = 0.9;
+
+/** A disc that is SHADOW_DARKEST opaque at its middle and clear at its rim, falling off smoothly between. */
+function shadowMaterial(): THREE.ShaderMaterial {
+  return new THREE.ShaderMaterial({
+    uniforms: { colour: { value: new THREE.Color(SHADOW) }, darkest: { value: SHADOW_DARKEST } },
+    vertexShader: `
+      varying vec2 across;
+      void main() {
+        across = uv * 2.0 - 1.0;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }`,
+    fragmentShader: `
+      uniform vec3 colour;
+      uniform float darkest;
+      varying vec2 across;
+      void main() {
+        float fade = 1.0 - smoothstep(0.15, 1.0, length(across));
+        gl_FragColor = vec4(colour, darkest * fade);
+      }`,
+    transparent: true,
+    depthWrite: false
+  });
 }
 
 /** A pet's own stand. */
