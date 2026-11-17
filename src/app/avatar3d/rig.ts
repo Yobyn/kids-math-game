@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { ARM_RIG, EYE_SHUT, FOREARM_RIG, SHUT_CURVE } from './build-avatar';
-import { BREATH_ARMS, BREATH_RISE, WAVE_LIFT, WAVING_SIDE, breath, eyesOpen, glow, tailWag, wave, wingFlap } from './motion';
+import { BREATH_ARMS, BREATH_RISE, GLANCE_TILT, WAVE_LIFT, WAVING_SIDE, breath, eyesOpen, glance, glow, hop, tailWag, wave, wingFlap } from './motion';
 import { SHOE_GLOW } from './shoes';
 import { CREATURE_GLOW, CREATURE_HEAD } from './creatures';
 import { PET_EGG, PET_TAIL, PET_WING } from './pets';
@@ -12,6 +12,8 @@ export { WAVING_SIDE };
 const SHUT = 0.08;
 /** Below this much open, an eye is drawn as its closed line rather than squashed flatter. */
 export const SHUT_BELOW = 0.35;
+/** What stays put when the character hops: its stand, and the pet beside it on a stand of its own. */
+export const STAYS_DOWN = ['pedestal', 'pet'];
 /** How far an egg rocks, as a share of a tail's wag. */
 export const EGG_ROCK = 0.4;
 
@@ -27,7 +29,9 @@ interface Joint {
  * back exactly where build-avatar.ts put it.
  */
 export class Rig {
-  private heads: { node: THREE.Object3D; y: number }[] = [];
+  private heads: { node: THREE.Object3D; y: number; turn: number; tilt: number; hops: boolean }[] = [];
+  /** Everything that stands on the stand, and leaves it on a hop. */
+  private standing: { node: THREE.Object3D; y: number }[] = [];
   private eyes: { node: THREE.Object3D; y: number }[] = [];
   private arms: Joint[] = [];
   private forearms: (Joint & { bend: number })[] = [];
@@ -40,9 +44,12 @@ export class Rig {
     HEAD_PARTS.forEach(name => {
       const node = model.getObjectByName(name);
       if (node) {
-        this.heads.push({ node, y: node.position.y });
+        // A head that stands on the stand by itself (the kid's) hops as the body does;
+        // a creature's is part of the creature, and goes up with it
+        this.heads.push({ node, y: node.position.y, turn: node.rotation.y, tilt: node.rotation.z, hops: node.parent === model });
       }
     });
+    model.children.filter(child => STAYS_DOWN.indexOf(child.name) < 0).forEach(node => this.standing.push({ node, y: node.position.y }));
     model.traverse(node => {
       if (node.name === 'eye') {
         this.eyes.push({ node, y: node.scale.y });
@@ -69,7 +76,16 @@ export class Rig {
    */
   pose(seconds: number, waving: number | null) {
     const b = breath(seconds);
-    this.heads.forEach(({ node, y }) => (node.position.y = y + BREATH_RISE * b));
+    // A hop with the wave: everything on the stand leaves it together
+    const up = waving === null ? 0 : hop(waving);
+    this.standing.forEach(({ node, y }) => (node.position.y = y + up));
+    // The head, and everything on it, turns a little now and then, tilting as it goes
+    const look = glance(seconds);
+    this.heads.forEach(({ node, y, turn, tilt, hops }) => {
+      node.position.y = y + BREATH_RISE * b + (hops ? up : 0);
+      node.rotation.y = turn + look;
+      node.rotation.z = tilt - look * GLANCE_TILT;
+    });
     this.openEyes(SHUT + (1 - SHUT) * eyesOpen(seconds));
     const arm = waving === null ? { lift: 0, bend: 0 } : wave(waving);
     // An arm swings out to its own side: a positive turn about z for the
@@ -121,7 +137,12 @@ export class Rig {
 
   /** Every joint back where it was built. */
   rest() {
-    this.heads.forEach(({ node, y }) => (node.position.y = y));
+    this.standing.forEach(({ node, y }) => (node.position.y = y));
+    this.heads.forEach(({ node, y, turn, tilt }) => {
+      node.position.y = y;
+      node.rotation.y = turn;
+      node.rotation.z = tilt;
+    });
     this.openEyes(1);
     this.arms.forEach(({ node }) => (node.rotation.z = 0));
     this.forearms.forEach(({ node, bend }) => {

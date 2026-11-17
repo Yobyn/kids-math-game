@@ -105,6 +105,64 @@ function ease(t: number): number {
   return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
 }
 
+/**
+ * A glance: now and then the head turns a little to one side, rests there,
+ * and comes back, first one way and the next time the other. Standing still
+ * a character only breathed and blinked, facing dead ahead: awake, but not
+ * looking at anything. Small and slow, so it never pulls the eye from what
+ * is being chosen.
+ */
+/** How far the head turns, in radians (about 7°), and how much of that it tilts with it. */
+export const GLANCE_TURN = 0.12;
+export const GLANCE_TILT = 0.25;
+/** A glance, from leaving the front to being back, in seconds: a third out, a third held, a third back. */
+export const GLANCE_SECONDS = 2.4;
+/** The first glance comes this long after arrival; the rest this far apart, give or take GLANCE_JITTER. */
+export const GLANCE_FIRST = 5;
+export const GLANCE_GAP = 6.5;
+export const GLANCE_JITTER = 2;
+
+/**
+ * How far the head is turned `seconds` in, in radians: 0 facing front,
+ * positive to the character's left. The gaps come from the same fixed
+ * sequence as the blinks', so a moment always gives the same answer.
+ */
+export function glance(seconds: number): number {
+  let start = GLANCE_FIRST;
+  for (let i = 0; start <= seconds; i++) {
+    const into = seconds - start;
+    if (into < GLANCE_SECONDS) {
+      const k = (into / GLANCE_SECONDS) * 3;
+      const turned = k < 1 ? ease(k) : k > 2 ? ease(3 - k) : 1;
+      return (i % 2 === 0 ? 1 : -1) * GLANCE_TURN * turned;
+    }
+    start += GLANCE_SECONDS + GLANCE_GAP + GLANCE_JITTER * jitter(i);
+  }
+  return 0;
+}
+
+/**
+ * A hop for joy, with the wave: two little jumps as the arm goes up, the
+ * second lower than the first, landed before the hand has finished waving.
+ * A wave alone was a greeting from the shoulder up; the feet never left
+ * the stand.
+ */
+/** How long each hop takes, how high the first goes (one head height is 2), how many, and how much lower each next one is. */
+export const HOP_SECONDS = 0.42;
+export const HOP_HEIGHT = 0.5;
+export const HOPS = 2;
+export const HOP_LOWER = 0.6;
+
+/** How far off the stand the character is, `seconds` into a wave: up and down in an arc, on the stand between hops and after. */
+export function hop(seconds: number): number {
+  if (seconds <= 0 || seconds >= HOP_SECONDS * HOPS) {
+    return 0;
+  }
+  const which = Math.floor(seconds / HOP_SECONDS);
+  const k = seconds / HOP_SECONDS - which;
+  return HOP_HEIGHT * Math.pow(HOP_LOWER, which) * 4 * k * (1 - k);
+}
+
 /** The wardrobe slots: something new in one of these is worth a wave (a new pet, a cape, a hello). */
 const WORN = ['hat', 'glasses', 'top', 'pet', 'back', 'shoes'] as const;
 

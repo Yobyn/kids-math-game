@@ -733,6 +733,26 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Avatar graphics, 4: movement and expression (2026-11-17).** The last
+  of Yobyn's four parts. Standing on its stage a character breathed and
+  blinked, facing dead ahead; a wave was a greeting from the shoulder up.
+  Now, on the chooser's 3D stage (the timing in motion.ts, applied in
+  rig.ts, each a pure function of time with its own tests):
+  - **a glance**: now and then the head, with the hair, hat and glasses
+    on it, turns about 7° to one side with a small tilt, rests, and comes
+    back; the next time it looks the other way (`glance`, first after
+    `GLANCE_FIRST` 5 s, then `GLANCE_GAP` 6.5 s ± 2 apart). Creatures turn
+    their head the same way;
+  - **a hop for joy** with the wave for something new: two little jumps,
+    the second lower, landed while the hand is still up (`hop`,
+    `HOP_HEIGHT` 0.5). Everything standing on the stand leaves it
+    together; the stand, its shadow and the pet stay (`STAYS_DOWN`);
+  - **a tap says hello**: a tap on the character (let go within `TAP_MS`
+    and `TAP_SLOP` of where it began) gives the wave and the hop; a drag
+    still turns it (`greet()` in avatar-stage.component.ts).
+  None of it moves under reduced motion, and the kept stills are the
+  rest pose, so `STILL_VERSION` stays. Left for later, if wanted: a
+  change of face (a wider smile on the hop), and the pet joining in.
 - **Avatar graphics, 3: the creatures, and a pizza that is a wedge
   (2026-11-16).** The third of Yobyn's four parts. All five creature
   families were rendered at each stage from the front, the side and the

@@ -1,5 +1,5 @@
 import {
-  AIRTIME, BALL_RADIUS, BUMPS_ALLOWED, FINISH_EARLIEST, FINISH_LATEST, GROUND_TALL, Jumper, JUMP_RISE, MIDDLE_TO, Place, STAR_EVERY, STAR_HEIGHT,
+  AIRTIME, BALL_RADIUS, BUMPS_ALLOWED, FINISH_EARLIEST, FINISH_LATEST, GROUND_TALL, Jumper, JUMP_RISE, MAX_STEP, MIDDLE_TO, Place, STAR_EVERY, STAR_HEIGHT,
   STAR_CHOICES, STAR_RADIUS, SUM_STAR_RADIUS,
   gapAfter, jump, makeObstacle, makeStar, newJumper, onGround, pickPlace, reachesStar, step, touches, worldSpeed
 } from './jumper';
@@ -36,10 +36,45 @@ function play(game: Jumper, seconds: number, bounceNow: (game: Jumper) => boolea
   return current;
 }
 
+/**
+ * The same, for a long game: every couple of seconds of play it lets the
+ * browser have a turn. A perfect player looks a bounce ahead on every frame,
+ * so two minutes of play in one go kept the test browser busy for long
+ * enough, on a slow machine, to miss the runner's ping and be dropped
+ * mid-run with no test failed.
+ */
+async function playLong(game: Jumper, seconds: number, bounceNow: (game: Jumper) => boolean, random = seeded()): Promise<Jumper> {
+  let current = game;
+  let frames = 0;
+  // Frame for frame as play() does
+  for (let t = 0; t < seconds && !current.ended; t += 1 / 60) {
+    if (bounceNow(current)) {
+      current = jump(current);
+    }
+    current = step(current, 1 / 60, random).game;
+    if (++frames % LONG_PLAY_FRAMES === 0) {
+      await new Promise(resolve => setTimeout(resolve));
+    }
+  }
+  return current;
+}
+/** How many frames of a long game are played before the browser gets a turn: two seconds of play. */
+const LONG_PLAY_FRAMES = 120;
+
 /** Whether this game, played on with no more bounces and nothing new coming, runs into something within `seconds`. */
 function crashesWithin(game: Jumper, seconds: number): boolean {
-  return step({ ...game, untilNext: 1e9 }, seconds).game.bumps > game.bumps;
+  // A little at a time, stopping at the first bump: there is nothing to learn from the rest
+  let current: Jumper = { ...game, untilNext: 1e9 };
+  for (let left = seconds; left > 0 && !current.ended; left -= LOOK_SLICE) {
+    current = step(current, Math.min(LOOK_SLICE, left)).game;
+    if (current.bumps > game.bumps) {
+      return true;
+    }
+  }
+  return false;
 }
+/** How far ahead a look goes at a time, in seconds: a whole number of the game's own steps. */
+const LOOK_SLICE = 12 * MAX_STEP;
 
 /**
  * A player who never makes a mistake: bounces at the last moment that
@@ -57,6 +92,9 @@ function perfect(game: Jumper): boolean {
   const canWait = !later.ended && !crashesWithin(jump(later), look);
   return !canWait && !crashesWithin(jump(game), look);
 }
+
+/** How long the two-minute game may take to play through, in real milliseconds: well over what a slow machine needs. */
+const LONG_PLAY_MS = 120000;
 
 describe('the second bonus game: a rolling ball bounced over obstacles (bonus/jumper.ts)', () => {
   it('starts with the ball resting on the ground near the left, and nothing in the way yet', () => {
@@ -207,11 +245,11 @@ describe('the second bonus game: a rolling ball bounced over obstacles (bonus/ju
     }
   });
 
-  it('can always be played to the flag, even the latest one', () => {
-    const game = play(newJumper(W, H, false, () => 1), FINISH_LATEST + 10, perfect, seeded(5));
+  it('can always be played to the flag, even the latest one', async () => {
+    const game = await playLong(newJumper(W, H, false, () => 1), FINISH_LATEST + 10, perfect, seeded(5));
     expect(game.ended).toBe('finished');
     expect(game.points).toBeGreaterThan(30);
-  });
+  }, LONG_PLAY_MS);
 
   it('counts each obstacle once, as the ball gets past it', () => {
     const { game, events } = step(facing('middle', 10), 3);

@@ -77,6 +77,10 @@ export function bodyFraming(
   return { distance, centre };
 }
 
+/** A tap on the stage: a press let go within this long, and this near where it began, in pixels. Further or longer is a drag. */
+export const TAP_MS = 400;
+export const TAP_SLOP = 8;
+
 function reducedMotion(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
@@ -227,6 +231,8 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
       this.controls.addEventListener('change', () => this.requestRender());
       this.controls.update();
       window.addEventListener('resize', this.resize);
+      canvas.addEventListener('pointerdown', this.pressed);
+      canvas.addEventListener('pointerup', this.released);
       this.rebuild();
       this.fit();
     });
@@ -246,6 +252,8 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
     cancelAnimationFrame(this.frame);
     this.frame = 0;
     window.removeEventListener('resize', this.resize);
+    this.canvasRef?.nativeElement.removeEventListener('pointerdown', this.pressed);
+    this.canvasRef?.nativeElement.removeEventListener('pointerup', this.released);
     this.controls?.dispose();
     if (this.model) {
       disposeAvatar(this.model);
@@ -525,6 +533,32 @@ export class AvatarStageComponent implements AfterViewInit, OnChanges, OnDestroy
   get waving(): boolean {
     return this.waveStart !== null;
   }
+
+  /**
+   * The character says hello: a wave and a hop, as for something new put on.
+   * A tap on it asks for this. Not while it is already waving or growing,
+   * and never under reduced motion.
+   */
+  greet() {
+    if (!this.living() || this.waving || this.evolving) {
+      return;
+    }
+    this.waveStart = performance.now();
+    this.requestRender();
+  }
+
+  /** Where and when a press on the stage began: a tap ends near there, soon after; a drag turns the character. */
+  private press: { x: number; y: number; at: number } | null = null;
+  private pressed = (event: PointerEvent) => {
+    this.press = { x: event.clientX, y: event.clientY, at: performance.now() };
+  };
+  private released = (event: PointerEvent) => {
+    const press = this.press;
+    this.press = null;
+    if (press && performance.now() - press.at <= TAP_MS && Math.hypot(event.clientX - press.x, event.clientY - press.y) <= TAP_SLOP) {
+      this.greet();
+    }
+  };
 
   private requestRender() {
     if (this.frame || this.destroyed) {

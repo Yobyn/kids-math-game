@@ -5,8 +5,10 @@ import { By } from '@angular/platform-browser';
 import { BODY_TYPES, NO_ITEM, defaultAvatar } from '../avatar/avatar-model';
 import { buildAvatar, disposeAvatar } from './build-avatar';
 import { CREATURE, CREATURE_GLOW, CREATURE_HEAD } from './creatures';
-import { EVOLVE_SECONDS, EVOLVE_SWAP, evolution } from './motion';
-import { AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, easeInOut, framing, headFraming } from './avatar-stage.component';
+import { EVOLVE_SECONDS, EVOLVE_SWAP, HOP_HEIGHT, HOP_SECONDS, evolution } from './motion';
+import {
+  AvatarStageComponent, BASE_CENTRE, BASE_DISTANCE, HEAD_DISTANCE_MIN, TAP_MS, TAP_SLOP, easeInOut, framing, headFraming
+} from './avatar-stage.component';
 
 describe('framing', () => {
   it('keeps the usual distance for a character of ordinary height', () => {
@@ -420,6 +422,83 @@ describe('AvatarStageComponent', () => {
         tick(t0 + 1000 + i * 1000 / 60);
       }
       expect(draw.calls.count()).toBe(60);
+    });
+
+    describe('a tap on the character', () => {
+      const canvas = () => fixture.nativeElement.querySelector('canvas') as HTMLCanvasElement;
+      const pointer = (type: string, x: number, y: number) =>
+        canvas().dispatchEvent(new MouseEvent(type, { clientX: x, clientY: y, bubbles: true }));
+
+      it('greets: a wave and a hop off the stand', () => {
+        notReduced();
+        expect(component.waving).toBeFalse();
+        pointer('pointerdown', 100, 120);
+        pointer('pointerup', 102, 121);
+        expect(component.waving).toBeTrue();
+        const start = (component as any).waveStart as number;
+        const body = component.model!.getObjectByName('body')!;
+        const stood = body.position.y;
+        (component as any).animate(start + (HOP_SECONDS / 2) * 1000);
+        expect(body.position.y - stood).toBeCloseTo(HOP_HEIGHT, 6);
+        (component as any).animate(start + 5000);
+        expect(component.waving).toBeFalse();
+        expect(body.position.y).toBe(stood);
+      });
+
+      it('asks for a frame, so the greeting is drawn at once', () => {
+        notReduced();
+        const draw = spyOn(component as any, 'requestRender');
+        component.greet();
+        expect(draw).toHaveBeenCalled();
+      });
+
+      it('is not a drag: turning the character does not make it wave', () => {
+        notReduced();
+        pointer('pointerdown', 100, 120);
+        pointer('pointerup', 100 + TAP_SLOP + 4, 120);
+        expect(component.waving).toBeFalse();
+        // nor is a finger let go with nothing pressed
+        pointer('pointerup', 100, 120);
+        expect(component.waving).toBeFalse();
+      });
+
+      it('is not a long press either', () => {
+        notReduced();
+        const clock = spyOn(performance, 'now').and.returnValue(1000);
+        pointer('pointerdown', 100, 120);
+        clock.and.returnValue(1000 + TAP_MS + 50);
+        pointer('pointerup', 100, 120);
+        expect(component.waving).toBeFalse();
+      });
+
+      it('does not start the wave again while it is waving', () => {
+        notReduced();
+        component.greet();
+        const start = (component as any).waveStart;
+        const clock = spyOn(performance, 'now').and.returnValue(start + 300);
+        component.greet();
+        expect((component as any).waveStart).toBe(start);
+        clock.and.callThrough();
+      });
+
+      it('does nothing under reduced motion, or when switched off', () => {
+        reduced();
+        pointer('pointerdown', 100, 120);
+        pointer('pointerup', 100, 120);
+        expect(component.waving).toBeFalse();
+        AvatarStageComponent.alive = false;
+        component.greet();
+        expect(component.waving).toBeFalse();
+      });
+
+      it('stops listening when the screen is left', () => {
+        notReduced();
+        const node = canvas();
+        fixture.destroy();
+        node.dispatchEvent(new MouseEvent('pointerdown', { clientX: 5, clientY: 5 }));
+        node.dispatchEvent(new MouseEvent('pointerup', { clientX: 5, clientY: 5 }));
+        expect(component.waving).toBeFalse();
+      });
     });
 
     describe('an evolution', () => {
