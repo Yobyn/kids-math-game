@@ -2,9 +2,12 @@ import * as THREE from 'three';
 import { BODY_TYPES, defaultAvatar } from '../avatar/avatar-model';
 import { ARM_RIG, EYE_SHUT, FOREARM_RIG, buildAvatar, disposeAvatar } from './build-avatar';
 import { figureFor } from './figure';
-import { BREATH_RISE, BREATH_SECONDS, WAVE_LIFT, WAVE_SECONDS, eyesOpen, wave } from './motion';
-import { buildCreature } from './creatures';
-import { Rig, SHUT_BELOW, WAVING_SIDE } from './rig';
+import {
+  BREATH_RISE, BREATH_SECONDS, GLANCE_FIRST, GLANCE_SECONDS, GLANCE_TILT, GLANCE_TURN, HOP_HEIGHT, HOP_SECONDS, WAVE_LIFT, WAVE_SECONDS,
+  breath, eyesOpen, wave
+} from './motion';
+import { CREATURE, CREATURE_HEAD, buildCreature } from './creatures';
+import { Rig, SHUT_BELOW, STAYS_DOWN, WAVING_SIDE } from './rig';
 
 /** Every mesh's world position, so a pose can be checked to leave nothing behind. */
 function snapshot(root: THREE.Object3D): number[] {
@@ -77,6 +80,117 @@ describe('Rig', () => {
     parts.forEach((part, i) => expect(part.position.y - before[i]).toBeCloseTo(BREATH_RISE, 9));
     // Still inside the collar: the neck reaches further into the head than the breath lifts it
     expect(BREATH_RISE).toBeLessThan(0.2);
+  });
+
+  /** The middle of the first glance: the head as far round as it goes. */
+  const GLANCING = GLANCE_FIRST + GLANCE_SECONDS / 2;
+  /** The top of the first hop, on the wave's clock. */
+  const HOPPING = HOP_SECONDS / 2;
+
+  it('turns the head and everything on it together on a glance, tilting a little, with the body still', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const model = build(bodyType);
+      const parts = ['head-group', 'hair', 'hat', 'glasses'].map(name => model.getObjectByName(name)!);
+      const body = boxOf(model.getObjectByName('body')!);
+      const rig = new Rig(model);
+      rig.pose(GLANCING, null);
+      parts.forEach(part => {
+        expect(part.rotation.y).toBeCloseTo(GLANCE_TURN, 9);
+        expect(part.rotation.z).toBeCloseTo(-GLANCE_TURN * GLANCE_TILT, 9);
+      });
+      // The face looks to the side it turned to: the mouth has moved that way
+      const mouth = model.getObjectByName('mouth')!;
+      mouth.updateWorldMatrix(true, false);
+      expect(mouth.getWorldPosition(new THREE.Vector3()).x).toBeGreaterThan(0.05);
+      const bodyNow = boxOf(model.getObjectByName('body')!);
+      // Only the breath has moved the body's arms; nothing has turned
+      expect(bodyNow.min.y).toBeCloseTo(body.min.y, 6);
+      expect(model.getObjectByName('body')!.rotation.y).toBe(0);
+      rig.pose(GLANCING + GLANCE_SECONDS, null);
+      parts.forEach(part => expect([part.rotation.y, part.rotation.z]).toEqual([0, 0]));
+    });
+  });
+
+  it('turns a creature\'s head on a glance, about where it sits', () => {
+    (['creature', 'robot', 'animal', 'space'] as const).forEach(family => {
+      const model = build('boy', { family, stage: 2 });
+      const head = model.getObjectByName(CREATURE_HEAD)!;
+      const [turn, tilt] = [head.rotation.y, head.rotation.z];
+      const at = head.position.clone();
+      const rig = new Rig(model);
+      rig.pose(GLANCING, null);
+      expect(head.rotation.y - turn).toBeCloseTo(GLANCE_TURN, 9);
+      expect(head.rotation.z - tilt).toBeCloseTo(-GLANCE_TURN * GLANCE_TILT, 9);
+      expect(head.position.x).toBe(at.x);
+      expect(head.position.z).toBe(at.z);
+      rig.rest();
+      expect([head.rotation.y, head.rotation.z]).toEqual([turn, tilt]);
+    });
+  });
+
+  it('hops with the wave: everything on the stand leaves it together, the stand and the pet stay', () => {
+    BODY_TYPES.forEach(bodyType => {
+      const model = build(bodyType, { pet: 'kitten', back: 'backpack' });
+      const names = model.children.map(child => child.name);
+      expect(names).toContain('pet');
+      expect(names).toContain('pedestal');
+      const before = model.children.map(child => child.position.y);
+      const rig = new Rig(model);
+      rig.pose(0, HOPPING);
+      model.children.forEach((child, i) => {
+        const lifted = child.position.y - before[i];
+        if (STAYS_DOWN.indexOf(child.name) >= 0) {
+          expect(lifted).toBe(0, child.name);
+        } else {
+          expect(lifted).toBeCloseTo(HOP_HEIGHT, 9, child.name);
+        }
+      });
+      // The feet are off the stand
+      const stand = boxOf(model.getObjectByName('pedestal')!).max.y;
+      expect(boxOf(model.getObjectByName('body')!).min.y - stand).toBeGreaterThan(HOP_HEIGHT * 0.8);
+      // and back on it when the hops are over, the hand still waving
+      rig.pose(0, WAVE_SECONDS / 2);
+      model.children.forEach((child, i) => expect(child.position.y).toBeCloseTo(before[i], 9));
+    });
+  });
+
+  it('keeps the head on the shoulders through a hop on a breath in', () => {
+    const model = build('girl');
+    const head = model.getObjectByName('head-group')!;
+    const body = model.getObjectByName('body')!;
+    const apart = head.position.y - body.position.y;
+    new Rig(model).pose(BREATH_SECONDS / 2, HOPPING);
+    expect(head.position.y - body.position.y - apart).toBeCloseTo(BREATH_RISE * breath(BREATH_SECONDS / 2), 9);
+  });
+
+  it('hops a creature whole, once: its head goes up with it, not twice', () => {
+    (['creature', 'robot', 'animal', 'space', 'pizza'] as const).forEach(family => {
+      const model = build('boy', { family, stage: 3 });
+      const creature = model.getObjectByName(CREATURE)!;
+      const head = model.getObjectByName(CREATURE_HEAD);
+      const [y, headY] = [creature.position.y, head ? head.position.y : 0];
+      const stand = model.getObjectByName('pedestal')!.position.y;
+      const rig = new Rig(model);
+      rig.pose(0, HOPPING);
+      expect(creature.position.y - y).toBeCloseTo(HOP_HEIGHT, 9, family);
+      if (head) {
+        expect(head.position.y).toBeCloseTo(headY, 9, family);
+      }
+      expect(model.getObjectByName('pedestal')!.position.y).toBe(stand);
+      rig.rest();
+      expect(creature.position.y).toBe(y);
+    });
+  });
+
+  it('does not hop without a wave, however long it stands', () => {
+    const model = build('boy');
+    const body = model.getObjectByName('body')!;
+    const y = body.position.y;
+    const rig = new Rig(model);
+    [0.2, GLANCING, 31.7].forEach(seconds => {
+      rig.pose(seconds, null);
+      expect(body.position.y).toBe(y);
+    });
   });
 
   it('shuts the eyes to a line on a blink, and opens them again', () => {

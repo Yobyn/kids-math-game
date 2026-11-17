@@ -6,6 +6,15 @@ import {
   EVOLVE_POP,
   EVOLVE_SECONDS,
   EVOLVE_SWAP,
+  GLANCE_FIRST,
+  GLANCE_GAP,
+  GLANCE_JITTER,
+  GLANCE_SECONDS,
+  GLANCE_TURN,
+  HOPS,
+  HOP_HEIGHT,
+  HOP_LOWER,
+  HOP_SECONDS,
   TAIL_BEAT,
   TAIL_BURST,
   TAIL_EVERY,
@@ -20,6 +29,8 @@ import {
   breath,
   evolution,
   eyesOpen,
+  glance,
+  hop,
   putOnSomethingNew,
   tailWag,
   wave,
@@ -233,6 +244,102 @@ describe('motion', () => {
       expect(putOnSomethingNew({ ...was, hat: 'cap' }, was)).toBeFalse();
       expect(putOnSomethingNew(was, { ...was })).toBeFalse();
       expect(putOnSomethingNew(undefined, { ...was, hat: 'cap' })).toBeFalse();
+    });
+  });
+
+  describe('a glance', () => {
+    const minute = samples(0, 60, 0.01, glance);
+    /** When each glance in the first minute begins: the head leaves the front. */
+    const starts = minute.filter((s, i) => i > 0 && s.v !== 0 && minute[i - 1].v === 0).map(s => s.t);
+
+    it('faces the front on arrival, and for the first seconds', () => {
+      expect(glance(0)).toBe(0);
+      expect(minute.filter(s => s.t < GLANCE_FIRST).every(s => s.v === 0)).toBeTrue();
+    });
+
+    it('looks to one side, then the next time to the other', () => {
+      expect(starts.length).toBeGreaterThanOrEqual(5);
+      const sides = starts.map(t => Math.sign(glance(t + GLANCE_SECONDS / 2)));
+      sides.forEach((side, i) => expect(side).toBe(i % 2 === 0 ? 1 : -1));
+    });
+
+    it('turns the head a little, never far', () => {
+      const turns = minute.map(s => Math.abs(s.v));
+      expect(Math.max(...turns)).toBeCloseTo(GLANCE_TURN, 9);
+      // About 7 degrees: a look, not a shake of the head
+      expect(GLANCE_TURN).toBeGreaterThan(0.08);
+      expect(GLANCE_TURN).toBeLessThan(0.2);
+    });
+
+    it('goes out, rests there, and comes back, each a third of the glance', () => {
+      const t = starts[0];
+      const third = GLANCE_SECONDS / 3;
+      expect(glance(t + third / 2)).toBeCloseTo(GLANCE_TURN / 2, 2);
+      samples(t + third + 0.01, t + 2 * third - 0.01, 0.01, glance).forEach(s => expect(s.v).toBeCloseTo(GLANCE_TURN, 9));
+      expect(glance(t + 2.5 * third)).toBeCloseTo(GLANCE_TURN / 2, 2);
+      expect(glance(t + GLANCE_SECONDS + 0.02)).toBe(0);
+    });
+
+    it('moves smoothly: no jump from one frame to the next', () => {
+      const fine = samples(0, 60, 1 / 60, glance);
+      const jumps = fine.slice(1).filter((s, i) => Math.abs(s.v - fine[i].v) > 0.012);
+      expect(jumps).toEqual([]);
+    });
+
+    it('faces the front most of the time, with uneven rests between', () => {
+      const front = minute.filter(s => s.v === 0).length / minute.length;
+      expect(front).toBeGreaterThan(0.6);
+      const gaps = starts.slice(1).map((t, i) => t - starts[i] - GLANCE_SECONDS);
+      gaps.forEach(gap => {
+        expect(gap).toBeGreaterThanOrEqual(GLANCE_GAP - GLANCE_JITTER - 0.02);
+        expect(gap).toBeLessThanOrEqual(GLANCE_GAP + GLANCE_JITTER + 0.02);
+      });
+      expect(Math.max(...gaps) - Math.min(...gaps)).toBeGreaterThan(0.3);
+    });
+
+    it('gives the same answer for the same moment, however it is asked', () => {
+      const once = [7.3, 21.9, 40.2, 5.5].map(glance);
+      [3, 50, 0].forEach(glance);
+      expect([7.3, 21.9, 40.2, 5.5].map(glance)).toEqual(once);
+    });
+  });
+
+  describe('a hop for joy', () => {
+    const all = samples(-0.2, WAVE_SECONDS + 0.2, 0.002, hop);
+
+    it('stands on the stand before, at the start, between hops and after', () => {
+      [-1, 0, HOP_SECONDS * HOPS, WAVE_SECONDS, WAVE_SECONDS + 1].forEach(t => expect(hop(t)).toBe(0));
+      expect(hop(HOP_SECONDS)).toBeCloseTo(0, 9);
+      expect(all.every(s => s.v >= 0)).toBeTrue();
+    });
+
+    it('hops twice, the second lower than the first', () => {
+      expect(HOPS).toBe(2);
+      expect(hop(HOP_SECONDS / 2)).toBeCloseTo(HOP_HEIGHT, 9);
+      expect(hop(HOP_SECONDS * 1.5)).toBeCloseTo(HOP_HEIGHT * HOP_LOWER, 9);
+      expect(Math.max(...all.map(s => s.v))).toBeCloseTo(HOP_HEIGHT, 4);
+      expect(HOP_LOWER).toBeLessThan(1);
+    });
+
+    it('goes up and comes down in an arc, as a jump does: fastest at the stand, slowest at the top', () => {
+      const leaving = hop(0.02) - hop(0);
+      const atTheTop = Math.abs(hop(HOP_SECONDS / 2 + 0.02) - hop(HOP_SECONDS / 2));
+      expect(leaving).toBeGreaterThan(atTheTop * 5);
+      // and the same on the way down as on the way up
+      expect(hop(HOP_SECONDS * 0.25)).toBeCloseTo(hop(HOP_SECONDS * 0.75), 9);
+    });
+
+    it('is a small hop, and has landed while the hand is still up', () => {
+      // A head is 2 units high: a quarter of a head, clear of the stand but inside the picture
+      expect(HOP_HEIGHT).toBeGreaterThan(0.25);
+      expect(HOP_HEIGHT).toBeLessThanOrEqual(0.6);
+      expect(HOP_SECONDS * HOPS).toBeLessThan(WAVE_SECONDS * 0.6);
+      expect(wave(HOP_SECONDS * HOPS).lift).toBeCloseTo(WAVE_LIFT, 6);
+    });
+
+    it('never jumps from one frame to the next', () => {
+      const jumps = all.slice(1).filter((s, i) => Math.abs(s.v - all[i].v) > 0.012);
+      expect(jumps).toEqual([]);
     });
   });
 
