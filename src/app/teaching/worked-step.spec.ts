@@ -124,10 +124,58 @@ describe('the method it chooses', () => {
     expect(workedStep(43, 7, '-')).toBe('43 - 3 = 40 → 40 - 4 = 36');
     // from a whole ten: ten take seven, and the tens left
     expect(workedStep(40, 7, '-')).toBe('10 - 7 = 3 → 30 + 3 = 33');
-    // landing on the ten, or not crossing it, needs no step
-    expect(workedStep(37, 3, '+')).toBeUndefined();
-    expect(workedStep(34, 2, '+')).toBeUndefined();
-    expect(workedStep(28, 7, '-')).toBeUndefined();
+  });
+
+  it('works a sum that does not cross the ten out from its ones, the tens left as they are (2026-11-23)', () => {
+    // 34 + 2, 19 − 2 and 37 + 3 had no worked line: "not crossing the ten needs no step". But a child who
+    // missed one twice is shown what school shows: only the ones change
+    expect(workedStep(34, 2, '+')).toBe('4 + 2 = 6 → 30 + 6 = 36');
+    expect(workedStep(13, 4, '+')).toBe('3 + 4 = 7 → 10 + 7 = 17');
+    expect(workedStep(37, 3, '+')).toBe('7 + 3 = 10 → 30 + 10 = 40');
+    expect(workedStep(19, 2, '-')).toBe('9 - 2 = 7 → 10 + 7 = 17');
+    expect(workedStep(28, 7, '-')).toBe('8 - 7 = 1 → 20 + 1 = 21');
+    // landing on the ten going down, 17 − 7, is the ten itself: no step
+    expect(workedStep(17, 7, '-')).toBeUndefined();
+    // a whole ten and ones is written as it is said: 30 + 4
+    expect(workedStep(30, 4, '+')).toBeUndefined();
+  });
+
+  it('works a jump of whole tens from the tens, the ones carried along (2026-11-23)', () => {
+    // 67 + 10 and 77 − 10 (sprong van 10), 45 + 30 (TE + T) had no worked line
+    expect(workedStep(67, 10, '+')).toBe('60 + 10 = 70 → 70 + 7 = 77');
+    expect(workedStep(45, 30, '+')).toBe('40 + 30 = 70 → 70 + 5 = 75');
+    expect(workedStep(95, 10, '+')).toBe('90 + 10 = 100 → 100 + 5 = 105');
+    expect(workedStep(77, 10, '-')).toBe('70 - 10 = 60 → 60 + 7 = 67');
+    expect(workedStep(83, 50, '-')).toBe('80 - 50 = 30 → 30 + 3 = 33');
+    // nothing but the ones left (37 − 30, 13 − 10): the line would be the answer again
+    expect(workedStep(37, 30, '-')).toBeUndefined();
+    expect(workedStep(13, 10, '-')).toBeUndefined();
+  });
+
+  it('gives groep 3 and 4 a true worked line on its answer for nearly every sum that does not cross the ten (2026-11-23)', () => {
+    const random = (() => { let seed = 11; return () => (seed = (seed * 16807) % 2147483647) / 2147483647; })();
+    ['plus-tot-20-zonder', 'min-tot-20-zonder', 'sprong-van-10', 'te-e-zonder', 'te-t'].forEach(topic => {
+      let quiet = 0;
+      for (let i = 0; i < 300; i++) {
+        const sum = TOPICS[topic](random);
+        const context = `${topic}: ${sum.num1} ${sum.operation} ${sum.num2}`;
+        const step = workedStep(sum.num1, sum.num2, sum.operation);
+        if (!step) {
+          // only a sum that ends on a whole ten or on its ones (17 − 7, 37 − 30), or from a whole ten (20 + 10 is worked as 2 + 1)
+          expect(sum.operation === '-' && (answerFor(sum.num1, sum.num2, sum.operation) % 10 === 0
+            || answerFor(sum.num1, sum.num2, sum.operation) < 10)).withContext(context).toBeTrue();
+          quiet++;
+          continue;
+        }
+        const lines = equations(step);
+        lines.forEach(({ left, right }) => expect(evaluate(left)).withContext(step).toBe(right));
+        expect(lines[lines.length - 1].right).withContext(step).toBe(answerFor(sum.num1, sum.num2, sum.operation));
+        // two steps, the first of single figures or of whole tens
+        expect(lines.length).withContext(step).toBe(2);
+        expect(lines[0].left).withContext(step).toMatch(/^(\d [+-] \d|\d0 [+-] \d0)$/);
+      }
+      expect(quiet).withContext(topic).toBeLessThan(300 * 0.2);
+    });
   });
 
   it('works every crossing sum groep 4 is asked out through the ten (2026-11-09)', () => {
