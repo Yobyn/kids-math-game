@@ -733,6 +733,24 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 18: sums that do not cross the ten get their worked
+  line (2026-11-23).** About 150 questions were drawn as a child in groep 3,
+  4, 6 and 8 and klas 1 and 2, with each one's story and worked line. Groep
+  3 and 4's sums that stay inside the ten said nothing after two wrong
+  tries, on the old rule that "not crossing the ten needs no step": 19 − 2,
+  34 + 2, 37 + 3, and the jumps of ten 67 + 10, 77 − 10, 45 + 30. That is
+  the same kind of rule run 14 overturned for round numbers. They now show
+  what school shows (worked-step.ts):
+  - only the ones change: "9 − 2 = 7 → 10 + 7 = 17", "4 + 2 = 6 → 30 + 6
+    = 36", landing on the ten "7 + 3 = 10 → 30 + 10 = 40";
+  - a jump of tens, the ones carried along: "60 + 10 = 70 → 70 + 7 = 77",
+    "70 − 10 = 60 → 60 + 7 = 67".
+
+  Still quiet: a sum that ends on the ten or on its ones (17 − 7, 37 − 30),
+  single digits within 10, and numbers of a hundred or more (563 − 30 stays
+  one step, as run 15 decided). A spec holds every such sum of groep 3 and
+  4 to a line of two true steps ending on its answer; fewer than 1 in 5 stay
+  quiet. No first-load change.
 - **De getallenlijn (2026-11-23).** Yobyn: "We need to implement
   https://nl.wikipedia.org/wiki/Getallenlijn as well". A new kind of
   question, groep 3 to klas 1 (docs/CURRICULUM-NL.md, item 10): a drawn

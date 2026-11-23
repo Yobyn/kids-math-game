@@ -91,10 +91,23 @@ function addition(num1: number, num2: number): string | undefined {
   }
 
   // Groep 4: a two-figure number and a one crossing the next ten, the same bridge. 59 + 5 as 59 + 1
-  // then 60 + 4. Landing on the ten (37 + 3) or not reaching it (34 + 2) needs no step
+  // then 60 + 4
   if (num1 > 10 && num2 < 10 && num1 % 10 + num2 > 10) {
     const bridge = 10 - num1 % 10;
     return `${num1} + ${bridge} = ${num1 + bridge}${THEN}${num1 + bridge} + ${num2 - bridge} = ${total}`;
+  }
+
+  // Groep 3 and 4, not crossing the ten: only the ones change, the tens stay. 34 + 2 as 4 + 2 = 6, and
+  // the 30 with it; landing on the ten, 37 + 3 as 7 + 3 = 10 and the 30 (2026-11-23)
+  const [tens, ones] = [num1 - num1 % 10, num1 % 10];
+  if (num1 > 10 && num1 < 100 && ones && num2 > 0 && num2 < 10) {
+    return `${ones} + ${num2} = ${ones + num2}${THEN}${tens} + ${ones + num2} = ${total}`;
+  }
+
+  // A jump of whole tens (sprong van 10, TE + T): the tens first, the ones carried along. 67 + 10 as
+  // 60 + 10 = 70, and the 7
+  if (num1 > 10 && num1 < 100 && ones && num2 % 10 === 0 && num2 > 0 && num2 < 100) {
+    return `${tens} + ${num2} = ${tens + num2}${THEN}${tens + num2} + ${ones} = ${total}`;
   }
 
   // Groep 4 and 5: whole tens and hundreds, from the small sum they hide. 20 + 60 as 2 + 6 = 8, so 80
@@ -140,6 +153,19 @@ function subtraction(num1: number, num2: number): string | undefined {
       return `10 - ${num2} = ${10 - num2}${THEN}${num1 - 10} + ${10 - num2} = ${answer}`;
     }
     return `${num1} - ${down} = ${num1 - down}${THEN}${num1 - down} - ${num2 - down} = ${answer}`;
+  }
+
+  // Not crossing the ten, downward: only the ones change. 19 - 2 as 9 - 2 = 7, and the 10 with it.
+  // Taking all the ones (17 - 7) leaves the ten itself: no step (2026-11-23)
+  const [tens, ones] = [num1 - num1 % 10, num1 % 10];
+  if (num1 > 10 && num1 < 100 && num2 > 0 && num2 < ones) {
+    return `${ones} - ${num2} = ${ones - num2}${THEN}${tens} + ${ones - num2} = ${answer}`;
+  }
+
+  // A jump of whole tens down: 77 - 10 as 70 - 10 = 60, and the 7. Taking all the tens (37 - 30)
+  // leaves the ones: no step
+  if (num1 > 10 && num1 < 100 && ones && num2 % 10 === 0 && num2 > 0 && num2 < tens) {
+    return `${tens} - ${num2} = ${tens - num2}${THEN}${tens - num2} + ${ones} = ${answer}`;
   }
 
   // Whole tens and hundreds, downward: 800 - 300 as 8 - 3 = 5, so 500

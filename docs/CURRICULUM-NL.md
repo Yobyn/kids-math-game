@@ -49,13 +49,13 @@ the €1, whose answer is the amount itself (2026-11-04).
 | --- | --- | --- |
 | B | Adding and taking away within 10, small numbers | 3 + 2, 7 − 1 |
 | M | +/− within 10, all of it; aanvullen to 10 | 6 + 4, 9 − 5, 7 + ? = 10 |
-| M | Adding within 20 without crossing the ten | 13 + 4, 17 − 5 |
+| M | Adding within 20 without crossing the ten (worked from the ones after two tries: 3 + 4 = 7 → 10 + 7 = 17) | 13 + 4, 17 − 5 |
 | M | Doubles within 10 | 4 + 4, dubbel 5 |
 | M | Getallenlijn 0 to 20: welk getal hoort bij de pijl? | the arrow at 13 |
 | E | +/− within 20 crossing the ten (via 10) | 8 + 5, 14 − 6 |
 | E | Splitsen of numbers to 10 | 8 = 5 + ? |
 | E | Doubles and halves within 20 | dubbel 7, de helft van 16 |
-| E | Jumps of ten within 100 | 30 + 10, 57 − 10 |
+| E | Jumps of ten within 100 (worked from the tens after two tries: 50 − 10 = 40 → 40 + 7 = 47) | 30 + 10, 57 − 10 |
 | E | Klokkijken: whole and half hours | 4:00, half 4 = 3:30 |
 | E | Getallenlijn 0 to 100 in tens | the arrow at 70 |
 
@@ -66,7 +66,7 @@ the €1, whose answer is the amount itself (2026-11-04).
 | B | Groep 3's end: +/− within 20 crossing the ten | 8 + 5, 15 − 7 |
 | M | Tens: T ± T within 100 (worked from the small sum inside after two tries: 4 + 3 = 7 → 40 + 30 = 70) | 40 + 30, 70 − 20 |
 | M | TE ± E without and with crossing the ten (worked through the ten after two tries: 36 + 4 = 40 → 40 + 4 = 44, 42 − 2 = 40 → 40 − 5 = 35) | 34 + 5, 36 + 8, 42 − 7 |
-| M | TE ± T | 45 + 30, 68 − 40 |
+| M | TE ± T (worked from the tens after two tries: 40 + 30 = 70 → 70 + 5 = 75) | 45 + 30, 68 − 40 |
 | M | Tables of 1, 2, 5 and 10 | 7 × 2, 6 × 5 |
 | M | Dividing within those tables | 20 : 5, 14 : 2 |
 | M | Klokkijken: kwart over, kwart voor | 3:15, 3:45 |
