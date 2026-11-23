@@ -276,6 +276,18 @@ describe('the facts an adult is asked to practise', () => {
     expect(item.answer).toBe('3:45');
   });
 
+  it('gives the grown-ups a number line by its two ends, and the number at the arrow, never 40 + 7', () => {
+    const items = practicePlan([], [
+      { ...fact(40, 7, '+'), form: 'getallenlijn-1' },
+      { ...fact(30, 7, '+'), form: 'getallenlijn-tiende' },
+      { ...fact(-10, 4, '+'), form: 'getallenlijn-negatief' }
+    ] as MissedFact[]).facts;
+    expect(items.map(item => item.question)).toEqual(['📏 40 … 50', '📏 3 … 4', '📏 \u221210 … 10']);
+    expect(items.map(item => item.answer)).toEqual(['47', '3,7', '\u22126']);
+    const big = practicePlan([], [{ ...fact(0, 3000, '+'), form: 'getallenlijn-1000' }] as MissedFact[]).facts[0];
+    expect([big.question, big.answer]).toEqual(['📏 0 … 10\u202f000', '3000']);
+  });
+
   it('gives the grown-ups klas 2 as it was asked', () => {
     const facts = [
       { ...fact(4, 2, '*'), form: 'macht-3' },

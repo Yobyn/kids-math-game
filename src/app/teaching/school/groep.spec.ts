@@ -58,6 +58,14 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       const below = /^(negatief|negmacht|minkwadraat)/.test(sum.form || '');
       // a clock at the whole hour is kept as 300 + 0
       const clock = sum.form === 'klok';
+      // a number line is kept as its left end + how far along the arrow is: from 0, or from −10 for klas 1's line below nought
+      if (/^getallenlijn/.test(sum.form || '')) {
+        const lowest = sum.form === 'getallenlijn-negatief' ? -10 : 0;
+        if (!isWhole(sum.num1) || !isWhole(sum.num2) || sum.num1 < lowest || sum.num2 <= 0) {
+          misses.push(`${topic}: ${sum.num1} ${sum.operation} ${sum.num2}`);
+        }
+        return;
+      }
       if (!isWhole(sum.num1) || !isWhole(sum.num2) || !isWhole(result) || (!below && (result < 0 || sum.num1 <= 0 || (sum.num2 <= 0 && !clock)))
           || (below && (sum.num1 === 0 || sum.num2 === 0))) {
         misses.push(`${topic}: ${sum.num1} ${sum.operation} ${sum.num2}`);
@@ -441,7 +449,8 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
 
   describe('klas 1 (grade 7, kept as groep 9)', () => {
     it('starts the year where groep 8 ended, with numbers below nought new', () => {
-      Object.keys(CURRICULUM[9].B).filter(topic => topic !== 'negatief-plus-min')
+      // below nought: the sums, and the number line that goes on past 0 (number-line.spec.ts)
+      Object.keys(CURRICULUM[9].B).filter(topic => topic !== 'negatief-plus-min' && topic !== 'getallenlijn-negatief')
         .forEach(topic => expect(Object.keys(CURRICULUM[8].E)).withContext(topic).toContain(topic));
       (['B', 'M', 'E'] as Moment[]).forEach(moment => expect(schoolSum(9, moment)).withContext(moment).not.toBeNull());
     });

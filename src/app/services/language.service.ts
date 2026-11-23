@@ -106,6 +106,8 @@ export type TranslationKeys =
   | 'right-4'
   | 'clock-ask'
   | 'clock-face'
+  | 'line-ask'
+  | 'line-label'
   | 'money-total'
   | 'money-change'
   | 'money-count'

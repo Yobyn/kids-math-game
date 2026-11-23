@@ -47,6 +47,13 @@
          time as a digital clock writes it. Side by side, so a clock costs a phone no more than coins do -->
     <p class="money-prompt" *ngIf="isClock">{{ languageService.translate('clock-ask') }}</p>
 
+    <!-- De getallenlijn: the question, then the line as wide as the card, the box under it -->
+    <ng-container *ngIf="numberLineForm as lineForm">
+      <p class="money-prompt">{{ languageService.translate('line-ask') }}</p>
+      <app-number-line [form]="lineForm" [num1]="currentQuestion.num1" [num2]="currentQuestion.num2" [point]="decimalSign"
+                       [label]="languageService.translate('line-label')"></app-number-line>
+    </ng-container>
+
     <div class="math-problem" *ngIf="!isPicking">
       <app-clock-face *ngIf="isClock" [hours]="clockHours" [minutes]="currentQuestion.num2"
                       [label]="languageService.translate('clock-face')"></app-clock-face>

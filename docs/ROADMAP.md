@@ -733,6 +733,20 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **De getallenlijn (2026-11-23).** Yobyn: "We need to implement
+  https://nl.wikipedia.org/wiki/Getallenlijn as well". A new kind of
+  question, groep 3 to klas 1 (docs/CURRICULUM-NL.md, item 10): a drawn
+  number line with an arrow at one mark, "Welk getal hoort bij de pijl?",
+  the answer typed on the keypad. Forms `getallenlijn-20`, `-1`, `-10`,
+  `-100`, `-1000`, `-tiende` and `-negatief` (sum-form.ts), kept as the
+  left end + how far along; drawn by `number-line.component.ts` from
+  `numberLine()` in written-form.ts; eight topics in groep.ts, from 0 to
+  20 in groep 3 to −10 to 10 in klas 1. The worked line after two tries
+  counts from the nearest number on the line. The grown-ups' plan shows
+  the line's ends ("📏 40 … 50") and the number. The form names are read
+  back from saved rounds, so they are in the first load: 130 bytes
+  (360.24 kB). Not yet: placing a given number on the line (tapping where
+  47 goes), an empty line for jumps (lege getallenlijn), fractions on it.
 - **Avatar graphics, 4: movement and expression (2026-11-17).** The last
   of Yobyn's four parts. Standing on its stage a character breathed and
   blinked, facing dead ahead; a wave was a greeting from the shoulder up.

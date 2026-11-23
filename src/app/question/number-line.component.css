@@ -1,0 +1,58 @@
+/* Above the answer box, as wide as the card: a line to read along needs
+   the width more than the height. */
+:host {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.number-line {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* The line in the card's reading colour, the numbered marks bold like the clock's hours */
+.axis,
+.mark {
+  stroke: var(--text-read);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.axis-end {
+  fill: var(--text-read);
+}
+
+.mark {
+  stroke: var(--text-read-dim);
+  stroke-width: 1.4;
+}
+
+.mark.half {
+  stroke: var(--text-read);
+  stroke-width: 1.8;
+}
+
+.mark.big {
+  stroke: var(--text-read);
+  stroke-width: 2.6;
+}
+
+.number {
+  fill: var(--text-read);
+  font-size: 17px;
+  font-weight: bold;
+}
+
+/* The arrow in the clock's minute-hand colour: the thing to read */
+.arrow line {
+  stroke: var(--accent-magenta-read);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.arrow path {
+  fill: var(--accent-magenta-read);
+}

@@ -464,8 +464,8 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       const sign = ({ '%': ':', '-': '−', '*': '×', '/': ':' } as { [op: string]: string })[sum.operation] || sum.operation;
       const written = read(sumLayout({ num1: sum.num1, num2: sum.num2, sign, form: sum.form }, WORDS));
       const right = answer(sum);
-      // A clock is drawn, not written: clock-face.spec.ts holds it to what it shows
-      if (sum.form === 'klok') {
+      // A clock and a number line are drawn, not written: clock-face.spec.ts and number-line.spec.ts hold them to what they show
+      if (sum.form === 'klok' || /^getallenlijn/.test(sum.form || '')) {
         return;
       }
       // a sum with a comma is answered with one: 7 tenths is written 0,7
@@ -566,8 +566,9 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     const misses: string[] = [];
     FORM_TOPICS.forEach(topic => made(topic).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
-      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|welk-procent|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur|negatief|ongelijk|macht|pythagoras|beide|kwadratisch|kwadraat-vgl|negmacht|minkwadraat|wortel-vereenvoudig|herleiden|klok)/.test(sum.form!)) {
-        // read as rounding, as decimals, as percentages, as fractions, as scales and as means below; a clock in clock-face.spec.ts
+      if (sum.form === 'afronden' || placesOf(sum.form) || /^(procent-\d|welk-procent|korting|gelijknamig|schaal|gemiddelde|tijdsduur|temperatuur|negatief|ongelijk|macht|pythagoras|beide|kwadratisch|kwadraat-vgl|negmacht|minkwadraat|wortel-vereenvoudig|herleiden|klok|getallenlijn)/.test(sum.form!)) {
+        // read as rounding, as decimals, as percentages, as fractions, as scales and as means below; a clock in clock-face.spec.ts,
+        // a number line in number-line.spec.ts
         return;
       }
       // Every step is true, and the answer is in it (last for most; a half is worked as 8 + 8 = 16)

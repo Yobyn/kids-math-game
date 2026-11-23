@@ -51,11 +51,13 @@ the €1, whose answer is the amount itself (2026-11-04).
 | M | +/− within 10, all of it; aanvullen to 10 | 6 + 4, 9 − 5, 7 + ? = 10 |
 | M | Adding within 20 without crossing the ten | 13 + 4, 17 − 5 |
 | M | Doubles within 10 | 4 + 4, dubbel 5 |
+| M | Getallenlijn 0 to 20: welk getal hoort bij de pijl? | the arrow at 13 |
 | E | +/− within 20 crossing the ten (via 10) | 8 + 5, 14 − 6 |
 | E | Splitsen of numbers to 10 | 8 = 5 + ? |
 | E | Doubles and halves within 20 | dubbel 7, de helft van 16 |
 | E | Jumps of ten within 100 | 30 + 10, 57 − 10 |
 | E | Klokkijken: whole and half hours | 4:00, half 4 = 3:30 |
+| E | Getallenlijn 0 to 100 in tens | the arrow at 70 |
 
 ## Groep 4 (age 7–8)
 
@@ -68,12 +70,14 @@ the €1, whose answer is the amount itself (2026-11-04).
 | M | Tables of 1, 2, 5 and 10 | 7 × 2, 6 × 5 |
 | M | Dividing within those tables | 20 : 5, 14 : 2 |
 | M | Klokkijken: kwart over, kwart voor | 3:15, 3:45 |
+| M | Getallenlijn: the ones between two tens | 40 to 50, the arrow at 47 |
 | E | TE ± TE without and with crossing | 36 + 27, 74 − 38 |
 | E | Tables of 3 and 4 added (1–5 and 10; worked from the table of 2 after two tries: 6 × 2 = 12 → 12 + 6 = 18, 8 × 2 = 16 → 16 + 16 = 32) | 6 × 3, 8 × 4 |
 | E | Dividing within tables 1–5 and 10 | 24 : 4, 18 : 3 |
 | E | Hundreds within 1000 (worked from the small sum inside after two tries: 6 − 2 = 4 → 600 − 200 = 400) | 300 + 400, 600 − 200 |
 | E | Doubles and halves within 100 | dubbel 35, de helft van 60 |
 | E | Klokkijken: every five minutes | 3:25, 10:50 |
+| E | Getallenlijn 0 to 1000 in hundreds | the arrow at 600 |
 
 ## Groep 5 (age 8–9)
 
@@ -86,6 +90,7 @@ the €1, whose answer is the amount itself (2026-11-04).
 | M | Times a ten (worked from the table fact after two tries: 4 × 3 = 12 → 4 × 30 = 120) | 4 × 30, 6 × 40 |
 | M | A part of an amount | de helft van 18, ¼ van 20 |
 | M | Klokkijken: to the minute | 3:37, 11:02 |
+| M | Getallenlijn: the tens between two hundreds | 300 to 400, the arrow at 370 |
 
 From groep 5 a table is revisited, not learnt: a table fact never has a 1 in
 it (4 × 1, 1 × 7, 9 : 9 are groep 4's; 2026-11-08).
@@ -102,7 +107,9 @@ it (4 × 1, 1 × 7, 9 : 9 are groep 4's; 2026-11-08).
 | M | +/− within 10 000 (cijferend; worked a place at a time after two tries, thousands first) | 2345 + 1678, 5003 − 2468 |
 | M | Times and dividing, larger | 12 × 15, 25 × 8, 96 : 4, 150 : 6 |
 | M | Fractions of an amount; equal fractions | ¾ van 20, ½ = ?/8 |
+| M | Getallenlijn to 10 000: thousands, or the hundreds between two thousands | the arrow at 3000, at 4600 |
 | E | Decimals: tenths and money | 0,3 + 0,4, 1,5 + 2,7 |
+| E | Getallenlijn in tenths (again in groep 7 and at the start of groep 8) | 3 to 4, the arrow at 3,7 |
 | E | TE × TE (worked in tens and ones after two tries; 34 × 11 as 34 × 10 = 340 → 340 + 34 = 374) | 23 × 14 |
 | E | Perimeter and area of a rectangle | 6 m bij 4 m: oppervlakte = ? m² |
 | E | Rounding to tens and hundreds | 347 ≈ ? (op tientallen) |
@@ -160,6 +167,7 @@ no round asks a times table or a division inside the tables on its own.
 | --- | --- | --- |
 | B | Groep 8's end, revisited | 15% van 60, 9:45 → 11:20, −3° → 5° |
 | B | Negative numbers: + and − | −3 + 8 = ?, 4 − 9 = ?, −5 − 3 = ? |
+| B | Getallenlijn from −10 to 10 (again in the middle) | the arrow at −6 |
 | M | Negative numbers: × and : | −4 × 6 = ?, −24 : −3 = ? |
 | M | Bewerkingsvolgorde (order of operations) | 3 + 4 × 5 = ?, (3 + 4) × 5 = ?, 20 − 12 : 4 = ? |
 | M | Fractions, unlike denominators: + and − | 1/2 + 1/3 = ?/6, 3/4 − 3/8 = ?/8 |
@@ -353,3 +361,18 @@ its groep:
    groep 4, every five minutes at its end, and to the minute in the middle
    of groep 5. After two tries the worked line counts the big hand's
    fives: "9 × 5 = 45 → 3:45".
+10. **De getallenlijn** (the number line), groep 3 to klas 1, built
+   2026-11-23 (Yobyn: "We need to implement Getallenlijn as well"). A drawn
+   line (`question/number-line.component.ts`) with a mark at every step,
+   a number on its two ends (and in the middle of a line of twenty), an
+   arrowhead at each end because the numbers go on, and an arrow over one
+   unnumbered mark: "Welk getal hoort bij de pijl?". Kept as the line's
+   left end plus how far along the arrow is (40 + 7), so marking, saved
+   rounds and missed facts work as for any sum. Each groep reads the
+   numbers it is learning: 0 to 20 in the middle of groep 3, the tens to
+   100 at its end; the ones between two tens in groep 4 and the hundreds
+   to 1000 at its end; the tens between two hundreds in groep 5; to
+   10 000 and tenths (typed with the comma) in groep 6; −10 to 10 with
+   klas 1's negative numbers (groep 3 to 8 never need the minus key).
+   After two tries the worked line counts from the nearest number on the
+   line: "50 − 3 = 47", "100 − 3 × 10 = 70", "4 − 3 × 0,1 = 3,7".

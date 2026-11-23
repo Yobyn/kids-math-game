@@ -12,6 +12,7 @@ import { ProgressService } from '../services/progress.service';
 import { MAX_PICKED, fewestPieces } from '../teaching/coin-pick';
 import { KeypadComponent } from '../keypad/keypad.component';
 import { ClockFaceComponent } from './clock-face.component';
+import { NumberLineComponent } from './number-line.component';
 
 describe('QuestionComponent', () => {
   let component: QuestionComponent;
@@ -2988,6 +2989,124 @@ describe('QuestionComponent asking the time on a clock (klokkijken, 2026-10-27)'
       }
     }
     expect(clocks).toBeGreaterThan(0);
+  });
+});
+
+describe('QuestionComponent asking at a number line (de getallenlijn, Yobyn 2026-11-23)', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  function build(grade = '2', language = 'nl') {
+    localStorage.clear();
+    localStorage.setItem('grade', grade);
+    localStorage.setItem('difficulty', 'medium');
+    localStorage.setItem('language', language);
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  function ask(form: string, num1: number, num2: number) {
+    component.currentQuestion = { num1, num2, operation: '+', form: form as any };
+    component.userAnswer = '';
+    component.showOkButton = false;
+    component.wrongAttempts = 0;
+    component.isSecondAttempt = false;
+    component.workedLine = '';
+    fixture.detectChanges();
+  }
+
+  function type(keys: string) {
+    keys.split('').forEach(key => component.onKeypadPress(key));
+    fixture.detectChanges();
+  }
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [QuestionComponent, KeypadComponent, NumberLineComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('asks "Welk getal hoort bij de pijl?" over a drawn line, with the arrow on the asked mark, and shows no sum', () => {
+    build();
+    ask('getallenlijn-1', 40, 7);
+    const page = fixture.nativeElement as HTMLElement;
+    expect(page.textContent).toContain('Welk getal hoort bij de pijl?');
+    const line = page.querySelector('app-number-line svg') as SVGElement;
+    expect(Array.from(line.querySelectorAll('text')).map(text => text.textContent!.trim())).toEqual(['40', '50']);
+    expect(line.getAttribute('aria-label')).toBe('Een getallenlijn');
+    // The line stands above the box, as wide as the card; nothing of 40 + 7 is written beside the box
+    const row = page.querySelector('.math-problem') as HTMLElement;
+    expect(row.querySelector('app-number-line')).toBeNull();
+    expect(row.textContent).not.toContain('40');
+    expect(row.textContent).not.toContain('+');
+    expect(page.textContent).not.toContain('47');
+  });
+
+  it('marks the number at the arrow right, and gives it with the line worked out after two tries', () => {
+    build();
+    ask('getallenlijn-1', 40, 7);
+    type('47');
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+
+    ask('getallenlijn-10', 0, 70);
+    type('7');
+    component.checkAnswer();
+    type('60');
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeFalse();
+    expect(component.feedback).toContain('70');
+    // Back from the 100 at the end: three tens
+    expect(component.workedLine).toBe('100 \u2212 3 × 10 = 70');
+  });
+
+  it('takes tenths with the decimal sign, as 3,7 in Dutch', () => {
+    build('4');
+    ask('getallenlijn-tiende', 30, 7);
+    expect(component.needsDecimalKey).toBeTrue();
+    expect(component.needsMinusKey).toBeFalse();
+    component.userAnswer = '3,7';
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+  });
+
+  it('writes the line\'s numbers and takes tenths with a point in English', () => {
+    build('4', 'en');
+    ask('getallenlijn-tiende', 0, 4);
+    const line = fixture.nativeElement.querySelector('app-number-line svg') as SVGElement;
+    expect(Array.from(line.querySelectorAll('text')).map(text => text.textContent!.trim())).toEqual(['0', '1']);
+    component.userAnswer = '0.4';
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+    expect(fixture.nativeElement.textContent).toContain('Which number goes at the arrow?');
+  });
+
+  it('gives klas 1 the minus key for the line below nought, and takes −6', () => {
+    build('7');
+    ask('getallenlijn-negatief', -10, 4);
+    expect(component.needsMinusKey).toBeTrue();
+    type('-6');
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+  });
+
+  it('puts a number line in a groep 3 round now and then, never as a story', () => {
+    build('1');
+    let lines = 0;
+    for (let i = 0; i < 200; i++) {
+      component.generateQuestion();
+      if ((component.currentQuestion.form || '').startsWith('getallenlijn')) {
+        lines++;
+        expect(component.currentQuestion.story).toBeUndefined();
+        expect(component.numberLineForm).toBe('getallenlijn-20');
+      }
+    }
+    expect(lines).toBeGreaterThan(0);
   });
 });
 
