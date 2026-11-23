@@ -25,7 +25,7 @@
 
 import {
   DECIMAL_MEASURE_FORMS, DISCOUNT_FORMS, FRACTION_SUM_FORMS, MEAN_FORMS, MEASURE_FORMS, PERCENT_FORMS, PERCENT_STEP_FORMS,
-  RATIO_FORMS, SCALE_FORMS, SumForm, TEMPERATURE_FORMS, VOLUME_FORMS, VOLUME_MEASURE_FORMS, denominatorOf, lengthOf, packsOf,
+  NumberLineForm, RATIO_FORMS, SCALE_FORMS, SumForm, TEMPERATURE_FORMS, VOLUME_FORMS, VOLUME_MEASURE_FORMS, denominatorOf, lengthOf, packsOf,
   percentOf, scaleOf, stepOf, BRACKET_FORMS, FORMULA_FORMS, PRECEDENCE_FORMS, TIMES_FRACTION_FORMS, UNLIKE_FRACTION_FORMS,
   denominatorsOf, lastNumberOf, EQUATION_FORMS, FILL_IN_FORMS, PERCENT_CHANGE_FORMS, POWER_FORMS, PYTHAGORAS_FORMS, TRIANGLES,
   BOTH_SIDES_FORMS, BRACKET_EQUATION_FORMS, NEGATIVE_POWER_FORMS, TRIG_FORMS, TRIG_VALUES
@@ -268,6 +268,38 @@ TOPICS['klok-minuten'] = random => {
   }
   return clockSum(between(random, 1, 12), minutes);
 };
+
+/**
+ * De getallenlijn (Yobyn, 2026-11-23): welk getal hoort bij de pijl? A line
+ * with marks at equal steps, a number at its ends (and in the middle of a
+ * line of twenty), and an arrow at a mark without one. Kept as the left end
+ * plus how far along the arrow is (sum-form.ts), so the answer is the sum.
+ * Each groep reads the numbers it is learning to count in: to 20, the tens
+ * to 100 and the ones between two tens, to 1000, to 10 000, tenths, and
+ * below nought.
+ */
+const lineSum = (form: NumberLineForm, from: number, along: number): Omit<SchoolSum, 'topic'> =>
+  ({ num1: from, num2: along, operation: '+', form });
+/** A mark of a ten-step line that has no number on it: 1 to 9. */
+const unlabelled = (random: Random) => between(random, 1, 9);
+/** A mark of a twenty-step line that has no number on it: 1 to 19, not the middle. */
+const unlabelledOfTwenty = (random: Random) => pick(random, [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
+// Groep 3: 0 to 20, a mark for every number, 0, 10 and 20 written on it
+TOPICS['getallenlijn-tot-20'] = random => lineSum('getallenlijn-20', 0, unlabelledOfTwenty(random));
+// Groep 3's end, with the jumps of ten: the tens on a line from 0 to 100. Groep 4: the ones between two tens (40 to 50)
+TOPICS['getallenlijn-tot-100'] = random => lineSum('getallenlijn-10', 0, 10 * unlabelled(random));
+TOPICS['getallenlijn-tiental'] = random => lineSum('getallenlijn-1', 10 * between(random, 1, 9), unlabelled(random));
+// Groep 4's end, with the hundreds: a line from 0 to 1000. Groep 5: the tens between two hundreds (300 to 400)
+TOPICS['getallenlijn-tot-1000'] = random => lineSum('getallenlijn-100', 0, 100 * unlabelled(random));
+TOPICS['getallenlijn-honderdtal'] = random => lineSum('getallenlijn-10', 100 * between(random, 1, 9), 10 * unlabelled(random));
+// Groep 6: the thousands to 10 000, or the hundreds between two thousands (3000 to 4000)
+TOPICS['getallenlijn-tot-10000'] = random => random() < 0.5
+  ? lineSum('getallenlijn-1000', 0, 1000 * unlabelled(random))
+  : lineSum('getallenlijn-100', 1000 * between(random, 1, 9), 100 * unlabelled(random));
+// Groep 6 to 8: tenths between two whole numbers, 3 to 4, counted in tenths as tienden are: 3,7 is 30 + 7
+TOPICS['getallenlijn-tienden'] = random => lineSum('getallenlijn-tiende', 10 * between(random, 0, 9), unlabelled(random));
+// Klas 1, with the negative numbers: below nought, a line from −10 to 10 with −10, 0 and 10 written on it
+TOPICS['getallenlijn-negatief'] = random => lineSum('getallenlijn-negatief', -10, unlabelledOfTwenty(random));
 
 /** The digits of a number below 10 000: thousands, hundreds, tens, ones. */
 const digits = (n: number) => [Math.floor(n / 1000), Math.floor(n / 100) % 10, Math.floor(n / 10) % 10, n % 10];
@@ -817,43 +849,47 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     B: { 'plus-tot-10-klein': NEW, 'min-tot-10-klein': NEW },
     M: {
       'plus-tot-10': NEW, 'min-tot-10': NEW, 'plus-tot-20-zonder': NEW, 'min-tot-20-zonder': NEW,
-      'dubbel-tot-10': NEW, 'aanvullen-tot-10': NEW
+      'dubbel-tot-10': NEW, 'aanvullen-tot-10': NEW, 'getallenlijn-tot-20': NEW
     },
     E: {
       'plus-tot-20-over': NEW, 'min-tot-20-over': NEW, 'dubbel-tot-20': NEW, 'sprong-van-10': NEW,
       'splitsen-tot-10': NEW, 'dubbel-van-tot-20': NEW, 'helft-van-tot-20': NEW,
-      'plus-tot-20-zonder': REVIEW, 'min-tot-20-zonder': REVIEW, 'aanvullen-tot-10': REVIEW, 'klok-uren': NEW
+      'plus-tot-20-zonder': REVIEW, 'min-tot-20-zonder': REVIEW, 'aanvullen-tot-10': REVIEW, 'klok-uren': NEW,
+      'getallenlijn-tot-20': REVIEW, 'getallenlijn-tot-100': NEW
     }
   },
   4: {
     B: {
       'plus-tot-20-over': NEW, 'min-tot-20-over': NEW, 'sprong-van-10': REVIEW, 'dubbel-tot-20': REVIEW,
-      'helft-van-tot-20': REVIEW, 'splitsen-tot-10': REVIEW, 'klok-uren': REVIEW
+      'helft-van-tot-20': REVIEW, 'splitsen-tot-10': REVIEW, 'klok-uren': REVIEW, 'getallenlijn-tot-100': REVIEW
     },
     M: {
       'tientallen': NEW, 'te-e-zonder': NEW, 'te-e-over': NEW, 'te-t': NEW,
       'tafels-1-2-5-10': NEW, 'deeltafels-2-5-10': NEW, 'plus-tot-20-over': REVIEW, 'min-tot-20-over': REVIEW,
-      'klok-kwartier': NEW, 'aanvullen-tot-20': NEW, 'splitsen-tot-20': NEW
+      'klok-kwartier': NEW, 'aanvullen-tot-20': NEW, 'splitsen-tot-20': NEW, 'getallenlijn-tiental': NEW,
+      'getallenlijn-tot-100': REVIEW
     },
     E: {
       'te-te-zonder': NEW, 'te-te-over': NEW, 'tafels-1-5-10': NEW, 'deeltafels-1-5-10': NEW,
       'honderdtallen': NEW, 'dubbel-van-tot-100': NEW, 'helft-van-tot-100': NEW, 'klok-5-minuten': NEW,
-      'aanvullen-tot-tiental': NEW, 'te-e-over': REVIEW, 'te-t': REVIEW, 'klok-kwartier': REVIEW
+      'aanvullen-tot-tiental': NEW, 'te-e-over': REVIEW, 'te-t': REVIEW, 'klok-kwartier': REVIEW,
+      'getallenlijn-tiental': REVIEW, 'getallenlijn-tot-1000': NEW
     }
   },
   5: {
     B: {
       'tafels-1-5-10': NEW, 'deeltafels-1-5-10': NEW, 'te-te-over': NEW,
-      'honderdtallen': REVIEW, 'dubbel-van-tot-100': REVIEW, 'helft-van-tot-100': REVIEW, 'klok-5-minuten': REVIEW
+      'honderdtallen': REVIEW, 'dubbel-van-tot-100': REVIEW, 'helft-van-tot-100': REVIEW, 'klok-5-minuten': REVIEW,
+      'getallenlijn-tot-1000': REVIEW
     },
     M: {
       'tafels-6-7-8-9': NEW, 'deeltafels-6-7-8-9': NEW, 'tot-1000-zonder': NEW, 'keer-tiental': NEW,
-      'deel-van': NEW, 'klok-minuten': NEW, 'tafels-1-5-10': REVIEW, 'helft-van-tot-100': REVIEW
+      'deel-van': NEW, 'klok-minuten': NEW, 'getallenlijn-honderdtal': NEW, 'tafels-1-5-10': REVIEW, 'helft-van-tot-100': REVIEW
     },
     E: {
       'tot-1000-over': NEW, 'te-keer-e': NEW, 'delen-met-rest': NEW, 'maten': NEW,
       'tafels-6-7-8-9': REVIEW, 'deeltafels-6-7-8-9': REVIEW, 'tot-1000-zonder': REVIEW, 'deel-van': REVIEW,
-      'klok-minuten': REVIEW
+      'klok-minuten': REVIEW, 'getallenlijn-honderdtal': REVIEW
     }
   },
   6: {
@@ -863,33 +899,33 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
     },
     M: {
       'tot-10000': NEW, 'keer-groter': NEW, 'delen-groter': NEW, 'breuk-van': NEW, 'gelijke-breuken': NEW,
-      'tot-1000-over': REVIEW, 'te-keer-e': REVIEW, 'delen-met-rest': REVIEW
+      'getallenlijn-tot-10000': NEW, 'tot-1000-over': REVIEW, 'te-keer-e': REVIEW, 'delen-met-rest': REVIEW
     },
     E: {
-      'te-keer-te': NEW, 'afronden': NEW, 'oppervlakte': NEW, 'tienden': NEW,
-      'tot-10000': REVIEW, 'keer-groter': REVIEW, 'delen-groter': REVIEW, 'breuk-van': REVIEW, 'gelijke-breuken': REVIEW
+      'te-keer-te': NEW, 'afronden': NEW, 'oppervlakte': NEW, 'tienden': NEW, 'getallenlijn-tienden': NEW,
+      'tot-10000': REVIEW, 'getallenlijn-tot-10000': REVIEW, 'keer-groter': REVIEW, 'delen-groter': REVIEW, 'breuk-van': REVIEW, 'gelijke-breuken': REVIEW
     }
   },
   7: {
     B: {
-      'te-keer-te': NEW, 'afronden': NEW, 'tienden': NEW,
+      'te-keer-te': NEW, 'afronden': NEW, 'tienden': NEW, 'getallenlijn-tienden': REVIEW,
       'oppervlakte': REVIEW, 'breuk-van': REVIEW, 'tot-10000': REVIEW
     },
     M: {
       'afronden-duizendtallen': NEW, 'cijferend-keer': NEW, 'staartdeling': NEW, 'procenten': NEW, 'komma-maal-10': NEW,
       'gelijknamige-breuken': NEW, 'breuk-naar-komma': NEW,
-      'te-keer-te': REVIEW, 'tienden': REVIEW
+      'te-keer-te': REVIEW, 'tienden': REVIEW, 'getallenlijn-tienden': REVIEW
     },
     E: {
       'kommagetal-keer': NEW, 'metriek': NEW, 'verhoudingen': NEW, 'korting': NEW,
       'afronden-duizendtallen': REVIEW, 'cijferend-keer': REVIEW, 'staartdeling': REVIEW, 'procenten': REVIEW, 'komma-maal-10': REVIEW,
-      'gelijknamige-breuken': REVIEW, 'breuk-naar-komma': REVIEW
+      'gelijknamige-breuken': REVIEW, 'breuk-naar-komma': REVIEW, 'getallenlijn-tienden': REVIEW
     }
   },
   8: {
     B: {
       'kommagetal-keer': NEW, 'metriek': NEW, 'verhoudingen': NEW, 'korting': NEW,
-      'procenten': REVIEW, 'staartdeling': REVIEW, 'breuk-naar-komma': REVIEW
+      'procenten': REVIEW, 'staartdeling': REVIEW, 'breuk-naar-komma': REVIEW, 'getallenlijn-tienden': REVIEW
     },
     M: {
       'procent-van': NEW, 'welk-procent': NEW, 'breuk-van-groot': NEW, 'schaal': NEW, 'gemiddelde': NEW,
@@ -903,12 +939,12 @@ export const CURRICULUM: { [groep: number]: { [moment in Moment]: { [topic: stri
   // Klas 1 (grade 7), HAVO/VWO (docs/CURRICULUM-NL.md, "Klas 1–4")
   9: {
     B: {
-      'negatief-plus-min': NEW,
+      'negatief-plus-min': NEW, 'getallenlijn-negatief': NEW,
       'procent-van': REVIEW, 'tijdsduur': REVIEW, 'temperatuur': REVIEW, 'inhoud': REVIEW, 'snelheid': REVIEW
     },
     M: {
       'negatief-keer-deel': NEW, 'voorrang': NEW, 'haakjes': NEW, 'ongelijknamige-breuken': NEW,
-      'negatief-plus-min': REVIEW, 'procent-van': REVIEW
+      'negatief-plus-min': REVIEW, 'getallenlijn-negatief': REVIEW, 'procent-van': REVIEW
     },
     E: {
       'breuk-keer-getal': NEW, 'formule': NEW, 'afronden-decimaal': NEW,

@@ -1,5 +1,5 @@
 import {
-  DecimalMeasureForm, MeasureForm, PythagorasForm, SumForm, TRIG_VALUES, TrigForm, UnlikeFractionForm, VolumeMeasureForm, denominatorOf,
+  DecimalMeasureForm, MeasureForm, NumberLineForm, PythagorasForm, SumForm, TRIG_VALUES, TrigForm, UnlikeFractionForm, VolumeMeasureForm, denominatorOf,
   denominatorsOf, lastNumberOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, sidesOf, stepOf
 } from '../../question/sum-form';
 
@@ -140,6 +140,54 @@ export function roundedSides(hundredths: number): [number, number] {
 /** The time a klok sum asks, as a digital clock writes it: 300 + 45 is 3:45 (groep.ts). */
 export function clockTime(num1: number, num2: number): string {
   return clock(num1 / 100 * 60 + num2);
+}
+
+/**
+ * A number line as a getallenlijn sum draws it (sum-form.ts): kept as the
+ * left end plus how far along the arrow is, 40 + 7 for the arrow at 47 on
+ * a line from 40 to 50. All in the sum's own units: tenths on a line of
+ * tenths, so 3,7 is 30 + 7.
+ */
+export interface NumberLine {
+  /** The left end, the step from one mark to the next, and how many steps the line has. */
+  from: number;
+  step: number;
+  steps: number;
+  /** The marks that carry their number, counted from the left end: the two ends, and the middle of a line of twenty. */
+  labelled: number[];
+  /** The mark the arrow points at, never one with its number on it. */
+  arrow: number;
+  /** Figures after the comma: 1 on a line of tenths. */
+  places: number;
+}
+
+/** The step of each line, and how many steps it has: ten, or twenty for 0 to 20 and −10 to 10. */
+const NUMBER_LINE_STEPS: { [form in NumberLineForm]: [number, number] } = {
+  'getallenlijn-20': [1, 20],
+  'getallenlijn-1': [1, 10],
+  'getallenlijn-10': [10, 10],
+  'getallenlijn-100': [100, 10],
+  'getallenlijn-1000': [1000, 10],
+  'getallenlijn-tiende': [1, 10],
+  'getallenlijn-negatief': [1, 20]
+};
+
+export function numberLine(form: NumberLineForm, num1: number, num2: number): NumberLine {
+  const [step, steps] = NUMBER_LINE_STEPS[form];
+  return {
+    from: num1, step, steps, labelled: steps === 20 ? [0, 10, 20] : [0, 10], arrow: num2 / step,
+    places: form === 'getallenlijn-tiende' ? 1 : 0
+  };
+}
+
+/** A value on a number line as it is written: 3,7 on a line of tenths, −6, 10 000. */
+export function lineValue(line: NumberLine, value: number, point = ','): string {
+  return line.places ? decimal(value, line.places, point) : signed(value);
+}
+
+/** The number a mark of the line carries, counted from its left end. */
+export function markValue(line: NumberLine, mark: number): number {
+  return line.from + mark * line.step;
 }
 
 /** A temperature as written, with a real minus below nought: −3°. */
@@ -446,6 +494,16 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     // Hoe laat is het? The clock is drawn above the box (question/clock-face.component.ts),
     // and the box is all the sum there is: the time typed into it, 3:45
     case 'klok':
+      return { before: [], after: [] };
+    // Welk getal hoort bij de pijl? The line is drawn above the box (question/number-line.component.ts),
+    // and the box is all the sum there is
+    case 'getallenlijn-20':
+    case 'getallenlijn-1':
+    case 'getallenlijn-10':
+    case 'getallenlijn-100':
+    case 'getallenlijn-1000':
+    case 'getallenlijn-tiende':
+    case 'getallenlijn-negatief':
       return { before: [], after: [] };
     // Hoeveel minuten? over 9:45 → 11:20 ?, kept as 680 − 585. No "=": the heading asks, and
     // two times, an arrow, an = and the box are too wide for a 320px phone
@@ -1069,6 +1127,23 @@ function dutchWorkedStep(form: SumForm | undefined, num1: number, num2: number,
       }
       const [fives, ones] = [Math.floor(num2 / 5), num2 % 5];
       return `${fives} × 5${ones ? ` + ${ones}` : ''} = ${num2} → ${clockTime(num1, num2)}`;
+    }
+    // From the nearest mark with a number on it, a step at a time: 40 + 7 = 47 on a line from 40 to 50,
+    // 50 + 2 × 10 = 70 from the middle of 0 to 100, 4 − 3 × 0,1 = 3,7 back from the 4
+    case 'getallenlijn-20':
+    case 'getallenlijn-1':
+    case 'getallenlijn-10':
+    case 'getallenlijn-100':
+    case 'getallenlijn-1000':
+    case 'getallenlijn-tiende':
+    case 'getallenlijn-negatief': {
+      const line = numberLine(form, num1, num2);
+      const from = line.labelled.reduce((best, mark) => Math.abs(mark - line.arrow) < Math.abs(best - line.arrow) ? mark : best);
+      const count = Math.abs(line.arrow - from);
+      const stepText = line.places ? decimal(line.step, line.places) : grouped(line.step);
+      const jumps = line.step === 1 && !line.places ? String(count) : count === 1 ? stepText : `${count} × ${stepText}`;
+      return `${lineValue(line, markValue(line, from))} ${line.arrow > from ? '+' : '\u2212'} ${jumps} = `
+        + lineValue(line, markValue(line, line.arrow));
     }
     // 9:45 to 11:20: up to the whole hour, then on from it
     case 'tijdsduur': {

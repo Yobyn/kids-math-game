@@ -48,6 +48,8 @@ export type PlayKey =
   | 'money-count'
   | 'clock-ask'
   | 'clock-face'
+  | 'line-ask'
+  | 'line-label'
   | 'money-make'
   | 'money-pick'
   | 'money-purse'
@@ -127,6 +129,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'money-count': 'How much money is this?',
     'clock-ask': 'What time is it?',
     'clock-face': 'A clock',
+    'line-ask': 'Which number goes at the arrow?',
+    'line-label': 'A number line',
     'money-make': 'How many {coin} coins make {target}?',
     'money-pick': 'Put down coins to make {target}.',
     'money-purse': 'Your coins',
@@ -205,6 +209,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'money-count': 'Hoeveel geld is dit?',
     'clock-ask': 'Hoe laat is het?',
     'clock-face': 'Een klok',
+    'line-ask': 'Welk getal hoort bij de pijl?',
+    'line-label': 'Een getallenlijn',
     'money-make': 'Hoeveel munten van {coin} maken {target}?',
     'money-pick': 'Leg munten neer om {target} te maken.',
     'money-purse': 'Jouw munten',
@@ -283,6 +289,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'money-count': '¿Cuánto dinero hay aquí?',
     'clock-ask': '¿Qué hora es?',
     'clock-face': 'Un reloj',
+    'line-ask': '¿Qué número va en la flecha?',
+    'line-label': 'Una recta numérica',
     'money-make': '¿Cuántas monedas de {coin} hacen {target}?',
     'money-pick': 'Pon monedas para hacer {target}.',
     'money-purse': 'Tus monedas',

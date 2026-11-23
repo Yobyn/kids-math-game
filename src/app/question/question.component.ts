@@ -22,7 +22,7 @@ import { momentFor, schoolSum } from '../teaching/school/groep';
 import { pickStory, storyEmoji, storyText } from '../teaching/school/story';
 import { StoryPick } from './story-pick';
 import { SumLayout, SumPart, clockTime, decimal, formWorkedStep, grouped, roundTo, signed, sumLayout, typedDecimal } from '../teaching/school/written-form';
-import { SumForm, placesOf } from './sum-form';
+import { NUMBER_LINE_FORMS, NumberLineForm, SumForm, placesOf } from './sum-form';
 import {
   QUESTIONS_IN_ROUND,
   RESUME_CHOICE_KEY,
@@ -811,6 +811,12 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
   /** A clock to read (klokkijken, groep 3 to 5): the time is kept as 300 + 45 for 3:45 (groep.ts). */
   get isClock(): boolean {
     return this.currentQuestion.form === 'klok';
+  }
+
+  /** A number line to read (getallenlijn): welk getal hoort bij de pijl? Kept as the line's left end + how far along (groep.ts). */
+  get numberLineForm(): NumberLineForm | null {
+    const form = this.currentQuestion.form;
+    return form && (NUMBER_LINE_FORMS as string[]).includes(form) ? form as NumberLineForm : null;
   }
 
   get clockHours(): number {

@@ -102,6 +102,7 @@ export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | '
   | PowerForm | 'wortel' | EquationForm | FillInForm | PercentChangeForm | PythagorasForm | 'driehoek'
   | BracketEquationForm | BothSidesForm | NegativePowerForm | 'minkwadraat' | 'wetenschap' | 'wetenschap-min' | 'groeifactor'
   | 'kwadraat-vgl' | 'kwadratisch' | 'groei-2' | 'wortel-vereenvoudig' | TrigForm | 'herleiden' | 'procent-stappen' | 'klok'
+  | NumberLineForm
   | 'schuine-zijde';
 
 type TwoToNine = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
@@ -211,6 +212,20 @@ export type VolumeMeasureForm = 'm3-l' | 'l-cm3';
 export const VOLUME_MEASURE_FORMS: VolumeMeasureForm[] = ['m3-l', 'l-cm3'];
 
 /** How many degrees between two temperatures, one below nought: going up (-op) or down (-af). */
+/**
+ * Welk getal hoort bij de pijl? A number line with an arrow at one of its
+ * marks (getallenlijn, Yobyn 2026-11-23). Kept as num1 + num2: the line's
+ * left end and how far along it the arrow is, so the answer is the sum.
+ * The form says the line's step: per 1, 10, 100 or 1000 over ten steps,
+ * per tenth (counted in tenths, as tienden are), 0 to 20 per 1 (groep 3)
+ * and −10 to 10 per 1 (the negative numbers). Drawn by
+ * question/number-line.component.ts from numberLine() in written-form.ts.
+ */
+export type NumberLineForm = 'getallenlijn-20' | 'getallenlijn-1' | 'getallenlijn-10' | 'getallenlijn-100' | 'getallenlijn-1000'
+  | 'getallenlijn-tiende' | 'getallenlijn-negatief';
+// Written out from the steps: these names are read back from every saved round, so they sit in the first load, kept short
+export const NUMBER_LINE_FORMS = ['20', '1', '10', '100', '1000', 'tiende', 'negatief'].map(step => `getallenlijn-${step}` as NumberLineForm);
+
 export type TemperatureForm = 'temperatuur-op' | 'temperatuur-af';
 export const TEMPERATURE_FORMS: TemperatureForm[] = ['temperatuur-op', 'temperatuur-af'];
 
@@ -280,7 +295,7 @@ export const DECIMAL_MEASURE_FORMS: DecimalMeasureForm[] = ['komma-km-m', 'komma
  * numbers.
  */
 export function placesOf(form: SumForm | undefined): number {
-  if (form === 'tienden' || DECIMAL_MEASURE_FORMS.includes(form as DecimalMeasureForm)) {
+  if (form === 'tienden' || form === 'getallenlijn-tiende' || DECIMAL_MEASURE_FORMS.includes(form as DecimalMeasureForm)) {
     return 1;
   }
   if (form === 'wetenschap') {
@@ -332,7 +347,7 @@ export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft',
   'afronden-decimaal', ...POWER_FORMS, 'wortel', ...EQUATION_FORMS, ...FILL_IN_FORMS, ...PERCENT_CHANGE_FORMS, ...PYTHAGORAS_FORMS,
   'driehoek', ...BRACKET_EQUATION_FORMS, ...BOTH_SIDES_FORMS, ...NEGATIVE_POWER_FORMS, 'minkwadraat', 'wetenschap', 'wetenschap-min',
   'groeifactor', 'kwadraat-vgl', 'kwadratisch', 'groei-2', 'wortel-vereenvoudig', ...TRIG_FORMS, 'herleiden', 'procent-stappen',
-  'klok', 'schuine-zijde'];
+  'klok', 'schuine-zijde', ...NUMBER_LINE_FORMS];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */
 export function readForm(raw: unknown): SumForm | undefined {
