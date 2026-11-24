@@ -75,7 +75,7 @@ the €1, whose answer is the amount itself (2026-11-04).
 | E | Tables of 3 and 4 added (1–5 and 10; worked from the table of 2 after two tries: 6 × 2 = 12 → 12 + 6 = 18, 8 × 2 = 16 → 16 + 16 = 32) | 6 × 3, 8 × 4 |
 | E | Dividing within tables 1–5 and 10 | 24 : 4, 18 : 3 |
 | E | Hundreds within 1000 (worked from the small sum inside after two tries: 6 − 2 = 4 → 600 − 200 = 400) | 300 + 400, 600 − 200 |
-| E | Doubles and halves within 100 | dubbel 35, de helft van 60 |
+| E | Doubles and halves within 100 (worked in tens and ones after two tries: 30 + 30 = 60 → 9 + 9 = 18 → 60 + 18 = 78; 40 : 2 = 20 → 16 : 2 = 8 → 20 + 8 = 28) | dubbel 35, de helft van 60 |
 | E | Klokkijken: every five minutes | 3:25, 10:50 |
 | E | Getallenlijn 0 to 1000 in hundreds | the arrow at 600 |
 
