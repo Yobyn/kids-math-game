@@ -733,6 +733,21 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 19: doubles and halves to 100 worked in tens and ones
+  (2026-11-24).** About 150 questions were drawn as a child in groep 5 and
+  7 and klas 3 and 4. The worked line for a double or a half only checked
+  the answer: "dubbel 39" gave "39 + 39 = 78", "de helft van 56" gave
+  "28 + 28 = 56". Neither shows a child who missed it twice how to get
+  there. Groep 4 and 5 split the number (written-form.ts):
+  - dubbel 39: "30 + 30 = 60 → 9 + 9 = 18 → 60 + 18 = 78";
+  - de helft van 56: the most tens that come in twos, and the rest under
+    20: "40 : 2 = 20 → 16 : 2 = 8 → 20 + 8 = 28"; 30 as "20 : 2 = 10 →
+    10 : 2 = 5 → 10 + 5 = 15".
+
+  Groep 3's doubles and halves to 20, and a whole number of tens (dubbel
+  40, de helft van 60), keep the fact itself ("30 + 30 = 60"). A spec holds
+  every double and half groep 4 and 5 are asked to true steps ending on the
+  answer. The card's signs apply: ÷ in English. No first-load change.
 - **Look and feel, run 22: what was earned, shown on the child
   (2026-11-24).** Whole rounds were played as a child on a phone: groep 3
   at 320px in nl, groep 6 at 360px in en, klas 1 at 390px in es (grade →

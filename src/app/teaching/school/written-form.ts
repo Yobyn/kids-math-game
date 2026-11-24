@@ -969,10 +969,26 @@ function dutchWorkedStep(form: SumForm | undefined, num1: number, num2: number,
     case 'aanvullen':
     case 'splitsen':
       return `${num1} − ${num2} = ${num1 - num2}`;
-    case 'dubbel':
-      return `${num1} + ${num1} = ${num1 * 2}`;
-    case 'helft':
-      return `${num1 / 2} + ${num1 / 2} = ${num1}`;
+    // Past 10, a double is split in tens and ones, as groep 4 and 5 do: dubbel 39 is dubbel 30 and
+    // dubbel 9 (2026-11-24). A whole number of tens, and the doubles to 10, are the fact itself
+    case 'dubbel': {
+      const [tens, ones] = [num1 - num1 % 10, num1 % 10];
+      if (num1 <= 10 || !ones) {
+        return `${num1} + ${num1} = ${num1 * 2}`;
+      }
+      return `${tens} + ${tens} = ${tens * 2} → ${ones} + ${ones} = ${ones * 2} → ${tens * 2} + ${ones * 2} = ${num1 * 2}`;
+    }
+    // Past 20, a half is split where both parts halve: the most tens that come in twos, and the rest
+    // under 20. 56 as 40 and 16; 30 as 20 and 10. To 20, and a whole number of tens that halves
+    // (60), it is the double it undoes: 8 + 8 = 16
+    case 'helft': {
+      const even = num1 - num1 % 20;
+      const rest = num1 - even;
+      if (num1 <= 20 || !rest || !even) {
+        return `${num1 / 2} + ${num1 / 2} = ${num1}`;
+      }
+      return `${even} : 2 = ${even / 2} → ${rest} : 2 = ${rest / 2} → ${even / 2} + ${rest / 2} = ${num1 / 2}`;
+    }
     // ¼ van 20: share 20 out in 4
     case 'deel':
       return `${num1} : ${num2} = ${num1 / num2}`;

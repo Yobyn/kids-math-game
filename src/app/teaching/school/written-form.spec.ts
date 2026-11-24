@@ -584,6 +584,39 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(misses.slice(0, 5)).toEqual([]);
   });
 
+  it('works a double or a half to 100 out in tens and ones, as groep 4 and 5 split it (2026-11-24)', () => {
+    // "39 + 39 = 78" and "28 + 28 = 56" only checked the answer: a child who missed it twice saw no way to it
+    expect(formWorkedStep('dubbel', 39, 39)).toBe('30 + 30 = 60 → 9 + 9 = 18 → 60 + 18 = 78');
+    expect(formWorkedStep('dubbel', 14, 14)).toBe('10 + 10 = 20 → 4 + 4 = 8 → 20 + 8 = 28');
+    expect(formWorkedStep('helft', 56, 2)).toBe('40 : 2 = 20 → 16 : 2 = 8 → 20 + 8 = 28');
+    expect(formWorkedStep('helft', 48, 2)).toBe('40 : 2 = 20 → 8 : 2 = 4 → 20 + 4 = 24');
+    expect(formWorkedStep('helft', 30, 2)).toBe('20 : 2 = 10 → 10 : 2 = 5 → 10 + 5 = 15');
+    expect(formWorkedStep('helft', 26, 2)).toBe('20 : 2 = 10 → 6 : 2 = 3 → 10 + 3 = 13');
+    // a whole number of tens, and groep 3's doubles and halves to 20, are the fact itself
+    expect(formWorkedStep('dubbel', 40, 40)).toBe('40 + 40 = 80');
+    expect(formWorkedStep('dubbel', 7, 7)).toBe('7 + 7 = 14');
+    expect(formWorkedStep('dubbel', 10, 10)).toBe('10 + 10 = 20');
+    expect(formWorkedStep('helft', 60, 2)).toBe('30 + 30 = 60');
+    expect(formWorkedStep('helft', 100, 2)).toBe('50 + 50 = 100');
+    expect(formWorkedStep('helft', 18, 2)).toBe('9 + 9 = 18');
+    // every double and half groep 4 and 5 are asked: true steps, each of a ten-split and a small fact, ending on the answer
+    const misses: string[] = [];
+    made('dubbel-van-tot-100').concat(made('helft-van-tot-100')).forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2)!;
+      const steps = line.split(' → ').map(step => step.match(/^(\d+) ([+:]) (\d+) = (\d+)$/));
+      const right = sum.form === 'dubbel' ? sum.num1 * 2 : sum.num1 / 2;
+      const ok = steps.every(step => step && (step[2] === '+' ? +step[1] + +step[3] : +step[1] / +step[3]) === +step[4])
+        // the answer last; a half that is the fact itself is the double it undoes, 40 + 40 = 80
+        && (steps.length === 1 && sum.form === 'helft' ? +steps[0]![1] === right : +steps[steps.length - 1]![4] === right)
+        // a split line: the tens part a whole number of tens, the rest under 20
+        && (steps.length === 1 ? sum.num1 % 10 === 0 : +steps[0]![1] % 10 === 0 && +steps[1]![1] < 20);
+      if (!ok) {
+        misses.push(`${sum.form} ${sum.num1}: ${line}`);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
+  });
+
   it('rounds by the figure after the place it rounds to, a 5 or more going up: 347 → 350, 341 → 340, 2468 → 2500', () => {
     expect(formWorkedStep('afronden', 347, 10)).toBe('347: 7 ≥ 5 → 350');
     expect(formWorkedStep('afronden', 341, 10)).toBe('341: 1 < 5 → 340');
