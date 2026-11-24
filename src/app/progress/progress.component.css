@@ -147,12 +147,20 @@
   color: var(--text);
 }
 
-/* The item's own colour, so the list reads as things rather than words */
-.swatch {
-  width: 18px;
-  height: 18px;
+/* The thing itself, on the child, in a ring of its own colour: a list of things rather than words */
+.earned-picture {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border: 2px solid;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+  overflow: hidden;
+  background: var(--surface-read);
+}
+
+.item-icon {
+  font-size: 1.3rem;
 }
 
 .more-coming {

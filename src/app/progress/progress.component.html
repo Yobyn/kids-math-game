@@ -47,8 +47,16 @@
   <div class="collection" *ngIf="hasPlayed">
     <h2>{{ languageService.translate('things-earned') }}</h2>
     <ul class="earned-items">
+      <!-- Each thing on the child's own character, as the dressing-up screen shows it: the cap on
+           their head, the top on their shoulders; a pet, a bag or shoes by itself. Ringed in its colour -->
       <li class="earned-item" *ngFor="let item of earnedItems">
-        <span class="swatch" [style.background]="item.colour" aria-hidden="true"></span>
+        <span class="earned-picture" [style.border-color]="item.colour" aria-hidden="true">
+          <span class="item-icon" *ngIf="icon(item); else worn">{{ icon(item) }}</span>
+          <ng-template #worn>
+            <app-avatar [avatar]="wearing(item)" [size]="34" [framing]="item.slot === 'top' ? 'full' : 'portrait'"
+                        look="flat"></app-avatar>
+          </ng-template>
+        </span>
         {{ itemName(item) }}
       </li>
     </ul>

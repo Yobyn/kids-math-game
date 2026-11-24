@@ -733,6 +733,20 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 22: what was earned, shown on the child
+  (2026-11-24).** Whole rounds were played as a child on a phone: groep 3
+  at 320px in nl, groep 6 at 360px in en, klas 1 at 390px in es (grade →
+  climb → ten questions with two wrong → result → progress), with no
+  errors. Under "Wat je hebt verdiend" on the progress screen each thing
+  was a coloured dot and a word: "Pet" said nothing of the cap the child
+  had just won. Each is now drawn as the dressing-up screen draws it, on
+  the child's own character with their face and hair (the kid hero, who
+  wears the wardrobe, whatever character plays): the cap on the head, a
+  shirt on the shoulders; a pet, a bag or shoes by itself (item-icons.ts).
+  Each picture is ringed in the item's colour, and the word stays beside
+  it. Flat 2D drawings, so a long list costs no 3D renders. The progress
+  CSS swapped the dot for the ring (no budget change); the first load is
+  unchanged.
 - **Questions, run 18: sums that do not cross the ten get their worked
   line (2026-11-23).** About 150 questions were drawn as a child in groep 3,
   4, 6 and 8 and klas 1 and 2, with each one's story and worked line. Groep
