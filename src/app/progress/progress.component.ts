@@ -8,6 +8,7 @@ import { LevelProgress, levelProgress } from '../levels/level-curve';
 import { EffortTile, TileKind, effortTiles } from './progress-card';
 import { PROGRESS_WORDS } from './progress-words';
 import { ITEM_WORDS } from '../avatar/item-words';
+import { itemIcon } from '../avatar/item-icons';
 
 /**
  * How far a child has come.
@@ -91,6 +92,16 @@ export class ProgressComponent implements OnInit {
   /** Levels still ahead in the wardrobe, purely to say there is more coming. */
   get moreToWin(): boolean {
     return this.earnedItems.length < this.itemsInAll;
+  }
+
+  /** The kid hero with the child's own face, wearing the thing: the wardrobe is the kid's, whatever character plays. */
+  wearing(item: WardrobeItem): Avatar {
+    return { ...this.avatar, family: 'kid', [item.slot]: item.id } as Avatar;
+  }
+
+  /** A pet, a bag or shoes, shown by itself (item-icons.ts); '' for what is worn on the head or shoulders. */
+  icon(item: WardrobeItem): string {
+    return itemIcon(item);
   }
 
   itemName(item: WardrobeItem): string {

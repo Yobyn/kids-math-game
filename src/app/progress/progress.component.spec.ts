@@ -9,6 +9,8 @@ import { AvatarComponent } from '../avatar/avatar.component';
 import { ProgressService } from '../services/progress.service';
 import { xpToReach } from '../levels/level-curve';
 import { WARDROBE, NO_ITEM } from '../avatar/avatar-model';
+import { ICON_SLOTS, itemIcon } from '../avatar/item-icons';
+import { By } from '@angular/platform-browser';
 
 describe('ProgressComponent', () => {
   let fixture: ComponentFixture<ProgressComponent>;
@@ -210,13 +212,47 @@ describe('ProgressComponent', () => {
     expect(heading).not.toContain(String(component.itemsInAll));
   });
 
-  it('shows each thing earned in its own colour', () => {
+  it('shows each thing earned on the child\'s own character, ringed in its own colour (2026-11-24)', () => {
+    // It was a coloured dot and a word: "Pet" said nothing of the cap the child had just won
     progress.record(round(5));
     progress.addXp(xpToReach(3));
     open();
 
-    const swatch = fixture.nativeElement.querySelector('.earned-item .swatch') as HTMLElement;
-    expect(swatch.style.background).toBeTruthy();
+    const items = Array.from(fixture.nativeElement.querySelectorAll('.earned-item')) as HTMLElement[];
+    expect(items.length).toBe(component.earnedItems.length);
+    items.forEach((li, i) => {
+      const item = component.earnedItems[i];
+      const picture = li.querySelector('.earned-picture') as HTMLElement;
+      expect(picture).withContext(item.id).not.toBeNull();
+      expect(picture.style.borderColor).withContext(item.id).toBeTruthy();
+      const worn = li.querySelector('app-avatar');
+      if (ICON_SLOTS.indexOf(item.slot) >= 0) {
+        // a pet, a bag or shoes is hardly seen on a head and shoulders: the thing by itself
+        expect(worn).withContext(item.id).toBeNull();
+        expect(li.querySelector('.item-icon')!.textContent!.trim()).toBe(itemIcon(item));
+      } else {
+        const drawn = fixture.debugElement.queryAll(By.directive(AvatarComponent))
+          .map(each => each.componentInstance as AvatarComponent)
+          .find(each => each.avatar[item.slot] === item.id && each.size < 96);
+        expect(drawn).withContext(item.id).toBeDefined();
+        // the child's own face under it, and the kid hero who wears the wardrobe
+        expect(drawn!.avatar.faceShape).toBe(component.avatar.faceShape);
+        expect(drawn!.avatar.family).toBe('kid');
+        expect(drawn!.look).toBe('flat');
+      }
+      // the word is still there, for a child who reads it and for a screen reader
+      expect(li.textContent).toContain(component.itemName(item));
+    });
+  });
+
+  it('shows a pet by itself, as the dressing-up screen does', () => {
+    progress.record(round(5));
+    open();
+    component.earnedItems = WARDROBE.filter(item => item.id === 'kitten');
+    fixture.detectChanges();
+    const li = fixture.nativeElement.querySelector('.earned-item') as HTMLElement;
+    expect(li.querySelector('.item-icon')!.textContent!.trim()).toBe('🐱');
+    expect(li.querySelector('app-avatar')).toBeNull();
   });
 
   it('counts an event item among what they earned', () => {
