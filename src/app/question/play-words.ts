@@ -50,6 +50,10 @@ export type PlayKey =
   | 'clock-face'
   | 'line-ask'
   | 'line-label'
+  | 'clock-set-ask'
+  | 'clock-set-hint'
+  | 'clock-big-hand'
+  | 'clock-small-hand'
   | 'money-make'
   | 'money-pick'
   | 'money-purse'
@@ -131,6 +135,10 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'clock-face': 'A clock',
     'line-ask': 'Which number goes at the arrow?',
     'line-label': 'A number line',
+    'clock-set-ask': 'Set the clock to {time}.',
+    'clock-set-hint': 'Drag the hands.',
+    'clock-big-hand': 'The long hand',
+    'clock-small-hand': 'The short hand',
     'money-make': 'How many {coin} coins make {target}?',
     'money-pick': 'Put down coins to make {target}.',
     'money-purse': 'Your coins',
@@ -211,6 +219,10 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'clock-face': 'Een klok',
     'line-ask': 'Welk getal hoort bij de pijl?',
     'line-label': 'Een getallenlijn',
+    'clock-set-ask': 'Zet de klok op {time}.',
+    'clock-set-hint': 'Sleep de wijzers.',
+    'clock-big-hand': 'De grote wijzer',
+    'clock-small-hand': 'De kleine wijzer',
     'money-make': 'Hoeveel munten van {coin} maken {target}?',
     'money-pick': 'Leg munten neer om {target} te maken.',
     'money-purse': 'Jouw munten',
@@ -291,6 +303,10 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'clock-face': 'Un reloj',
     'line-ask': '¿Qué número va en la flecha?',
     'line-label': 'Una recta numérica',
+    'clock-set-ask': 'Pon el reloj en las {time}.',
+    'clock-set-hint': 'Arrastra las agujas.',
+    'clock-big-hand': 'La aguja larga',
+    'clock-small-hand': 'La aguja corta',
     'money-make': '¿Cuántas monedas de {coin} hacen {target}?',
     'money-pick': 'Pon monedas para hacer {target}.',
     'money-purse': 'Tus monedas',

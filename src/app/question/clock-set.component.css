@@ -1,0 +1,99 @@
+/* As wide as the card leaves on a phone and as high: a clock to set is
+   held with a finger, so it is bigger than the one read beside the box. */
+:host {
+  display: block;
+  width: min(64vw, 240px);
+  margin: 0 auto;
+}
+
+@media (max-height: 600px) {
+  :host {
+    width: min(56vw, 200px);
+  }
+}
+
+.clock-face {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* the finger turns the hands; the page does not scroll under it */
+  touch-action: none;
+  cursor: grab;
+}
+
+.clock-face.disabled {
+  cursor: default;
+}
+
+/* The same face as the clock that is read (clock-face.component.css) */
+.rim {
+  fill: var(--surface-read);
+  stroke: var(--accent-blue-read);
+  stroke-width: 3;
+}
+
+.mark {
+  stroke: var(--text-read-dim);
+  stroke-width: 0.8;
+}
+
+.mark.hour {
+  stroke: var(--text-read);
+  stroke-width: 1.8;
+}
+
+.number {
+  fill: var(--text-read);
+  font-size: 9.5px;
+  font-weight: bold;
+  pointer-events: none;
+  user-select: none;
+}
+
+.hand line {
+  stroke-linecap: round;
+}
+
+.hour-hand line {
+  stroke: var(--text-read);
+  stroke-width: 5;
+}
+
+.hour-hand .knob {
+  fill: var(--text-read);
+}
+
+.minute-hand line {
+  stroke: var(--accent-magenta-read);
+  stroke-width: 3;
+}
+
+.minute-hand .knob {
+  fill: var(--accent-magenta-read);
+}
+
+/* The hand held grows its knob, so a child sees which one the finger has */
+.hand.held .knob {
+  r: 5.5;
+}
+
+.hand:focus {
+  outline: none;
+}
+
+.hand:focus-visible .knob {
+  stroke: var(--accent-blue-read);
+  stroke-width: 2;
+}
+
+.pin {
+  fill: var(--text-read);
+}
+
+/* "Sleep de wijzers", small under the clock, until it is answered */
+.hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.85rem;
+  text-align: center;
+  color: var(--text-read-dim);
+}

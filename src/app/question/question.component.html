@@ -54,7 +54,22 @@
                        [label]="languageService.translate('line-label')"></app-number-line>
     </ng-container>
 
-    <div class="math-problem" *ngIf="!isPicking">
+    <!-- Zet de klok op 3:45: the clock to set, its hands dragged; no box, no keypad. Out of tries,
+         the hands stand at the time asked -->
+    <ng-container *ngIf="isClockSet">
+      <p class="money-prompt">{{ clockSetAsk }}</p>
+      <app-clock-set [hours]="answerGiven ? clockSetTarget.hours : setTime.hours"
+                     [minutes]="answerGiven ? clockSetTarget.minutes : setTime.minutes"
+                     [step]="clockSetStep"
+                     [disabled]="showOkButton"
+                     [label]="languageService.translate('clock-face')"
+                     [hint]="languageService.translate('clock-set-hint')"
+                     [bigLabel]="languageService.translate('clock-big-hand')"
+                     [smallLabel]="languageService.translate('clock-small-hand')"
+                     (move)="moveHands($event)"></app-clock-set>
+    </ng-container>
+
+    <div class="math-problem" *ngIf="!handsOn">
       <app-clock-face *ngIf="isClock" [hours]="clockHours" [minutes]="currentQuestion.num2"
                       [label]="languageService.translate('clock-face')"></app-clock-face>
       <!-- The box goes where the "?" is in the workbook: last for 7 + 5 = ?,
@@ -91,7 +106,7 @@
       </span>
     </div>
 
-    <app-keypad *ngIf="useKeypad && !isPicking"
+    <app-keypad *ngIf="useKeypad && !handsOn"
                 [disabled]="showOkButton"
                 [decimal]="needsDecimalKey"
                 [minus]="needsMinusKey"

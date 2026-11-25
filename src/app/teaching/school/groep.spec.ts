@@ -57,7 +57,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       // klas 1's negative numbers are the one kind kept below nought (sum-form.ts, negatief): typed with the minus key
       const below = /^(negatief|negmacht|minkwadraat)/.test(sum.form || '');
       // a clock at the whole hour is kept as 300 + 0
-      const clock = sum.form === 'klok';
+      const clock = /^klok/.test(sum.form || '');
       // a number line is kept as its left end + how far along the arrow is: from 0, or from −10 for klas 1's line below nought
       if (/^getallenlijn/.test(sum.form || '')) {
         const lowest = sum.form === 'getallenlijn-negatief' ? -10 : 0;
@@ -120,7 +120,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
     it('never asks a times or share sum, and never goes past 100', () => {
       (['B', 'M', 'E'] as Moment[]).forEach(moment => Object.keys(CURRICULUM[3][moment]).forEach(topic => made(topic, 100).forEach(sum => {
         // A clock is read, and kept as 300 + 30 for half 4: a time, not a sum past 100 (clock-face.spec.ts)
-        if (sum.form === 'klok') {
+        if (/^klok/.test(sum.form || '')) {
           return;
         }
         // A half is kept as a share by 2, but asked as "de helft van": never written with :

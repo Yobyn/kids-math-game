@@ -32,7 +32,8 @@ describe('klokkijken (groep 3 to 5, Yobyn 2026-10-24)', () => {
     const random = seeded(5);
     const minutesOf = (topic: string) => Array.from({ length: 300 }, () => TOPICS[topic](random)).map(sum => {
       // Kept as 300 + 45: hours × 100 and the minutes, one o'clock to twelve
-      expect(sum.form).toBe('klok');
+      // read off the clock, or set on it (clock-set.spec.ts)
+      expect(sum.form).toMatch(/^klok(-zet)?$/);
       expect(sum.operation).toBe('+');
       expect(sum.num1 % 100).toBe(0);
       expect(sum.num1 / 100).toBeGreaterThanOrEqual(1);

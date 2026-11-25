@@ -13,6 +13,7 @@ import { MAX_PICKED, fewestPieces } from '../teaching/coin-pick';
 import { KeypadComponent } from '../keypad/keypad.component';
 import { ClockFaceComponent } from './clock-face.component';
 import { NumberLineComponent } from './number-line.component';
+import { ClockSetComponent } from './clock-set.component';
 
 describe('QuestionComponent', () => {
   let component: QuestionComponent;
@@ -43,7 +44,8 @@ describe('QuestionComponent', () => {
   it('reads what a child types into the answer box, and empties the box for the next question', () => {
     do {
       component.generateQuestion();
-    } while (component.isPicking);
+    // a question answered with coins or with a clock's hands has no box
+    } while (component.handsOn);
     component.useKeypad = false;
     component.showOkButton = false;
     fixture.detectChanges();
@@ -63,7 +65,7 @@ describe('QuestionComponent', () => {
     for (let i = 0; i < 40; i++) {
       component.generateQuestion();
       // Money is its own strand, at every grade; a clock is read, not summed (klok)
-      if (component.currentQuestion.money || component.currentQuestion.form === 'klok') {
+      if (component.currentQuestion.money || /^klok/.test(component.currentQuestion.form || '')) {
         continue;
       }
       const { num1, num2, operation } = component.currentQuestion;
@@ -910,7 +912,7 @@ describe('QuestionComponent asking what school asks (docs/CURRICULUM-NL.md)', ()
     for (let i = 0; i < count; i++) {
       component.generateQuestion();
       // A clock to read is kept as 300 + 45 for 3:45: a time, not a sum to 100
-      if (!component.currentQuestion.money && component.currentQuestion.form !== 'klok') {
+      if (!component.currentQuestion.money && !/^klok/.test(component.currentQuestion.form || '')) {
         asked.push({ ...component.currentQuestion });
       }
     }
@@ -1495,6 +1497,9 @@ describe('QuestionComponent: a round that survives the real world', () => {
   function answerRightAndStay() {
     if (component.isPicking) {
       putDownFewest();
+    } else if (component.isClockSet) {
+      // a clock to set is answered with its hands
+      component.setTime = component.clockSetTarget;
     } else {
       component.userAnswer = String(solve(component));
     }
@@ -1509,6 +1514,8 @@ describe('QuestionComponent: a round that survives the real world', () => {
   function answerWrongOnce() {
     if (component.isPicking) {
       component.takeFromTray(component.tray.length - 1);
+    } else if (component.isClockSet) {
+      component.setTime = { hours: component.clockSetTarget.hours % 12 + 1, minutes: component.clockSetTarget.minutes };
     } else {
       component.userAnswer = String(solve(component) + 1);
     }
@@ -3001,12 +3008,130 @@ describe('QuestionComponent asking the time on a clock (klokkijken, 2026-10-27)'
     let clocks = 0;
     for (let i = 0; i < 200; i++) {
       component.generateQuestion();
-      if (component.currentQuestion.form === 'klok') {
+      // read or set (zet de klok, 2026-11-25): half of each
+      if (/^klok/.test(component.currentQuestion.form || '')) {
         clocks++;
         expect(component.currentQuestion.story).toBeUndefined();
       }
     }
     expect(clocks).toBeGreaterThan(0);
+  });
+});
+
+describe('QuestionComponent asking for the clock to be set (zet de klok, Yobyn 2026-11-25)', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  function build(grade = '2', language = 'nl') {
+    localStorage.clear();
+    localStorage.setItem('grade', grade);
+    localStorage.setItem('difficulty', 'medium');
+    localStorage.setItem('language', language);
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  function askSet(hours: number, minutes: number) {
+    component.currentQuestion = { num1: hours * 100, num2: minutes, operation: '+', form: 'klok-zet' };
+    component.userAnswer = '';
+    component.setTime = { hours: 12, minutes: 0 };
+    component.showOkButton = false;
+    component.wrongAttempts = 0;
+    component.isSecondAttempt = false;
+    component.answerWasCorrect = null;
+    component.workedLine = '';
+    fixture.detectChanges();
+  }
+
+  const setter = () => fixture.debugElement.query(By.directive(ClockSetComponent))?.componentInstance as ClockSetComponent | undefined;
+  const turn = (hours: number, minutes: number) => {
+    setter()!.move.emit({ hours, minutes });
+    fixture.detectChanges();
+  };
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [QuestionComponent, KeypadComponent, ClockSetComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('asks "Zet de klok op 3:45" over a clock with hands to drag, and shows no box and no keypad', () => {
+    build();
+    askSet(3, 45);
+    const page = fixture.nativeElement as HTMLElement;
+    expect(page.textContent).toContain('Zet de klok op 3:45.');
+    expect(setter()).toBeDefined();
+    expect([setter()!.hours, setter()!.minutes, setter()!.step]).toEqual([12, 0, 5]);
+    expect(page.querySelector('.math-problem')).toBeNull();
+    expect(page.querySelector('app-keypad')).toBeNull();
+    expect(page.textContent).toContain('Sleep de wijzers.');
+  });
+
+  it('marks the hands set to the time right', () => {
+    build();
+    askSet(3, 45);
+    turn(12, 45);
+    turn(3, 45);
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+    // set, the clock can no longer be turned
+    fixture.detectChanges();
+    expect(setter()!.disabled).toBeTrue();
+  });
+
+  it('leaves the hands where they were for a second try, and after two shows the time asked on the clock', () => {
+    build();
+    askSet(3, 45);
+    turn(4, 45);
+    component.checkAnswer();
+    fixture.detectChanges();
+    expect(component.answerWasCorrect).toBeFalse();
+    // the second try starts from the hands as the child left them
+    expect([setter()!.hours, setter()!.minutes]).toEqual([4, 45]);
+    turn(3, 15);
+    component.checkAnswer();
+    fixture.detectChanges();
+    expect(component.feedback).toContain('3:45');
+    expect(component.workedLine).toBe('9 × 5 = 45 → 3:45');
+    expect([setter()!.hours, setter()!.minutes]).toEqual([3, 45]);
+  });
+
+  it('sets a time to the minute a minute at a time', () => {
+    build('3');
+    askSet(3, 37);
+    expect(setter()!.step).toBe(1);
+  });
+
+  it('starts every new clock at 12:00', () => {
+    build();
+    askSet(3, 45);
+    turn(3, 45);
+    component.checkAnswer();
+    component.moveToNextQuestion();
+    expect(component.setTime).toEqual({ hours: 12, minutes: 0 });
+  });
+
+  it('asks in English and Spanish too', () => {
+    build('2', 'en');
+    askSet(3, 45);
+    expect(fixture.nativeElement.textContent).toContain('Set the clock to 3:45.');
+  });
+
+  it('puts both kinds of clock in a groep 4 round, reading one and setting one', () => {
+    build('2');
+    const forms = new Set<string>();
+    // a clock is one question in fifty or so here: enough draws that both kinds always turn up
+    for (let i = 0; i < 2000 && !(forms.has('klok') && forms.has('klok-zet')); i++) {
+      component.generateQuestion();
+      forms.add(component.currentQuestion.form || '');
+    }
+    expect(forms.has('klok')).toBeTrue();
+    expect(forms.has('klok-zet')).toBeTrue();
   });
 });
 

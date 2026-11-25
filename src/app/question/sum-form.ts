@@ -102,7 +102,7 @@ export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | '
   | PowerForm | 'wortel' | EquationForm | FillInForm | PercentChangeForm | PythagorasForm | 'driehoek'
   | BracketEquationForm | BothSidesForm | NegativePowerForm | 'minkwadraat' | 'wetenschap' | 'wetenschap-min' | 'groeifactor'
   | 'kwadraat-vgl' | 'kwadratisch' | 'groei-2' | 'wortel-vereenvoudig' | TrigForm | 'herleiden' | 'procent-stappen' | 'klok'
-  | NumberLineForm
+  | 'klok-zet' | NumberLineForm
   | 'schuine-zijde';
 
 type TwoToNine = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
@@ -347,7 +347,7 @@ export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft',
   'afronden-decimaal', ...POWER_FORMS, 'wortel', ...EQUATION_FORMS, ...FILL_IN_FORMS, ...PERCENT_CHANGE_FORMS, ...PYTHAGORAS_FORMS,
   'driehoek', ...BRACKET_EQUATION_FORMS, ...BOTH_SIDES_FORMS, ...NEGATIVE_POWER_FORMS, 'minkwadraat', 'wetenschap', 'wetenschap-min',
   'groeifactor', 'kwadraat-vgl', 'kwadratisch', 'groei-2', 'wortel-vereenvoudig', ...TRIG_FORMS, 'herleiden', 'procent-stappen',
-  'klok', 'schuine-zijde', ...NUMBER_LINE_FORMS];
+  'klok', 'klok-zet', 'schuine-zijde', ...NUMBER_LINE_FORMS];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */
 export function readForm(raw: unknown): SumForm | undefined {
