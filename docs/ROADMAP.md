@@ -733,6 +733,19 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 23: units read as maths (2026-11-25).** Whole
+  rounds were played as a child on a phone: groep 4 at 360px in es, groep
+  8 at 320px in en, klas 2 at 390px in nl, with no errors. In a measure
+  sum the units were as small and pale as "de helft van": in "9,1 l = ?
+  dl" and "2 cm = ? m" the l, dl, cm and m (what the sum is about) were
+  the hardest thing on the card to read. Units, €, %, × and the letters of
+  a klas sum (x =, a =, b =) are now their own kind of part, a symbol
+  (written-form.ts), drawn bold in the reading colour at 0.8 of the
+  numbers. Words said round a sum ("dubbel", "de helft van", "van", hours
+  and minutes) stay small. A spec holds every form's units to symbols; a
+  card spec holds a unit bold and larger than a word. question.component
+  .css merged its repeated rules to pay for the new one: 8 bytes smaller
+  than before. The first load is unchanged.
 - **Questions, run 19: doubles and halves to 100 worked in tens and ones
   (2026-11-24).** About 150 questions were drawn as a child in groep 5 and
   7 and klas 3 and 4. The worked line for a double or a half only checked

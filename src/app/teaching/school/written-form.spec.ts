@@ -584,6 +584,38 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(misses.slice(0, 5)).toEqual([]);
   });
 
+  it('writes a unit, €, %, × and a letter as maths, not as a small word beside it (2026-11-25)', () => {
+    // "9,1 l = ? dl" had its l and dl small and pale, as dim as "de helft van": they are what the sum asks
+    const SYMBOLS = ['m', 'cm', 'km', 'kg', 'g', 'l', 'dl', 'm²', 'm³', 'cm³', '€', '%', '×', 'x', 'a =', 'b =', 'l ='];
+    const parts = (form: string, num1: number, num2: number) => {
+      const layout = sumLayout({ num1, num2, sign: '+', form: form as SumForm }, WORDS);
+      return [...layout.before, ...layout.after];
+    };
+    const kindOf = (form: string, num1: number, num2: number, text: string) => parts(form, num1, num2).find(part => part.text === text)!.kind;
+    expect(kindOf('komma-l-dl', 91, 10, 'l')).toBe('symbol');
+    expect(kindOf('komma-l-dl', 91, 10, 'dl')).toBe('symbol');
+    expect(kindOf('m-cm', 3, 100, 'cm')).toBe('symbol');
+    // hours and minutes are said as words: uur, minuten
+    expect(kindOf('uur-min', 2, 60, 'uur')).toBe('word');
+    // "dubbel" and "de helft van" are words, and stay as small as they were
+    expect(kindOf('dubbel', 7, 7, 'dubbel')).toBe('word');
+    expect(kindOf('helft', 16, 2, 'de helft van')).toBe('word');
+    const misses: string[] = [];
+    let symbols = 0;
+    FORM_TOPICS.forEach(topic => made(topic, 60).forEach(sum => {
+      const sign = ({ '%': ':', '-': '−', '*': '×', '/': ':' } as { [op: string]: string })[sum.operation] || sum.operation;
+      const layout = sumLayout({ num1: sum.num1, num2: sum.num2, sign, form: sum.form }, WORDS);
+      [...layout.before, ...layout.after].forEach(part => {
+        if (part.kind === 'word' && SYMBOLS.includes(part.text)) {
+          misses.push(`${topic}: "${part.text}" in ${read(layout)}`);
+        }
+        symbols += part.kind === 'symbol' ? 1 : 0;
+      });
+    }));
+    expect(misses.slice(0, 5)).toEqual([]);
+    expect(symbols).toBeGreaterThan(100);
+  });
+
   it('works a double or a half to 100 out in tens and ones, as groep 4 and 5 split it (2026-11-24)', () => {
     // "39 + 39 = 78" and "28 + 28 = 56" only checked the answer: a child who missed it twice saw no way to it
     expect(formWorkedStep('dubbel', 39, 39)).toBe('30 + 30 = 60 → 9 + 9 = 18 → 60 + 18 = 78');

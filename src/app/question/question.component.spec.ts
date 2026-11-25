@@ -2281,9 +2281,27 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     ask({ num1: 3, num2: 100, operation: '*', form: 'm-cm' });
     const problem = fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
     const box = (problem.querySelector('input') as HTMLElement).getBoundingClientRect();
-    const unit = (problem.querySelector('.answer-group .word') as HTMLElement).getBoundingClientRect();
+    const unit = (problem.querySelector('.answer-group .symbol') as HTMLElement).getBoundingClientRect();
     expect(unit.left).toBeGreaterThanOrEqual(box.right);
     expect(problem.querySelector('.answer-group.over')).toBeNull();
+  });
+
+  it('draws a unit as maths, bold and in the reading colour, larger than a word said round the sum (2026-11-25)', () => {
+    // 9,1 l = ? dl had its l and dl as small and pale as "de helft van"
+    build('nl');
+    ask({ num1: 91, num2: 10, operation: '*', form: 'komma-l-dl' });
+    const problem = () => fixture.nativeElement.querySelector('.math-problem') as HTMLElement;
+    const units = Array.from(problem().querySelectorAll('.symbol')) as HTMLElement[];
+    expect(units.map(unit => unit.textContent!.trim())).toEqual(['l', 'dl']);
+    const number = getComputedStyle(problem().querySelector('.number') as HTMLElement);
+    const unitStyle = getComputedStyle(units[0]);
+    expect(Number(unitStyle.fontWeight)).toBeGreaterThanOrEqual(700);
+    expect(parseFloat(unitStyle.fontSize)).toBeLessThan(parseFloat(number.fontSize));
+    const unitSize = parseFloat(unitStyle.fontSize);
+    ask({ num1: 16, num2: 2, operation: '/', form: 'helft' });
+    const word = getComputedStyle(problem().querySelector('.word') as HTMLElement);
+    expect(unitSize).toBeGreaterThan(parseFloat(word.fontSize) * 1.25);
+    expect(Number(word.fontWeight)).toBeLessThan(700);
   });
 
   it('marks the nearest ten or hundred for a rounding, a 5 going up, and not the number itself or the other way', () => {
