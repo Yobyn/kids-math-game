@@ -1,5 +1,5 @@
-import { Component, Input } from '@angular/core';
-import { NumberLineForm } from './sum-form';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { NumberLineForm, NumberLinePlaceForm } from './sum-form';
 import { NumberLine, lineValue, markValue, numberLine } from '../teaching/school/written-form';
 
 /** The drawing's own width and height, in its units: as wide as a 320px phone's card leaves, and low. */
@@ -24,6 +24,11 @@ interface Mark {
  * Drawn as in the workbook and on Wikipedia's getallenlijn, with an arrowhead
  * at each end, since the numbers go on. The number at the arrow is never in
  * its label: reading it is the question.
+ *
+ * The other way round (2026-11-25), `placing`: waar hoort 47? No arrow at
+ * first; a tap or a drag on the line puts it on the nearest mark, and the
+ * arrow keys move it a mark at a time. Where it stands is the question
+ * component's (`chosen`), which this only asks to change (choose).
  */
 @Component({
   selector: 'app-number-line',
@@ -31,7 +36,18 @@ interface Mark {
   styleUrls: ['./number-line.component.css']
 })
 export class NumberLineComponent {
-  @Input() form: NumberLineForm = 'getallenlijn-1';
+  @Input() form: NumberLineForm | NumberLinePlaceForm = 'getallenlijn-1';
+  /** The child puts the arrow on the line, rather than reading where it is. */
+  @Input() placing = false;
+  /** In placing: the mark the arrow is on, counted from the left end, or null before it is put down. */
+  @Input() chosen: number | null = null;
+  @Input() disabled = false;
+  /** "Tik of sleep de pijl": said under the line until it is answered. */
+  @Input() hint = '';
+  @Output() choose = new EventEmitter<number>();
+
+  @ViewChild('drawing') drawing?: ElementRef<SVGSVGElement>;
+  private dragging = false;
   @Input() num1 = 0;
   @Input() num2 = 0;
   @Input() label = '';
@@ -60,9 +76,70 @@ export class NumberLineComponent {
     });
   }
 
-  /** Where the arrow points: over its mark. */
+  /** Where the arrow points: over its mark; in placing, over the mark chosen, if any. */
   get arrowX(): number {
-    return this.at(this.line.arrow);
+    return this.at(this.placing ? this.chosen ?? 0 : this.line.arrow);
+  }
+
+  get showArrow(): boolean {
+    return !this.placing || this.chosen !== null;
+  }
+
+  /** The number at the chosen mark, as a screen reader says the arrow's place. */
+  get chosenText(): string {
+    return this.chosen === null ? '' : lineValue(this.line, markValue(this.line, this.chosen), this.point);
+  }
+
+  pressed(event: PointerEvent) {
+    if (!this.placing || this.disabled) {
+      return;
+    }
+    this.dragging = true;
+    (event.target as Element).setPointerCapture?.(event.pointerId);
+    event.preventDefault();
+    this.pick(event);
+  }
+
+  moved(event: PointerEvent) {
+    if (this.dragging && !this.disabled) {
+      this.pick(event);
+    }
+  }
+
+  released() {
+    this.dragging = false;
+  }
+
+  /** The arrow keys: a mark to the left or the right; from the middle when nothing is chosen yet. */
+  key(event: KeyboardEvent) {
+    const way = event.key === 'ArrowRight' || event.key === 'ArrowUp' ? 1 : event.key === 'ArrowLeft' || event.key === 'ArrowDown' ? -1 : 0;
+    if (!this.placing || !way || this.disabled) {
+      return;
+    }
+    event.preventDefault();
+    const from = this.chosen ?? this.line.steps / 2;
+    this.emit(Math.min(this.line.steps, Math.max(0, from + (this.chosen === null ? 0 : way))));
+  }
+
+  /** The mark nearest a finger, along the line. */
+  markAt(x: number): number {
+    const steps = this.line.steps;
+    return Math.min(steps, Math.max(0, Math.round((x - LEFT) / (RIGHT - LEFT) * steps)));
+  }
+
+  private pick(event: PointerEvent) {
+    const svg = this.drawing?.nativeElement;
+    if (!svg) {
+      return;
+    }
+    const box = svg.getBoundingClientRect();
+    this.emit(this.markAt((event.clientX - box.left) / box.width * LINE_WIDTH));
+  }
+
+  private emit(mark: number) {
+    if (mark !== this.chosen) {
+      this.choose.emit(mark);
+    }
   }
 
   private at(mark: number): number {

@@ -384,3 +384,8 @@ its groep:
    klas 1's negative numbers (groep 3 to 8 never need the minus key).
    After two tries the worked line counts from the nearest number on the
    line: "50 − 3 = 47", "100 − 3 × 10 = 70", "4 − 3 × 0,1 = 3,7".
+   Since 2026-11-25 (Yobyn: "can that be a game") half the lines are the
+   other way round: "Waar hoort 47?". The line has no arrow; the child taps
+   it, or drags along it, and the arrow snaps to the nearest mark (the
+   arrow keys move it too). After two tries the arrow stands where the
+   number goes. Forms getallenlijn-zet-*, kept the same.

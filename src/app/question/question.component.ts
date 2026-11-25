@@ -21,8 +21,10 @@ import { EASED_KEY, OfferState, easierThan, shouldOfferEasier } from '../levels/
 import { momentFor, schoolSum } from '../teaching/school/groep';
 import { pickStory, storyEmoji, storyText } from '../teaching/school/story';
 import { StoryPick } from './story-pick';
-import { SumLayout, SumPart, clockTime, decimal, formWorkedStep, grouped, roundTo, signed, sumLayout, typedDecimal } from '../teaching/school/written-form';
-import { NUMBER_LINE_FORMS, NumberLineForm, SumForm, placesOf } from './sum-form';
+import {
+  SumLayout, SumPart, clockTime, decimal, formWorkedStep, grouped, lineValue, markValue, numberLine, roundTo, signed, sumLayout, typedDecimal
+} from '../teaching/school/written-form';
+import { NUMBER_LINE_FORMS, NUMBER_LINE_PLACE_FORMS, NumberLineForm, NumberLinePlaceForm, SumForm, placesOf } from './sum-form';
 import { ClockTime } from './clock-set.component';
 import {
   QUESTIONS_IN_ROUND,
@@ -842,9 +844,36 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
     this.vibrate(5);
   }
 
-  /** Answered with the hands or with coins, not typed: no box, no keypad. */
+  /** Answered with the hands, the arrow or coins, not typed: no box, no keypad. */
   get handsOn(): boolean {
-    return this.isPicking || this.isClockSet;
+    return this.isPicking || this.isClockSet || !!this.linePlaceForm;
+  }
+
+  /** A number line to put the arrow on (waar hoort 47?, 2026-11-25), kept as a read one is. */
+  get linePlaceForm(): NumberLinePlaceForm | null {
+    const form = this.currentQuestion.form;
+    return form && (NUMBER_LINE_PLACE_FORMS as string[]).includes(form) ? form as NumberLinePlaceForm : null;
+  }
+
+  /** The mark the child has put the arrow on, from the line's left end; none at first, and kept for a second try. */
+  linePick: number | null = null;
+
+  /** The number asked for, as the line writes its numbers: 47, 3,7, −6. */
+  get linePlaceAsk(): string {
+    const form = this.linePlaceForm!;
+    const line = numberLine(form, this.currentQuestion.num1, this.currentQuestion.num2);
+    return this.languageService.translate('line-place-ask')
+      .replace('{n}', lineValue(line, markValue(line, line.arrow), this.decimalSign));
+  }
+
+  /** Where the arrow is shown: the child's mark, or the mark asked for once the answer is given. */
+  get lineShown(): number | null {
+    return this.answerGiven ? this.currentQuestion.num2 / numberLine(this.linePlaceForm!, 0, 0).step : this.linePick;
+  }
+
+  chooseMark(mark: number) {
+    this.linePick = mark;
+    this.vibrate(5);
   }
 
   /** A number line to read (getallenlijn): welk getal hoort bij de pijl? Kept as the line's left end + how far along (groep.ts). */
@@ -876,6 +905,7 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
       this.userAnswer = '';
       this.picked = [];
       this.setTime = { hours: 12, minutes: 0 };
+      this.linePick = null;
       this.feedback = '';
       this.workedLine = '';
       this.inputPlaceholder = '?';
@@ -888,6 +918,7 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
       this.userAnswer = '';
       this.picked = [];
       this.setTime = { hours: 12, minutes: 0 };
+      this.linePick = null;
       this.feedback = '';
       this.workedLine = '';
       this.inputPlaceholder = '?';
@@ -915,6 +946,7 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
     this.userAnswer = '';
     this.picked = [];
     this.setTime = { hours: 12, minutes: 0 };
+    this.linePick = null;
     this.feedback = '';
     this.workedLine = '';
     this.inputPlaceholder = '?';
@@ -978,6 +1010,13 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
     // A clock set by hand: its answer is where the hands stand, 3:45 as 345, marked as a typed time is
     if (this.isClockSet) {
       this.userAnswer = String(this.setTime.hours * 100 + this.setTime.minutes);
+    }
+    // An arrow put on a line: its answer is the number at its mark, as it would be typed (3.7 for tenths)
+    const placing = this.linePlaceForm;
+    if (placing) {
+      const line = numberLine(placing, this.currentQuestion.num1, this.currentQuestion.num2);
+      this.userAnswer = this.linePick === null ? ''
+        : line.places ? decimal(markValue(line, this.linePick), line.places, '.') : String(markValue(line, this.linePick));
     }
 
     if (this.userAnswer === null || this.userAnswer === undefined || this.userAnswer === '') {
@@ -1248,6 +1287,7 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
     this.userAnswer = '';
     this.picked = [];
     this.setTime = { hours: 12, minutes: 0 };
+    this.linePick = null;
     this.isSecondAttempt = false;
     this.showOkButton = false;
     this.wrongAttempts = 0;

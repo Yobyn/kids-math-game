@@ -56,3 +56,31 @@
 .arrow path {
   fill: var(--accent-magenta-read);
 }
+
+/* Placing: the line is held and dragged along; the page does not scroll under the finger */
+.number-line.placing {
+  touch-action: none;
+  cursor: pointer;
+}
+
+.number-line.placing.disabled {
+  cursor: default;
+}
+
+.number-line:focus {
+  outline: none;
+}
+
+.number-line:focus-visible {
+  outline: 2px solid var(--accent-blue-read);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* "Tik of sleep de pijl", small under the line, until it is answered */
+.hint {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  text-align: center;
+  color: var(--text-read-dim);
+}

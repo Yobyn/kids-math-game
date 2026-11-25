@@ -1,4 +1,10 @@
-<svg class="number-line" [attr.viewBox]="'0 0 ' + width + ' ' + height" role="img" [attr.aria-label]="label">
+<!-- Read: a picture. Placing (waar hoort 47?): a slider, the arrow put down by a tap, a drag or the arrow keys -->
+<svg #drawing class="number-line" [class.placing]="placing" [class.disabled]="disabled" [attr.viewBox]="'0 0 ' + width + ' ' + height"
+     [attr.role]="placing ? 'slider' : 'img'" [attr.aria-label]="label"
+     [attr.tabindex]="placing && !disabled ? 0 : null"
+     [attr.aria-valuetext]="placing ? chosenText : null"
+     (pointerdown)="pressed($event)" (pointermove)="moved($event)" (pointerup)="released()" (pointercancel)="released()"
+     (keydown)="key($event)">
   <!-- The line, a little past both ends, with an arrowhead on each: the numbers go on -->
   <line class="axis" [attr.x1]="left - 12" [attr.x2]="right + 12" [attr.y1]="y" [attr.y2]="y"></line>
   <path class="axis-end" [attr.d]="'M' + (left - 16) + ' ' + y + ' l7 -4.5 v9 z'"></path>
@@ -11,8 +17,9 @@
     <text *ngIf="mark.text !== null" class="number" [attr.x]="mark.x" [attr.y]="y + 23" text-anchor="middle">{{ mark.text }}</text>
   </ng-container>
   <!-- The arrow, pointing down at its mark -->
-  <g class="arrow" [attr.transform]="'translate(' + arrowX + ' 0)'">
+  <g class="arrow" *ngIf="showArrow" [attr.transform]="'translate(' + arrowX + ' 0)'">
     <line x1="0" x2="0" y1="3" y2="16"></line>
     <path d="M-6 13 L0 23 L6 13 z"></path>
   </g>
 </svg>
+<p class="hint" *ngIf="placing && hint && !disabled">{{ hint }}</p>

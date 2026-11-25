@@ -102,7 +102,7 @@ export type SumForm = 'aanvullen' | 'splitsen' | 'dubbel' | 'helft' | 'deel' | '
   | PowerForm | 'wortel' | EquationForm | FillInForm | PercentChangeForm | PythagorasForm | 'driehoek'
   | BracketEquationForm | BothSidesForm | NegativePowerForm | 'minkwadraat' | 'wetenschap' | 'wetenschap-min' | 'groeifactor'
   | 'kwadraat-vgl' | 'kwadratisch' | 'groei-2' | 'wortel-vereenvoudig' | TrigForm | 'herleiden' | 'procent-stappen' | 'klok'
-  | 'klok-zet' | NumberLineForm
+  | 'klok-zet' | NumberLineForm | NumberLinePlaceForm
   | 'schuine-zijde';
 
 type TwoToNine = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
@@ -223,8 +223,16 @@ export const VOLUME_MEASURE_FORMS: VolumeMeasureForm[] = ['m3-l', 'l-cm3'];
  */
 export type NumberLineForm = 'getallenlijn-20' | 'getallenlijn-1' | 'getallenlijn-10' | 'getallenlijn-100' | 'getallenlijn-1000'
   | 'getallenlijn-tiende' | 'getallenlijn-negatief';
+/**
+ * The same line the other way round (Yobyn, 2026-11-25: "can that be a game"): waar hoort 47? The
+ * arrow put on the line by the child. Kept the same; `-zet-` says which way it is asked.
+ */
+export type NumberLinePlaceForm = 'getallenlijn-zet-20' | 'getallenlijn-zet-1' | 'getallenlijn-zet-10' | 'getallenlijn-zet-100'
+  | 'getallenlijn-zet-1000' | 'getallenlijn-zet-tiende' | 'getallenlijn-zet-negatief';
 // Written out from the steps: these names are read back from every saved round, so they sit in the first load, kept short
-export const NUMBER_LINE_FORMS = ['20', '1', '10', '100', '1000', 'tiende', 'negatief'].map(step => `getallenlijn-${step}` as NumberLineForm);
+const LINE_STEPS = ['20', '1', '10', '100', '1000', 'tiende', 'negatief'];
+export const NUMBER_LINE_FORMS = LINE_STEPS.map(step => `getallenlijn-${step}` as NumberLineForm);
+export const NUMBER_LINE_PLACE_FORMS = LINE_STEPS.map(step => `getallenlijn-zet-${step}` as NumberLinePlaceForm);
 
 export type TemperatureForm = 'temperatuur-op' | 'temperatuur-af';
 export const TEMPERATURE_FORMS: TemperatureForm[] = ['temperatuur-op', 'temperatuur-af'];
@@ -295,7 +303,7 @@ export const DECIMAL_MEASURE_FORMS: DecimalMeasureForm[] = ['komma-km-m', 'komma
  * numbers.
  */
 export function placesOf(form: SumForm | undefined): number {
-  if (form === 'tienden' || form === 'getallenlijn-tiende' || DECIMAL_MEASURE_FORMS.includes(form as DecimalMeasureForm)) {
+  if (form === 'tienden' || form === 'getallenlijn-tiende' || form === 'getallenlijn-zet-tiende' || DECIMAL_MEASURE_FORMS.includes(form as DecimalMeasureForm)) {
     return 1;
   }
   if (form === 'wetenschap') {
@@ -347,7 +355,7 @@ export const SUM_FORMS: SumForm[] = ['aanvullen', 'splitsen', 'dubbel', 'helft',
   'afronden-decimaal', ...POWER_FORMS, 'wortel', ...EQUATION_FORMS, ...FILL_IN_FORMS, ...PERCENT_CHANGE_FORMS, ...PYTHAGORAS_FORMS,
   'driehoek', ...BRACKET_EQUATION_FORMS, ...BOTH_SIDES_FORMS, ...NEGATIVE_POWER_FORMS, 'minkwadraat', 'wetenschap', 'wetenschap-min',
   'groeifactor', 'kwadraat-vgl', 'kwadratisch', 'groei-2', 'wortel-vereenvoudig', ...TRIG_FORMS, 'herleiden', 'procent-stappen',
-  'klok', 'klok-zet', 'schuine-zijde', ...NUMBER_LINE_FORMS];
+  'klok', 'klok-zet', 'schuine-zijde', ...NUMBER_LINE_FORMS, ...NUMBER_LINE_PLACE_FORMS];
 
 /** A stored form, or undefined for anything that is not one: the sum is then shown plainly. */
 export function readForm(raw: unknown): SumForm | undefined {

@@ -112,6 +112,8 @@ export type TranslationKeys =
   | 'clock-set-hint'
   | 'clock-big-hand'
   | 'clock-small-hand'
+  | 'line-place-ask'
+  | 'line-place-hint'
   | 'money-total'
   | 'money-change'
   | 'money-count'
