@@ -3008,7 +3008,8 @@ describe('QuestionComponent asking the time on a clock (klokkijken, 2026-10-27)'
     let clocks = 0;
     for (let i = 0; i < 200; i++) {
       component.generateQuestion();
-      if (component.currentQuestion.form === 'klok') {
+      // read or set (zet de klok, 2026-11-25): half of each
+      if (/^klok/.test(component.currentQuestion.form || '')) {
         clocks++;
         expect(component.currentQuestion.story).toBeUndefined();
       }
@@ -3124,7 +3125,8 @@ describe('QuestionComponent asking for the clock to be set (zet de klok, Yobyn 2
   it('puts both kinds of clock in a groep 4 round, reading one and setting one', () => {
     build('2');
     const forms = new Set<string>();
-    for (let i = 0; i < 300; i++) {
+    // a clock is one question in fifty or so here: enough draws that both kinds always turn up
+    for (let i = 0; i < 2000 && !(forms.has('klok') && forms.has('klok-zet')); i++) {
       component.generateQuestion();
       forms.add(component.currentQuestion.form || '');
     }
