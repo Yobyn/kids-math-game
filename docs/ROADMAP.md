@@ -733,6 +733,22 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 20: the tables of 2 and 5 worked as groep 4 learns
+  them (2026-11-25).** A sweep of every topic for sums with no worked line
+  after two tries found groep 4's new tables silent: "6 × 5", "7 × 2"
+  (all of tafels-1-2-5-10, most of tafels-1-5-10), on the old rule that
+  twos and fives "need no talking through". These are the tables groep 4
+  is learning, by two ways school teaches them (worked-step.ts):
+  - the table of 2 as a double: "7 + 7 = 14";
+  - the table of 5 as half of the table of 10: "6 × 10 = 60 → 60 : 2 = 30"
+    (÷ in English).
+
+  One time and ten times stay quiet (the line would be the answer again).
+  The other tables keep their lines. The sweep's other silent ones are
+  silent on purpose: single figures within 10, a sum ending on a whole ten
+  (13 − 3), and a table fact with a 1, which a round never asks from groep
+  5 (`tableWithOne`). A spec holds every 2 and 5 fact groep 4 is asked to a
+  true line ending on its answer. No first-load change.
 - **Waar hoort 47? The number line the other way round (2026-11-25).**
   Yobyn: "The getallenlijn, can that be a game". Half of every number line
   (`LINE_PLACE_SHARE`, same topics and groeps, 3 to klas 1) is now asked

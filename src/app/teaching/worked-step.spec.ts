@@ -373,6 +373,46 @@ describe('the sums groep 5 and 6 are set', () => {
   });
 });
 
+describe('the tables of 2 and 5, as groep 4 learns them (2026-11-25)', () => {
+  // 6 × 2 and 6 × 5 had no worked line: "tables a child does not need talking through". But these are
+  // the tables groep 4 is learning, by two ways it is taught: twice is a double, five times half of ten times
+  it('works the table of 2 as a double', () => {
+    expect(workedStep(6, 2, '*')).toBe('6 + 6 = 12');
+    expect(workedStep(2, 9, '*')).toBe('9 + 9 = 18');
+    expect(workedStep(2, 5, '*')).toBe('5 + 5 = 10');
+    expect(workedStep(2, 2, '*')).toBe('2 + 2 = 4');
+  });
+
+  it('works the table of 5 as half of the table of 10', () => {
+    expect(workedStep(6, 5, '*')).toBe('6 × 10 = 60 → 60 ÷ 2 = 30');
+    expect(workedStep(5, 7, '*')).toBe('10 × 7 = 70 → 70 ÷ 2 = 35');
+    expect(workedStep(5, 5, '*')).toBe('5 × 10 = 50 → 50 ÷ 2 = 25');
+    expect(workedStep(3, 5, '*')).toBe('3 × 10 = 30 → 30 ÷ 2 = 15');
+  });
+
+  it('gives every fact of the tables of 2 and 5 groep 4 is asked a true line on its answer, and none to 10 × or 1 ×', () => {
+    const random = (() => { let seed = 5; return () => (seed = (seed * 16807) % 2147483647) / 2147483647; })();
+    ['tafels-1-2-5-10', 'tafels-1-5-10'].forEach(topic => {
+      for (let i = 0; i < 400; i++) {
+        const sum = TOPICS[topic](random);
+        const step = workedStep(sum.num1, sum.num2, sum.operation);
+        const context = `${topic}: ${sum.num1} × ${sum.num2}`;
+        const trivial = [sum.num1, sum.num2].some(n => n === 1 || n === 10);
+        if (trivial) {
+          expect(step).withContext(context).toBeUndefined();
+          continue;
+        }
+        if ([2, 5].includes(sum.num1) || [2, 5].includes(sum.num2)) {
+          expect(step).withContext(context).toBeDefined();
+          const lines = equations(step!);
+          lines.forEach(({ left, right }) => expect(evaluate(left)).withContext(step!).toBe(right));
+          expect(lines[lines.length - 1].right).withContext(step!).toBe(sum.num1 * sum.num2);
+        }
+      }
+    });
+  });
+});
+
 describe('when it says nothing', () => {
   it('stays quiet when the method would just be the answer again', () => {
     // Nothing to explain about a sum that never crosses ten
@@ -389,9 +429,10 @@ describe('when it says nothing', () => {
   });
 
   it('stays quiet about tables a child does not need talking through', () => {
-    expect(workedStep(6, 2, '*')).toBeUndefined();
-    expect(workedStep(6, 5, '*')).toBeUndefined();
+    // ten times is a nought more, and one time is the number itself
     expect(workedStep(7, 10, '*')).toBeUndefined();
+    expect(workedStep(1, 5, '*')).toBeUndefined();
+    expect(workedStep(6, 1, '*')).toBeUndefined();
     // ten or a hundred times is noughts and no more, and tens times tens is no table
     expect(workedStep(4, 100, '*')).toBeUndefined();
     expect(workedStep(20, 30, '*')).toBeUndefined();

@@ -67,7 +67,7 @@ the €1, whose answer is the amount itself (2026-11-04).
 | M | Tens: T ± T within 100 (worked from the small sum inside after two tries: 4 + 3 = 7 → 40 + 30 = 70) | 40 + 30, 70 − 20 |
 | M | TE ± E without and with crossing the ten (worked through the ten after two tries: 36 + 4 = 40 → 40 + 4 = 44, 42 − 2 = 40 → 40 − 5 = 35) | 34 + 5, 36 + 8, 42 − 7 |
 | M | TE ± T (worked from the tens after two tries: 40 + 30 = 70 → 70 + 5 = 75) | 45 + 30, 68 − 40 |
-| M | Tables of 1, 2, 5 and 10 | 7 × 2, 6 × 5 |
+| M | Tables of 1, 2, 5 and 10 (worked after two tries: the 2s as a double, 7 + 7 = 14; the 5s as half of the 10s, 6 × 10 = 60 → 60 : 2 = 30) | 7 × 2, 6 × 5 |
 | M | Dividing within those tables | 20 : 5, 14 : 2 |
 | M | Klokkijken: kwart over, kwart voor | 3:15, 3:45 |
 | M | Getallenlijn: the ones between two tens | 40 to 50, the arrow at 47 |

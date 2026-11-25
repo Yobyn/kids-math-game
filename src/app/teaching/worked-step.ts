@@ -185,8 +185,9 @@ function subtraction(num1: number, num2: number): string | undefined {
 
 /**
  * Leans on the five times table, which children know first: 7 x 6 as
- * 7 x 5 and one more 7. Twos and tens are not worth explaining; a table
- * fact times ten is shown as the fact and its nought.
+ * 7 x 5 and one more 7. The table of 2 is a double and the table of 5 half
+ * of the table of 10, as groep 4 learns them; one time and ten times need no
+ * working out. A table fact times ten is shown as the fact and its nought.
  */
 function multiplication(num1: number, num2: number): string | undefined {
   const product = num1 * num2;
@@ -221,6 +222,21 @@ function multiplication(num1: number, num2: number): string | undefined {
     }
     return `${tens} × ${num2} = ${tens * num2}${THEN}${ones} × ${num2} = ${ones * num2}` +
       `${THEN}${tens * num2} + ${ones * num2} = ${product}`;
+  }
+
+  // Groep 4's tables of 2 and 5, as it learns them (2026-11-25): twice is a double, 6 × 2 as 6 + 6;
+  // five times is half of ten times, 6 × 5 as 6 × 10 = 60 and its half. One time and ten times stay quiet
+  if (num1 >= 2 && num2 >= 2 && num1 < 10 && num2 < 10) {
+    if (num1 === 2 || num2 === 2) {
+      const other = num2 === 2 ? num1 : num2;
+      return `${other} + ${other} = ${product}`;
+    }
+    if (num2 === 5) {
+      return `${num1} × 10 = ${num1 * 10}${THEN}${num1 * 10} ÷ 2 = ${product}`;
+    }
+    if (num1 === 5) {
+      return `10 × ${num2} = ${10 * num2}${THEN}${10 * num2} ÷ 2 = ${product}`;
+    }
   }
 
   // The tables of 3 and 4 (groep 4's end) from the table of 2: three times is twice and one more,
