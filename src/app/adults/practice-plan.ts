@@ -291,6 +291,7 @@ export function factText(fact: MissedFact): string {
     }
     // A clock to read, set to 3:45 for the child: kept as 300 + 45
     case 'klok':
+    case 'klok-zet':
       return `🕒 ${clockTime(fact.num1, fact.num2)}`;
     // A number line from 40 to 50 with the arrow on 47, kept as 40 + 7: the line's two ends
     case 'getallenlijn-20':
@@ -460,7 +461,7 @@ function toItem(fact: MissedFact): PracticeItem {
   const item: PracticeItem = {
     question: factText(fact),
     answer: placesOf(fact.form) ? decimal(answer, placesOf(fact.form))
-      : fact.form === 'klok' ? clockTime(fact.num1, fact.num2)
+      : fact.form === 'klok' || fact.form === 'klok-zet' ? clockTime(fact.num1, fact.num2)
       : /^(negatief|negmacht|minkwadraat|getallenlijn)/.test(fact.form || '') ? signed(answer) : String(answer),
     reviews,
     toGraduate

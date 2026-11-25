@@ -23,6 +23,7 @@ import { pickStory, storyEmoji, storyText } from '../teaching/school/story';
 import { StoryPick } from './story-pick';
 import { SumLayout, SumPart, clockTime, decimal, formWorkedStep, grouped, roundTo, signed, sumLayout, typedDecimal } from '../teaching/school/written-form';
 import { NUMBER_LINE_FORMS, NumberLineForm, SumForm, placesOf } from './sum-form';
+import { ClockTime } from './clock-set.component';
 import {
   QUESTIONS_IN_ROUND,
   RESUME_CHOICE_KEY,
@@ -813,6 +814,39 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
     return this.currentQuestion.form === 'klok';
   }
 
+  /** A clock to set (zet de klok op 3:45, 2026-11-25): the hands dragged into place, kept as 300 + 45 too. */
+  get isClockSet(): boolean {
+    return this.currentQuestion.form === 'klok-zet';
+  }
+
+  /** The hands as the child has set them; they start at 12:00, and stay put through a second try. */
+  setTime: ClockTime = { hours: 12, minutes: 0 };
+
+  /** The long hand moves every 5 minutes, or every minute for a time to the minute (groep 5). */
+  get clockSetStep(): number {
+    return this.currentQuestion.num2 % 5 ? 1 : 5;
+  }
+
+  /** The time asked, as the question says it, and as the hands show it once the answer is given. */
+  get clockSetTarget(): ClockTime {
+    return { hours: this.currentQuestion.num1 / 100, minutes: this.currentQuestion.num2 };
+  }
+
+  get clockSetAsk(): string {
+    return this.languageService.translate('clock-set-ask').replace('{time}', clockTime(this.currentQuestion.num1, this.currentQuestion.num2));
+  }
+
+  /** The hands turned: what is checked is where they stand. */
+  moveHands(time: ClockTime) {
+    this.setTime = time;
+    this.vibrate(5);
+  }
+
+  /** Answered with the hands or with coins, not typed: no box, no keypad. */
+  get handsOn(): boolean {
+    return this.isPicking || this.isClockSet;
+  }
+
   /** A number line to read (getallenlijn): welk getal hoort bij de pijl? Kept as the line's left end + how far along (groep.ts). */
   get numberLineForm(): NumberLineForm | null {
     const form = this.currentQuestion.form;
@@ -841,6 +875,7 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
       this.reviewing = due.reviewOf;
       this.userAnswer = '';
       this.picked = [];
+      this.setTime = { hours: 12, minutes: 0 };
       this.feedback = '';
       this.workedLine = '';
       this.inputPlaceholder = '?';
@@ -852,6 +887,7 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
       this.noteMoney();
       this.userAnswer = '';
       this.picked = [];
+      this.setTime = { hours: 12, minutes: 0 };
       this.feedback = '';
       this.workedLine = '';
       this.inputPlaceholder = '?';
@@ -878,6 +914,7 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
     }
     this.userAnswer = '';
     this.picked = [];
+    this.setTime = { hours: 12, minutes: 0 };
     this.feedback = '';
     this.workedLine = '';
     this.inputPlaceholder = '?';
@@ -938,6 +975,11 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
       return;
     }
 
+    // A clock set by hand: its answer is where the hands stand, 3:45 as 345, marked as a typed time is
+    if (this.isClockSet) {
+      this.userAnswer = String(this.setTime.hours * 100 + this.setTime.minutes);
+    }
+
     if (this.userAnswer === null || this.userAnswer === undefined || this.userAnswer === '') {
       this.showShakeAnimation = true;
       setTimeout(() => this.showShakeAnimation = false, 500);
@@ -992,7 +1034,7 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
     if (this.isClock && this.correctAnswer < 1200 && answer === this.correctAnswer + 1200) {
       isCorrect = true;
     }
-    this.correctAnswerText = this.isClock ? clockTime(this.currentQuestion.num1, this.currentQuestion.num2)
+    this.correctAnswerText = this.isClock || this.isClockSet ? clockTime(this.currentQuestion.num1, this.currentQuestion.num2)
       : this.inDecimals ? longGrouped(decimal(this.correctAnswer, this.decimalPlaces, this.decimalSign)) : signed(this.correctAnswer);
 
     if (isCorrect) {
@@ -1205,6 +1247,7 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
     this.answerWasCorrect = null;
     this.userAnswer = '';
     this.picked = [];
+    this.setTime = { hours: 12, minutes: 0 };
     this.isSecondAttempt = false;
     this.showOkButton = false;
     this.wrongAttempts = 0;

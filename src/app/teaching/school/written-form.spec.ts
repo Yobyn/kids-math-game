@@ -464,8 +464,8 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
       const sign = ({ '%': ':', '-': '−', '*': '×', '/': ':' } as { [op: string]: string })[sum.operation] || sum.operation;
       const written = read(sumLayout({ num1: sum.num1, num2: sum.num2, sign, form: sum.form }, WORDS));
       const right = answer(sum);
-      // A clock and a number line are drawn, not written: clock-face.spec.ts and number-line.spec.ts hold them to what they show
-      if (sum.form === 'klok' || /^getallenlijn/.test(sum.form || '')) {
+      // A clock (read or set) and a number line are drawn, not written: clock-face.spec.ts and number-line.spec.ts hold them to what they show
+      if (/^(klok|getallenlijn)/.test(sum.form || '')) {
         return;
       }
       // a sum with a comma is answered with one: 7 tenths is written 0,7

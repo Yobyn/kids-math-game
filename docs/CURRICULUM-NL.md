@@ -361,6 +361,14 @@ its groep:
    groep 4, every five minutes at its end, and to the minute in the middle
    of groep 5. After two tries the worked line counts the big hand's
    fives: "9 × 5 = 45 → 3:45".
+   Since 2026-11-25 (Yobyn: "telling time, moving the clock hand in the
+   right position") half the clocks are the other way round: "Zet de klok
+   op 3:45". The child drags the long and the short hand into place on a
+   bigger clock (`question/clock-set.component.ts`; the arrow keys turn
+   them too). The long hand snaps to every five minutes, or every minute in
+   groep 5; the short hand creeps on with the minutes as on a real clock.
+   The hands start at 12:00 and stay put through a second try; after two,
+   they show the time asked. Kept as 300 + 45 (form klok-zet).
 10. **De getallenlijn** (the number line), groep 3 to klas 1, built
    2026-11-23 (Yobyn: "We need to implement Getallenlijn as well"). A drawn
    line (`question/number-line.component.ts`) with a mark at every step,

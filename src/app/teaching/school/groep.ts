@@ -252,21 +252,31 @@ TOPICS['deeltafels-6-7-8-9'] = shareOut(TABLES_GROEP_5);
  * keypad is the answer, and the answer box writes it 3:45. On the clock face:
  * 1 to 12 o'clock.
  */
-const clockSum = (hours: number, minutes: number): Omit<SchoolSum, 'topic'> =>
-  ({ num1: 100 * hours, num2: minutes, operation: '+', form: 'klok' });
+/**
+ * Half the time the other way round (Yobyn, 2026-11-25: "telling time, moving the clock hand in the
+ * right position"): zet de klok op 3:45, the hands dragged into place on the clock
+ * (question/clock-set.component.ts). Kept the same, 300 + 45, the form saying which way it is asked.
+ * The hands start at 12:00, so that is never the time to set.
+ */
+export const CLOCK_SET_SHARE = 0.5;
+const clockSum = (random: Random, hours: number, minutes: number): Omit<SchoolSum, 'topic'> => {
+  const form = random() < CLOCK_SET_SHARE ? 'klok-zet' : 'klok';
+  const hour = form === 'klok-zet' && hours === 12 && !minutes ? between(random, 1, 11) : hours;
+  return { num1: 100 * hour, num2: minutes, operation: '+', form };
+};
 // Groep 3, the end: hele en halve uren. 4:00, 3:30 ("half 4")
-TOPICS['klok-uren'] = random => clockSum(between(random, 1, 12), pick(random, [0, 30]));
+TOPICS['klok-uren'] = random => clockSum(random, between(random, 1, 12), pick(random, [0, 30]));
 // Groep 4: kwart over en kwart voor, with the whole and half hours still about
-TOPICS['klok-kwartier'] = random => clockSum(between(random, 1, 12), pick(random, [15, 45, 15, 45, 0, 30]));
+TOPICS['klok-kwartier'] = random => clockSum(random, between(random, 1, 12), pick(random, [15, 45, 15, 45, 0, 30]));
 // Groep 4, the end: every five minutes. 3:25 ("vijf voor half 4")
-TOPICS['klok-5-minuten'] = random => clockSum(between(random, 1, 12), 5 * between(random, 1, 11));
+TOPICS['klok-5-minuten'] = random => clockSum(random, between(random, 1, 12), 5 * between(random, 1, 11));
 // Groep 5: to the minute. 3:37
 TOPICS['klok-minuten'] = random => {
   let minutes = between(random, 1, 59);
   if (minutes % 5 === 0) {
     minutes += between(random, 1, 4) * (minutes === 55 ? -1 : 1);
   }
-  return clockSum(between(random, 1, 12), minutes);
+  return clockSum(random, between(random, 1, 12), minutes);
 };
 
 /**

@@ -498,6 +498,7 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     // Hoe laat is het? The clock is drawn above the box (question/clock-face.component.ts),
     // and the box is all the sum there is: the time typed into it, 3:45
     case 'klok':
+    case 'klok-zet':
       return { before: [], after: [] };
     // Welk getal hoort bij de pijl? The line is drawn above the box (question/number-line.component.ts),
     // and the box is all the sum there is
@@ -1142,7 +1143,8 @@ function dutchWorkedStep(form: SumForm | undefined, num1: number, num2: number,
     }
     // The big hand on the 9: nine fives are 45 minutes, past the hour the small hand has
     // just passed. On the 12 it is the whole hour
-    case 'klok': {
+    case 'klok':
+    case 'klok-zet': {
       if (!num2) {
         return `12 → ${clockTime(num1, num2)}`;
       }

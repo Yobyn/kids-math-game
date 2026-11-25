@@ -8,6 +8,7 @@ import { CoinsComponent } from '../money/coins.component';
 import { CoinPickerComponent } from '../money/coin-picker.component';
 import { ClockFaceComponent } from '../question/clock-face.component';
 import { NumberLineComponent } from '../question/number-line.component';
+import { ClockSetComponent } from '../question/clock-set.component';
 
 /**
  * A round: the questions, the keypad, the coins. Fetched on its own so the
@@ -18,7 +19,7 @@ import { NumberLineComponent } from '../question/number-line.component';
  */
 @NgModule({
   declarations: [QuestionComponent, RoundTrackComponent, KeypadComponent, CoinsComponent, CoinPickerComponent, ClockFaceComponent,
-    NumberLineComponent],
+    NumberLineComponent, ClockSetComponent],
   imports: [SharedModule, RouterModule.forChild([{ path: '', component: QuestionComponent }])]
 })
 export class QuestionModule { }

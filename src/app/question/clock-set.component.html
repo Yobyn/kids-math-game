@@ -1,0 +1,28 @@
+<svg #face class="clock-face" viewBox="0 0 100 100" role="group" [attr.aria-label]="label"
+     [class.disabled]="disabled"
+     (pointerdown)="pressed($event)" (pointermove)="moved($event)"
+     (pointerup)="released()" (pointercancel)="released()">
+  <circle class="rim" cx="50" cy="50" r="48"></circle>
+  <line *ngFor="let mark of marks" class="mark" [class.hour]="mark.hour"
+        [attr.x1]="mark.x1" [attr.y1]="mark.y1" [attr.x2]="mark.x2" [attr.y2]="mark.y2"></line>
+  <text *ngFor="let number of numbers" class="number" [attr.x]="number.x" [attr.y]="number.y"
+        text-anchor="middle" dominant-baseline="central">{{ number.n }}</text>
+  <!-- Each hand a slider: dragged on the face, or turned with the arrow keys. A knob at its tip
+       shows it can be taken hold of -->
+  <g class="hand hour-hand" [class.held]="holding === 'hour'" [attr.transform]="'rotate(' + hourAngle + ' 50 50)'"
+     role="slider" [attr.tabindex]="disabled ? -1 : 0" [attr.aria-label]="smallLabel"
+     aria-valuemin="1" aria-valuemax="12" [attr.aria-valuenow]="hours" [attr.aria-valuetext]="time"
+     (keydown)="key('hour', $event)">
+    <line x1="50" y1="50" x2="50" y2="32"></line>
+    <circle class="knob" cx="50" cy="31" r="4"></circle>
+  </g>
+  <g class="hand minute-hand" [class.held]="holding === 'minute'" [attr.transform]="'rotate(' + minuteAngle + ' 50 50)'"
+     role="slider" [attr.tabindex]="disabled ? -1 : 0" [attr.aria-label]="bigLabel"
+     aria-valuemin="0" aria-valuemax="59" [attr.aria-valuenow]="minutes" [attr.aria-valuetext]="time"
+     (keydown)="key('minute', $event)">
+    <line x1="50" y1="50" x2="50" y2="20"></line>
+    <circle class="knob" cx="50" cy="19" r="4"></circle>
+  </g>
+  <circle class="pin" cx="50" cy="50" r="3"></circle>
+</svg>
+<p class="hint" *ngIf="hint && !disabled">{{ hint }}</p>

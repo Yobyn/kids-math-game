@@ -733,6 +733,20 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Zet de klok: the hands dragged into place (2026-11-25).** Yobyn:
+  "telling time, moving the clock hand in the right position". Half the
+  clock questions (`CLOCK_SET_SHARE`, same topics and groeps) now ask
+  "Zet de klok op 3:45" over a bigger clock whose hands are dragged:
+  a finger takes the nearer hand; the long hand snaps to the five minutes
+  (every minute in groep 5), the short hand to the hour, creeping on with
+  the minutes. Each hand is a slider for the arrow keys and a screen
+  reader. No box and no keypad; Check reads the hands as 345 and marks it
+  as a typed time. The hands start at 12:00 (never the time asked), stay
+  put for a second try, and show the time asked after two, with the worked
+  line "9 × 5 = 45 → 3:45". Form `klok-zet`; pure geometry in clock-face.ts
+  (angleAt, minutesAt, hoursAt, nearerHand). Its own component and CSS in
+  the round's lazy chunk; first load +9 bytes for the form name. Next: the
+  number line the other way round, placing a number on it.
 - **Look and feel, run 23: units read as maths (2026-11-25).** Whole
   rounds were played as a child on a phone: groep 4 at 360px in es, groep
   8 at 320px in en, klas 2 at 390px in nl, with no errors. In a measure

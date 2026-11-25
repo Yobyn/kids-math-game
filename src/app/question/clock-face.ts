@@ -19,6 +19,35 @@ export function handsAt(hours: number, minutes: number): Hands {
   return { hour: (hours % 12) * 30 + minutes / 2, minute: minutes * 6 };
 }
 
+/**
+ * Zetten: a finger on the face as a time (2026-11-25). The angle of a point on a 100-wide face,
+ * clockwise from the 12, 0 to 360.
+ */
+export function angleAt(x: number, y: number): number {
+  const degrees = Math.atan2(x - 50, 50 - y) * 180 / Math.PI;
+  return (degrees + 360) % 360;
+}
+
+/** The long hand pointing at an angle, as minutes, snapped to `step` (5 or 1): 270° is 45. */
+export function minutesAt(degrees: number, step: number): number {
+  return (Math.round(degrees / 6 / step) * step) % 60;
+}
+
+/**
+ * The short hand pointing at an angle, as the hour it stands for, 1 to 12. It creeps on with the
+ * minutes, as handsAt draws it, so at 45 minutes past, a hand nearly on the 4 is still 3 o'clock.
+ */
+export function hoursAt(degrees: number, minutes: number): number {
+  return ((Math.round((degrees - minutes / 2) / 30) % 12) + 12) % 12 || 12;
+}
+
+/** Which hand a finger at an angle takes: the nearer, the long one when they are as near. */
+export function nearerHand(degrees: number, hours: number, minutes: number): 'hour' | 'minute' {
+  const apart = (a: number, b: number) => Math.min(Math.abs(a - b) % 360, 360 - Math.abs(a - b) % 360);
+  const hands = handsAt(hours, minutes);
+  return apart(degrees, hands.hour) + 10 < apart(degrees, hands.minute) ? 'hour' : 'minute';
+}
+
 /** A point on the face: the angle clockwise from the 12, at a distance from the middle of a 100-wide face. */
 export function onFace(degrees: number, distance: number): { x: number; y: number } {
   const radians = degrees * Math.PI / 180;
