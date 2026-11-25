@@ -14,6 +14,7 @@ import { KeypadComponent } from '../keypad/keypad.component';
 import { ClockFaceComponent } from './clock-face.component';
 import { NumberLineComponent } from './number-line.component';
 import { ClockSetComponent } from './clock-set.component';
+import { numberLine } from '../teaching/school/written-form';
 
 describe('QuestionComponent', () => {
   let component: QuestionComponent;
@@ -1500,6 +1501,9 @@ describe('QuestionComponent: a round that survives the real world', () => {
     } else if (component.isClockSet) {
       // a clock to set is answered with its hands
       component.setTime = component.clockSetTarget;
+    } else if (component.linePlaceForm) {
+      // a line is answered with its arrow, on the mark asked for
+      component.linePick = numberLine(component.linePlaceForm, 0, component.currentQuestion.num2).arrow;
     } else {
       component.userAnswer = String(solve(component));
     }
@@ -1516,6 +1520,8 @@ describe('QuestionComponent: a round that survives the real world', () => {
       component.takeFromTray(component.tray.length - 1);
     } else if (component.isClockSet) {
       component.setTime = { hours: component.clockSetTarget.hours % 12 + 1, minutes: component.clockSetTarget.minutes };
+    } else if (component.linePlaceForm) {
+      component.linePick = numberLine(component.linePlaceForm, 0, component.currentQuestion.num2).arrow + 1;
     } else {
       component.userAnswer = String(solve(component) + 1);
     }
@@ -3135,6 +3141,127 @@ describe('QuestionComponent asking for the clock to be set (zet de klok, Yobyn 2
   });
 });
 
+describe('QuestionComponent asking where a number goes on the line (waar hoort 47?, Yobyn 2026-11-25)', () => {
+  let component: QuestionComponent;
+  let fixture: ComponentFixture<QuestionComponent>;
+
+  function build(grade = '2', language = 'nl') {
+    localStorage.clear();
+    localStorage.setItem('grade', grade);
+    localStorage.setItem('difficulty', 'medium');
+    localStorage.setItem('language', language);
+    fixture = TestBed.createComponent(QuestionComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+  }
+
+  function askPlace(form: string, num1: number, num2: number) {
+    component.currentQuestion = { num1, num2, operation: '+', form: form as any };
+    component.userAnswer = '';
+    component.linePick = null;
+    component.showOkButton = false;
+    component.wrongAttempts = 0;
+    component.isSecondAttempt = false;
+    component.answerWasCorrect = null;
+    component.workedLine = '';
+    fixture.detectChanges();
+  }
+
+  const drawn = () => fixture.debugElement.query(By.directive(NumberLineComponent))?.componentInstance as NumberLineComponent | undefined;
+  const put = (mark: number) => {
+    drawn()!.choose.emit(mark);
+    fixture.detectChanges();
+  };
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [RouterTestingModule],
+      declarations: [QuestionComponent, KeypadComponent, NumberLineComponent],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
+  });
+
+  afterEach(() => localStorage.clear());
+
+  it('asks "Waar hoort 47?" over a line with no arrow on it yet, and shows no box and no keypad', () => {
+    build();
+    askPlace('getallenlijn-zet-1', 40, 7);
+    const page = fixture.nativeElement as HTMLElement;
+    expect(page.textContent).toContain('Waar hoort 47?');
+    expect(drawn()!.placing).toBeTrue();
+    expect(drawn()!.chosen).toBeNull();
+    expect(page.querySelector('.math-problem')).toBeNull();
+    expect(page.querySelector('app-keypad')).toBeNull();
+  });
+
+  it('asks for the arrow before it checks: nothing is marked without it', () => {
+    build();
+    askPlace('getallenlijn-zet-1', 40, 7);
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeNull();
+    expect(component.wrongAttempts).toBe(0);
+  });
+
+  it('marks the arrow on the number\'s mark right', () => {
+    build();
+    askPlace('getallenlijn-zet-1', 40, 7);
+    put(7);
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+    fixture.detectChanges();
+    expect(drawn()!.disabled).toBeTrue();
+  });
+
+  it('leaves the arrow for a second try, and after two puts it where the number goes, with the line worked out', () => {
+    build();
+    askPlace('getallenlijn-zet-10', 0, 70);
+    put(6);
+    component.checkAnswer();
+    fixture.detectChanges();
+    expect(component.answerWasCorrect).toBeFalse();
+    expect(drawn()!.chosen).toBe(6);
+    put(8);
+    component.checkAnswer();
+    fixture.detectChanges();
+    expect(component.feedback).toContain('70');
+    expect(component.workedLine).toBe('100 − 3 × 10 = 70');
+    expect(drawn()!.chosen).toBe(7);
+  });
+
+  it('asks for tenths with the school\'s comma, and marks the mark at 3,7 right', () => {
+    build('4');
+    askPlace('getallenlijn-zet-tiende', 30, 7);
+    expect(fixture.nativeElement.textContent).toContain('Waar hoort 3,7?');
+    put(7);
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+  });
+
+  it('places below nought in klas 1: −6 on the line from −10 to 10', () => {
+    build('7');
+    askPlace('getallenlijn-zet-negatief', -10, 4);
+    expect(fixture.nativeElement.textContent).toContain('Waar hoort −6?');
+    put(4);
+    component.checkAnswer();
+    expect(component.answerWasCorrect).toBeTrue();
+  });
+
+  it('asks in English with a point', () => {
+    build('4', 'en');
+    askPlace('getallenlijn-zet-tiende', 30, 7);
+    expect(fixture.nativeElement.textContent).toContain('Where does 3.7 go?');
+  });
+
+  it('starts every new line with no arrow on it', () => {
+    build();
+    askPlace('getallenlijn-zet-1', 40, 7);
+    put(7);
+    component.checkAnswer();
+    component.moveToNextQuestion();
+    expect(component.linePick).toBeNull();
+  });
+});
+
 describe('QuestionComponent asking at a number line (de getallenlijn, Yobyn 2026-11-23)', () => {
   let component: QuestionComponent;
   let fixture: ComponentFixture<QuestionComponent>;
@@ -3246,7 +3373,8 @@ describe('QuestionComponent asking at a number line (de getallenlijn, Yobyn 2026
       if ((component.currentQuestion.form || '').startsWith('getallenlijn')) {
         lines++;
         expect(component.currentQuestion.story).toBeUndefined();
-        expect(component.numberLineForm).toBe('getallenlijn-20');
+        // read, or the arrow put on it: the same line from 0 to 20
+        expect(component.currentQuestion.form).toMatch(/^getallenlijn-(zet-)?20$/);
       }
     }
     expect(lines).toBeGreaterThan(0);

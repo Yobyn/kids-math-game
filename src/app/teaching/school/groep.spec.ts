@@ -60,7 +60,7 @@ describe('school sums (docs/CURRICULUM-NL.md)', () => {
       const clock = /^klok/.test(sum.form || '');
       // a number line is kept as its left end + how far along the arrow is: from 0, or from −10 for klas 1's line below nought
       if (/^getallenlijn/.test(sum.form || '')) {
-        const lowest = sum.form === 'getallenlijn-negatief' ? -10 : 0;
+        const lowest = /negatief$/.test(sum.form || '') ? -10 : 0;
         if (!isWhole(sum.num1) || !isWhole(sum.num2) || sum.num1 < lowest || sum.num2 <= 0) {
           misses.push(`${topic}: ${sum.num1} ${sum.operation} ${sum.num2}`);
         }

@@ -1,5 +1,5 @@
 import {
-  DecimalMeasureForm, MeasureForm, NumberLineForm, PythagorasForm, SumForm, TRIG_VALUES, TrigForm, UnlikeFractionForm, VolumeMeasureForm, denominatorOf,
+  DecimalMeasureForm, MeasureForm, NumberLineForm, NumberLinePlaceForm, PythagorasForm, SumForm, TRIG_VALUES, TrigForm, UnlikeFractionForm, VolumeMeasureForm, denominatorOf,
   denominatorsOf, lastNumberOf, lengthOf, packsOf, percentOf, placesOf, scaleOf, sidesOf, stepOf
 } from '../../question/sum-form';
 
@@ -174,7 +174,13 @@ const NUMBER_LINE_STEPS: { [form in NumberLineForm]: [number, number] } = {
   'getallenlijn-negatief': [1, 20]
 };
 
-export function numberLine(form: NumberLineForm, num1: number, num2: number): NumberLine {
+/** The line a form draws, whichever way it is asked: getallenlijn-zet-1 is getallenlijn-1's line. */
+export function lineFormOf(form: NumberLineForm | NumberLinePlaceForm): NumberLineForm {
+  return form.replace('-zet', '') as NumberLineForm;
+}
+
+export function numberLine(asked: NumberLineForm | NumberLinePlaceForm, num1: number, num2: number): NumberLine {
+  const form = lineFormOf(asked);
   const [step, steps] = NUMBER_LINE_STEPS[form];
   return {
     from: num1, step, steps, labelled: steps === 20 ? [0, 10, 20] : [0, 10], arrow: num2 / step,
@@ -509,6 +515,13 @@ export function sumLayout(sum: SumToShow, words: FormWords): SumLayout {
     case 'getallenlijn-1000':
     case 'getallenlijn-tiende':
     case 'getallenlijn-negatief':
+    case 'getallenlijn-zet-20':
+    case 'getallenlijn-zet-1':
+    case 'getallenlijn-zet-10':
+    case 'getallenlijn-zet-100':
+    case 'getallenlijn-zet-1000':
+    case 'getallenlijn-zet-tiende':
+    case 'getallenlijn-zet-negatief':
       return { before: [], after: [] };
     // Hoeveel minuten? over 9:45 → 11:20 ?, kept as 680 − 585. No "=": the heading asks, and
     // two times, an arrow, an = and the box are too wide for a 320px phone
@@ -1159,7 +1172,14 @@ function dutchWorkedStep(form: SumForm | undefined, num1: number, num2: number,
     case 'getallenlijn-100':
     case 'getallenlijn-1000':
     case 'getallenlijn-tiende':
-    case 'getallenlijn-negatief': {
+    case 'getallenlijn-negatief':
+    case 'getallenlijn-zet-20':
+    case 'getallenlijn-zet-1':
+    case 'getallenlijn-zet-10':
+    case 'getallenlijn-zet-100':
+    case 'getallenlijn-zet-1000':
+    case 'getallenlijn-zet-tiende':
+    case 'getallenlijn-zet-negatief': {
       const line = numberLine(form, num1, num2);
       const from = line.labelled.reduce((best, mark) => Math.abs(mark - line.arrow) < Math.abs(best - line.arrow) ? mark : best);
       const count = Math.abs(line.arrow - from);

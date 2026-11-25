@@ -300,7 +300,14 @@ export function factText(fact: MissedFact): string {
     case 'getallenlijn-100':
     case 'getallenlijn-1000':
     case 'getallenlijn-tiende':
-    case 'getallenlijn-negatief': {
+    case 'getallenlijn-negatief':
+    case 'getallenlijn-zet-20':
+    case 'getallenlijn-zet-1':
+    case 'getallenlijn-zet-10':
+    case 'getallenlijn-zet-100':
+    case 'getallenlijn-zet-1000':
+    case 'getallenlijn-zet-tiende':
+    case 'getallenlijn-zet-negatief': {
       const line = numberLine(fact.form, fact.num1, fact.num2);
       return `📏 ${lineValue(line, line.from)} … ${lineValue(line, markValue(line, line.steps))}`;
     }

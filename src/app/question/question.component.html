@@ -54,6 +54,19 @@
                        [label]="languageService.translate('line-label')"></app-number-line>
     </ng-container>
 
+    <!-- Waar hoort 47? The line to put the arrow on, by a tap, a drag or the arrow keys; no box, no keypad.
+         Out of tries, the arrow stands where the number goes -->
+    <ng-container *ngIf="linePlaceForm as placeForm">
+      <p class="money-prompt">{{ linePlaceAsk }}</p>
+      <app-number-line [form]="placeForm" [num1]="currentQuestion.num1" [num2]="currentQuestion.num2" [point]="decimalSign"
+                       [placing]="true"
+                       [chosen]="lineShown"
+                       [disabled]="showOkButton"
+                       [label]="languageService.translate('line-label')"
+                       [hint]="languageService.translate('line-place-hint')"
+                       (choose)="chooseMark($event)"></app-number-line>
+    </ng-container>
+
     <!-- Zet de klok op 3:45: the clock to set, its hands dragged; no box, no keypad. Out of tries,
          the hands stand at the time asked -->
     <ng-container *ngIf="isClockSet">

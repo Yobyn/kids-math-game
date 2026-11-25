@@ -733,6 +733,18 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Waar hoort 47? The number line the other way round (2026-11-25).**
+  Yobyn: "The getallenlijn, can that be a game". Half of every number line
+  (`LINE_PLACE_SHARE`, same topics and groeps, 3 to klas 1) is now asked
+  the other way round: "Waar hoort 47?" over a line with no arrow. A tap
+  puts the arrow on the nearest mark, a drag moves it along, the arrow keys
+  move it a mark at a time (the line is a slider for a screen reader). No
+  box and no keypad; Check asks for the arrow first, then reads the number
+  at its mark (3.7 for tenths, −6 below nought). The arrow stays for a
+  second try; after two it stands where the number goes, with the worked
+  line. Forms `getallenlijn-zet-*` (`lineFormOf` gives the line drawn); the
+  read line's own component, with `placing`, in the round's lazy chunk.
+  First load +75 bytes for the seven form names.
 - **Zet de klok: the hands dragged into place (2026-11-25).** Yobyn:
   "telling time, moving the clock hand in the right position". Half the
   clock questions (`CLOCK_SET_SHARE`, same topics and groeps) now ask
@@ -745,8 +757,7 @@ middle, hard the end), one groep per run.
   put for a second try, and show the time asked after two, with the worked
   line "9 × 5 = 45 → 3:45". Form `klok-zet`; pure geometry in clock-face.ts
   (angleAt, minutesAt, hoursAt, nearerHand). Its own component and CSS in
-  the round's lazy chunk; first load +9 bytes for the form name. Next: the
-  number line the other way round, placing a number on it.
+  the round's lazy chunk; first load +9 bytes for the form name.
 - **Look and feel, run 23: units read as maths (2026-11-25).** Whole
   rounds were played as a child on a phone: groep 4 at 360px in es, groep
   8 at 320px in en, klas 2 at 390px in nl, with no errors. In a measure

@@ -288,28 +288,33 @@ TOPICS['klok-minuten'] = random => {
  * to 100 and the ones between two tens, to 1000, to 10 000, tenths, and
  * below nought.
  */
-const lineSum = (form: NumberLineForm, from: number, along: number): Omit<SchoolSum, 'topic'> =>
-  ({ num1: from, num2: along, operation: '+', form });
+/**
+ * Half the time the other way round (Yobyn, 2026-11-25: "can that be a game"): waar hoort 47? The
+ * arrow tapped or dragged onto the line (question/number-line.component.ts). Kept the same.
+ */
+export const LINE_PLACE_SHARE = 0.5;
+const lineSum = (form: NumberLineForm, from: number, along: number, random: Random): Omit<SchoolSum, 'topic'> =>
+  ({ num1: from, num2: along, operation: '+', form: random() < LINE_PLACE_SHARE ? form.replace('getallenlijn-', 'getallenlijn-zet-') as SumForm : form });
 /** A mark of a ten-step line that has no number on it: 1 to 9. */
 const unlabelled = (random: Random) => between(random, 1, 9);
 /** A mark of a twenty-step line that has no number on it: 1 to 19, not the middle. */
 const unlabelledOfTwenty = (random: Random) => pick(random, [1, 2, 3, 4, 5, 6, 7, 8, 9, 11, 12, 13, 14, 15, 16, 17, 18, 19]);
 // Groep 3: 0 to 20, a mark for every number, 0, 10 and 20 written on it
-TOPICS['getallenlijn-tot-20'] = random => lineSum('getallenlijn-20', 0, unlabelledOfTwenty(random));
+TOPICS['getallenlijn-tot-20'] = random => lineSum('getallenlijn-20', 0, unlabelledOfTwenty(random), random);
 // Groep 3's end, with the jumps of ten: the tens on a line from 0 to 100. Groep 4: the ones between two tens (40 to 50)
-TOPICS['getallenlijn-tot-100'] = random => lineSum('getallenlijn-10', 0, 10 * unlabelled(random));
-TOPICS['getallenlijn-tiental'] = random => lineSum('getallenlijn-1', 10 * between(random, 1, 9), unlabelled(random));
+TOPICS['getallenlijn-tot-100'] = random => lineSum('getallenlijn-10', 0, 10 * unlabelled(random), random);
+TOPICS['getallenlijn-tiental'] = random => lineSum('getallenlijn-1', 10 * between(random, 1, 9), unlabelled(random), random);
 // Groep 4's end, with the hundreds: a line from 0 to 1000. Groep 5: the tens between two hundreds (300 to 400)
-TOPICS['getallenlijn-tot-1000'] = random => lineSum('getallenlijn-100', 0, 100 * unlabelled(random));
-TOPICS['getallenlijn-honderdtal'] = random => lineSum('getallenlijn-10', 100 * between(random, 1, 9), 10 * unlabelled(random));
+TOPICS['getallenlijn-tot-1000'] = random => lineSum('getallenlijn-100', 0, 100 * unlabelled(random), random);
+TOPICS['getallenlijn-honderdtal'] = random => lineSum('getallenlijn-10', 100 * between(random, 1, 9), 10 * unlabelled(random), random);
 // Groep 6: the thousands to 10 000, or the hundreds between two thousands (3000 to 4000)
 TOPICS['getallenlijn-tot-10000'] = random => random() < 0.5
-  ? lineSum('getallenlijn-1000', 0, 1000 * unlabelled(random))
-  : lineSum('getallenlijn-100', 1000 * between(random, 1, 9), 100 * unlabelled(random));
+  ? lineSum('getallenlijn-1000', 0, 1000 * unlabelled(random), random)
+  : lineSum('getallenlijn-100', 1000 * between(random, 1, 9), 100 * unlabelled(random), random);
 // Groep 6 to 8: tenths between two whole numbers, 3 to 4, counted in tenths as tienden are: 3,7 is 30 + 7
-TOPICS['getallenlijn-tienden'] = random => lineSum('getallenlijn-tiende', 10 * between(random, 0, 9), unlabelled(random));
+TOPICS['getallenlijn-tienden'] = random => lineSum('getallenlijn-tiende', 10 * between(random, 0, 9), unlabelled(random), random);
 // Klas 1, with the negative numbers: below nought, a line from −10 to 10 with −10, 0 and 10 written on it
-TOPICS['getallenlijn-negatief'] = random => lineSum('getallenlijn-negatief', -10, unlabelledOfTwenty(random));
+TOPICS['getallenlijn-negatief'] = random => lineSum('getallenlijn-negatief', -10, unlabelledOfTwenty(random), random);
 
 /** The digits of a number below 10 000: thousands, hundreds, tens, ones. */
 const digits = (n: number) => [Math.floor(n / 1000), Math.floor(n / 100) % 10, Math.floor(n / 10) % 10, n % 10];

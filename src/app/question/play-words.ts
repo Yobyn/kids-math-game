@@ -54,6 +54,8 @@ export type PlayKey =
   | 'clock-set-hint'
   | 'clock-big-hand'
   | 'clock-small-hand'
+  | 'line-place-ask'
+  | 'line-place-hint'
   | 'money-make'
   | 'money-pick'
   | 'money-purse'
@@ -139,6 +141,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'clock-set-hint': 'Drag the hands.',
     'clock-big-hand': 'The long hand',
     'clock-small-hand': 'The short hand',
+    'line-place-ask': 'Where does {n} go?',
+    'line-place-hint': 'Tap or drag the arrow.',
     'money-make': 'How many {coin} coins make {target}?',
     'money-pick': 'Put down coins to make {target}.',
     'money-purse': 'Your coins',
@@ -223,6 +227,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'clock-set-hint': 'Sleep de wijzers.',
     'clock-big-hand': 'De grote wijzer',
     'clock-small-hand': 'De kleine wijzer',
+    'line-place-ask': 'Waar hoort {n}?',
+    'line-place-hint': 'Tik of sleep de pijl.',
     'money-make': 'Hoeveel munten van {coin} maken {target}?',
     'money-pick': 'Leg munten neer om {target} te maken.',
     'money-purse': 'Jouw munten',
@@ -307,6 +313,8 @@ export const PLAY_WORDS: Words<PlayKey> = {
     'clock-set-hint': 'Arrastra las agujas.',
     'clock-big-hand': 'La aguja larga',
     'clock-small-hand': 'La aguja corta',
+    'line-place-ask': '¿Dónde va el {n}?',
+    'line-place-hint': 'Toca o arrastra la flecha.',
     'money-make': '¿Cuántas monedas de {coin} hacen {target}?',
     'money-pick': 'Pon monedas para hacer {target}.',
     'money-purse': 'Tus monedas',

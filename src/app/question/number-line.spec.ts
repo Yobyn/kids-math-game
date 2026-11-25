@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CURRICULUM, Moment, Random, TOPICS } from '../teaching/school/groep';
-import { formWorkedStep, lineValue, markValue, numberLine, sumLayout } from '../teaching/school/written-form';
-import { NUMBER_LINE_FORMS, NumberLineForm, placesOf, readForm } from './sum-form';
+import { formWorkedStep, lineFormOf, lineValue, markValue, numberLine, sumLayout } from '../teaching/school/written-form';
+import { LINE_PLACE_SHARE } from '../teaching/school/groep';
+import { NUMBER_LINE_FORMS, NUMBER_LINE_PLACE_FORMS, NumberLineForm, placesOf, readForm } from './sum-form';
 import { NumberLineComponent } from './number-line.component';
 
 function seeded(seed: number): Random {
@@ -31,7 +32,8 @@ describe('de getallenlijn (Yobyn, 2026-11-23)', () => {
   it('asks each groep the numbers it is learning to count in, on a line of its size', () => {
     const lines = (topic: string) => made(topic).map(sum => {
       expect(sum.operation).toBe('+');
-      expect(NUMBER_LINE_FORMS).toContain(sum.form as NumberLineForm);
+      // read, or the other way round, the arrow put on it (getallenlijn-zet-, 2026-11-25)
+      expect([...NUMBER_LINE_FORMS, ...NUMBER_LINE_PLACE_FORMS] as string[]).toContain(sum.form!);
       const line = numberLine(sum.form as NumberLineForm, sum.num1, sum.num2);
       return { line, start: line.from, end: markValue(line, line.steps), answer: sum.num1 + sum.num2, step: line.step, form: sum.form };
     });
@@ -222,6 +224,126 @@ describe('de getallenlijn (Yobyn, 2026-11-23)', () => {
         expect(own.bottom).toBeLessThanOrEqual(box.bottom + 0.5);
       });
       fixture.nativeElement.remove();
+    });
+  });
+});
+
+describe('de getallenlijn the other way round: waar hoort 47? (Yobyn, 2026-11-25: "can that be a game")', () => {
+  it('asks half of every line the other way round, the same line and number, kept as a read one', () => {
+    expect(LINE_PLACE_SHARE).toBe(0.5);
+    TOPIC_NAMES.forEach(topic => {
+      const sums = made(topic, 400);
+      const placed = sums.filter(sum => /^getallenlijn-zet-/.test(sum.form || ''));
+      expect(placed.length).withContext(topic).toBeGreaterThan(140);
+      expect(placed.length).withContext(topic).toBeLessThan(260);
+      placed.forEach(sum => {
+        expect(readForm(sum.form)).toBe(sum.form);
+        const line = numberLine(sum.form as any, sum.num1, sum.num2);
+        expect(line).toEqual(numberLine(lineFormOf(sum.form as any), sum.num1, sum.num2));
+        expect(line.labelled).not.toContain(line.arrow);
+      });
+    });
+    expect(placesOf('getallenlijn-zet-tiende')).toBe(1);
+    expect(sumLayout({ num1: 40, num2: 7, sign: '+', form: 'getallenlijn-zet-1' }, {} as any)).toEqual({ before: [], after: [] });
+    expect(formWorkedStep('getallenlijn-zet-1', 40, 7)).toBe('50 − 3 = 47');
+    expect(formWorkedStep('getallenlijn-zet-tiende', 30, 7)).toBe('4 − 3 × 0,1 = 3,7');
+  });
+
+  describe('the line to put the arrow on', () => {
+    let fixture: ComponentFixture<NumberLineComponent>;
+    let line: NumberLineComponent;
+    let chosen: number[];
+
+    beforeEach(async () => {
+      await TestBed.configureTestingModule({ declarations: [NumberLineComponent] }).compileComponents();
+      fixture = TestBed.createComponent(NumberLineComponent);
+      line = fixture.componentInstance;
+      chosen = [];
+      line.choose.subscribe((mark: number) => {
+        chosen.push(mark);
+        line.chosen = mark;
+        fixture.detectChanges();
+      });
+      Object.assign(line, { form: 'getallenlijn-zet-1', num1: 40, num2: 7, placing: true, chosen: null, label: 'Een getallenlijn',
+        hint: 'Tik of sleep de pijl.' });
+      fixture.nativeElement.style.cssText = 'display:block;width:300px';
+      document.body.appendChild(fixture.nativeElement);
+      fixture.detectChanges();
+    });
+
+    afterEach(() => fixture.nativeElement.remove());
+
+    const svg = () => fixture.nativeElement.querySelector('svg') as SVGSVGElement;
+    const marks = () => Array.from(svg().querySelectorAll('.mark')) as SVGElement[];
+    /** A finger on the line, at a mark (a fraction of the way to the next one beside). */
+    function finger(type: string, mark: number, off = 0) {
+      const box = svg().getBoundingClientRect();
+      const [a, b] = [Number(marks()[0].getAttribute('x1')), Number(marks()[1].getAttribute('x1'))];
+      const x = a + (b - a) * (mark + off);
+      svg().dispatchEvent(new PointerEvent(type, { clientX: box.left + x / 300 * box.width, clientY: box.top + box.height / 2, bubbles: true, pointerId: 1 }));
+      fixture.detectChanges();
+    }
+    const arrowX = () => Number(/translate\(([\d.]+)/.exec(svg().querySelector('.arrow')!.getAttribute('transform')!)![1]);
+
+    it('has no arrow until one is put down, and never gives the number away', () => {
+      expect(svg().querySelector('.arrow')).toBeNull();
+      expect(svg().textContent).not.toContain('47');
+      expect(Array.from(svg().querySelectorAll('text')).map(text => text.textContent!.trim())).toEqual(['40', '50']);
+      expect(fixture.nativeElement.querySelector('.hint').textContent).toContain('Tik of sleep de pijl.');
+    });
+
+    it('puts the arrow on the mark nearest a tap', () => {
+      finger('pointerdown', 7, 0.3);
+      finger('pointerup', 7, 0.3);
+      expect(chosen).toEqual([7]);
+      expect(arrowX()).toBeCloseTo(Number(marks()[7].getAttribute('x1')), 6);
+    });
+
+    it('drags the arrow along, a mark at a time, and lets go', () => {
+      finger('pointerdown', 2);
+      finger('pointermove', 4.4);
+      finger('pointermove', 6.6);
+      finger('pointerup', 6.6);
+      expect(chosen).toEqual([2, 4, 7]);
+      finger('pointermove', 9);
+      expect(line.chosen).toBe(7);
+    });
+
+    it('keeps to the line: a finger past an end is on the end', () => {
+      finger('pointerdown', -3);
+      expect(line.chosen).toBe(0);
+      finger('pointermove', 14);
+      expect(line.chosen).toBe(10);
+    });
+
+    it('moves the arrow with the arrow keys, from the middle at first, as a slider says it does', () => {
+      expect(svg().getAttribute('role')).toBe('slider');
+      expect(svg().getAttribute('tabindex')).toBe('0');
+      svg().dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+      expect(line.chosen).toBe(5);
+      svg().dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+      svg().dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+      fixture.detectChanges();
+      expect(line.chosen).toBe(7);
+      expect(svg().getAttribute('aria-valuetext')).toBe('47');
+    });
+
+    it('stays as it is once answered', () => {
+      line.disabled = true;
+      fixture.detectChanges();
+      finger('pointerdown', 3);
+      svg().dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight' }));
+      expect(chosen).toEqual([]);
+      expect(fixture.nativeElement.querySelector('.hint')).toBeNull();
+    });
+
+    it('is a picture, not a slider, when the line is read', () => {
+      Object.assign(line, { form: 'getallenlijn-1', placing: false });
+      fixture.detectChanges();
+      expect(svg().getAttribute('role')).toBe('img');
+      expect(svg().getAttribute('tabindex')).toBeNull();
+      finger('pointerdown', 3);
+      expect(chosen).toEqual([]);
     });
   });
 });
