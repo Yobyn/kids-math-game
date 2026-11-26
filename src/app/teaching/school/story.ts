@@ -350,6 +350,14 @@ export const STORIES: Story[] = [
     }
   },
   {
+    id: 'min-puzzel', operation: '-', emoji: '🧩', most: 10000, least: 1000,
+    tell: {
+      nl: (a, b, name) => `Een puzzel heeft ${a} stukjes. ${name} heeft er al ${b} gelegd. Hoeveel stukjes moet ${name} nog leggen?`,
+      en: (a, b, name) => `A jigsaw has ${a} pieces. ${name} has already put in ${b}. How many pieces are left to put in?`,
+      es: (a, b, name) => `Un puzle tiene ${a} piezas. ${name} ya ha colocado ${b}. ¿Cuántas piezas le quedan por colocar?`
+    }
+  },
+  {
     id: 'plus-stappen', operation: '+', emoji: '👟', most: 10000, least: 100,
     tell: {
       nl: (a, b, name) => `${name} loopt 's ochtends ${a} stappen en 's middags ${count(b, 'stap', 'stappen')}. Hoeveel stappen is dat samen?`,
@@ -392,6 +400,40 @@ export const STORIES: Story[] = [
     }
   },
 
+  // A second story for each measure (2026-11-26): one each was told the same way every round
+  {
+    id: 'maat-gang', operation: '*', emoji: '🏫', most: 1000, forms: ['m-cm'], onlyFirst: true,
+    tell: {
+      nl: a => `De gang van school is ${a} meter lang. Hoeveel centimeter is dat?`,
+      en: a => `The school corridor is ${a} metres long. How many centimetres is that?`,
+      es: a => `El pasillo del colegio mide ${a} metros. ¿Cuántos centímetros son?`
+    }
+  },
+  {
+    id: 'maat-fietsen', operation: '*', emoji: '🚲', most: 10000, forms: ['km-m'], onlyFirst: true,
+    tell: {
+      nl: (a, b, name) => `${name} fietst ${a} kilometer naar oma. Hoeveel meter is dat?`,
+      en: (a, b, name) => `${name} cycles ${a} kilometres to Grandma's house. How many metres is that?`,
+      es: (a, b, name) => `${name} va en bici ${a} kilómetros hasta casa de su abuela. ¿Cuántos metros son?`
+    }
+  },
+  {
+    id: 'maat-appels', operation: '*', emoji: '🍎', most: 10000, forms: ['kg-g'], onlyFirst: true,
+    tell: {
+      nl: a => `Een kist appels weegt ${a} kilo. Hoeveel gram is dat?`,
+      en: a => `A crate of apples weighs ${a} kilograms. How many grams is that?`,
+      es: a => `Una caja de manzanas pesa ${a} kilos. ¿Cuántos gramos son?`
+    }
+  },
+  {
+    id: 'maat-zwemfeest', operation: '*', emoji: '🏊', most: 1000, forms: ['uur-min'], onlyFirst: true,
+    tell: {
+      nl: a => `Het zwemfeest duurt ${a} uur. Hoeveel minuten is dat?`,
+      en: a => `The swimming party lasts ${a} hours. How many minutes is that?`,
+      es: a => `La fiesta en la piscina dura ${a} horas. ¿Cuántos minutos son?`
+    }
+  },
+
   // A part of an amount: ¼ van 20, kept as 20 : 4. The part is said as a word
   {
     id: 'deel-hond', operation: '/', emoji: '🐶', most: 30, forms: ['deel'], onlyFirst: true,
@@ -407,6 +449,15 @@ export const STORIES: Story[] = [
       nl: (a, b, name) => `${name} heeft €${a}. ${name} geeft ${PART.nl[b]} ervan uit aan een boek. Hoeveel euro kost het boek?`,
       en: (a, b, name) => `${name} has €${a} and spends ${PART.en[b]} of it on a book. How many euros does the book cost?`,
       es: (a, b, name) => `${name} tiene ${a} € y gasta ${PART.es[b]} en un libro. ¿Cuántos euros cuesta el libro?`
+    }
+  },
+
+  {
+    id: 'deel-blauw', operation: '/', emoji: '🔵', most: 50, forms: ['deel'], onlyFirst: true,
+    tell: {
+      nl: (a, b, name) => `${name} heeft ${a} knikkers. ${capital(PART.nl[b])} ervan is blauw. Hoeveel knikkers zijn blauw?`,
+      en: (a, b, name) => `${name} has ${a} marbles. ${capital(PART.en[b])} of them are blue. How many marbles are blue?`,
+      es: (a, b, name) => `${name} tiene ${a} canicas. ${capital(PART.es[b])} son azules. ¿Cuántas canicas son azules?`
     }
   },
 
@@ -477,6 +528,23 @@ export const STORIES: Story[] = [
       es: (a, b, name, other, form) => {
         const [percent, whole] = percentage(a, b, form);
         return `En el colegio hay ${whole} niños. El ${percent}% viene en bici. ¿Cuántos niños vienen en bici?`;
+      }
+    }
+  },
+  {
+    id: 'procent-theater', operation: '/', emoji: '🎭', most: 1000, forms: PERCENT_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => {
+        const [percent, whole] = percentage(a, b, form);
+        return `In het theater zijn ${whole} stoelen. ${percent}% ervan is bezet. Hoeveel stoelen zijn bezet?`;
+      },
+      en: (a, b, name, other, form) => {
+        const [percent, whole] = percentage(a, b, form);
+        return `The theatre has ${whole} seats. ${percent}% of them are taken. How many seats are taken?`;
+      },
+      es: (a, b, name, other, form) => {
+        const [percent, whole] = percentage(a, b, form);
+        return `El teatro tiene ${whole} butacas. El ${percent}% está ocupado. ¿Cuántas butacas están ocupadas?`;
       }
     }
   },
@@ -603,6 +671,18 @@ export const STORIES: Story[] = [
       en: (a, b, name, other, form) => `On a map with scale 1 : ${scaleOf(form as ScaleForm)}, the playground is ${a} cm long. ` +
         `How many metres is it really?`,
       es: (a, b, name, other, form) => `En un plano a escala 1 : ${scaleOf(form as ScaleForm)}, el patio mide ${a} cm. ` +
+        `¿Cuántos metros mide de verdad?`
+    }
+  },
+
+  {
+    id: 'schaal-park', operation: '*', emoji: '🌳', most: 1000, forms: SCALE_FORMS, asWritten: true,
+    tell: {
+      nl: (a, b, name, other, form) => `Op de kaart van het park, schaal 1 : ${scaleOf(form as ScaleForm)}, is het fietspad ${a} cm lang. ` +
+        `Hoeveel meter is het fietspad echt?`,
+      en: (a, b, name, other, form) => `On the park map, scale 1 : ${scaleOf(form as ScaleForm)}, the cycle path is ${a} cm long. ` +
+        `How many metres is it really?`,
+      es: (a, b, name, other, form) => `En el mapa del parque, a escala 1 : ${scaleOf(form as ScaleForm)}, el carril bici mide ${a} cm. ` +
         `¿Cuántos metros mide de verdad?`
     }
   },

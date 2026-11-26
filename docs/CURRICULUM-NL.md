@@ -350,7 +350,9 @@ its groep:
    a remainder, euros, measures, a part of an amount and area. Part 3 is
    built (2026-10-26): groep 7 to klas 2, with percentages and discounts,
    ratio tables, scale, the mean, volume, time spans, speed, temperatures
-   below nought, prices going up or down, and Pythagoras.
+   below nought, prices going up or down, and Pythagoras. A second story for
+   each measure, a percentage, a scale, a part and 10 000 came on
+   2026-11-26, so these are not told the same way every round.
 9. **Klokkijken** (telling the time), groep 3 to 5, built 2026-10-27. A drawn
    analogue clock (`question/clock-face.component.ts`) sits beside the
    answer box. Its hour hand creeps on between the hours, as a real one
