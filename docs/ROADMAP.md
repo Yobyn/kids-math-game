@@ -733,6 +733,25 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 21: a second story where there was one (2026-11-26).**
+  Counting the stories that fit each sum, at every moment that tells one,
+  found groep 3 and 4 with four per kind of sum but groep 5 to 8 with one
+  for each measure (3 m = ? cm, 7 km, 8 kg, 8 uur), one for a percentage
+  (25% van 120), one for a scale, one for taking away within 10 000, and
+  one or two for a part of an amount. A round never tells a story twice,
+  so such a topic was told once a round at most, and always in the same
+  words ("Het springtouw van Sam is 3 meter lang"). Eight new stories, in
+  nl, en and es, each telling exactly its sum's numbers (story.ts):
+  - measures: the school corridor in metres, cycling to Grandma's in
+    kilometres, a crate of apples in kilos, a swimming party in hours;
+  - a part: a third of the marbles are blue;
+  - a percentage: the seats taken in a theatre;
+  - a scale: the cycle path on the park map;
+  - within 10 000: the pieces of a jigsaw still to put in.
+
+  Every one fits a 320px phone with Check Answer on screen. A spec now holds
+  two stories at least for every sum of those topics. Still one story:
+  volume, temperature and Pythagoras (groep 8, klas 2), for a later run.
 - **Look and feel, run 24: a missed arrow stays on the line (2026-11-26).**
   Whole rounds were played as a child on a phone: groep 3 at 390px in en,
   groep 5 at 320px in es, klas 1 at 360px in nl, with the new clocks to

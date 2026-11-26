@@ -256,6 +256,23 @@ describe('verhaaltjessommen, groep 3 to klas 2 (Yobyn, 2026-10-24)', () => {
     expect(tells(story('welk-procent-toets'), { num1: 1800, num2: 20, operation: '/', form: 'welk-procent' })).toBeTrue();
   });
 
+  it('has two stories at least for every sum of groep 5 to 8 a measure, a part, a percentage, a scale or 10 000 is told with (2026-11-26)', () => {
+    // These had one story each: "Het springtouw van Sam is 3 meter lang" every time, and only once in a round
+    const random = seeded(29);
+    const topics = ['maten', 'deel-van', 'procenten', 'schaal', 'tot-10000'];
+    const thin: string[] = [];
+    topics.forEach(topic => {
+      for (let i = 0; i < 300; i++) {
+        const sum = { ...TOPICS[topic](random), topic };
+        const fitting = STORIES.filter(story => tells(story, sum)).map(story => story.id);
+        if (fitting.length < 2) {
+          thin.push(`${topic}: ${sum.num1} ${sum.operation} ${sum.num2} ${sum.form || ''} → ${fitting.join(', ') || 'none'}`);
+        }
+      }
+    });
+    expect(thin.slice(0, 5)).toEqual([]);
+  });
+
   it('never tells the table of 1 as a story: two groups at least, and two in each (2026-10-31)', () => {
     const times = STORIES.filter(story => story.operation === '*' && !story.forms);
     expect(times.length).toBeGreaterThanOrEqual(5);
