@@ -16,6 +16,11 @@
   <ng-container *ngFor="let mark of marks">
     <text *ngIf="mark.text !== null" class="number" [attr.x]="mark.x" [attr.y]="y + 23" text-anchor="middle">{{ mark.text }}</text>
   </ng-container>
+  <!-- Out of tries, where the child had put the arrow: pale, under the arrow where the number goes -->
+  <g class="arrow missed" *ngIf="missedX !== null" [attr.transform]="'translate(' + missedX + ' 0)'">
+    <line x1="0" x2="0" y1="3" y2="16"></line>
+    <path d="M-6 13 L0 23 L6 13 z"></path>
+  </g>
   <!-- The arrow, pointing down at its mark -->
   <g class="arrow" *ngIf="showArrow" [attr.transform]="'translate(' + arrowX + ' 0)'">
     <line x1="0" x2="0" y1="3" y2="16"></line>

@@ -3226,6 +3226,22 @@ describe('QuestionComponent asking where a number goes on the line (waar hoort 4
     expect(component.feedback).toContain('70');
     expect(component.workedLine).toBe('100 − 3 × 10 = 70');
     expect(drawn()!.chosen).toBe(7);
+    // and the child's own arrow stays on the line, pale, where it was put (2026-11-26)
+    expect(drawn()!.missed).toBe(8);
+  });
+
+  it('keeps no pale arrow when the arrow was right, or before the answer is given', () => {
+    build();
+    askPlace('getallenlijn-zet-1', 40, 7);
+    put(5);
+    component.checkAnswer();
+    fixture.detectChanges();
+    expect(drawn()!.missed).toBeNull();
+    put(7);
+    component.checkAnswer();
+    fixture.detectChanges();
+    expect(component.answerWasCorrect).toBeTrue();
+    expect(drawn()!.missed).toBeNull();
   });
 
   it('asks for tenths with the school\'s comma, and marks the mark at 3,7 right', () => {

@@ -733,6 +733,17 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 24: a missed arrow stays on the line (2026-11-26).**
+  Whole rounds were played as a child on a phone: groep 3 at 390px in en,
+  groep 5 at 320px in es, klas 1 at 360px in nl, with the new clocks to
+  set and lines to place among them, and no errors. When a number was put
+  on the line in the wrong place twice, the arrow jumped to where it goes
+  and the child's own arrow was gone: put on 200 for 210, there was no
+  seeing how far off it had been. Now the child's arrow stays where it was
+  put, pale (the reading colour's dim, at 0.6), drawn under the arrow where
+  the number goes (`missed` on number-line.component, `lineMissed` on the
+  question). Only once the answer is given, and only when it was off. Its
+  own component CSS; the question card's is unchanged; first load unchanged.
 - **Questions, run 20: the tables of 2 and 5 worked as groep 4 learns
   them (2026-11-25).** A sweep of every topic for sums with no worked line
   after two tries found groep 4's new tables silent: "6 × 5", "7 × 2"
