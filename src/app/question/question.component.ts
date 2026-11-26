@@ -871,6 +871,11 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
     return this.answerGiven ? this.currentQuestion.num2 / numberLine(this.linePlaceForm!, 0, 0).step : this.linePick;
   }
 
+  /** Out of tries, the mark the child had put the arrow on, when it is not where the number goes (2026-11-26). */
+  get lineMissed(): number | null {
+    return this.answerGiven && this.linePick !== null && this.linePick !== this.lineShown ? this.linePick : null;
+  }
+
   chooseMark(mark: number) {
     this.linePick = mark;
     this.vibrate(5);

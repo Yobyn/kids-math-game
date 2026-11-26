@@ -337,6 +337,29 @@ describe('de getallenlijn the other way round: waar hoort 47? (Yobyn, 2026-11-25
       expect(fixture.nativeElement.querySelector('.hint')).toBeNull();
     });
 
+    it('shows where the child put the arrow, pale, beside where the number goes, once the answer is given (2026-11-26)', () => {
+      Object.assign(line, { chosen: 7, missed: 4, disabled: true });
+      fixture.detectChanges();
+      const arrows = Array.from(svg().querySelectorAll('.arrow')) as SVGElement[];
+      expect(arrows.length).toBe(2);
+      const at = (arrow: SVGElement) => Number(/translate\(([\d.]+)/.exec(arrow.getAttribute('transform')!)![1]);
+      const missed = arrows.find(arrow => arrow.classList.contains('missed'))!;
+      const right = arrows.find(arrow => !arrow.classList.contains('missed'))!;
+      expect(at(missed)).toBeCloseTo(Number(marks()[4].getAttribute('x1')), 6);
+      expect(at(right)).toBeCloseTo(Number(marks()[7].getAttribute('x1')), 6);
+      // drawn first, so the right arrow is on top; and paler than it
+      expect(arrows.indexOf(missed)).toBeLessThan(arrows.indexOf(right));
+      const fill = (arrow: SVGElement) => getComputedStyle(arrow.querySelector('path')!).fill;
+      expect(fill(missed)).not.toBe(fill(right));
+    });
+
+    it('shows no pale arrow without a miss', () => {
+      Object.assign(line, { chosen: 7, missed: null });
+      fixture.detectChanges();
+      expect(svg().querySelectorAll('.arrow').length).toBe(1);
+      expect(svg().querySelector('.arrow.missed')).toBeNull();
+    });
+
     it('is a picture, not a slider, when the line is read', () => {
       Object.assign(line, { form: 'getallenlijn-1', placing: false });
       fixture.detectChanges();

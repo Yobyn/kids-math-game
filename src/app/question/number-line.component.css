@@ -57,6 +57,19 @@
   fill: var(--accent-magenta-read);
 }
 
+/* Where the child had put it, once the answer is given: the same arrow, pale */
+.arrow.missed line {
+  stroke: var(--text-read-dim);
+}
+
+.arrow.missed path {
+  fill: var(--text-read-dim);
+}
+
+.arrow.missed {
+  opacity: 0.6;
+}
+
 /* Placing: the line is held and dragged along; the page does not scroll under the finger */
 .number-line.placing {
   touch-action: none;

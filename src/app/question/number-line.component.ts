@@ -41,6 +41,11 @@ export class NumberLineComponent {
   @Input() placing = false;
   /** In placing: the mark the arrow is on, counted from the left end, or null before it is put down. */
   @Input() chosen: number | null = null;
+  /**
+   * Out of tries (2026-11-26): the mark the child had put the arrow on, drawn pale beside the arrow
+   * where the number goes, so they see how far off it was. Null when there is none to show.
+   */
+  @Input() missed: number | null = null;
   @Input() disabled = false;
   /** "Tik of sleep de pijl": said under the line until it is answered. */
   @Input() hint = '';
@@ -79,6 +84,10 @@ export class NumberLineComponent {
   /** Where the arrow points: over its mark; in placing, over the mark chosen, if any. */
   get arrowX(): number {
     return this.at(this.placing ? this.chosen ?? 0 : this.line.arrow);
+  }
+
+  get missedX(): number | null {
+    return this.placing && this.missed !== null ? this.at(this.missed) : null;
   }
 
   get showArrow(): boolean {
