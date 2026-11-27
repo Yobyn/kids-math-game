@@ -2921,6 +2921,25 @@ describe('QuestionComponent when an answer is right (2026-10-25)', () => {
     fixture.detectChanges();
     expect(verdict().textContent).not.toContain('✓');
   });
+
+  it('says a right answer louder than a wrong one: bold, and larger than the words for a miss (2026-11-27)', () => {
+    // "✓ Klopt helemaal!" was a small chip under the keypad, where a miss filled the card's width
+    build('nl');
+    rightAnswer();
+    const verdict = () => getComputedStyle(fixture.nativeElement.querySelector('.feedback') as HTMLElement);
+    const [rightSize, rightWeight] = [parseFloat(verdict().fontSize), Number(verdict().fontWeight)];
+    component.moveToNextQuestion();
+    fixture.detectChanges();
+    component.currentQuestion = { num1: 4, num2: 3, operation: '+' };
+    component.userAnswer = '9';
+    component.checkAnswer();
+    fixture.detectChanges();
+    const [wrongSize, wrongWeight] = [parseFloat(verdict().fontSize), Number(verdict().fontWeight)];
+    expect(rightWeight).toBeGreaterThanOrEqual(700);
+    expect(rightWeight).toBeGreaterThan(wrongWeight);
+    // larger at every width: on a phone 1.3rem against 1.05rem, on a wide screen against 1.25rem
+    expect(rightSize).toBeGreaterThan(wrongSize);
+  });
 });
 
 describe('QuestionComponent asking the time on a clock (klokkijken, 2026-10-27)', () => {
