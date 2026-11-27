@@ -733,6 +733,20 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Questions, run 22: times and shared by 100 or 1000 a ten at a time
+  (2026-11-27).** Noticed in last night's look-and-feel round: after two
+  tries, 3,45 × 100 was worked as "345 × 100 = 34500 → 3,45 × 100 = 345",
+  and 72 : 100 as "0,72 × 100 = 72 → 72 : 100 = 0,72": a detour through
+  a sum harder than the one asked. Groep 7 learns that times 10 moves
+  every figure a place along, so times 100 is that twice (written-form.ts):
+  - 3,45 × 100: "3,45 × 10 = 34,5 → 34,5 × 10 = 345";
+  - 2,4 × 1000: "2,4 × 10 = 24 → 24 × 10 = 240 → 240 × 10 = 2400";
+  - 72 : 100: "72 : 10 = 7,2 → 7,2 : 10 = 0,72".
+
+  Times or shared by 10 is the one step and keeps its line, as does a
+  comma number times a table (2,5 × 4). A spec holds every such sum groep
+  7 is asked to a step per nought, each true, ending on the answer. The
+  grown-ups' plan shows the same line. No first-load change.
 - **Look and feel, run 25: a right answer said louder (2026-11-27).**
   Whole rounds were played as a child on a phone: groep 4 at 320px in nl,
   groep 7 at 390px in en, klas 3 at 360px in es, with no errors. A right
@@ -743,8 +757,8 @@ middle, hard the end), one groep per run.
   its bonus points it takes two lines on a 320px phone, and Next stays on
   screen. question.component.css paid for it by writing its transitions
   as `0.3s` (all and ease are the defaults): the same size as before. The
-  first load is unchanged. Noticed for a questions run: the worked line
-  for 5,29 × 100 goes through 529 × 100 = 52 900, a step harder than the sum.
+  first load is unchanged. (The worked line it noticed for 5,29 × 100 is
+  questions run 22.)
 - **Questions, run 21: a second story where there was one (2026-11-26).**
   Counting the stories that fit each sum, at every moment that tells one,
   found groep 3 and 4 with four per kind of sum but groep 5 to 8 with one

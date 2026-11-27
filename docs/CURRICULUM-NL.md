@@ -121,7 +121,7 @@ it (4 × 1, 1 × 7, 9 : 9 are groep 4's; 2026-11-08).
 | B | Groep 6's end | 23 × 14, 1,5 + 2,7 |
 | M | Big numbers to a million; rounding | 345 678 op duizendtallen |
 | M | Cijferend × and staartdeling | 124 × 36, 864 : 24 |
-| M | Decimals × and : 10, 100, 1000 | 3,45 × 100, 72 : 100 |
+| M | Decimals × and : 10, 100, 1000 (worked a ten at a time after two tries: 3,45 × 10 = 34,5 → 34,5 × 10 = 345) | 3,45 × 100, 72 : 100 |
 | M | Fractions: same denominator; fraction to decimal | 2/8 + 3/8 = ?/8, ¼ = ? |
 | M | Percentages: 50%, 25%, 10% | 25% van 60 |
 | E | Ratios (verhoudingstabel) | 3 pakken €6, 7 pakken €? |
