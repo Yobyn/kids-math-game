@@ -733,6 +733,18 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 25: a right answer said louder (2026-11-27).**
+  Whole rounds were played as a child on a phone: groep 4 at 320px in nl,
+  groep 7 at 390px in en, klas 3 at 360px in es, with no errors. A right
+  answer was a small pale chip under the keypad ("✓ Well worked out!"),
+  where a miss filled the card's width in two lines: the game said less
+  for a right answer than for a wrong one. The praise is now bold and
+  1.3rem (a miss's words are 1.05rem on a phone), in the same green. With
+  its bonus points it takes two lines on a 320px phone, and Next stays on
+  screen. question.component.css paid for it by writing its transitions
+  as `0.3s` (all and ease are the defaults): the same size as before. The
+  first load is unchanged. Noticed for a questions run: the worked line
+  for 5,29 × 100 goes through 529 × 100 = 52 900, a step harder than the sum.
 - **Questions, run 21: a second story where there was one (2026-11-26).**
   Counting the stories that fit each sum, at every moment that tells one,
   found groep 3 and 4 with four per kind of sum but groep 5 to 8 with one
