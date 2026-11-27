@@ -3712,6 +3712,10 @@ describe('QuestionComponent keeping a settled answer readable (2026-10-31)', () 
     component.userAnswer = '16';
     component.checkAnswer();
     component.moveToNextQuestion();
+    // a next question answered with coins, a clock's hands or an arrow has no box: the next one typed is meant
+    while (component.handsOn) {
+      component.generateQuestion();
+    }
     fixture.detectChanges();
     expect(box().readOnly).toBeFalse();
   });
