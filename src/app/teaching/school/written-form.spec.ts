@@ -495,9 +495,10 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     expect(formWorkedStep('tienden', 15, 27, '+')).toBe('15 + 27 = 42 → 1,5 + 2,7 = 4,2');
     expect(formWorkedStep('tienden', 24, 8, '-')).toBe('24 − 8 = 16 → 2,4 − 0,8 = 1,6');
     expect(formWorkedStep('tienden', 3, 7, '+', '.')).toBe('3 + 7 = 10 → 0.3 + 0.7 = 1');
-    expect(formWorkedStep('komma-2', 345, 100, '*')).toBe('345 × 100 = 34500 → 3,45 × 100 = 345');
+    // Times 100 is times 10 twice: every figure a place along each time (2026-11-27)
+    expect(formWorkedStep('komma-2', 345, 100, '*')).toBe('3,45 × 10 = 34,5 → 34,5 × 10 = 345');
     expect(formWorkedStep('komma-2', 250, 4, '*')).toBe('25 × 4 = 100 → 2,5 × 4 = 10');
-    expect(formWorkedStep('komma-3', 72000, 100, '/')).toBe('0,72 × 100 = 72 → 72 : 100 = 0,72');
+    expect(formWorkedStep('komma-3', 72000, 100, '/')).toBe('72 : 10 = 7,2 → 7,2 : 10 = 0,72');
     expect(formWorkedStep('komma-km-m', 25, 1000, '*')).toBe('1 km = 1000 m → 2,5 × 1000 = 2500');
     expect(formWorkedStep('gelijknamig-8', 2, 3, '+')).toBe('2 + 3 = 5 → 2/8 + 3/8 = 5/8');
     expect(formWorkedStep('gelijknamig-6', 5, 4, '-')).toBe('5 − 4 = 1 → 5/6 − 4/6 = 1/6');
@@ -614,6 +615,32 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
     }));
     expect(misses.slice(0, 5)).toEqual([]);
     expect(symbols).toBeGreaterThan(100);
+  });
+
+  it('works times and shared by 100 or 1000 a ten at a time, never through a bigger sum (2026-11-27)', () => {
+    // 3,45 × 100 was worked as "345 × 100 = 34500 → 3,45 × 100 = 345": a sum harder than the one asked
+    expect(formWorkedStep('komma-2', 240, 1000, '*')).toBe('2,4 × 10 = 24 → 24 × 10 = 240 → 240 × 10 = 2400');
+    expect(formWorkedStep('komma-3', 4500, 100, '/')).toBe('4,5 : 10 = 0,45 → 0,45 : 10 = 0,045');
+    expect(formWorkedStep('komma-2', 345, 100, '*', '.')).toBe('3.45 × 10 = 34.5 → 34.5 × 10 = 345');
+    // times or shared by 10 is the one step it was, and a comma number times a table too
+    expect(formWorkedStep('komma-2', 345, 10, '*')).toBe('345 × 10 = 3450 → 3,45 × 10 = 34,5');
+    expect(formWorkedStep('komma-2', 250, 4, '*')).toBe('25 × 4 = 100 → 2,5 × 4 = 10');
+    // every one groep 7 is asked: a step for each nought, each times or shared by 10, true, ending on the answer
+    const misses: string[] = [];
+    made('komma-maal-10', 400).filter(sum => sum.num2 >= 100).forEach(sum => {
+      const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
+      const places = placesOf(sum.form);
+      const steps = line.split(' → ').map(step => step.match(/^([\d,]+) ([×:]) 10 = ([\d,]+)$/));
+      const value = (text: string) => Number(text.replace(',', '.'));
+      const answer = sum.operation === '*' ? sum.num1 * sum.num2 : sum.num1 / sum.num2;
+      const ok = steps.length === String(sum.num2).length - 1
+        && steps.every(step => step && Math.abs((step[2] === '×' ? value(step[1]) * 10 : value(step[1]) / 10) - value(step[3])) < 1e-9)
+        && Math.abs(value(steps[steps.length - 1]![3]) - answer / 10 ** places) < 1e-9;
+      if (!ok) {
+        misses.push(`${sum.num1} ${sum.operation} ${sum.num2}: ${line}`);
+      }
+    });
+    expect(misses.slice(0, 5)).toEqual([]);
   });
 
   it('works a double or a half to 100 out in tens and ones, as groep 4 and 5 split it (2026-11-24)', () => {
@@ -906,7 +933,9 @@ describe('the written forms of groep 3 to 5 (question/sum-form.ts)', () => {
 
   it('works a comma sum out in whole units and as written, both true, ending on the answer', () => {
     const misses: string[] = [];
-    ['komma-maal-10', 'kommagetal-keer', 'metriek'].forEach(topic => made(topic).forEach(sum => {
+    // times or shared by 100 or 1000 goes a ten at a time instead (the spec above)
+    ['komma-maal-10', 'kommagetal-keer', 'metriek'].forEach(topic => made(topic).filter(sum => !(/^komma-[23]$/.test(sum.form || '')
+        && sum.num2 >= 100)).forEach(sum => {
       const line = formWorkedStep(sum.form, sum.num1, sum.num2, sum.operation)!;
       const steps = line.split(' → ');
       if (steps.length !== 2 || !steps.every(step => holds(step, 0)) || !line.endsWith(decimal(answer(sum), placesOf(sum.form)))) {

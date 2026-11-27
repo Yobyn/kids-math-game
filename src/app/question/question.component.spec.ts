@@ -2632,7 +2632,7 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     expect(card()[0]).toBe('3 paquetes cuestan €6');
   });
 
-  it('gives 0,72 as the answer to 72 : 100 after two tries, with the times it undoes', () => {
+  it('gives 0,72 as the answer to 72 : 100 after two tries, shared by 10 a step at a time', () => {
     build('nl');
     ask({ num1: 72000, num2: 100, operation: '/', form: 'komma-3' });
     component.userAnswer = '7';
@@ -2640,7 +2640,8 @@ describe('QuestionComponent asking the written forms (sum-form.ts)', () => {
     component.userAnswer = '7';
     component.checkAnswer();
     expect(component.feedback).toContain('0,72');
-    expect(component.workedLine).toBe('0,72 × 100 = 72 → 72 : 100 = 0,72');
+    // shared by 10 twice: every figure a place along each time (2026-11-27)
+    expect(component.workedLine).toBe('72 : 10 = 7,2 → 7,2 : 10 = 0,72');
   });
 
   it('marks 300 for 3 m = ? cm', () => {
@@ -3711,6 +3712,10 @@ describe('QuestionComponent keeping a settled answer readable (2026-10-31)', () 
     component.userAnswer = '16';
     component.checkAnswer();
     component.moveToNextQuestion();
+    // a next question answered with coins, a clock's hands or an arrow has no box: the next one typed is meant
+    while (component.handsOn) {
+      component.generateQuestion();
+    }
     fixture.detectChanges();
     expect(box().readOnly).toBeFalse();
   });

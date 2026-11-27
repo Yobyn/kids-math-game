@@ -197,7 +197,7 @@ describe('the facts an adult is asked to practise', () => {
 
     expect(plan.facts[0].question).toBe('72 ÷ 100');
     expect(plan.facts[0].answer).toBe('0,72');
-    expect(plan.facts[0].worked).toBe('0,72 × 100 = 72 → 72 : 100 = 0,72');
+    expect(plan.facts[0].worked).toBe('72 : 10 = 7,2 → 7,2 : 10 = 0,72');
   });
 
   it('gives the grown-ups the rest of groep 7 as it was asked, with the way to each', () => {

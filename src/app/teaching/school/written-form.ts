@@ -1050,6 +1050,20 @@ function dutchWorkedStep(form: SumForm | undefined, num1: number, num2: number,
     case 'komma-3': {
       const places = placesOf(form);
       const written = decimal(num1, places, point);
+      // Times or shared by 100 or 1000 (2026-11-27): a ten at a time, every figure a place along each
+      // time, as groep 7 shifts it. 3,45 × 100 as 3,45 × 10 = 34,5 and 34,5 × 10 = 345, never through
+      // 345 × 100. Times or shared by 10 is the one step, and keeps its line
+      if (num2 === 100 || num2 === 1000) {
+        const sign = operation === '/' ? ':' : '×';
+        const steps: string[] = [];
+        let at = num1;
+        for (let unit = 10; unit <= num2; unit *= 10) {
+          const next = operation === '/' ? at / 10 : at * 10;
+          steps.push(`${decimal(at, places, point)} ${sign} 10 = ${decimal(next, places, point)}`);
+          at = next;
+        }
+        return steps.join(' → ');
+      }
       if (operation === '/') {
         const quotient = decimal(num1 / num2, places, point);
         return `${quotient} × ${num2} = ${written} → ${written} : ${num2} = ${quotient}`;
