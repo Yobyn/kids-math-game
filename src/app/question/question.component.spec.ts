@@ -3230,6 +3230,8 @@ describe('QuestionComponent asking where a number goes on the line (waar hoort 4
     expect(component.answerWasCorrect).toBeTrue();
     fixture.detectChanges();
     expect(drawn()!.disabled).toBeTrue();
+    // and the line says the number beside its arrow (2026-11-28)
+    expect(drawn()!.said).toBe('47');
   });
 
   it('leaves the arrow for a second try, and after two puts it where the number goes, with the line worked out', () => {
@@ -3351,6 +3353,25 @@ describe('QuestionComponent asking at a number line (de getallenlijn, Yobyn 2026
     expect(row.textContent).not.toContain('40');
     expect(row.textContent).not.toContain('+');
     expect(page.textContent).not.toContain('47');
+  });
+
+  it('says the number beside the arrow once answered, right or given, and not before (2026-11-28)', () => {
+    build();
+    ask('getallenlijn-1', 40, 7);
+    const line = () => fixture.debugElement.query(By.directive(NumberLineComponent)).componentInstance as NumberLineComponent;
+    expect(line().said).toBeNull();
+    type('47');
+    component.checkAnswer();
+    fixture.detectChanges();
+    expect(line().said).toBe('47');
+    ask('getallenlijn-tiende', 30, 7);
+    expect(line().said).toBeNull();
+    component.userAnswer = '9';
+    component.checkAnswer();
+    component.userAnswer = '8';
+    component.checkAnswer();
+    fixture.detectChanges();
+    expect(line().said).toBe('3,7');
   });
 
   it('marks the number at the arrow right, and gives it with the line worked out after two tries', () => {

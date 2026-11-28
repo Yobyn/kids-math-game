@@ -51,6 +51,7 @@
     <ng-container *ngIf="numberLineForm as lineForm">
       <p class="money-prompt">{{ languageService.translate('line-ask') }}</p>
       <app-number-line [form]="lineForm" [num1]="currentQuestion.num1" [num2]="currentQuestion.num2" [point]="decimalSign"
+                       [said]="lineSaid"
                        [label]="languageService.translate('line-label')"></app-number-line>
     </ng-container>
 
@@ -62,6 +63,7 @@
                        [placing]="true"
                        [chosen]="lineShown"
                        [missed]="lineMissed"
+                       [said]="lineSaid"
                        [disabled]="showOkButton"
                        [label]="languageService.translate('line-label')"
                        [hint]="languageService.translate('line-place-hint')"

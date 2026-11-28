@@ -25,6 +25,9 @@
   <g class="arrow" *ngIf="showArrow" [attr.transform]="'translate(' + arrowX + ' 0)'">
     <line x1="0" x2="0" y1="3" y2="16"></line>
     <path d="M-6 13 L0 23 L6 13 z"></path>
+    <!-- Answered: the number, beside the arrow -->
+    <text *ngIf="said !== null" class="said" [attr.x]="saidLeft ? -9 : 9" y="15"
+          [attr.text-anchor]="saidLeft ? 'end' : 'start'">{{ said }}</text>
   </g>
 </svg>
 <p class="hint" *ngIf="placing && hint && !disabled">{{ hint }}</p>

@@ -876,6 +876,16 @@ export class QuestionComponent implements AfterViewChecked, OnInit, OnDestroy {
     return this.answerGiven && this.linePick !== null && this.linePick !== this.lineShown ? this.linePick : null;
   }
 
+  /** Once answered, right or given (2026-11-28): the number at the arrow, for the line to say beside it. */
+  get lineSaid(): string | null {
+    const form = this.numberLineForm || this.linePlaceForm;
+    if (!form || !this.showOkButton) {
+      return null;
+    }
+    const line = numberLine(form, this.currentQuestion.num1, this.currentQuestion.num2);
+    return lineValue(line, markValue(line, line.arrow), this.decimalSign);
+  }
+
   chooseMark(mark: number) {
     this.linePick = mark;
     this.vibrate(5);

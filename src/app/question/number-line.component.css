@@ -97,3 +97,10 @@
   text-align: center;
   color: var(--text-read-dim);
 }
+
+/* Answered: the number beside the arrow, in the right answer's green */
+.arrow .said {
+  fill: var(--good);
+  font-size: 17px;
+  font-weight: bold;
+}

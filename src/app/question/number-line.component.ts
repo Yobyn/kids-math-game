@@ -46,6 +46,11 @@ export class NumberLineComponent {
    * where the number goes, so they see how far off it was. Null when there is none to show.
    */
   @Input() missed: number | null = null;
+  /**
+   * Once answered, right or given (2026-11-28): the number at the arrow, said beside it, so the line
+   * and the box say the same. Null before.
+   */
+  @Input() said: string | null = null;
   @Input() disabled = false;
   /** "Tik of sleep de pijl": said under the line until it is answered. */
   @Input() hint = '';
@@ -88,6 +93,11 @@ export class NumberLineComponent {
 
   get missedX(): number | null {
     return this.placing && this.missed !== null ? this.at(this.missed) : null;
+  }
+
+  /** The number said on the arrow's left near the line's right end, where its right has no room. */
+  get saidLeft(): boolean {
+    return this.arrowX > LINE_WIDTH - 70;
   }
 
   get showArrow(): boolean {
