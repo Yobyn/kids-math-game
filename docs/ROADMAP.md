@@ -733,6 +733,18 @@ middle, hard the end), one groep per run.
   eerlijk over 1 kinderen", and 8 × 1 as "8 zakjes met elk 1 snoepje". Not
   told as stories: a double, a half, rounding, tenths, and fractions as
   such (breuk-van, gelijke breuken).
+- **Look and feel, run 26: the line says its number (2026-11-28).** Whole
+  rounds were played as a child on a phone: groep 3 at 360px in es, groep
+  6 at 390px in nl, klas 2 at 320px in en, with no errors. Once a number
+  line was answered, the number stood only in the box under it, and the
+  line itself never said it: right or given after two tries, nothing
+  joined "47" in the box to the arrow above. Now, once answered, the line
+  says the number beside its arrow in the right answer's green, as large
+  as the line's own numbers (`said` on number-line.component, `lineSaid`
+  on the question); read or placed, with the school's comma or point.
+  Near the right end it stands on the arrow's left, so "10 000"'s
+  neighbour stays inside the drawing. Its own CSS; the question card's is
+  unchanged; first load unchanged.
 - **Questions, run 22: times and shared by 100 or 1000 a ten at a time
   (2026-11-27).** Noticed in last night's look-and-feel round: after two
   tries, 3,45 × 100 was worked as "345 × 100 = 34500 → 3,45 × 100 = 345",

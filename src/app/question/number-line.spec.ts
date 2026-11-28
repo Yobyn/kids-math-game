@@ -204,6 +204,28 @@ describe('de getallenlijn (Yobyn, 2026-11-23)', () => {
       expect(texts(draw('getallenlijn-1000', 0, 3000))).toEqual(['0', '10 000']);
     });
 
+    it('says the number beside the arrow once it is answered, inside the drawing at either end (2026-11-28)', () => {
+      draw('getallenlijn-1', 40, 7);
+      expect(fixture.nativeElement.querySelector('.said')).toBeNull();
+      Object.assign(fixture.componentInstance, { said: '47' });
+      fixture.detectChanges();
+      const said = fixture.nativeElement.querySelector('.arrow .said') as SVGTextElement;
+      expect(said.textContent!.trim()).toBe('47');
+      // the widest, at the last mark before the end, stays inside the drawing
+      fixture.nativeElement.style.width = '290px';
+      document.body.appendChild(fixture.nativeElement);
+      for (const [form, num1, num2, text] of [['getallenlijn-1000', 0, 9000, '9000'], ['getallenlijn-20', 0, 19, '19'],
+        ['getallenlijn-1', 40, 1, '41']] as [NumberLineForm, number, number, string][]) {
+        Object.assign(fixture.componentInstance, { form, num1, num2, said: text });
+        fixture.detectChanges();
+        const box = (fixture.nativeElement.querySelector('svg') as SVGElement).getBoundingClientRect();
+        const own = (fixture.nativeElement.querySelector('.said') as SVGElement).getBoundingClientRect();
+        expect(own.left).withContext(text).toBeGreaterThanOrEqual(box.left);
+        expect(own.right).withContext(text).toBeLessThanOrEqual(box.right);
+      }
+      fixture.nativeElement.remove();
+    });
+
     it('is read aloud as a number line, never as its answer, and has an arrowhead at each end', () => {
       const svg = draw('getallenlijn-1', 40, 7);
       expect(svg.getAttribute('role')).toBe('img');
